@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane stylesheets="@styles.css" fx:id="racine" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CrazyDiamond.Controller.PanneauPrincipal">
+    <top>
+      <VBox>
+         <BorderPane.margin>
+            <Insets />
+         </BorderPane.margin>
+         <children>
+<!--            <MenuBar>-->
+<!--              <menus>-->
+<!--                <Menu mnemonicParsing="false" text="File">-->
+<!--                  <items>-->
+<!--                    <MenuItem mnemonicParsing="false" text="Close" />-->
+<!--                  </items>-->
+<!--                </Menu>-->
+<!--                <Menu mnemonicParsing="false" text="Edit">-->
+<!--                  <items>-->
+<!--                    <MenuItem mnemonicParsing="false" text="Delete" />-->
+<!--                  </items>-->
+<!--                </Menu>-->
+<!--                <Menu mnemonicParsing="false" text="Help">-->
+<!--                  <items>-->
+<!--                    <MenuItem mnemonicParsing="false" text="About" />-->
+<!--                  </items>-->
+<!--                </Menu>-->
+<!--              </menus>-->
+<!--            </MenuBar>-->
+              <HBox>
+                  <ToolBar HBox.hgrow="ALWAYS">
+                  <Button fx:id="nouveau" onAction="#traiterNouvelEnvironnement" mnemonicParsing="false" text="%nouveau" />
+                  <Button fx:id="charger" onAction="#traiterChargerEnvironnement" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="%charger" />
+                  <Button fx:id="sauvegarder" onAction="#traiterSauvegarderEnvironnement" layoutX="70.0" layoutY="10.0" mnemonicParsing="false" text="%sauvegarder" />
+                  <Button fx:id="sauvegarder_sous" onAction="#traiterSauvegarderEnvironnementSous" layoutX="70.0" layoutY="10.0" mnemonicParsing="false" text="%sauvegarder_sous" />
+                  <Separator layoutX="361.0" layoutY="10.0">
+                     <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </padding>
+                  </Separator>
+                  <ToggleButton fx:id="selection" mnemonicParsing="false" selected="true" text="%selectionner">
+                     <toggleGroup>
+                               <ToggleGroup fx:id="choix_mode" />
+                     </toggleGroup>
+                  </ToggleButton>
+                  <Separator>
+                     <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </padding>
+                  </Separator>
+      <!--                 <ToggleButton fx:id="ajout_source" text="%ajouter.source" toggleGroup="$choix_mode" />-->
+                       <ToggleButton fx:id="ajout_source" text="%ajouter.source" toggleGroup="$choix_mode" />
+                       <Separator>
+                      <padding>
+                          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                      </padding>
+                       </Separator>
+                       <ToggleButton fx:id="ajout_demi_plan" text="%ajouter.demiplan" toggleGroup="$choix_mode" />
+                       <ToggleButton fx:id="ajout_segment" text="%ajouter.segment" toggleGroup="$choix_mode" />
+                       <ToggleButton fx:id="ajout_prisme" text="%ajouter.prisme" toggleGroup="$choix_mode" />
+                       <ToggleButton fx:id="ajout_rectangle" text="%ajouter.rectangle" toggleGroup="$choix_mode" />
+                       <ToggleButton fx:id="ajout_cercle" text="%ajouter.cercle" toggleGroup="$choix_mode" />
+                       <ToggleButton fx:id="ajout_conique" text="%ajouter.conique" toggleGroup="$choix_mode" />
+                       <Separator>
+                           <padding>
+                               <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                           </padding>
+                       </Separator>
+                       <ToggleButton fx:id="ajout_composition" onAction="#traiterCreationComposition" text="%ajouter.composition" toggleGroup="$choix_mode" />
+                      <Separator>
+                          <padding>
+                              <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                          </padding>
+                      </Separator>
+                      <ToggleButton fx:id="ajout_axe_soc" text="%ajouter.axe_soc" toggleGroup="$choix_mode" />
+                  </ToolBar>
+                       <ToolBar HBox.hgrow="NEVER">
+      <!--                     <MenuButton fx:id="paramètres" onAction="#traiterDefinitionParametresEnvironnement" text="%parametres">-->
+                           <MenuButton text="%parametres">
+                               <items>
+                                   <MenuItem onAction="#traiterDefinitionParametresEnvironnement" text="%parametres.environnement" />
+                                   <MenuItem onAction="#traiterDefinitionParametresAffichage" text="%parametres.affichage_env" />
+                               </items>
+                           </MenuButton>
+      
+                       </ToolBar>
+                   </HBox>
+         </children>
+      </VBox>
+
+    </top>
+    <left>
+        <AnchorPane>
+            <SplitPane fx:id="split_pane" dividerPositions="0.33, 0.66" orientation="VERTICAL" prefWidth="202.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" BorderPane.alignment="CENTER">
+                <items>
+                    <AnchorPane prefHeight="200.0" prefWidth="200.0" SplitPane.resizableWithParent="false">
+                        <children>
+                            <VBox alignment="TOP_CENTER" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                <children>
+                                    <Label alignment="TOP_CENTER" text="Sources" />
+<!--                           <ScrollPane fitToHeight="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">-->
+<!--                              <content>-->
+                                 <ListView fx:id="listview_sources" prefWidth="200.0" VBox.vgrow="ALWAYS" />
+<!--                              </content>-->
+<!--                           </ScrollPane>-->
+                                </children>
+                            </VBox>
+                        </children>
+                    </AnchorPane>
+                    <AnchorPane prefHeight="200.0" prefWidth="200.0" SplitPane.resizableWithParent="false">
+                        <children>
+                            <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                <children>
+                                    <Label alignment="TOP_CENTER" text="Obstacles" />
+<!--                           <ScrollPane fitToHeight="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">-->
+<!--                              <content>-->
+                                 <TreeView fx:id="treeview_obstacles" prefWidth="200.0" VBox.vgrow="ALWAYS" />
+<!--                              </content>-->
+<!--                           </ScrollPane>-->
+                                </children>
+                            </VBox>
+                        </children>
+                    </AnchorPane>
+                    <AnchorPane prefHeight="200.0" prefWidth="200.0" SplitPane.resizableWithParent="false">
+                        <children>
+                            <VBox alignment="TOP_CENTER" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                <children>
+                                    <Label alignment="TOP_CENTER" text="Systèmes optiques centrés" />
+<!--                                    <ScrollPane fitToHeight="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">-->
+<!--                                        <content>-->
+                                            <ListView fx:id="listview_socs" prefWidth="200.0" VBox.vgrow="ALWAYS" />
+<!--                                        </content>-->
+<!--                                    </ScrollPane>-->
+                                </children>
+                            </VBox>
+                        </children>
+                    </AnchorPane>
+                </items>
+            </SplitPane>
+        </AnchorPane>
+    </left>
+    <right>
+        <ScrollPane fx:id="scrollpane_droit_element_courant" fitToWidth="true" hbarPolicy="NEVER" prefHeight="619.0" prefWidth="210.0" vbarPolicy="AS_NEEDED">
+<content>
+     <fx:include fx:id="panneauParametresEnvironnement" source="PanneauParametresEnvironnement.fxml" />
+
+<!--    <VBox alignment="TOP_CENTER" prefHeight="510.0" prefWidth="201.0" spacing="2.0">-->
+<!--                         <children>-->
+<!--                            <Label text="Couleur fond" />-->
+<!--                            <ColorPicker id="colorpicker_fond" fx:id="color_picker" editable="true" />-->
+<!--                         </children>-->
+<!--                         <padding>-->
+<!--                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />-->
+<!--                         </padding>-->
+<!--                      </VBox>-->
+
+</content>
+<!--               <TabPane fx:id="tab_pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" side="RIGHT" tabClosingPolicy="ALL_TABS" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1">-->
+<!--                <tabs>-->
+<!--                <Tab fx:id="tab_environnement" closable="false" text="Environnement">-->
+<!--               <content>-->
+<!--                  <VBox alignment="TOP_CENTER" prefHeight="510.0" prefWidth="201.0" spacing="2.0">-->
+<!--                     <children>-->
+<!--                        <Label text="Couleur fond" />-->
+<!--                        <ColorPicker id="colorpicker_fond" fx:id="color_picker" editable="true" />-->
+<!--                     </children>-->
+<!--                     <padding>-->
+<!--                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />-->
+<!--                     </padding>-->
+<!--                  </VBox>-->
+<!--               </content></Tab>-->
+<!--                </tabs>-->
+<!--             </TabPane>-->
+        </ScrollPane>
+    </right>
+   <bottom>
+       <VBox maxHeight="-Infinity">
+           <children>
+               <HBox alignment="BOTTOM_LEFT">
+                 <children>
+                    <Label fx:id="label_gauche" maxWidth="1.7976931348623157E308" text="Label" HBox.hgrow="ALWAYS" />
+                    <Label fx:id="label_droit" alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" text="Label" HBox.hgrow="ALWAYS" />
+                 </children>
+               </HBox>
+<!--               <ScrollPane fx:id="scrollpane_bas_element_courant" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" minHeight="0.0" prefWidth="1290.0" />-->
+               <AnchorPane fx:id="anchorpane_bas_element_courant" minHeight="0.0" prefWidth="1290.0" />
+           </children>
+       </VBox>
+   </bottom>
+</BorderPane>

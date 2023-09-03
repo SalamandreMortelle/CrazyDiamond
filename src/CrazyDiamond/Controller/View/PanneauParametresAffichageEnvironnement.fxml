@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefWidth="201.0" spacing="5.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CrazyDiamond.Controller.PanneauParametresAffichageEnvironnement">
+        <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+        </padding>
+
+    <Label text="Paramètres affichage environnement" textAlignment="CENTER" wrapText="true">
+      <font>
+         <Font name="System Bold" size="12.0" />
+      </font>
+   </Label>
+
+   <CheckBox fx:id="checkbox_normales_visibles" alignment="TOP_LEFT" graphicTextGap="400.0" mnemonicParsing="false" text="Afficher les normales" wrapText="true">
+      <padding>
+         <Insets top="10.0" />
+      </padding>
+   </CheckBox>
+   <Label text="Couleur des normales" />
+   <ColorPicker fx:id="colorpicker_couleurs_normales" editable="true" />
+
+    <Separator>
+        <padding>
+            <Insets top="5.0" />
+        </padding>
+    </Separator>
+
+    <CheckBox fx:id="checkbox_prolongements_avant_visibles" alignment="TOP_LEFT" graphicTextGap="400.0" mnemonicParsing="false" text="Prolonger les rayons vers l'avant" wrapText="true" />
+
+    <CheckBox fx:id="checkbox_prolongements_arriere_visibles" alignment="TOP_LEFT" graphicTextGap="400.0" mnemonicParsing="false" prefHeight="37.0" prefWidth="191.0" text="Prolonger les rayons vers l'arrière" wrapText="true" />
+
+</VBox>

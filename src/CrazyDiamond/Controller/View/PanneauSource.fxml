@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<?import javafx.scene.control.CheckBox?>
+<VBox alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="640.0" prefWidth="201.0"
+      spacing="2.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CrazyDiamond.Controller.PanneauSource">
+   <children>
+      <Label text="Source">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+      </Label>
+      <fx:include fx:id="baseElementIdentifie" source="PanneauElementIdentifie.fxml" />
+      <HBox alignment="TOP_CENTER" spacing="5.0">
+         <children>
+            <Label contentDisplay="RIGHT" text="X">
+               <padding>
+                  <Insets top="3.0" />
+               </padding>
+            </Label>
+<!--            <Spinner fx:id="spinner_x" amountToStepBy="0.1" editable="true" initialValue="0.0" min="%spinner_distance_min"  max="%spinner_distance_max" />-->
+            <Spinner fx:id="spinner_x" amountToStepBy="0.1" editable="true"  min="%spinner_distance_min"  max="%spinner_distance_max" initialValue="0.0d" />
+         </children>
+         <padding>
+            <Insets top="5.0" />
+         </padding>
+      </HBox>
+      <HBox alignment="TOP_CENTER" spacing="5.0">
+         <children>
+            <Label text="Y">
+               <padding>
+                  <Insets top="3.0" />
+               </padding>
+            </Label>
+            <Spinner fx:id="spinner_y" amountToStepBy="0.1" editable="true" initialValue="0.0" min="%spinner_distance_min"  max="%spinner_distance_max" />
+         </children>
+         <padding>
+            <Insets top="5.0" />
+         </padding>
+      </HBox>
+      <Label text="Orientation (°)" />
+      <Spinner fx:id="spinner_orientation" amountToStepBy="5.0" editable="true" initialValue="0.0" max="360.0" min="0.0" />
+      <Slider fx:id="slider_orientation" majorTickUnit="45.0" max="360.0" min="0.0" minorTickCount="5" showTickLabels="true" showTickMarks="true" snapToTicks="true" />
+      <Label text="Nb. rayons" />
+      <Spinner fx:id="spinner_nombre_rayons" editable="true" max="10000" min="1" />
+      <HBox alignment="TOP_CENTER" spacing="5.0">
+         <children>
+            <VBox spacing="2.0">
+               <children>
+                  <ToggleButton fx:id="choix_pinceau" maxWidth="1.7976931348623157E308" mnemonicParsing="false" selected="true" text="Pinceau" textAlignment="CENTER">
+                     <toggleGroup>
+                        <ToggleGroup fx:id="choix_type_source" />
+                     </toggleGroup>
+                  </ToggleButton>
+                  <Label fx:id="label_pinceau" text="Ouverture (°)" />
+                  <Spinner fx:id="spinner_ouverture_pinceau" amountToStepBy="5.0" editable="true" initialValue="0.0" max="360.0" min="0.0" />
+                  <Slider fx:id="slider_ouverture_pinceau" majorTickUnit="90.0" max="360.0" min="0.0" minorTickCount="8" showTickLabels="true" showTickMarks="true" snapToTicks="true" />
+               </children>
+            </VBox>
+            <Separator orientation="VERTICAL">
+               <padding>
+                  <Insets left="5.0" />
+               </padding>
+            </Separator>
+            <VBox spacing="2.0">
+               <children>
+                  <ToggleButton fx:id="choix_projecteur" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Projecteur" textAlignment="CENTER" toggleGroup="$choix_type_source" />
+                  <Label fx:id="label_projecteur" disable="true" text="Largeur">
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                  </Label>
+                  <Spinner fx:id="spinner_largeur_projecteur" amountToStepBy="0.1" disable="true" editable="true" initialValue="0.0" max="%spinner_largeur_projecteur_source_max" min="0.0">
+                     <VBox.margin>
+                        <Insets top="2.0" />
+                     </VBox.margin>
+                  </Spinner>
+               </children>
+            </VBox>
+         </children>
+         <VBox.margin>
+            <Insets />
+         </VBox.margin>
+         <padding>
+            <Insets bottom="5.0" top="10.0" />
+         </padding>
+      </HBox>
+      <Separator>
+         <padding>
+            <Insets top="5.0" />
+         </padding>
+      </Separator>
+      <Label text="Nb. réflexions/réfractions" />
+      <Spinner fx:id="spinner_nombre_reflexions" editable="true" max="1000" min="0" />
+      <Separator>
+         <padding>
+            <Insets top="5.0" />
+         </padding>
+      </Separator>
+      <Label text="Couleur" />
+      <ColorPicker fx:id="colorpicker" editable="true" />
+
+      <Separator>
+         <padding>
+            <Insets top="5.0" />
+         </padding>
+      </Separator>
+      <CheckBox fx:id="checkbox_polarisation" alignment="TOP_LEFT" mnemonicParsing="false"  text="Lumière polarisée" />
+      <Label fx:id="label_orientation_champ_electrique" text="Orientation champ électrique (°)" disable="true" />
+      <Spinner fx:id="spinner_orientation_champ_electrique" amountToStepBy="5.0" editable="true" initialValue="0.0" max="180.0" min="0.0" disable="true"/>
+      <Slider fx:id="slider_orientation_champ_electrique" majorTickUnit="30.0" max="180.0" min="0.0" minorTickCount="10" showTickLabels="true" showTickMarks="true" snapToTicks="true" disable="true" />
+
+   </children>
+   <padding>
+      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+   </padding>
+</VBox>

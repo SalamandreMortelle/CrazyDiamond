@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.paint.Color?>
+
+<VBox alignment="TOP_CENTER" prefWidth="201.0" spacing="2.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CrazyDiamond.Controller.PanneauElementAvecMatiere">
+
+    <padding>
+        <Insets top="10.0" />
+    </padding>
+    <Separator prefWidth="200.0">
+<!--        <VBox.margin>-->
+<!--            <Insets top="10.0" />-->
+<!--        </VBox.margin>-->
+    </Separator>
+      <!--         <RadioButton fx:id="choix_reflechissant" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" selected="true" text="Réflechissant">-->
+      <!--            <toggleGroup>-->
+      <!--               <ToggleGroup fx:id="choix_nature_milieu" />-->
+      <!--            </toggleGroup>-->
+      <!--         </RadioButton>-->
+      <Label text="Nature milieu" />
+
+    <VBox spacing="5.0">
+        <children>
+            <RadioButton fx:id="choix_absorbant" mnemonicParsing="false" text="Absorbant">
+            <toggleGroup>
+                    <ToggleGroup fx:id="choix_nature_milieu" />
+            </toggleGroup>
+            </RadioButton>
+
+            <HBox prefWidth="200.0" spacing="5.0">
+                <children>
+                <RadioButton fx:id="choix_transparent" mnemonicParsing="false" selected="true" text="Transparent : " toggleGroup="$choix_nature_milieu" />
+
+
+                    <VBox prefWidth="100.0">
+                        <children>
+                            <Label fx:id="label_indice" text="Indice refraction">
+                                <VBox.margin>
+                                    <Insets />
+                                </VBox.margin>
+                            </Label>
+                            <Spinner fx:id="spinner_indice_refraction" amountToStepBy="0.01" editable="true" initialValue="1.0" max="1.999" min="1.0">
+                                <VBox.margin>
+                                    <Insets top="2.0" />
+                                </VBox.margin>
+                            </Spinner>
+                        </children>
+                    </VBox>
+                </children>
+                <opaqueInsets>
+                    <Insets />
+                </opaqueInsets>
+            </HBox>
+      </children>
+   </VBox>
+
+<Separator prefWidth="200.0" />
+<Label text="Position matière" />
+<VBox prefHeight="0.0" prefWidth="200.0" spacing="5.0">
+  <children>
+        <RadioButton fx:id="choix_convexe" mnemonicParsing="false" selected="true" text="Intérieur" textAlignment="CENTER">
+      <toggleGroup>
+                <ToggleGroup fx:id="choix_convexite" />
+      </toggleGroup>
+        </RadioButton>
+        <RadioButton fx:id="choix_concave" mnemonicParsing="false" text="Extérieur" textAlignment="CENTER" toggleGroup="$choix_convexite" />
+  </children>
+</VBox>
+<Separator prefWidth="200.0" />
+<Label text="Couleur matière" />
+<ColorPicker fx:id="colorpicker_matiere" editable="true">
+  <value>
+      <Color red="0.501960813999176" green="0.501960813999176" blue="0.501960813999176" />
+  </value>
+</ColorPicker>
+</VBox>

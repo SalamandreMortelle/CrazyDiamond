@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.geometry.Insets?>
+<VBox alignment="TOP_CENTER" spacing="2.0" xmlns="http://javafx.com/javafx/16"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="CrazyDiamond.Controller.PanneauElementIdentifie">
+    <padding>
+        <Insets top="10.0" />
+    </padding>
+    <Label contentDisplay="RIGHT" text="Nom" />
+    <TextField id="textfield_nom" fx:id="textfield_nom">
+        <VBox.margin>
+            <Insets bottom="5.0" />
+        </VBox.margin>
+    </TextField>
+
+</VBox>

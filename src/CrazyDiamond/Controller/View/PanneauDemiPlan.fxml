@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefWidth="201.0" spacing="2.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CrazyDiamond.Controller.PanneauDemiPlan">
+<children>
+      <Label text="Demi-plan">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+      </Label>
+    <fx:include fx:id="baseElementIdentifie" source="PanneauElementIdentifie.fxml" />
+
+    <HBox alignment="TOP_CENTER" spacing="5.0">
+        <children>
+            <Label contentDisplay="RIGHT" minWidth="-Infinity" text="X origine">
+                <padding>
+                    <Insets top="3.0" />
+                </padding>
+            </Label>
+            <Spinner fx:id="spinner_xorigine" amountToStepBy="0.1" editable="true" initialValue="0.0" min="%spinner_distance_min"  max="%spinner_distance_max" />
+        </children>
+        <padding>
+            <Insets top="5.0" />
+        </padding>
+    </HBox>
+    <HBox alignment="TOP_CENTER" spacing="5.0">
+        <children>
+            <Label minWidth="-Infinity" text="Y origine">
+                <padding>
+                    <Insets top="3.0" />
+                </padding>
+            </Label>
+            <Spinner fx:id="spinner_yorigine" amountToStepBy="0.1" editable="true" initialValue="0.0" min="%spinner_distance_min"  max="%spinner_distance_max" />
+        </children>
+        <padding>
+            <Insets top="5.0" />
+        </padding>
+    </HBox>
+
+    <Label text="Orientation (°)" />
+    <Spinner fx:id="spinner_orientation" amountToStepBy="5.0" editable="true" initialValue="0.0" max="360.0" min="0.0" />
+    <Slider fx:id="slider_orientation" majorTickUnit="45.0" max="360.0" min="0.0" minorTickCount="5" showTickLabels="true" showTickMarks="true" snapToTicks="true" />
+
+    <fx:include fx:id="baseContour" source="PanneauElementAvecContour.fxml" />
+    <fx:include fx:id="baseMatiere" source="PanneauElementAvecMatiere.fxml" />
+
+</children>
+<padding>
+    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+</padding>
+</VBox>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<?import javafx.scene.control.Slider?>
+<VBox alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+      prefWidth="201.0" spacing="2.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="CrazyDiamond.Controller.PanneauPrisme">
+   <children>
+      <Label text="Prisme">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+      </Label>
+      <fx:include fx:id="baseElementIdentifie" source="PanneauElementIdentifie.fxml" />
+
+      <HBox alignment="TOP_CENTER" spacing="5.0">
+         <children>
+            <Label contentDisplay="RIGHT" minWidth="-Infinity" text="X centre">
+               <padding>
+                  <Insets top="3.0" />
+               </padding>
+            </Label>
+            <Spinner fx:id="spinner_xcentre" amountToStepBy="0.1" editable="true" initialValue="0.0" min="%spinner_distance_min"  max="%spinner_distance_max" />
+         </children>
+         <padding>
+            <Insets top="5.0" />
+         </padding>
+      </HBox>
+      <HBox alignment="TOP_CENTER" spacing="5.0">
+         <children>
+            <Label minWidth="-Infinity" text="Y centre">
+               <padding>
+                  <Insets top="3.0" />
+               </padding>
+            </Label>
+            <Spinner fx:id="spinner_ycentre" amountToStepBy="0.1" editable="true" initialValue="0.0" min="%spinner_distance_min"  max="%spinner_distance_max" />
+         </children>
+         <padding>
+            <Insets top="5.0" />
+         </padding>
+      </HBox>
+      <HBox alignment="TOP_CENTER" spacing="5.0">
+         <children>
+            <Label contentDisplay="RIGHT" minWidth="-Infinity" text="Largeur base">
+               <padding>
+                  <Insets top="3.0" />
+               </padding>
+            </Label>
+            <Spinner fx:id="spinner_largeur_base" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0"  max="%spinner_distance_max" />
+         </children>
+         <padding>
+            <Insets top="5.0" />
+         </padding>
+      </HBox>
+
+<!--      <HBox alignment="TOP_CENTER" spacing="5.0">-->
+<!--         <children>-->
+<!--            <Label text="Angle au sommet (°)" />-->
+<!--            <Spinner fx:id="spinner_angle_sommet" amountToStepBy="5.0" editable="true" initialValue="0.0" max="180.0" min="0.0" />-->
+<!--            <Slider fx:id="slider_angle_sommet" majorTickUnit="15.0" max="180.0" min="0.0" minorTickCount="5" showTickLabels="true" showTickMarks="true" snapToTicks="true" />-->
+<!--         </children>-->
+<!--         <padding>-->
+<!--            <Insets top="5.0" />-->
+<!--         </padding>-->
+<!--      </HBox>-->
+
+      <Label text="Angle au sommet (°)" />
+      <Spinner fx:id="spinner_angle_sommet" amountToStepBy="5.0" editable="true" initialValue="60.0" max="180.0" min="0.0" />
+      <Slider fx:id="slider_angle_sommet" majorTickUnit="30.0" max="180.0" min="0.0" minorTickCount="5" showTickLabels="true" showTickMarks="true" snapToTicks="true" />
+
+      <Label text="Orientation (°)" />
+      <Spinner fx:id="spinner_orientation" amountToStepBy="5.0" editable="true" initialValue="0.0" max="360.0" min="0.0" />
+      <Slider fx:id="slider_orientation" majorTickUnit="45.0" max="360.0" min="0.0" minorTickCount="5" showTickLabels="true" showTickMarks="true" snapToTicks="true" />
+
+      <fx:include fx:id="baseMatiere" source="PanneauElementAvecMatiere.fxml" />
+      <fx:include fx:id="baseContour" source="PanneauElementAvecContour.fxml" />
+
+   </children>
+   <padding>
+      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+   </padding>
+</VBox>

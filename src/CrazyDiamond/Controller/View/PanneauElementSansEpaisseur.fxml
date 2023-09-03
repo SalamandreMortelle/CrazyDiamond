@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="TOP_CENTER" prefWidth="201.0" spacing="2.0" xmlns="http://javafx.com/javafx/16"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="CrazyDiamond.Controller.PanneauElementSansEpaisseur">
+
+<!--    <padding>-->
+<!--        <Insets top="10.0" />-->
+<!--    </padding>-->
+<!--    <Separator prefWidth="200.0" />-->
+<!--    <Label text="Nature surface" />-->
+<!--    <VBox prefWidth="100.0" spacing="5.0">-->
+<!--        <children>-->
+<!--            <RadioButton fx:id="choix_reflechissant" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" selected="true" text="Réflechissante">-->
+<!--                <toggleGroup>-->
+<!--                    <ToggleGroup fx:id="choix_nature_milieu" />-->
+<!--                </toggleGroup>-->
+<!--            </RadioButton>-->
+<!--            <RadioButton fx:id="choix_absorbant" mnemonicParsing="false" text="Absorbante" toggleGroup="$choix_nature_milieu" />-->
+
+<!--        </children>-->
+<!--    </VBox>-->
+
+</VBox>

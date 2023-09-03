@@ -1,0 +1,1061 @@
+package CrazyDiamond.Model;
+
+import javafx.beans.property.*;
+import javafx.geometry.Point2D;
+import javafx.scene.paint.Color;
+import javafx.scene.transform.Rotate;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
+public class Cercle  implements Obstacle, Identifiable, Nommable,ElementAvecContour,ElementAvecMatiere,ObstaclePolaire {
+
+    private final Imp_Identifiable imp_identifiable ;
+    private final Imp_Nommable imp_nommable;
+    private final Imp_ElementAvecContour imp_elementAvecContour ;
+    private final Imp_ElementAvecMatiere imp_elementAvecMatiere ;
+
+    private final ObjectProperty<Point2D> centre ;
+//    protected final DoubleProperty x_centre ;
+//    protected final DoubleProperty y_centre ;
+
+    protected DoubleProperty rayon;
+
+    private BooleanProperty appartenance_systeme_optique_centre ;
+
+    private static int compteur_cercle = 0 ;
+
+    public static void razCompteur() { compteur_cercle = 0 ; }
+
+    public Cercle(TypeSurface type_surface, double xcentre, double ycentre, double rayon) throws IllegalArgumentException {
+        this(null,type_surface,xcentre,ycentre,rayon);
+
+    }
+
+    // TODO : en faire un constructeur qui prend tous les paramètres (y compris nom, couleur contour, et couleur matière)
+    public Cercle(String nom,TypeSurface type_surface, double xcentre, double ycentre, double rayon) throws IllegalArgumentException {
+
+        this(
+                new Imp_Identifiable(),
+                new Imp_Nommable( nom!=null?nom:"Cercle "+(++compteur_cercle) ),
+                new Imp_ElementAvecContour(null),
+                new Imp_ElementAvecMatiere(type_surface,null ,1.0,null),
+                xcentre,ycentre,rayon
+        ) ;
+
+    }
+
+
+    public Cercle(Imp_Identifiable ii, Imp_Nommable iei, Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem, double xcentre, double ycentre, double rayon) throws IllegalArgumentException {
+
+        if (rayon <= 0)
+            throw new IllegalArgumentException("Le rayon doit être positif.");
+
+        imp_identifiable = ii ;
+        imp_nommable = iei ;
+        imp_elementAvecContour = iec ;
+        imp_elementAvecMatiere = iem ;
+
+        this.centre = new SimpleObjectProperty<>(new Point2D(xcentre,ycentre)) ;
+
+//        this.x_centre = new SimpleDoubleProperty(xcentre) ;
+//        this.y_centre = new SimpleDoubleProperty(ycentre) ;
+        this.rayon = new SimpleDoubleProperty(rayon) ;
+
+        this.appartenance_systeme_optique_centre = new SimpleBooleanProperty(false) ;
+
+    }
+
+
+    @Override public String id() { return imp_identifiable.id(); }
+
+    @Override public String nom() {  return imp_nommable.nom(); }
+    @Override public StringProperty nomProperty() { return imp_nommable.nomProperty(); }
+
+    @Override public Color couleurContour() { return imp_elementAvecContour.couleurContour();}
+    @Override public ObjectProperty<Color> couleurContourProperty() { return imp_elementAvecContour.couleurContourProperty(); }
+
+    @Override public void definirTraitementSurface(TraitementSurface traitement_surf) { imp_elementAvecContour.definirTraitementSurface(traitement_surf);}
+    @Override public TraitementSurface traitementSurface() {return imp_elementAvecContour.traitementSurface() ;}
+    @Override public DoubleProperty tauxReflexionSurfaceProperty() {return imp_elementAvecContour.tauxReflexionSurfaceProperty() ; }
+
+    @Override public ObjectProperty<TraitementSurface> traitementSurfaceProperty() {return imp_elementAvecContour.traitementSurfaceProperty() ;}
+    @Override public void definirTauxReflexionSurface(double taux_refl) {imp_elementAvecContour.definirTauxReflexionSurface(taux_refl);}
+    @Override public double tauxReflexionSurface() {return imp_elementAvecContour.tauxReflexionSurface();}
+
+    @Override public void definirOrientationAxePolariseur(double angle_pol) {imp_elementAvecContour.definirOrientationAxePolariseur(angle_pol);}
+    @Override public double orientationAxePolariseur() {return imp_elementAvecContour.orientationAxePolariseur() ;}
+    @Override public DoubleProperty orientationAxePolariseurProperty() {return imp_elementAvecContour.orientationAxePolariseurProperty() ;}
+
+    @Override
+    public Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) throws Exception {
+        return (direction.dotProduct(normale(pt_sur_surface))<=0d?rayon():-rayon())*(typeSurface()==TypeSurface.CONVEXE?1d:-1d) ;
+    }
+
+    @Override public Color couleurMatiere() { return imp_elementAvecMatiere.couleurMatiere(); }
+    @Override public ObjectProperty<Color> couleurMatiereProperty() { return imp_elementAvecMatiere.couleurMatiereProperty(); }
+
+    @Override public void definirTypeSurface(TypeSurface type_surf) { imp_elementAvecMatiere.definirTypeSurface(type_surf); }
+    @Override public TypeSurface typeSurface() { return imp_elementAvecMatiere.typeSurface(); }
+    @Override public ObjectProperty<TypeSurface> typeSurfaceProperty() { return imp_elementAvecMatiere.typeSurfaceProperty(); }
+
+    @Override public void definirNatureMilieu(NatureMilieu nature_mil) { imp_elementAvecMatiere.definirNatureMilieu(nature_mil); }
+    @Override public NatureMilieu natureMilieu() { return imp_elementAvecMatiere.natureMilieu(); }
+    @Override public ObjectProperty<NatureMilieu> natureMilieuProperty() { return imp_elementAvecMatiere.natureMilieuProperty(); }
+
+    @Override public void definirIndiceRefraction(double indice_refraction) { imp_elementAvecMatiere.definirIndiceRefraction(indice_refraction);   }
+    @Override public double indiceRefraction() { return imp_elementAvecMatiere.indiceRefraction(); }
+    @Override public DoubleProperty indiceRefractionProperty() {  return imp_elementAvecMatiere.indiceRefractionProperty(); }
+
+    @Override public String toString() { return nom(); }
+
+    public void appliquerSurIdentifiable(ConsumerAvecException<Object,IOException> consumer) throws IOException {
+        consumer.accept(imp_identifiable);
+    }
+    public void appliquerSurNommable(ConsumerAvecException<Object,IOException> consumer) throws IOException {
+        consumer.accept(imp_nommable);
+    }
+    public void appliquerSurElementAvecContour(ConsumerAvecException<Object,IOException> consumer) throws IOException {
+        consumer.accept(imp_elementAvecContour);
+    }
+    public void appliquerSurElementAvecMatiere(ConsumerAvecException<Object,IOException> consumer) throws IOException {
+        consumer.accept(imp_elementAvecMatiere);
+    }
+
+
+    public void definirCentre(Point2D c) {
+        centre.set(c) ;
+    }
+    public void definirCentre(double xc,double yc) {
+        centre.set(new Point2D(xc,yc)) ;
+    }
+//    public void definirXCentre(double xc) {
+//        this.x_centre.set(xc);
+//    }
+//    public void definirYCentre(double yc) {
+//        this.y_centre.set(yc);
+//    }
+    public void definirRayon(double r) {
+        this.rayon.set(r);
+    }
+
+    public double xCentre() { return centre().getX(); } ;
+    public double yCentre() { return centre().getY(); } ;
+
+//    public double xCentre() { return x_centre.get(); } ;
+//    public double yCentre() { return y_centre.get(); } ;
+    public double rayon() { return rayon.get(); }
+
+    @Override
+    public void translater(Point2D vecteur) {
+
+            definirCentre(centre().add(vecteur));
+//            x_centre.set(vecteur.getX() + x_centre.get());
+//            y_centre.set(vecteur.getY() + y_centre.get());
+
+    }
+
+    @Override
+    public Contour positions_poignees() {
+        Contour c_poignees = new Contour(4) ;
+
+        c_poignees.ajoutePoint(centre().add(rayon(),0));
+        c_poignees.ajoutePoint(centre().add(0,rayon()));
+        c_poignees.ajoutePoint(centre().add(-rayon(),0));
+        c_poignees.ajoutePoint(centre().add(0,-rayon()));
+
+        return c_poignees ;
+    }
+
+//    public DoubleProperty xCentreProperty() { return x_centre ; } ;
+//    public DoubleProperty yCentreProperty() { return y_centre ; } ;
+    public DoubleProperty rayonProperty() { return rayon ; }
+
+
+
+    @Override
+    public void accepte(VisiteurElementAvecMatiere v) {
+        v.visiteCercle(this);
+    }
+
+    @Override
+    public void accepte(VisiteurEnvironnement v) {
+        v.visiteCercle(this);
+    }
+
+    public ObjectProperty<Point2D> centreProperty() {
+        return centre ;
+    }
+    public Point2D centre() {
+        return centre.get() ;
+    }
+
+    @Override
+    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+
+        imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
+        imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
+
+        centre.addListener((observable, oldValue, newValue) -> {rap.rappel(); });
+        rayon.addListener((observable, oldValue, newValue) -> {rap.rappel(); });
+
+    }
+
+    @Override
+    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
+
+        imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
+        imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
+
+        centre.addListener((observable, oldValue, newValue) -> { rap.rappel();  });
+        rayon.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+    }
+
+    @Override
+    public void retaillerPourSourisEn(Point2D pos_souris) {
+        // Si on est sur le centre, ne rien faire
+        if (pos_souris.equals(centre()))
+            return ;
+
+        definirRayon(pos_souris.subtract(centre()).magnitude());
+    }
+
+
+    @Override
+    public boolean contient(Point2D p) {
+//        boolean dans_cercle = (p.subtract(centre()).magnitude() <= rayon.get()) || this.aSurSaSurface(p) ;
+//        boolean dans_cercle = (p.subtract(centre()).magnitude() <= rayon.get()) ;
+
+        if (typeSurface()==TypeSurface.CONVEXE)
+            return Environnement.quasiInferieurOuEgal(p.subtract(centre()).magnitude(),rayon.get()) ;
+//            return dans_cercle || this.aSurSaSurface(p) ;
+        else
+            return Environnement.quasiSuperieurOuEgal(p.subtract(centre()).magnitude(),rayon.get()) ;
+//            return (!dans_cercle) || this.aSurSaSurface(p) ;
+    }
+
+    @Override
+    public Double rayon_polaire(double theta) {
+        return rayon.doubleValue() ;
+    }
+
+    @Override
+    public Point2D centre_polaire() {
+        return centre();
+    }
+
+    @Override
+    public boolean aSurSaSurface(Point2D p) {
+
+//        return Environnement.quasiEgal(centre().distance(p),rayon.get() ) ;
+
+        // Pour éviter les racines carrées
+        Point2D p_vect = p.subtract(centre()) ;
+        double x_p = p_vect.getX() ;
+        double y_p = p_vect.getY() ;
+        return Environnement.quasiEgal(x_p*x_p+y_p*y_p,rayon.get()*rayon.get() ) ;
+    }
+
+    @Override
+    public Point2D normale(Point2D p) throws Exception {
+     // Cette exception est parfois levée ; elle n'apporte rien
+//        if (!this.aSurSaSurface(p))
+//            throw new Exception("Impossible de trouver la normale d'un point qui n'est pas sur la surface du cercle.");
+
+        Point2D centre = this.centre() ;
+
+        if (typeSurface()==TypeSurface.CONVEXE)
+            return (p.subtract(centre).normalize());
+        else
+            return (p.subtract(centre).normalize()).multiply(-1.0);
+
+    }
+
+    @Override
+    public boolean aSymetrieDeRevolution() {return true ;}
+    @Override
+    public Point2D pointSurAxeRevolution() {
+        return centre() ;
+    }
+
+    @Override
+    public boolean estOrientable() {
+        return true ;
+    }
+    @Override
+    public boolean aUneOrientation() {
+        return false;
+    }
+
+    @Override
+    public void tournerAutourDe(Point2D centre_rot, double angle_rot_deg) {
+        Rotate r = new Rotate(angle_rot_deg,centre_rot.getX(),centre_rot.getY()) ;
+
+//        Point2D nouveau_centre = r.transform(x_centre.get(),y_centre.get()) ;
+//        centre.set(nouveau_centre);
+
+        centre.set(r.transform(centre()));
+
+//        x_centre.set(nouveau_centre.getX());
+//        y_centre.set(nouveau_centre.getY());
+    }
+
+    @Override
+    public void definirOrientation(double orientation_deg)  {
+        // Rien à faire : un cercle est invariant par rotation autour de son centre
+    }
+
+    @Override
+    public void definirAppartenanceSystemeOptiqueCentre(boolean b) {this.appartenance_systeme_optique_centre.set(b);}
+    @Override
+    public boolean appartientASystemeOptiqueCentre() {return this.appartenance_systeme_optique_centre.get() ;}
+
+    /**
+     * @return
+     */
+    @Override
+    public Double rayonDiaphragmeParDefaut() {
+        return rayon();
+    }
+
+    /**
+     * @return
+     */
+    @Override public double rayonDiaphragmeMaximumConseille() { return rayon() ; }
+
+    @Override
+    public Double abscissePremiereIntersectionSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart,boolean sens_z_croissants, Double z_inter_prec) {
+
+        double z_centre ;
+
+        if (centre().subtract(origine_axe).dotProduct(direction_axe)>=0)
+            z_centre = centre().distance(origine_axe) ;
+        else
+            z_centre = -centre().distance(origine_axe) ;
+
+        double r = rayon() ;
+
+        double z_int_min = z_centre - r ;
+        double z_int_max = z_centre + r ;
+
+
+//        // Cas particuliers où le point de départ est sur une des intersections
+//        if (Environnement.quasiEgal(z_depart,z_int_min))
+//            return (sens_z_croissants?z_int_max:null) ;
+//        if (Environnement.quasiEgal(z_depart,z_int_max))
+//            return (sens_z_croissants?null:z_int_min) ;
+
+         if (z_inter_prec!=null) {
+             if (z_int_min==z_inter_prec)
+                 return (sens_z_croissants?(r!=0d?z_int_max:null):null) ;
+             if (z_int_max==z_inter_prec)
+                 return (sens_z_croissants?null:(r!=0d?z_int_min:null)) ;
+         }
+
+         if (z_depart==z_int_min) return z_int_min ;
+         if (z_depart==z_int_max) return z_int_max ;
+
+        // Cas général
+        if (z_depart<z_int_min)
+            return (sens_z_croissants?z_int_min:null) ;
+        else if (z_int_min<z_depart && z_depart<z_int_max)
+            return (sens_z_croissants?z_int_max:z_int_min) ;
+        else // (z_depart>z_int_max)
+            return (sens_z_croissants?null:z_int_max) ;
+
+//        if (z_depart==z_int_min)
+//            return (sens_z_croissants?z_int_max:null) ;
+//        // if (z_depart==z_int_max)
+//        return (sens_z_croissants?null:z_int_min) ;
+
+
+    }
+
+    @Override
+    public ArrayList<Double> abscissesToutesIntersectionsSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart,boolean sens_z_croissants, Double z_inter_prec) {
+
+        ArrayList<Double> resultat = new ArrayList<>(2) ;
+
+        double z_centre ;
+
+        if (centre().subtract(origine_axe).dotProduct(direction_axe)>=0)
+            z_centre = centre().distance(origine_axe) ;
+        else
+            z_centre = -centre().distance(origine_axe) ;
+
+        double r = rayon() ;
+
+        double z_int_min = z_centre - r ;
+        double z_int_max = z_centre + r ;
+
+        // S'assurer de ne pas retourner à nouveau l'intersection z_inter_prec
+        if (z_inter_prec!=null) {
+            if (z_int_min==z_inter_prec) {
+                if (sens_z_croissants && r!=0d) resultat.add(z_int_max);
+                return resultat ;
+            }
+            if (z_int_max==z_inter_prec) {
+                if (!sens_z_croissants && r!=0d) resultat.add(z_int_min);
+                return resultat ;
+            }
+        }
+
+//        // Cas particuliers où le point de départ est sur une des intersections
+//        if (Environnement.quasiEgal(z_depart,z_int_min)) {
+//            if (sens_z_croissants) resultat.add(z_int_max);
+//            return resultat ;
+//        }
+//        if (Environnement.quasiEgal(z_depart,z_int_max)) {
+//            if (!sens_z_croissants) resultat.add(z_int_min);
+//            return resultat ;
+//        }
+
+        // Cas général
+        if (z_depart<=z_int_min) {
+
+            if (!sens_z_croissants)
+                return resultat ;
+
+            resultat.add(z_int_min) ;
+            if (r!=0d) resultat.add(z_int_max) ;
+
+        } else if (z_int_min<z_depart && z_depart<=z_int_max) {
+            if (sens_z_croissants)
+                resultat.add(z_int_max) ;
+            else
+                resultat.add(z_int_min) ;
+
+        }
+        else // z_depart>z_int_max
+        {
+            if (sens_z_croissants)
+                return resultat ;
+
+            resultat.add(z_int_max) ;
+            if (r!=0d) resultat.add(z_int_min) ;
+
+        }
+
+        return resultat ;
+
+    }
+
+    // TODO : Écrire une implémentation spécifique  de la méthode cherche_toutes_intersections(Rayon r) plus optimisée que l'implémentation par défaut
+    // @Override
+    // public ArrayList<Point2D> cherche_toutes_intersections(Rayon r)
+
+    @Override
+    public Point2D cherche_intersection(Rayon r, ModeRecherche mode) {
+
+        double xdir = r.direction().getX();
+        double ydir = r.direction().getY();
+
+        double xdep = r.depart().getX();
+        double ydep = r.depart().getY();
+
+        Point2D centre = this.centre() ;
+
+        double rayon = this.rayon.get() ;
+
+        // Cas particulier du rayon vertical
+        if (Environnement.quasiEgal(r.direction().getX(),0)) {
+
+            if ( ( xdep < centre.getX()-rayon ) || (xdep > centre.getX()+rayon ) )
+                return null ;
+
+            // double deltay = Math.sqrt(rayon*rayon - (xdep-centre.getX())*(xdep-centre.getX())) ;
+            // Forme (a+b)*(a-b) pour limiter les erreurs d'arrondi : cf. https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
+            double deltay = Math.sqrt((rayon+(xdep-centre.getX()))*(rayon-(xdep-centre.getX()))) ;
+
+            double yhaut = centre.getY()+deltay ;
+            double ybas  = centre.getY()-deltay ;
+
+            if (this.aSurSaSurface(r.depart())) {
+                if (ydir > 0 && ydep < centre().getY())
+                    return new Point2D(xdep, yhaut);
+                else if (ydir < 0 && ydep > centre().getY())
+                    return new Point2D(xdep, ybas);
+                else
+                    return null ;
+            }
+
+            // Depart à l'intérieur de la zone délimitée par le cercle mais pas sur sa surface pour autant
+            if ( ( typeSurface() == TypeSurface.CONCAVE && !this.contient(r.depart()) ) || (typeSurface() == TypeSurface.CONVEXE && this.contient(r.depart())) ) {
+                if (ydir > 0 && ydep < yhaut )
+                    return new Point2D(xdep, yhaut);
+                else if (ydir < 0 && ydep > ybas)
+                    return new Point2D(xdep, ybas);
+                else
+                    return null ;
+            }
+
+            // Le point de départ est à l'exterieur du cercle
+            if (ydir > 0 && ydep < ybas)
+                return (mode == ModeRecherche.PREMIERE) ? new Point2D(xdep, ybas) : new Point2D(xdep, yhaut);
+
+            if (ydir < 0 && ydep > yhaut)
+                return (mode == ModeRecherche.PREMIERE) ? new Point2D(xdep,yhaut) : new Point2D(xdep, yhaut) ;
+
+            return null ;
+        }
+
+        // Cas général, rayon non vertical
+
+        double ar = r.direction().getY() / r.direction().getX();
+        double br = r.depart().getY() - r.depart().getX() * (r.direction().getY() / r.direction().getX());
+
+        double aeq = (1 + ar * ar);
+        double beq = 2 * (ar * (br - centre.getY()) - centre.getX());
+        double ceq = centre.getX() * centre.getX() + (br - centre.getY()) * (br - centre.getY()) - rayon * rayon;
+
+        // TODO : calculer autrement pour éviter les pb d'arrondis (cf. article NCG Goldberg)
+        double discr = beq * beq - 4 * aeq * ceq;
+
+        if (discr < 0)
+            return null;
+
+        double xinter = 0;
+        double yinter;
+
+        if (discr == 0.0) { // Rayon tangent au cercle
+
+            xinter = -beq / (2 * aeq);
+
+        } else { // Discriminant positif : renvoyer la bonne racine
+
+            double x1 = (-beq - Math.sqrt(discr)) / (2 * aeq);
+            double y1 = ar*x1 + br ;
+            double x2 = (-beq + Math.sqrt(discr)) / (2 * aeq);
+            double y2 = ar*x2 + br ;
+
+            // Cas où le point de départ est sur la surface du cercle
+            if (this.aSurSaSurface(r.depart())) {
+
+                Point2D p1 = new Point2D(x1,y1) ;
+                Point2D p2 = new Point2D(x2,y2) ;
+
+//                if (p1.subtract(r.depart).magnitude()<p2.subtract(r.depart).magnitude()) {
+                if (r.depart().distance(p1)< r.depart().distance(p2)) {
+                    // Le point de départ est en (x1,y1) : on retourne donc l'autre intersection
+                    if ( (xdir >= 0 && x2 > x1) || (xdir <= 0 && x2 < x1) )
+                        return p2 ;
+                } else  {
+                    // Le point de départ est en (x2,y2) : on retourne donc l'autre intersection
+                    if ( (xdir >= 0 && x1 > x2) || (xdir <= 0 && x1 < x2) )
+                        return p1 ;
+                }
+
+//
+//                if (Environnement.quasiEgal(p1.subtract(r.depart).magnitude(), 0.0)) {
+//                    // Le point de départ est en (x1,y1) : on retourne donc l'autre intersection
+//                    if ( (xdir >= 0 && x2 > x1) || (xdir <= 0 && x2 < x1) )
+//                        return new Point2D(x2,y2) ;
+//                } else if (Environnement.quasiEgal(p2.subtract(r.depart).magnitude(), 0.0)) {
+//                    // Le point de départ est en (x2,y2) : on retourne donc l'autre intersection
+//                    if ( (xdir >= 0 && x1 > x2) || (xdir <= 0 && x1 < x2) )
+//                        return new Point2D(x1,y1) ;
+//                }
+//                else // TODO : il arrive que ce oups ait lieu. A creuser...
+//                    throw new IllegalStateException("Oups. Je ne devrais pas être ici") ;
+
+                return null ;
+
+            }
+
+
+            if ( ( typeSurface() == TypeSurface.CONCAVE && !this.contient(r.depart()) )
+                    || ( typeSurface() == TypeSurface.CONVEXE && this.contient(r.depart()) ) ) {
+                // Depart à l'intérieur de la zone délimitée par le cercle mais pas sur sa surface pour autant
+                if (xdir > 0)
+                    xinter = Math.max(x1, x2);
+                else
+                    xinter = Math.min(x1, x2);
+            } else {
+                // Départ à l'extérieur de la zone délimitée par le cercle
+                if (xdir > 0)
+                    xinter = (mode == ModeRecherche.PREMIERE) ? Math.min(x1, x2) : Math.max(x1,x2) ;
+                else
+                    xinter = (mode == ModeRecherche.PREMIERE) ? Math.max(x1, x2) : Math.min(x1,x2) ;
+            }
+
+        }
+
+
+        if ( (xdir>0 && xdep  > xinter ) || (xdir <0 && xdep < xinter))
+            return null ;
+
+        yinter = ar*xinter + br ;
+
+        return new Point2D(xinter, yinter);
+    }
+
+    /**
+     * Calcule la ou les éventuelles intersections d'un cercle avec une verticale
+     * @param x_verticale : abscisse de la verticale
+     * @param ymin : valeur minimale du y solution
+     * @param ymax : valeur maximale du y solution
+     * @param y_sol_croissant : true si les solutions sont attendues par ordre x croissant, false si c'est l'ordre
+     *                        décroissant qui est attendu.
+     * @return tableau contenant 0, 1 ou 2 solution composée(s) du y et du theta de la solution, ordonnées par y croissant
+     * NB : si une intersection se trouve à l'une des extrémités de la verticale elle n'est pas retournée car on la trouvera
+     *      comme intersection sur l'horizontale
+     *
+     */
+    @Override
+    public double[][]  intersections_verticale(double x_verticale, double ymin, double ymax, boolean y_sol_croissant) {
+        double rayon = rayon() ;
+
+//        double x_centre = xCentre() ;
+//        double y_centre = yCentre() ;
+        double x_centre = centre().getX() ;
+        double y_centre = centre().getY() ;
+
+        double alpha = 0.0 ;
+
+        if (Math.abs( (x_verticale-x_centre)/rayon ) < 1.0 ) {
+            alpha = Math.acos((x_verticale-x_centre)/rayon) ; // alpha vaut entre 0 et PI
+        } else if  (Math.abs( (x_verticale-x_centre)/rayon ) == 1.0 ) {
+            if (y_centre> ymin && y_centre< ymax) {
+                double y_solutions[][] = new double[1][2];
+                alpha = ((x_verticale>x_centre)?0.0:Math.PI);
+                y_solutions[0][0] = y_centre;
+                y_solutions[0][1] = alpha;
+                return y_solutions ;
+            }
+        } else {// Pas d'intersection
+            return new double[0][0];
+        }
+
+        // Jusqu'à deux intersections possible
+        double y_sol1 = y_centre+rayon*Math.sin(alpha) ;
+        double y_sol2 = y_centre-rayon*Math.sin(alpha) ;
+
+        if ( ymin < y_sol1 && y_sol1 < ymax && ymin < y_sol2 && y_sol2 < ymax ) { // Deux intersections visibles
+            double[][] y_solutions = new double[2][2];
+            if ( y_sol_croissant ) {
+                y_solutions[0][0] = y_sol2; // y_sol2 est toujours la plus petite car alpha est entre 0 et PI donc sin(alpha)>0
+                y_solutions[0][1] = -alpha;
+                y_solutions[1][0] = y_sol1;
+                y_solutions[1][1] = alpha;
+            } else { // Classement dans l'ordre des y décroissants
+                y_solutions[0][0] = y_sol1;
+                y_solutions[0][1] = alpha;
+                y_solutions[1][0] = y_sol2;
+                y_solutions[1][1] = -alpha;
+
+            }
+            return y_solutions ;
+        }
+
+        if ( ymin < y_sol1 && y_sol1 < ymax ) { // Seule l'intersection 1 est visible
+            double y_solutions[][] = new double[1][2];
+            y_solutions[0][0] = y_sol1;
+            y_solutions[0][1] = alpha;
+            return y_solutions ;
+        }
+
+        if ( ymin < y_sol2 && y_sol2 < ymax ) {
+            double[][] y_resultats = new double[1][2];
+            y_resultats[0][0] = y_sol2;
+            y_resultats[0][1] = -alpha;
+            return y_resultats ;
+        }
+
+        return new double[0][0] ;
+
+    }
+
+    /**
+     * Calcule la ou les éventuelles intersections d'un cercle avec une horizontale
+     * @param y_horizontale : abscisse de l'horizontale
+     * @param xmin : valeur minimale du x solution
+     * @param xmax : valeur maximale du x solution
+     * @param x_sol_croissant : true si les solutions sont attendues par ordre de x croissant, false si c'est l'ordre
+     *                        décroissant qui est attendu.
+     * @return tableau contenant 0, 1 ou 2 solution composée(s) du x et du theta de la solution
+     */
+    @Override
+    public double[][] intersections_horizontale(double y_horizontale, double xmin, double xmax,boolean x_sol_croissant) {
+        double rayon = rayon() ;
+
+//        double x_centre = xCentre() ;
+//        double y_centre = yCentre() ;
+        double x_centre = centre().getX() ;
+        double y_centre = centre().getY() ;
+
+        double alpha = 0.0  ;
+
+        if (Math.abs( (y_horizontale-y_centre)/rayon ) < 1.0 ) {
+            alpha = Math.asin((y_horizontale-y_centre)/rayon) ; // alpha vaut entre -PI/2 et PI/2
+        } else if  (Math.abs( (y_horizontale-y_centre)/rayon ) == 1.0 ) {
+            if (x_centre>= xmin && x_centre <= xmax) {
+                double x_solutions[][] = new double[1][2];
+                alpha = ((y_horizontale>y_centre)?Math.PI/2:-Math.PI/2);
+                x_solutions[0][0] = x_centre;
+                x_solutions[0][1] = alpha;
+//                x_solutions[0][1] = (alpha>0?alpha:2*Math.PI+alpha);
+                return x_solutions ;
+            }
+        } else {// Pas d'intersection
+            return new double[0][0];
+        }
+
+        // Jusqu'à deux intersections possible
+        double x_sol1 = x_centre+rayon*Math.cos(alpha) ;
+        double x_sol2 = x_centre-rayon*Math.cos(alpha) ;
+
+        if ( xmin <= x_sol1 && x_sol1 <= xmax && xmin <= x_sol2 && x_sol2 <= xmax ) { // Deux intersections visibles
+            double[][] x_solutions = new double[2][2];
+            if ( x_sol_croissant ) {
+                x_solutions[0][0] = x_sol2; // x_sol2 est toujours la plus petite car alpha est entre  -PI/2 et PI/2 donc cos(alpha)>0
+                x_solutions[0][1] = Math.PI-alpha;
+                x_solutions[1][0] = x_sol1;
+                x_solutions[1][1] = alpha;
+            } else { // Classement dans l'ordre des x décroissants
+                x_solutions[0][0] = x_sol1;
+                x_solutions[0][1] = alpha;
+                x_solutions[1][0] = x_sol2;
+                x_solutions[1][1] = Math.PI-alpha;
+
+            }
+            return x_solutions ;
+        }
+
+        if ( xmin <= x_sol1 && x_sol1 <= xmax ) { // Seule l'intersection 1 est visible
+            double x_solutions[][] = new double[1][2];
+            x_solutions[0][0] = x_sol1;
+            x_solutions[0][1] = alpha;
+            return x_solutions ;
+        }
+
+        if ( xmin <= x_sol2 && x_sol2 <= xmax ) {
+            double[][] x_solutions = new double[1][2];
+            x_solutions[0][0] = x_sol2;
+            x_solutions[0][1] = Math.PI-alpha;
+            return x_solutions ;
+        }
+
+        return new double[0][0] ;
+
+
+    }
+
+
+    protected Point2D point_sur_cercle(double theta) {
+
+//        double x_centre = xCentre() ;
+//        double y_centre = yCentre() ;
+        double x_centre = centre().getX() ;
+        double y_centre = centre().getY() ;
+
+        double rayon = rayon(); ;
+
+        return centre().add(rayon*Math.cos(theta), rayon*Math.sin(theta) ) ;
+//        return new Point2D(x_centre + rayon*Math.cos(theta), y_centre+rayon*Math.sin(theta)) ;
+
+    }
+
+
+    protected Contour arc_de_cercle(double theta_debut,double theta_fin, int nombre_pas_angulaire_par_arc) {
+
+        Contour c = new Contour(nombre_pas_angulaire_par_arc) ;
+
+        double pas = (theta_fin-theta_debut) / nombre_pas_angulaire_par_arc ;
+
+        double theta = theta_debut ;
+
+        Point2D pt;
+        do {
+            pt = point_sur_cercle(theta);
+
+            c.ajoutePoint(pt.getX(),pt.getY());
+
+            theta += pas;
+        } while (theta < theta_fin);
+
+        // Point final pour theta_fin, pour rattraper les erreurs d'arrondi
+        pt = point_sur_cercle(theta_fin);
+
+        if (pt != null)
+            c.ajoutePoint(pt.getX(),pt.getY());
+
+        return c ;
+
+    }
+
+    protected ArrayList<Double> xpoints_sur_cercle(double theta_debut,double theta_fin, int nombre_pas_angulaire_par_arc) {
+        ArrayList<Double> xpoints_cercle = new ArrayList<Double>() ;
+
+        double pas = (theta_fin-theta_debut) / nombre_pas_angulaire_par_arc ;
+
+        double theta = theta_debut ;
+
+        Point2D pt;
+        do {
+            pt = point_sur_cercle(theta);
+
+            if (pt != null)
+                xpoints_cercle.add(pt.getX());
+
+            theta += pas;
+        } while (theta <= theta_fin);
+
+        // Point final pour theta_fin, pour rattraper les erreurs d'arrondi
+        pt = point_sur_cercle(theta_fin);
+        if (pt != null)
+            xpoints_cercle.add(pt.getX());
+
+        return xpoints_cercle ;
+    }
+
+    protected ArrayList<Double> ypoints_sur_cercle(double theta_debut,double theta_fin, int nombre_pas_angulaire_par_arc) {
+        ArrayList<Double> ypoints_cercle = new ArrayList<Double>() ;
+
+        double pas = (theta_fin-theta_debut) / nombre_pas_angulaire_par_arc ;
+
+        double theta = theta_debut ;
+
+        Point2D pt;
+        do {
+            pt = point_sur_cercle(theta);
+
+            if (pt != null)
+                ypoints_cercle.add(pt.getY());
+
+            theta += pas;
+        } while (theta <= theta_fin);
+
+        // Point final pour theta_fin, pour rattraper les erreurs d'arrondi
+        pt = point_sur_cercle(theta_fin);
+        if (pt != null)
+            ypoints_cercle.add(pt.getY());
+
+        return ypoints_cercle ;
+    }
+
+    public BooleanProperty appartenanceSystemeOptiqueProperty() {return appartenance_systeme_optique_centre ;}
+
+
+
+//    public ContoursObstacle couper_old(BoiteLimites boite, int nombre_pas_angulaire_par_arc) {
+//
+//        ContoursObstacle contours = new ContoursObstacle() ;
+//
+//        double xmin = boite.getMinX() ;
+//        double xmax = boite.getMaxX() ;
+//        double ymin = boite.getMinY() ;
+//        double ymax = boite.getMaxY() ;
+//
+//        double[][] i_droites = intersections_verticale(xmax, ymin, ymax,true) ;
+//        double[][] i_hautes  = intersections_horizontale(ymax, xmin, xmax,false) ;
+//        double[][] i_gauches = intersections_verticale(xmin, ymin, ymax,false) ;
+//        double[][] i_basses  = intersections_horizontale(ymin, xmin, xmax,true) ;
+//
+//        SelecteurCoins sc = new SelecteurCoins(xmin, ymin, xmax, ymax);
+//
+////        System.out.println("Nombre d'intersections avec les bords : "+n_intersections);
+//
+//        // Tableau qui contiendra au plus 4 intervalles [theta min, theta max] où la courbe est visible
+//        // ordonnés dans le sens trigonométrique en partant dy coin BD de l'écran
+//        ArrayList<Double> valeurs_theta_intersection = new ArrayList<Double>(8) ;
+//
+//        ArrayList<Double> valeurs_x_intersection = new ArrayList<Double>(8) ;
+//        ArrayList<Double> valeurs_y_intersection = new ArrayList<Double>(8) ;
+//
+//        int n_intersections = sc.ordonneIntersections(i_droites,i_hautes,i_gauches,i_basses,
+//                valeurs_theta_intersection,valeurs_x_intersection,valeurs_y_intersection) ;
+//
+//        // Si aucune intersection, ou si 1 seule intersection (TODO : tester le cas à 1 intersection)
+//        if (n_intersections<=1) {
+//
+//            // Cercle entièrement contenu dans la zone visible ?
+//            if (boite.contains(point_sur_cercle(0))) {
+////                ArrayList<Double> x_arc = xpoints_sur_cercle( 0, 2 * Math.PI, nombre_pas_angulaire_par_arc);
+////                ArrayList<Double> y_arc = ypoints_sur_cercle( 0, 2 * Math.PI, nombre_pas_angulaire_par_arc);
+//
+//                // Rappel : on est par défaut en FillRule NON_ZERO => pour faire une surface avec un trou, il suffit
+//                // de faire deux contours dans des sens contraires (trigo et antitrigo)
+////                cae.gc.beginPath();
+//
+//                // Tracé du contour, ou du trou (chemin fermé), dans le sens trigo
+////                cae.completerPathAvecContourFerme(x_arc, y_arc);
+//
+//                Contour arc = arc_de_cercle(0, 2 * Math.PI, nombre_pas_angulaire_par_arc) ;
+//
+//                contours.ajouterContourSurface(arc);
+//
+//                // TODO : à remplacer par methode arcTo / plus propre qu'un polygone, et peut-être plus rapide...
+//
+//                // Tracé du contour (apparemment, cela ne termine pas le path, on peut continuer à lui ajouter des éléments
+////                cae.gc.stroke();
+//
+//                if (typeSurface() == TypeSurface.CONCAVE) {
+//                    // Tracé du rectangle de la zone visible, dans le sens antitrigo : le Contour du cercle sera un trou
+//                    // dans cette zone
+//                    contours.ajouterContourMasse(boite.construireContourAntitrigo());
+//                }
+//
+//                Contour arc_masse = new Contour(arc) ;
+//                contours.ajouterContourMasse(arc_masse);
+//
+//                // Le fill déclenche aussi l'appel closePath
+////                cae.gc.fill();
+//
+//            } else { // Aucun point de la surface n'est dans la zone visible
+//                if (contient(boite.centre())) {
+//
+////                    sc.selectionne_tous();
+//
+//                    // Toute la zone visible est dans la masse du cercle
+//                    contours.ajouterContourMasse(boite.construireContour());
+////                    CanvasAffichageEnvironnement.remplirPolygone(cae, sc.xcoins_selectionne(true), sc.ycoins_selectionne(true));
+//                } else {
+//                    // Toute la zone visible est hors de la masse du cercle
+//                    // rien à faire
+//                }
+//            }
+//
+//            // C'est fini
+//            return contours ;
+//        }
+//
+//        // Au moins 2 intersections, et jusqu'à 8...
+//
+////        ArrayList<Double> x_masse = new ArrayList<Double>(nombre_pas_angulaire_par_arc+4) ;
+////        ArrayList<Double> y_masse = new ArrayList<Double>(nombre_pas_angulaire_par_arc+4) ;
+//
+//        Contour arc_masse = new Contour() ;
+//
+//        // Boucle sur les intersections, dans le sens trigo par rapport au centre de l'écran
+//        for (int i=0 ; i<valeurs_theta_intersection.size(); i++) {
+//            double theta_deb = valeurs_theta_intersection.get(i) ;
+//            if (theta_deb<0)
+//                theta_deb += 2*Math.PI ;
+//
+//            int i_suivant = (i + 1) % (valeurs_theta_intersection.size()) ;
+//            double theta_fin ;
+//
+//            if (i_suivant != i)
+//                theta_fin = valeurs_theta_intersection.get(i_suivant) ;
+//            else
+//                theta_fin=theta_deb + 2*Math.PI ;
+//            if (theta_fin<0)
+//                theta_fin += 2*Math.PI ;
+//
+//            double x_deb = valeurs_x_intersection.get(i) ;
+//            double y_deb = valeurs_y_intersection.get(i) ;
+//            Point2D pt_deb = new Point2D(x_deb,y_deb) ;
+//            double x_fin = valeurs_x_intersection.get(i_suivant) ;
+//            double y_fin = valeurs_y_intersection.get(i_suivant) ;
+//            Point2D pt_fin = new Point2D(x_fin,y_fin) ;
+//
+//            if (theta_fin<theta_deb)
+//                theta_fin += 2*Math.PI ;
+//
+//
+//            Point2D pt = point_sur_cercle((theta_deb+theta_fin)/2 ) ;
+//
+//            // Si cet arc est visible
+//            if (boite.contains(pt)) {
+////                ArrayList<Double> x_arc = new ArrayList<Double>(nombre_pas_angulaire_par_arc) ;
+////                ArrayList<Double> y_arc = new ArrayList<Double>(nombre_pas_angulaire_par_arc) ;
+////
+////
+////                // Ajouter le point exact de l'intersection pt_deb pour éviter les décrochages dûs au pas du tracé
+////                x_arc.add(x_deb) ;
+////                y_arc.add(y_deb) ;
+////
+////                x_arc.addAll(xpoints_sur_cercle(theta_deb,theta_fin,nombre_pas_angulaire_par_arc)) ;
+////                y_arc.addAll(ypoints_sur_cercle(theta_deb,theta_fin,nombre_pas_angulaire_par_arc)) ;
+////
+////                // Ajouter le point exact de l'intersection pt_fin pour éviter les décrochages dûs au pas du tracé
+////                x_arc.add(x_fin) ;
+////                y_arc.add(y_fin) ;
+//
+//                Contour arc = arc_de_cercle(theta_deb,theta_fin,nombre_pas_angulaire_par_arc) ;
+//
+//                // Ajouter les points d'intersection exacts pour un tracé précis
+//                arc.ajoutePointDevant(x_deb,y_deb);
+//                arc.ajoutePoint(x_fin,y_fin);
+//
+//                // Cet arc est à la fois un morceau de la surface de l'obstacle et un morceau du contour de la masse
+//                contours.ajouterContourSurface(arc);
+//
+//                // On trace l'arc de ce contour visible
+////                cae.tracerPolyligne(x_arc,y_arc);
+//                // TODO : à remplacer par methode arcTo / plus propre qu'un polygone, et peut-être plus rapide...
+//
+//                arc_masse.concatene(arc);
+//
+////                x_masse.addAll(x_arc) ;
+////                y_masse.addAll(y_arc) ;
+//                // TODO : voir la masse comme un Path et la construire avec le methode arcTo / plus propre qu'un polygone, et peut-être plus rapide...
+//
+////                x_arc.clear();
+////                y_arc.clear();
+//
+//                // Si les 2 intersections sont sur un même bord et que leur milieu est dans le cercle, il n'y a pas
+//                // d'autre arc de contour à tracer, on peut sortir tout de suite de la boucle sur les intersections
+//                if ( (x_deb==x_fin || y_deb==y_fin) && contient(pt_deb.midpoint(pt_fin)))
+//                    break ;
+//
+//                // Sinon, chercher les coins contigus (càd non séparés des extrémités par une intersection) et qui sont
+//                // dans l'interieur du contour, que le cercle soit convexe ou concave
+//                SelecteurCoins sc_coins_interieurs = sc.sequence_coins_continus(false,pt_deb,pt_fin,valeurs_x_intersection,valeurs_y_intersection) ;
+//
+//                if(     ( typeSurface()== Obstacle.TypeSurface.CONVEXE
+//                        && contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
+//                        || ( typeSurface()== Obstacle.TypeSurface.CONCAVE
+//                        && !contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
+//                ) {
+//                    // Les ajouter au tracé du contour de masse
+//                    arc_masse.concatene(sc_coins_interieurs.coins_selectionne_antitrigo(true));
+//
+////                    x_masse.addAll(sc_coins_interieurs.xcoins_selectionne_antitrigo(true));
+////                    y_masse.addAll(sc_coins_interieurs.ycoins_selectionne_antitrigo(true));
+//
+//                    break ;
+//                }
+//
+//            } else { // Arc non visible
+//
+//                // Ajouter la sequence des coins de cette portion (dans ordre trigo) si ils sont dans le cercle (et si il y en a)
+//                SelecteurCoins sc_coins_interieurs = sc.sequence_coins_continus(true,pt_deb,pt_fin,valeurs_x_intersection,valeurs_y_intersection) ;
+//
+//                if(  ( typeSurface()== Obstacle.TypeSurface.CONVEXE
+//                        && contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
+//                        || ( typeSurface()== Obstacle.TypeSurface.CONCAVE
+//                        && !contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
+//                ) {
+//                    // Les ajouter au contour de masse
+//                    // TODO : voir la masse comme un Path constitué d'arc (arcTo et de points) : tracé sera plus efficace
+//                    // mais pour l'utilisation de Clipper, il faudra continuer à le voir comme un polygone...
+//                    arc_masse.concatene(sc_coins_interieurs.coins_selectionne(true));
+////                    x_masse.addAll(sc_coins_interieurs.xcoins_selectionne(true));
+////                    y_masse.addAll(sc_coins_interieurs.ycoins_selectionne(true));
+//                }
+//
+//            }
+//        } // Fin boucle sur intersections
+//
+////        cae.gc.beginPath();
+//
+//        if (typeSurface() == TypeSurface.CONCAVE) {
+//            // Tracé du rectangle de la zone visible, dans le sens antitrigo : le Path de l'ellipse sera un trou
+//            // dans cette zone
+//            contours.ajouterContourMasse(boite.construireContourAntitrigo());
+////            cae.gc.moveTo(xmax, ymin);
+////            cae.gc.lineTo(xmin, ymin);
+////            cae.gc.lineTo(xmin, ymax);
+////            cae.gc.lineTo(xmax, ymax);
+//        }
+//        // Tracé du contour de masse , ou du trou (chemin fermé), dans le sens trigo
+////        cae.completerPathAvecContourFerme(x_masse,y_masse);
+//        contours.ajouterContourMasse(arc_masse);
+////        cae.gc.fill();
+//
+//        return contours ;
+//    }
+
+}
+

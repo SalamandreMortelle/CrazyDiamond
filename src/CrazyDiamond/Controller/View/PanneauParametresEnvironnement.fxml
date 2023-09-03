@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefWidth="201.0" spacing="2.0"
+      xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="CrazyDiamond.Controller.PanneauParametresEnvironnement">
+        <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+        </padding>
+   <Label text="Paramètres environnement">
+      <font>
+         <Font name="System Bold" size="12.0" />
+      </font>
+   </Label>
+
+        <Label text="Couleur du fond">
+      <padding>
+         <Insets top="10.0" />
+      </padding></Label>
+        <ColorPicker fx:id="colorpicker_fond" editable="true" onAction="#traiterChangementCouleurFond" />
+   <Separator prefWidth="200.0">
+      <VBox.margin>
+         <Insets bottom="5.0" top="5.0" />
+      </VBox.margin>
+   </Separator>
+   <Label prefWidth="130.0" text="Couleur de la matière des nouveaux obstacles" textAlignment="CENTER" wrapText="true" />
+   <ColorPicker fx:id="colorpicker_matiere_nouveaux_obstacles" editable="true" onAction="#traiterChangementCouleurMatiereObstacles" />
+   <Separator prefWidth="200.0">
+      <VBox.margin>
+         <Insets bottom="5.0" top="5.0" />
+      </VBox.margin>
+   </Separator>
+   <Label prefWidth="125.0" text="Couleur du contour des nouveaux obstacles" textAlignment="CENTER" wrapText="true" />
+   <ColorPicker fx:id="colorpicker_contour_nouveaux_obstacles" editable="true" onAction="#traiterChangementCouleurContourObstacles" />
+   <Separator prefWidth="200.0">
+      <VBox.margin>
+         <Insets bottom="5.0" top="5.0" />
+      </VBox.margin>
+   </Separator>
+   <Label prefWidth="125.0" text="Couleur des nouveaux rayons" textAlignment="CENTER" wrapText="true" />
+   <ColorPicker fx:id="colorpicker_couleur_nouveaux_rayons" editable="true" />
+   <Separator prefWidth="200.0">
+      <padding>
+         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+      </padding></Separator>
+   <CheckBox fx:id="checkbox_fresnel" alignment="TOP_LEFT" graphicTextGap="400.0" mnemonicParsing="false" prefHeight="59.0" prefWidth="168.0"
+             text="Réfraction s'accompagne de réflexion (coefficents de Fresnel)" wrapText="true" />
+</VBox>
