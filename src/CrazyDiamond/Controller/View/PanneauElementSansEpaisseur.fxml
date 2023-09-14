@@ -2,7 +2,7 @@
 
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="TOP_CENTER" prefWidth="201.0" spacing="2.0" xmlns="http://javafx.com/javafx/16"
+<VBox alignment="TOP_CENTER" prefWidth="201.0" spacing="2.0" xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="CrazyDiamond.Controller.PanneauElementSansEpaisseur">
 
 <!--    <padding>-->

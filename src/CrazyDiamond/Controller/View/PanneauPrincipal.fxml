@@ -18,7 +18,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane stylesheets="@styles.css" fx:id="racine" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CrazyDiamond.Controller.PanneauPrincipal">
+<BorderPane stylesheets="@styles.css" fx:id="racine" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CrazyDiamond.Controller.PanneauPrincipal">
     <top>
       <VBox>
          <BorderPane.margin>
@@ -172,7 +172,7 @@
 <!--                      </VBox>-->
 
 </content>
-<!--               <TabPane fx:id="tab_pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" side="RIGHT" tabClosingPolicy="ALL_TABS" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1">-->
+<!--               <TabPane fx:id="tab_pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" side="RIGHT" tabClosingPolicy="ALL_TABS" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">-->
 <!--                <tabs>-->
 <!--                <Tab fx:id="tab_environnement" closable="false" text="Environnement">-->
 <!--               <content>-->

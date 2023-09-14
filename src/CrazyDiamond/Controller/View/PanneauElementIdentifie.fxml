@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 
 <?import javafx.geometry.Insets?>
-<VBox alignment="TOP_CENTER" spacing="2.0" xmlns="http://javafx.com/javafx/16"
+<VBox alignment="TOP_CENTER" spacing="2.0" xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="CrazyDiamond.Controller.PanneauElementIdentifie">
     <padding>
