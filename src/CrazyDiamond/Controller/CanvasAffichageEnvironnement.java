@@ -30,6 +30,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
     // Modèle
     protected final Environnement environnement;
+
     protected Obstacle obstacle_selectionne = null ;
     public Source source_selectionnee = null ;
     protected SystemeOptiqueCentre soc_selectionne = null ;
@@ -38,7 +39,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     protected BoiteLimiteGeometrique boite_limites ;
 
     // TODO : supprimer cet attribut inutile (le gc est dans le ResizeAble Canvas parent)
-    protected final GraphicsContext gc ;
+//    protected final GraphicsContext gc ;
 
     // Récupération du logger
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
@@ -70,6 +71,8 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     protected static double largeur_graphique_par_defaut = 800 ;
     protected static double hauteur_graphique_par_defaut = 600 ;
 
+    private final double pas_facteur_zoom_molette_souris = 0.1;
+
     protected double xmin_init, ymin_init ;
     protected double xmax_init, ymax_init ;
 
@@ -99,6 +102,8 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     private static final Color couleur_normales_par_defaut = Color.GREEN ;
 
     private static final boolean normales_visibles_par_defaut = false ;
+    private static double resolution_minimale_autorisee = 1E-4 ;
+    private static double resolution_maximale_autorisee = 1E2 ;
 
     public Color couleurNormales() { return couleur_normales.get() ; }
 
@@ -143,6 +148,13 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
         super(larg_g,haut_g) ;
 
+        if (larg_g<=0.0 || haut_g<=0.0)
+            throw new IllegalArgumentException("Hauteur et Largeur graphiques du canvas d'affichage de l'Environnement doivent être strictement positives.") ;
+
+        resolution = new SimpleDoubleProperty() ;
+
+        definirDimensionsGraphiquesEtLimites(larg_g,haut_g,xmin,ymin,xmax,ymax);
+
         this.environnement = e ;
 
         visiteur_affichage = new VisiteurAffichageEnvironnement(this) ;
@@ -151,9 +163,6 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         ymin_init = ymin ;
         xmax_init = xmax ;
         ymax_init = ymax ;
-
-        largeur_graphique = larg_g ;
-        hauteur_graphique = haut_g ;
 
         largeurCourante = this.getWidth() ;
         hauteurCourante = this.getHeight();
@@ -167,17 +176,6 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         if (preserver_ratio_xy)
             ymax_init = ymin_init +  (xmax_init - xmin_init) * hauteurCourante / largeurCourante;
 
-        this.definirLimitesAffichageEnvironnement(xmin_init,ymin_init,xmax_init,ymax_init);
-
-        if (larg_g<=0.0 || haut_g<=0.0)
-            throw new IllegalArgumentException("Hauteur et Largeur graphiques du canvas d'affichage de l'Environnement doivent être strictement positives.") ;
-
-        gc = this.getGraphicsContext2D() ;
-
-        resolution = new SimpleDoubleProperty() ;
-
-        // Cet appel va notamment définir la valeur de la résolution
-        integrerLimitesDansGraphicsContext();
 
         convertisseur_affichage_distance = new ConvertisseurDoubleValidantAffichageDistance(this) ;
 
@@ -364,7 +362,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
             if (newValue.doubleValue()> Screen.getPrimary().getVisualBounds().getWidth())
                 return ;
 
-            definirLimitesEtDimensionsGraphiques(newValue.doubleValue(),getHeight(), xmin_init, ymax_init -(ymax_init - ymin_init)*hauteurCourante/hauteurInitiale, xmin_init +(xmax_init - xmin_init)*newValue.doubleValue()/largeurInitiale, ymax_init);
+            definirDimensionsGraphiquesEtLimites(newValue.doubleValue(),getHeight(), xmin_init, ymax_init -(ymax_init - ymin_init)*hauteurCourante/hauteurInitiale, xmin_init +(xmax_init - xmin_init)*newValue.doubleValue()/largeurInitiale, ymax_init);
 
 //            LOGGER.log(Level.FINER,"["+ xmin_init +","+ (ymax_init -(ymax_init - ymin_init)*hauteurCourante/hauteurInitiale) +","+(xmin_init +(xmax_init - xmin_init)*newValue.doubleValue()/largeurInitiale)+","+ ymax_init +"]");
             largeurCourante = newValue.doubleValue();
@@ -378,7 +376,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
             if (newValue.doubleValue()>Screen.getPrimary().getVisualBounds().getHeight())
                 return ;
 
-            definirLimitesEtDimensionsGraphiques(getWidth(),newValue.doubleValue(), xmin_init, ymax_init -(ymax_init - ymin_init)*newValue.doubleValue()/hauteurInitiale, xmin_init +(xmax_init - xmin_init)*largeurCourante/largeurInitiale, ymax_init);
+            definirDimensionsGraphiquesEtLimites(getWidth(),newValue.doubleValue(), xmin_init, ymax_init -(ymax_init - ymin_init)*newValue.doubleValue()/hauteurInitiale, xmin_init +(xmax_init - xmin_init)*largeurCourante/largeurInitiale, ymax_init);
 //            LOGGER.log(Level.FINER,"["+ xmin_init +","+(ymax_init -(ymax_init - ymin_init)*newValue.doubleValue()/hauteurInitiale)+","+ xmin_init +(xmax_init - xmin_init)*largeurCourante/largeurInitiale +","+ ymax_init +"]");
             hauteurCourante = newValue.doubleValue();
             rafraichirDecor();
@@ -515,73 +513,117 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         if (scrollEvent.getEventType()!=ScrollEvent.SCROLL)
             return ;
 
-        double zoom_factor_step = 0.1 ;
-
-        double facteur ;
+        double nouveau_facteur ;
 
         if (scrollEvent.getDeltaY()<0)
-            facteur = (1+zoom_factor_step) ;
+            nouveau_facteur = (1 + pas_facteur_zoom_molette_souris) ;
         else
-            facteur = (1-zoom_factor_step) ;
+            nouveau_facteur = (1 - pas_facteur_zoom_molette_souris) ;
 
         // Calcul des coordonnées du centre qui doit rester au milieu de l'écran après le zoom
         double xcentre = (xmin() + xmax()) / 2;
         double ycentre = (ymin() + ymax()) / 2;
 
-        double nouveau_xmin = xcentre - facteur*(xcentre- xmin()) ;
-        double nouveau_ymin = ycentre - facteur*(ycentre- ymin()) ;
-        double nouveau_xmax = xcentre + facteur*(xmax() -xcentre) ;
-        double nouveau_ymax = ycentre + facteur*(ymax() -ycentre) ;
+        double nouveau_xmin = xcentre - nouveau_facteur*(xcentre - xmin()) ;
+        double nouveau_ymin = ycentre - nouveau_facteur*(ycentre - ymin()) ;
+        double nouveau_xmax = xcentre + nouveau_facteur*(xmax() - xcentre) ;
+        double nouveau_ymax = ycentre + nouveau_facteur*(ymax() - ycentre) ;
 
-        xmin_init =nouveau_xmin ;
-        ymin_init =nouveau_ymin ;
-        xmax_init =nouveau_xmax ;
-        ymax_init =nouveau_ymax ;
+        try {
+            definirLimites(nouveau_xmin, nouveau_ymin, nouveau_xmax, nouveau_ymax);
+        }  catch (IllegalArgumentException e) {
+            return ;
+        }
+
+
+        xmin_init = nouveau_xmin ;
+        ymin_init = nouveau_ymin ;
+        xmax_init = nouveau_xmax ;
+        ymax_init = nouveau_ymax ;
 
         largeurInitiale = this.getWidth() ;
         hauteurInitiale = this.getHeight();
         largeurCourante = largeurInitiale ;
         hauteurCourante = hauteurInitiale ;
 
-        definirLimites(nouveau_xmin,nouveau_ymin,nouveau_xmax,nouveau_ymax);
 
         rafraichirDecor();
 
     }
 
 
-    public void definirLimites(double xmin, double ymin, double xmax, double ymax) {
+    /**
+     * Définit les limites (en coordonnées géométriques de l'Environnement) de la zone à afficher dans le Canvas (zone visible).
+     * Cette méthode définit la transformation affine du GraphicsContext du canvas de manière à ce que les bords de ce GraphicsContext
+     * correspondent aux coordonnées des bords passés en paramètres.
+     *
+     * @param xmin
+     * @param ymin
+     * @param xmax
+     * @param ymax
+     */
+    public void definirLimites(double xmin, double ymin, double xmax, double ymax) throws IllegalArgumentException {
 
-        definirLimitesAffichageEnvironnement(xmin, ymin, xmax, ymax);
+        if ( (xmin>xmax) || (ymin>ymax) )
+            throw new IllegalArgumentException("xmax de la zone à afficher doit être plus grand que xmin. Idem pour ymax et ymin.") ;
 
-        integrerLimitesDansGraphicsContext();
-    }
+        // Resolution = dimensions d'un pixel graphique en coordonnées géométriques de l'Environnement
+        double nouvelle_resolution_x = (xmax-xmin) / largeur_graphique ;
+        double nouvelle_resolution_y = (ymax-ymin) / hauteur_graphique ;
+        double nouvelle_resolution = Math.min(nouvelle_resolution_x,nouvelle_resolution_y) ;
 
-    public void definirDimensionsGraphiques(double l_graphique, double h_graphique) {
-        largeur_graphique = l_graphique ;
-        hauteur_graphique = h_graphique ;
+        if (nouvelle_resolution<resolution_minimale_autorisee)
+            throw new IllegalArgumentException("La zone à afficher est trop petite (précision max d'une coordonnée dans un javafx.scene.canvas.GraphicsContext est limitée à celle d'un float soit environ 1E-7)") ;
 
-        integrerLimitesDansGraphicsContext();
-    }
+        if (nouvelle_resolution>resolution_maximale_autorisee)
+            throw new IllegalArgumentException("La zone à afficher est trop grande (exposa,t max d'une coordonnée dans un javafx.scene.canvas.GraphicsContext est limitée à celui d'un float soit environ 1E38)") ;
 
-    public void definirLimitesEtDimensionsGraphiques(double larg_g, double haut_g, double xmin, double ymin, double xmax, double ymax) {
 
-        definirLimitesAffichageEnvironnement(xmin, ymin, xmax, ymax);
+        // Tous les contrôles de paramètres ont été faits : on peut modifier les propriétés du Canvas
+        boite_limites = new BoiteLimiteGeometrique(xmin,ymin,xmax-xmin,ymax-ymin) ;
 
-        largeur_graphique = larg_g ;
-        hauteur_graphique = haut_g ;
+        resolution_x = nouvelle_resolution_x ;
+        resolution_y = nouvelle_resolution_y ;
 
-        integrerLimitesDansGraphicsContext();
+        resolution.set(nouvelle_resolution) ;
+
+        LOGGER.log(Level.FINEST, "Nouvelle resolution (dimension d'un pixel dans l'espace géométrique): {0}",nouvelle_resolution) ;
+
+        // Définition de la transformation affine qui permet de passer des coordonnées géométriques aux coord. écran
+        Affine nouvelle_transform = new Affine() ;
+        nouvelle_transform.appendTranslation(-xmin * largeur_graphique / (xmax - xmin), hauteur_graphique + ymin * hauteur_graphique / (ymax - ymin)); ;
+        nouvelle_transform.appendScale(largeur_graphique / (xmax - xmin), -hauteur_graphique / (ymax - ymin));
+
+        gc.setTransform(nouvelle_transform);
+
+        // Calcul et stockage de la transformation inverse
+        try {
+            transformation_inverse = gc.getTransform().createInverse();
+        } catch (NonInvertibleTransformException e)  {
+            System.exit(1) ;
+        } ;
+
+        // Il faut ramener l'épaisseur du trait en coordonnées géométriques
+        gc.setLineWidth(resolution.get());
 
     }
 
     public void definirLimites(BoundingBox b_limites) {
-        definirLimitesAffichageEnvironnement(b_limites.getMinX(),b_limites.getMinY(),b_limites.getMaxX(),b_limites.getMaxY());
-
-        integrerLimitesDansGraphicsContext();
+        definirLimites(b_limites.getMinX(),b_limites.getMinY(),b_limites.getMaxX(),b_limites.getMaxY());
     }
 
-    protected final void integrerLimitesDansGraphicsContext() {
+
+    public void definirDimensionsGraphiquesEtLimites(double larg_g, double haut_g, double xmin, double ymin, double xmax, double ymax) {
+
+        largeur_graphique = larg_g ;
+        hauteur_graphique = haut_g ;
+
+        definirLimites(xmin, ymin, xmax, ymax);
+
+    }
+
+
+    private final void integrerLimitesDansGraphicsContext() {
 
         double xmin = boite_limites.getMinX() ;
         double ymin = boite_limites.getMinY() ;
@@ -589,12 +631,19 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         double ymax = boite_limites.getMaxY() ;
 
         // Resolution = dimensions d'un pixel graphique en coordonnées géométriques de l'Environnement
-        resolution_x = (xmax-xmin) / largeur_graphique ;
-        resolution_y = (ymax-ymin) / hauteur_graphique ;
+        double nouvelle_resolution_x = (xmax-xmin) / largeur_graphique ;
+        double nouvelle_resolution_y = (ymax-ymin) / hauteur_graphique ;
+        double nouvelle_resolution = Math.min(nouvelle_resolution_x,nouvelle_resolution_y) ;
 
-        LOGGER.log(Level.FINEST, "Nouvelle resolution : {0}",Math.min(resolution_x,resolution_y)) ;
+        if (nouvelle_resolution<resolution_minimale_autorisee)
+            return ;
 
-        resolution.set(Math.min(resolution_x,resolution_y)) ;
+        resolution_x = nouvelle_resolution_x ;
+        resolution_y = nouvelle_resolution_y ;
+
+        resolution.set(nouvelle_resolution) ;
+
+        LOGGER.log(Level.FINEST, "Nouvelle resolution (dimension d'un pixel dans l'espace géométrique): {0}",nouvelle_resolution) ;
 
         // Définition de la transformation affine qui permet de passer des coordonnées géométriques aux coord. écran
         Affine nouvelle_transform = new Affine() ;

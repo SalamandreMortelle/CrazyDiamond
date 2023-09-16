@@ -9,6 +9,8 @@ public class ResizeableCanvas extends Region {
 
     private final Canvas canvas;
 
+    protected final GraphicsContext gc ;
+
     ResizeableCanvas(double width, double height) {
         //set the width and height of this and the canvas as the same
         setWidth(width);
@@ -22,13 +24,11 @@ public class ResizeableCanvas extends Region {
         canvas.widthProperty().bind(this.widthProperty());
         canvas.heightProperty().bind(this.heightProperty());
 
+        gc = canvas.getGraphicsContext2D() ;
 
         setMaxHeight(Screen.getPrimary().getVisualBounds().getHeight());
         setPrefHeight(Screen.getPrimary().getVisualBounds().getHeight());
 
     }
 
-    public GraphicsContext getGraphicsContext2D() {
-        return canvas.getGraphicsContext2D();
-    }
 }
