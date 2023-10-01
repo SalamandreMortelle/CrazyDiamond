@@ -18,6 +18,7 @@ public class Parabole implements Obstacle, Identifiable, Nommable,ElementAvecCon
     protected final DoubleProperty c ;
 
     private static int compteur_parabole ;
+    private BooleanProperty appartenance_composition;
     private BooleanProperty appartenance_systeme_optique_centre;
 
     public Parabole(TypeSurface type_surface, double  coeff_a , Point2D pextremum) throws IllegalArgumentException {
@@ -66,6 +67,7 @@ public class Parabole implements Obstacle, Identifiable, Nommable,ElementAvecCon
         this.b = new SimpleDoubleProperty(coeff_b);
         this.c = new SimpleDoubleProperty(coeff_c);
 
+        this.appartenance_composition = new SimpleBooleanProperty(false) ;
         this.appartenance_systeme_optique_centre = new SimpleBooleanProperty(false) ;
     }
 
@@ -255,6 +257,12 @@ public class Parabole implements Obstacle, Identifiable, Nommable,ElementAvecCon
     public void definirAppartenanceSystemeOptiqueCentre(boolean b) {this.appartenance_systeme_optique_centre.set(b);}
     @Override
     public boolean appartientASystemeOptiqueCentre() {return this.appartenance_systeme_optique_centre.get() ;}
+
+    @Override
+    public void definirAppartenanceComposition(boolean b) {this.appartenance_composition.set(b);}
+    @Override
+    public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
+
 
 //    @Override
 //    public Double abscissePremiereIntersectionSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart,boolean sens_z_croissants) {

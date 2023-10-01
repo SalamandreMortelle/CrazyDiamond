@@ -26,6 +26,8 @@ public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable
 
     private static int compteur_composition_deux_obstacles = 0;
 
+    private BooleanProperty appartenance_composition ;
+
     public CompositionDeuxObstacles(Obstacle ob1, Operateur op, Obstacle ob2) throws IllegalArgumentException {
         this(
                 new Imp_Identifiable(),
@@ -47,6 +49,8 @@ public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable
         obstacle2 = new SimpleObjectProperty<Obstacle>(ob2) ;
 
         operateur = new SimpleObjectProperty<Operateur>(op)  ;
+
+        appartenance_composition = new SimpleBooleanProperty(false) ;
 
     }
     @Override public String id() { return imp_identifiable.id(); }
@@ -360,4 +364,10 @@ public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable
     public void tournerAutourDe(Point2D centre_rot, double angle_rot_deg) {
 
     }
+
+    @Override
+    public void definirAppartenanceComposition(boolean b) {this.appartenance_composition.set(b);}
+    @Override
+    public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
+
 }

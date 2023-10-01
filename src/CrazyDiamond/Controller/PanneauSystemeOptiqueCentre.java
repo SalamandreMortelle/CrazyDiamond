@@ -171,7 +171,7 @@ public class PanneauSystemeOptiqueCentre {
         while (ito.hasNext()) {
             Obstacle o = ito.next() ;
             // Rechercher si l'obstacle o implémente l'interface ElementAvecMatiere car eux seuls peuvent faire partie d'une composition
-            if ( o.aSymetrieDeRevolution() && !soc.contient(o) && canvas.environnement().systemeOptiqueCentreContenant(o)==null )
+            if ( o.aSymetrieDeRevolution() && !soc.comprend(o) && canvas.environnement().systemeOptiqueCentreContenant(o)==null )
                 obstacles_a_proposer.add( o ) ;
         }
 
@@ -199,15 +199,12 @@ public class PanneauSystemeOptiqueCentre {
         boite_dialogue.getDialogPane().getButtonTypes().add(okButtonType);
         boite_dialogue.getDialogPane().getButtonTypes().add(annulerButtonType);
 
-
         Optional<ArrayList<Obstacle>> op_obstacles_choisis =  boite_dialogue.showAndWait() ;
         if (op_obstacles_choisis.isPresent()) {
 
             ArrayList<Obstacle> obstacles_choisis = op_obstacles_choisis.get() ;
 
             LOGGER.log(Level.INFO,"Obstacles choisis pour SOC : {0}",obstacles_choisis) ;
-
-
 
             for(Obstacle o : obstacles_choisis) {
 //                o.integrerDansSystemeOptiqueCentre(soc);

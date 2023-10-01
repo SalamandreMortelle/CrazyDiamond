@@ -22,6 +22,7 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
     protected final DoubleProperty angle_sommet;
     protected final DoubleProperty largeur_base;
 
+    private BooleanProperty appartenance_composition;
 
     private static int compteur_prisme;
 
@@ -52,6 +53,7 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
         this.angle_sommet = new SimpleDoubleProperty(angle_sommet);
         this.largeur_base = new SimpleDoubleProperty(largeur_base);
 
+        appartenance_composition = new SimpleBooleanProperty(false) ;
 
     }
 
@@ -146,6 +148,12 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
     public ContoursObstacle couper(BoiteLimiteGeometrique boite) {
         return couper(boite,true) ;
     }
+
+    @Override
+    public void definirAppartenanceComposition(boolean b) {this.appartenance_composition.set(b);}
+    @Override
+    public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
+
 
     DemiDroiteOuSegment cote(BordPrisme b) {
 

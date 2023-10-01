@@ -1911,7 +1911,7 @@ public class SystemeOptiqueCentre implements Nommable {
 
     public void retirerObstacleCentre(Obstacle o) {
 
-        if (!this.contient(o))
+        if (!this.comprend(o))
             return ;
 
         obstacles_centres.remove(o) ;
@@ -1926,8 +1926,13 @@ public class SystemeOptiqueCentre implements Nommable {
 
     }
 
-    public boolean contient(Obstacle o) {
-        return obstacles_centres.contains(o) ;
+    public boolean comprend(Obstacle o) {
+        for (Obstacle obc : obstacles_centres) {
+          if (obc.comprend(o))
+              return true ;
+        }
+        return false ;
+//        return obstacles_centres.contains(o) ;
     }
 
     public Point2D vecteurDirecteurAxe() {

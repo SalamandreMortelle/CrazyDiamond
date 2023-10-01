@@ -37,6 +37,9 @@ public interface Obstacle {
 
     default boolean contient_strict(Point2D p) { return (contient(p) && !aSurSaSurface(p)) ; }
 
+    default boolean comprend(Obstacle o) { return this.equals(o) ; }
+    default Composition composition_contenant(Obstacle o) { return null ; }
+
     Point2D normale(Point2D p) throws Exception ;
 
     Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) throws Exception;
@@ -92,6 +95,9 @@ public interface Obstacle {
 
     default void definirAppartenanceSystemeOptiqueCentre(boolean b) { }
     default boolean appartientASystemeOptiqueCentre() { return false; }
+
+    void definirAppartenanceComposition(boolean b) ;
+    boolean appartientAComposition() ;
 
     /**
      * Si cet obstacle est sur un axe d'origine origine_axe et de direction direction_axe_deg (en degrés), retourne

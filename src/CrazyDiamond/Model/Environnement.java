@@ -179,6 +179,15 @@ public class Environnement {
 
     public void ajouterListenerListeObstacles(ListChangeListener<Obstacle> lcl_o) {
         obstacles.addListener(lcl_o);
+
+        //Il faut aussi détecter les changements qui interviennent dans les compositions
+        for (Obstacle o : obstacles) {
+            if (o.getClass() == Composition.class) {
+                Composition comp = (Composition) o ;
+                comp.ajouterListenerListeObstacles(lcl_o) ;
+            }
+
+        }
     }
 
     public void ajouterListenerListeSystemesOptiquesCentres(ListChangeListener<SystemeOptiqueCentre> lcl_soc) {
@@ -251,11 +260,21 @@ public class Environnement {
 
     public SystemeOptiqueCentre systemeOptiqueCentreContenant(Obstacle o) {
         for (SystemeOptiqueCentre soc : systemes_optiques_centres)
-            if (soc.contient(o))
+            if (soc.comprend(o))
                 return soc ;
 
         return null ;
     }
+
+    public Composition compositionContenant(Obstacle o) {
+        for (Obstacle ob  : obstacles) {
+            if (ob.getClass() == Composition.class && ob.comprend(o))
+                    return ob.composition_contenant(o);
+        }
+
+        return null ;
+    }
+
 
     public Source derniereSource() {
         if (sources.size()>0)
@@ -307,6 +326,14 @@ public class Environnement {
     }
 
     public void retirerObstacle(Obstacle o) {
+
+        if (o.appartientAComposition()) {
+            Composition comp_contenante = compositionContenant(o);
+
+            comp_contenante.retirerObstacle(o) ;
+            if (comp_contenante.appartientASystemeOptiqueCentre())
+                o.definirAppartenanceSystemeOptiqueCentre(false);
+        }
 
         if (o.appartientASystemeOptiqueCentre())
             systemeOptiqueCentreContenant(o).retirerObstacleCentre(o);
@@ -471,7 +498,7 @@ public class Environnement {
             Obstacle o = ito.previous();
 
             // Si un SOC est passé en paramètre, on ne traite que les obstacles de ce SOC
-            if (soc!=null && !soc.contient(o))
+            if (soc!=null && !soc.comprend(o))
                 continue ;
 
             // On ignore les obstacles sans épaisseur

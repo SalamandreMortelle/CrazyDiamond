@@ -24,9 +24,9 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
     protected final DoubleProperty largeur ;
     protected final DoubleProperty hauteur ;
 
-
-
     private static int compteur_rectangle ;
+
+    private BooleanProperty appartenance_composition;
     private final BooleanProperty appartenance_systeme_optique_centre;
 
     public Rectangle(TypeSurface type_surface, double  x_centre, double y_centre, double largeur, double hauteur, double orientation_deg) throws IllegalArgumentException {
@@ -57,6 +57,7 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
         this.hauteur = new SimpleDoubleProperty(hauteur);
 
 
+        this.appartenance_composition = new SimpleBooleanProperty(false) ;
         this.appartenance_systeme_optique_centre = new SimpleBooleanProperty(false) ;
 
     }
@@ -870,6 +871,11 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
     public void definirAppartenanceSystemeOptiqueCentre(boolean b) {this.appartenance_systeme_optique_centre.set(b);}
     @Override
     public boolean appartientASystemeOptiqueCentre() {return this.appartenance_systeme_optique_centre.get() ;}
+
+    @Override
+    public void definirAppartenanceComposition(boolean b) {this.appartenance_composition.set(b);}
+    @Override
+    public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
 
     @Override
     public Double rayonDiaphragmeParDefaut() {

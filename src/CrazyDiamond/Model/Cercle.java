@@ -21,8 +21,8 @@ public class Cercle  implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
     protected DoubleProperty rayon;
 
+    private BooleanProperty appartenance_composition ;
     private BooleanProperty appartenance_systeme_optique_centre ;
-
     private static int compteur_cercle = 0 ;
 
     public static void razCompteur() { compteur_cercle = 0 ; }
@@ -62,6 +62,7 @@ public class Cercle  implements Obstacle, Identifiable, Nommable,ElementAvecCont
 //        this.y_centre = new SimpleDoubleProperty(ycentre) ;
         this.rayon = new SimpleDoubleProperty(rayon) ;
 
+        this.appartenance_composition = new SimpleBooleanProperty(false) ;
         this.appartenance_systeme_optique_centre = new SimpleBooleanProperty(false) ;
 
     }
@@ -309,6 +310,12 @@ public class Cercle  implements Obstacle, Identifiable, Nommable,ElementAvecCont
     public void definirAppartenanceSystemeOptiqueCentre(boolean b) {this.appartenance_systeme_optique_centre.set(b);}
     @Override
     public boolean appartientASystemeOptiqueCentre() {return this.appartenance_systeme_optique_centre.get() ;}
+
+    @Override
+    public void definirAppartenanceComposition(boolean b) {this.appartenance_composition.set(b);}
+    @Override
+    public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
+
 
     /**
      * @return

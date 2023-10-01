@@ -28,7 +28,7 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
 //    protected final DoubleProperty orientation ;
 
     private final BooleanProperty appartenance_systeme_optique_centre;
-
+    private BooleanProperty appartenance_composition ;
 
     @Override
     public Double rayon_polaire(double theta) {
@@ -150,6 +150,8 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
     @Override public DoubleProperty indiceRefractionProperty() {  return imp_elementAvecMatiere.indiceRefractionProperty(); }
 
     public BooleanProperty appartenanceSystemeOptiqueProperty() {return appartenance_systeme_optique_centre ;}
+
+
 
     @Override public String toString() { return nom(); }
 
@@ -1200,6 +1202,10 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
     public void definirAppartenanceSystemeOptiqueCentre(boolean b) {this.appartenance_systeme_optique_centre.set(b);}
     @Override
     public boolean appartientASystemeOptiqueCentre() {return this.appartenance_systeme_optique_centre.get() ;}
+    @Override
+    public void definirAppartenanceComposition(boolean b) {this.appartenance_composition.set(b);}
+    @Override
+    public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
 
     @Override
     public Double rayonDiaphragmeParDefaut() {

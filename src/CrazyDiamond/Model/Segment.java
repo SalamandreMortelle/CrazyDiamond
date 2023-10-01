@@ -31,6 +31,8 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
     private final DemiDroiteOuSegment segment_support ;
 
     private static int compteur_segment;
+
+    private final BooleanProperty appartenance_composition;
     private final BooleanProperty appartenance_systeme_optique_centre;
 
     public Segment(double x_centre, double y_centre, double longueur, double orientation,double rayon_diaphragme) throws IllegalArgumentException {
@@ -60,6 +62,7 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
         this.longueur = new SimpleDoubleProperty(longueur);
         this.rayon_diaphragme = new SimpleDoubleProperty(rayon_diaphragme);
 
+        this.appartenance_composition = new SimpleBooleanProperty(false) ;
         this.appartenance_systeme_optique_centre = new SimpleBooleanProperty(false) ;
 
         segment_support = new DemiDroiteOuSegment() ;
@@ -545,6 +548,11 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
     public void definirAppartenanceSystemeOptiqueCentre(boolean b) {this.appartenance_systeme_optique_centre.set(b);}
     @Override
     public boolean appartientASystemeOptiqueCentre() {return this.appartenance_systeme_optique_centre.get() ;}
+
+    @Override
+    public void definirAppartenanceComposition(boolean b) {this.appartenance_composition.set(b);}
+    @Override
+    public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
 
     /**
      * @return

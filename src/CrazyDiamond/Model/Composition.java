@@ -3,6 +3,7 @@ package CrazyDiamond.Model;
 
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
@@ -20,6 +21,7 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
     private final Imp_ElementAvecMatiere imp_elementAvecMatiere;
 
     private final BooleanProperty appartenance_systeme_optique_centre;
+    private final BooleanProperty appartenance_composition;
 
     public enum Operateur {
         UNION("UNION"),
@@ -48,16 +50,11 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
 
     }
 
-    ;
-
     private final ListProperty<Obstacle> elements;
 
     private final ObjectProperty<Operateur> operateur;
 
     private static int compteur_composition = 0;
-
-
-
 
     public Composition(Operateur op) throws IllegalArgumentException {
 
@@ -85,6 +82,7 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
         operateur = new SimpleObjectProperty<Operateur>(op);
 
         appartenance_systeme_optique_centre = new SimpleBooleanProperty(false);
+        appartenance_composition = new SimpleBooleanProperty(false);
 
     }
     @Override public String id() { return imp_identifiable.id(); }
@@ -275,12 +273,51 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
 
         this.elements.add(o);
 
+        o.definirAppartenanceComposition(true);
+
     }
 
     public void retirerObstacle(Obstacle o) {
         elements.remove(o);
 
         // TODO : ajouter un listener sur la liste des obstacles ?
+
+        o.definirAppartenanceComposition(false);
+
+    }
+
+    public void ajouterListenerListeObstacles(ListChangeListener<Obstacle> lcl_o) {
+        elements.addListener(lcl_o);
+
+        //Il faut aussi détecter les changements qui interviennent dans les sous-compositions
+        for (Obstacle o : elements) {
+            if (o.getClass() == Composition.class) {
+                Composition comp = (Composition) o ;
+                comp.ajouterListenerListeObstacles(lcl_o) ;
+            }
+
+        }
+    }
+    @Override
+    public boolean comprend(Obstacle o) {
+
+        for (Obstacle ob : elements) {
+            if (ob.comprend(o))
+                return true ;
+        }
+
+        return Obstacle.super.comprend(o);
+    }
+
+    public Composition composition_contenant(Obstacle o) {
+        for (Obstacle ob : elements) {
+            if (ob.comprend(o)) {
+                Composition c_cont = ob.composition_contenant(o);
+                return (c_cont!=null?c_cont:this) ;
+            }
+        }
+
+        return null ;
 
     }
 
@@ -881,6 +918,18 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
     public boolean appartientASystemeOptiqueCentre() {
         return this.appartenance_systeme_optique_centre.get();
     }
+
+    @Override
+    public void definirAppartenanceComposition(boolean b) {
+        this.appartenance_composition.set(b);
+
+        for (Obstacle o : elements)
+            o.definirAppartenanceComposition(b);
+
+    }
+    @Override
+    public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
+
 
     /**
      * @return

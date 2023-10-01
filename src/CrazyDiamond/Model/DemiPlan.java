@@ -24,6 +24,7 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
 //    protected final DoubleProperty orientation;
 
     private static int compteur_demi_plan = 0 ;
+    private final BooleanProperty appartenance_composition;
     private final BooleanProperty appartenance_systeme_optique_centre;
 
     public DemiPlan(TypeSurface type_surface, double x_origine, double y_origine, double orientation_deg) throws IllegalArgumentException {
@@ -48,6 +49,7 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
 //
 //        this.orientation = new SimpleDoubleProperty(orientation_deg);
 
+        this.appartenance_composition = new SimpleBooleanProperty(false) ;
         this.appartenance_systeme_optique_centre = new SimpleBooleanProperty(false) ;
 
     }
@@ -510,6 +512,10 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
     @Override
     public boolean appartientASystemeOptiqueCentre() {return this.appartenance_systeme_optique_centre.get() ;}
 
+    @Override
+    public void definirAppartenanceComposition(boolean b) {this.appartenance_composition.set(b);}
+    @Override
+    public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
 
     @Override
     public void tournerAutourDe(Point2D centre_rot, double angle_rot_deg) {
