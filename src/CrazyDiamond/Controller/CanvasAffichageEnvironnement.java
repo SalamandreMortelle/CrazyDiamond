@@ -554,7 +554,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
     /**
      * Définit les limites (en coordonnées géométriques de l'Environnement) de la zone à afficher dans le Canvas (zone visible).
-     * Cette méthode définit la transformation affine du GraphicsContext du canvas de manière à ce que les bords de ce GraphicsContext
+     * Cette méthode définit la transformation affine du GraphicsContext du canvas de manière que les bords de ce GraphicsContext
      * correspondent aux coordonnées des bords passés en paramètres.
      *
      * @param xmin

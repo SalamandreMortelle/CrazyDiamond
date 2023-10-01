@@ -26,7 +26,7 @@ public class CrazyDiamond extends Application {
     // Récupération du logger
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
 
-    private static final ResourceBundle rb = ResourceBundle.getBundle("CrazyDiamond") ;
+    private static final ResourceBundle rb = ResourceBundle.getBundle("CrazyDiamond",CrazyDiamond.class.getModule()) ;
 
     // Bloc statique pour configurer le gestionnaire de logs, avant toute création d'objet
     static{

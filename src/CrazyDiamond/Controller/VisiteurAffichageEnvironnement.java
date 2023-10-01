@@ -8,6 +8,9 @@ import javafx.scene.effect.BlendMode;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.StrokeLineJoin;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.transform.Affine;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -25,9 +28,17 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
 
 
-    double ecart_theta_limite = 1E-6 ;
+    int nombre_pas_angulaire_par_arc = 300 ;
 
-    int nombre_pas_angulaire_par_arc = 500 ;
+    private final Font fonte_labels = Font.font("Serif", FontPosture.ITALIC, -1);
+
+    // Marge des labels sur l'axe X
+    private final double marge_label_x = 5d;
+
+    // Marge des labels sur l'axe Y
+    private final double marge_label_y = -5d;
+    private final int facteur_zoom_label = 2;
+
 
     public VisiteurAffichageEnvironnement(CanvasAffichageEnvironnement cae) {
 
@@ -268,126 +279,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     }
 
 
-    public void old_visiteCercle(Cercle cercle) {
-
-        GraphicsContext gc = cae.gc() ;
-
-        Paint s = gc.getStroke() ;
-        Paint pf = gc.getFill() ;
-
-        Paint couleur_masse = cercle.couleurMatiere() ;
-        Paint couleur_bord = cercle.couleurContour() ;
-
-        gc.setStroke(couleur_bord);
-        gc.setFill(couleur_masse);
-
-        double rayon = cercle.rayon() ;
-
-        double x_centre = cercle.xCentre() ;
-        double y_centre = cercle.yCentre() ;
-
-        if (cercle.typeSurface() == TypeSurface.CONVEXE)
-            gc.fillOval(x_centre-rayon,y_centre-rayon,2*rayon,2*rayon);
-        else { // Concave
-
-            double xg = Math.min(cae.xmin(),x_centre-rayon) ;
-            double xd = Math.max(cae.xmax(),x_centre+rayon) ;
-            double yb = Math.min(cae.ymin(),y_centre-rayon) ;
-            double yh = Math.max(cae.ymax(),y_centre+rayon) ;
-
-            double pas = cae.resolutionX() ;
-
-            double x,y ;
-
-            // Trace partie haute
-            ArrayList<Double> xpoints = new ArrayList<Double>(300);
-            ArrayList<Double> ypoints = new ArrayList<Double>(300);
-
-            xpoints.add(xg) ;
-            ypoints.add(y_centre) ;
-
-            x = x_centre-rayon ;
-            y = y_centre ;
-
-            xpoints.add(x) ;
-            ypoints.add(y) ;
-
-            do {
-                x += pas ;
-                y = y_centre + Math.sqrt( rayon*rayon - (x-x_centre)*(x-x_centre) )  ;
-
-                xpoints.add(x) ;
-                ypoints.add(y) ;
-            } while (x<x_centre+rayon) ;
-
-
-            xpoints.add(x_centre+rayon) ;
-            ypoints.add(y_centre) ;
-
-            xpoints.add(xd) ;
-            ypoints.add(y_centre) ;
-
-            xpoints.add(xd) ;
-            ypoints.add(yh) ;
-
-            xpoints.add(xg) ;
-            ypoints.add(yh) ;
-
-            xpoints.add(xg) ;
-            ypoints.add(y_centre) ;
-
-            CanvasAffichageEnvironnement.remplirPolygone(cae,xpoints,ypoints);
-
-            // Trace partie basse
-            xpoints.clear();
-            ypoints.clear();
-
-            xpoints.add(xg) ;
-            ypoints.add(y_centre) ;
-
-            x = x_centre-rayon ;
-            y = y_centre ;
-
-            xpoints.add(x) ;
-            ypoints.add(y) ;
-
-            do {
-                x += pas ;
-                y = y_centre - Math.sqrt( rayon*rayon - (x-x_centre)*(x-x_centre) )  ;
-
-                xpoints.add(x) ;
-                ypoints.add(y) ;
-            } while (x<x_centre+rayon) ;
-
-            xpoints.add(x_centre+rayon) ;
-            ypoints.add(y_centre) ;
-
-            xpoints.add(xd) ;
-            ypoints.add(y_centre) ;
-
-            xpoints.add(xd) ;
-            ypoints.add(yb) ;
-
-            xpoints.add(xg) ;
-            ypoints.add(yb) ;
-
-            xpoints.add(xg) ;
-            ypoints.add(y_centre) ;
-
-            CanvasAffichageEnvironnement.remplirPolygone(cae,xpoints,ypoints);
-
-        }
-
-        gc.strokeOval(x_centre-rayon,y_centre-rayon,2*rayon,2*rayon);
-
-        gc.setFill(pf);
-
-        gc.setStroke(s);
-        // Note : on pourrait aussi utiliser gc.save() au début de la méthode puis gc.restore() à la fin
-
-    }
-
-//    public ReflexionParabolique.VisiteurAffichageEnvironnement.Contour extraire_sommets_cercle(Cercle c) {
+    //    public ReflexionParabolique.VisiteurAffichageEnvironnement.Contour extraire_sommets_cercle(Cercle c) {
 //        ReflexionParabolique.VisiteurAffichageEnvironnement.Contour sommets = new ReflexionParabolique.VisiteurAffichageEnvironnement.Contour() ;
 //
 //        // TODO...
@@ -1381,257 +1273,10 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         gc.setStroke(s);
     }
 
-    private void trace_conique_methode1(Conique conique) {
-        int    nombre_pas = 18000 ;
-        double pas = 2 * Math.PI / nombre_pas ;
-
-        double e = conique.excentricite() ;
-        Point2D foyer = conique.foyer() ;
-
-        if (e<1.0) { // Ellipse
-            ArrayList<Double> xpoints_ellipse = new ArrayList<Double>(nombre_pas+2);
-            ArrayList<Double> ypoints_ellipse = new ArrayList<Double>(nombre_pas+2);
-
-            double theta = 0.0;
-            Point2D pt;
-
-            // Calcul des extrema de l'ellipse sur l'axe X et sur l'axe Y
-
-            // NB  :la fonction Math.asin renvoie une valeur entre -PI/2 et PI/2 donc c'est bien le theta du X max
-            double thetaxmax = Math.asin(-e*Math.sin(conique.theta_axe_focal())) ;
-            double thetaxmin = Math.PI - thetaxmax ;
-
-            // NB  :la fonction Math.acos renvoie une valeur entre 0 et PI donc c'est bien le theta du y max
-            double thetaymax = Math.acos(-e*Math.cos(conique.theta_axe_focal())) ;
-            double thetaymin = -thetaymax ;
-
-            // Limites de l'ellipse
-            double xmax = conique.point_sur_conique(thetaxmax).getX() ;
-            double xmin = conique.point_sur_conique(thetaxmin).getX() ;
-            double ymax = conique.point_sur_conique(thetaymax).getY() ;
-            double ymin = conique.point_sur_conique(thetaymin).getY() ;
-
-            // Fin du calcul des extrema sur les axes X et Y
-
-//            double xmax_approche = -Double.MIN_VALUE ;
-//            double ymax_approche = -Double.MIN_VALUE ;
-//            double xmin_approche  = Double.MAX_VALUE ;
-//            double ymin_approche  = Double.MAX_VALUE ;
-//            double thetaxmax_approche = 0 ;
-//            double thetaxmin_approche = 0 ;
-//            double thetaymax_approche = 0 ;
-//            double thetaymin_approche = 0 ;
-            do {
-                pt = conique.point_sur_conique(theta);
-                xpoints_ellipse.add(pt.getX());
-                ypoints_ellipse.add(pt.getY());
-
-//                if (pt.getX()>xmax_approche) {
-//                    xmax_approche = pt.getX();
-//                    thetaxmax_approche =  theta ;
-//                }
-//                if (pt.getX()<xmin_approche) {
-//                    xmin_approche = pt.getX();
-//                    thetaxmin_approche =  theta ;
-//                }
-//                if (pt.getY()>ymax_approche) {
-//                    ymax_approche = pt.getY();
-//                    thetaymax_approche =  theta ;
-//                }
-//                if (pt.getY()<ymin_approche) {
-//                    ymin_approche = pt.getY();
-//                    thetaymin_approche =  theta ;
-//                }
-
-                theta += pas;
-            } while (theta < 2 * Math.PI);
-
-//            System.out.println("xmax_approche = "+xmax_approche);
-//            System.out.println("xmax = "+xmax);
-//            System.out.println("xmin_approche = "+xmin_approche);
-//            System.out.println("xmin = "+xmin);
-//            System.out.println("ymax_approche = "+ymax_approche);
-//            System.out.println("ymax = "+ymax);
-//            System.out.println("ymin_approche = "+ymin_approche);
-//            System.out.println("ymin = "+ymin);
-//            System.out.println("thetaxmax = "+thetaxmax_approche);
-//            System.out.println("theta axe focal = "+theta_axe_focal());
-//            System.out.println("theta x max = "+thetaxmax);
-//            System.out.println("theta x max approche = "+thetaxmax_approche);
-//            System.out.println("theta x min = "+thetaxmin);
-//            System.out.println("theta x min approche = "+thetaxmin_approche);
-//            System.out.println("theta y max = "+thetaymax);
-//            System.out.println("theta y max approche= "+thetaymax_approche);
-//            System.out.println("theta y min = "+thetaymin);
-//            System.out.println("theta y min approche= "+thetaymin_approche);
-            //
-            // System.out.println("theta solution = "+Math.toDegrees(Math.asin(-e*Math.sin(theta_axe_focal())))+"°");
-//            System.out.println(" 2PI - theta xmax = "+(2*Math.PI-thetaxmax_approche));
-//            System.out.println(" 2PI - theta axe focal = "+(2*Math.PI-theta_axe_focal()));
-
-            // On termine exactement sur le point de départ
-            pt = conique.point_sur_conique(0.0);
-            xpoints_ellipse.add(pt.getX());
-            ypoints_ellipse.add(pt.getY());
-
-            if (conique.typeSurface() == TypeSurface.CONCAVE) {
-//                Double xg = Math.min(eg.xmin(),point_sur_conique(Math.PI).getX()) ;
-//                Double xd = Math.max(eg.xmax(),point_sur_conique(0).getX()) ;
-//                Double yb = Math.min(eg.ymin(),point_sur_conique(-Math.PI/2).getY()) ;
-//                Double yh = Math.max(eg.ymax(),point_sur_conique(Math.PI/2).getY()) ;
-                Double xg = Math.min(cae.xmin(),xmin) ;
-                Double xd = Math.max(cae.xmax(),xmax) ;
-                Double yb = Math.min(cae.ymin(),ymin) ;
-                Double yh = Math.max(cae.ymax(),ymax) ;
-
-                ArrayList<Double> xpoints = new ArrayList<Double>(nombre_pas+9) ;
-                ArrayList<Double> ypoints = new ArrayList<Double>(nombre_pas+9) ;
-
-                xpoints.add(xd) ;
-                ypoints.add(foyer.getY()) ;
-
-                xpoints.addAll(xpoints_ellipse) ;
-                ypoints.addAll(ypoints_ellipse) ;
-
-                xpoints.addAll(Arrays.asList(xd          , xd, xg, xg, xd, xd          )) ;
-                ypoints.addAll(Arrays.asList(foyer.getY(), yb, yb, yh, yh, foyer.getY())) ;
-
-                CanvasAffichageEnvironnement.remplirPolygone(cae,xpoints,ypoints);
-
-            } else if (conique.typeSurface()== TypeSurface.CONVEXE) { // CONVEXE
-                CanvasAffichageEnvironnement.remplirPolygone(cae, xpoints_ellipse, ypoints_ellipse);
-            }
-
-            // Tracé de la surface (du dioptre)
-            cae.tracerPolyligne(xpoints_ellipse,ypoints_ellipse);
-
-        } else if (e==1.0) { // Parabole
-            ArrayList<Double> xpoints_parabole = new ArrayList<Double>(nombre_pas+2);
-            ArrayList<Double> ypoints_parabole = new ArrayList<Double>(nombre_pas+2);
-
-            // Calcul de l'extremum de la parabole sur l'axe X, et de l'extremum et sur l'axe Y
-            double xmin=Double.MAX_VALUE,xmax=Double.MIN_VALUE,ymin=Double.MAX_VALUE,ymax=Double.MIN_VALUE ;
-
-            double theta_x_extremum  = -conique.theta_axe_focal() ;
-
-            if (theta_x_extremum>-Math.PI/2 && theta_x_extremum<Math.PI/2)
-                xmax = conique.point_sur_conique(theta_x_extremum).getX() ;
-            else
-                xmin = conique.point_sur_conique(theta_x_extremum).getX() ;
-
-            double theta_y_extremum = Math.PI - conique.theta_axe_focal() ;
-
-            if (theta_y_extremum>0 && theta_y_extremum<Math.PI)
-                ymax = conique.point_sur_conique(theta_y_extremum).getY() ;
-            else
-                ymin = conique.point_sur_conique(theta_y_extremum).getY() ;
-
-            // Fin du calcul des extrema sur les axes X et Y
-
-            double theta_min = (conique.theta_axe_focal() - Math.PI) + ecart_theta_limite ;
-            double theta_max = (conique.theta_axe_focal() + Math.PI) - ecart_theta_limite ;
-
-            double theta = theta_min ;
-
-            Point2D pt;
-
-
-            do {
-                pt = conique.point_sur_conique(theta);
-
-                xpoints_parabole.add(pt.getX());
-                ypoints_parabole.add(pt.getY());
-
-                theta += pas;
-            } while (theta <= theta_max);
-
-//            // On termine exactement sur le point de départ
-//            pt = point_sur_conique(theta_min);
-//            xpoints_parabole.add(pt.getX());
-//            ypoints_parabole.add(pt.getY());
-
-            if (conique.typeSurface() == TypeSurface.CONCAVE) {
-                Double xg = Math.min(cae.xmin(),xmin) ;
-                Double xd = Math.max(cae.xmax(),xmax) ;
-                Double yb = Math.min(cae.ymin(),ymin) ;
-                Double yh = Math.max(cae.ymax(),ymax) ;
-
-                ArrayList<Double> xpoints = new ArrayList<Double>(nombre_pas+9) ;
-                ArrayList<Double> ypoints = new ArrayList<Double>(nombre_pas+9) ;
-
-                xpoints.addAll(xpoints_parabole) ;
-                ypoints.addAll(ypoints_parabole) ;
-
-                if (conique.theta_axe_focal() == 0.0) {
-                    xpoints.addAll(Arrays.asList(xg, xd, xd, xg)) ;
-                    ypoints.addAll(Arrays.asList(yh, yh, yb, yb)) ;
-                }
-
-                if (conique.theta_axe_focal() == Math.PI) {
-                    xpoints.addAll(Arrays.asList(xd, xg, xg, xd)) ;
-                    ypoints.addAll(Arrays.asList(yb, yb, yh, yh)) ;
-                }
-
-                // Après tests, inutile de gérer les cas où theta_axe_focal = PI/2 ou -PI/2
-                // L'égalité n'est pas stricte et ces cas se traitent avec les cas généraux
-
-
-                if (conique.theta_axe_focal()>-Math.PI/2 && conique.theta_axe_focal()<Math.PI/2) {// il y a un x max
-                    if (conique.theta_axe_focal() > 0 && conique.theta_axe_focal() < Math.PI) {// il y aun y max
-                        xpoints.addAll(Arrays.asList(xpoints_parabole.get(xpoints_parabole.size()-1), xd, xd)) ;
-                        ypoints.addAll(Arrays.asList(yh                                             , yh, yb)) ;
-                    } else if (conique.theta_axe_focal() > -Math.PI && conique.theta_axe_focal() < 0) {// il y a un ymin
-                        xpoints.addAll(Arrays.asList(xd                                             , xd,xg)) ;
-                        ypoints.addAll(Arrays.asList(ypoints_parabole.get(ypoints_parabole.size()-1), yb,yb)) ;
-                    }
-                }
-                else { // il y a un xmin
-                    if (conique.theta_axe_focal() > 0 && conique.theta_axe_focal() < Math.PI) {// il y aun y max
-                        xpoints.addAll(Arrays.asList(xg                                             , xg, xd)) ;
-                        ypoints.addAll(Arrays.asList(ypoints_parabole.get(ypoints_parabole.size()-1), yh, yh)) ;
-                    } else if (conique.theta_axe_focal() > -Math.PI && conique.theta_axe_focal() < 0) {// il y a un ymin
-                        xpoints.addAll(Arrays.asList(xpoints_parabole.get(xpoints_parabole.size()-1), xg, xg)) ;
-                        ypoints.addAll(Arrays.asList(yb                                             , yb, yh)) ;
-
-                    }
-                }
-
-                CanvasAffichageEnvironnement.remplirPolygone(cae,xpoints,ypoints);
-
-            } else if (conique.typeSurface() == TypeSurface.CONVEXE) { // CONVEXE
-                CanvasAffichageEnvironnement.remplirPolygone(cae, xpoints_parabole, ypoints_parabole);
-            }
-
-            // Tracé de la surface (du dioptre)
-            cae.tracerPolyligne(xpoints_parabole,ypoints_parabole);
-        } else if (e>1.0) {// Hyperbole
-            ArrayList<Double> xpoints_hyperbole = new ArrayList<Double>(nombre_pas+2);
-            ArrayList<Double> ypoints_hyperbole = new ArrayList<Double>(nombre_pas+2);
-
-            double theta_min = (conique.theta_axe_focal() - Math.acos(-1/e)) + ecart_theta_limite ;
-            double theta_max = (conique.theta_axe_focal() + Math.acos(-1/e)) - ecart_theta_limite ;
-
-            Point2D pt;
-
-            double theta = theta_min ;
-            do {
-                pt = conique.point_sur_conique(theta);
-
-                xpoints_hyperbole.add(pt.getX());
-                ypoints_hyperbole.add(pt.getY());
-
-                theta += pas;
-            } while (theta <= theta_max);
-
-            // Tracé de la surface (du dioptre)
-            cae.tracerPolyligne(xpoints_hyperbole,ypoints_hyperbole);
-        }
-    }
-
     @Override
     public void visiteComposition(Composition c) {
 
-        if (c.elements().size()<=1)
+        if (c.elements().size()==0)
             return ;
 
         GraphicsContext gc = cae.gc() ;
@@ -1760,18 +1405,18 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         afficheRayonsLimiteChamps(soc,true,true,true);
 
         if (soc.MontrerPlansFocaux()) {
-            marquePositionSurAxeSOC(soc,soc.ZPlanFocal1(),Color.LIGHTBLUE,300);
-            marquePositionSurAxeSOC(soc,soc.ZPlanFocal2(),Color.LIGHTBLUE,300);
+            marquePositionSurAxeSOC(soc,soc.ZPlanFocal1(),Color.LIGHTBLUE,300,"F");
+            marquePositionSurAxeSOC(soc,soc.ZPlanFocal2(),Color.LIGHTBLUE,300,"F'");
         }
 
         if (soc.MontrerPlansPrincipaux()) {
-            marquePositionSurAxeSOC(soc,soc.ZPlanPrincipal1(),Color.LIGHTYELLOW,300);
-            marquePositionSurAxeSOC(soc,soc.ZPlanPrincipal2(),Color.LIGHTYELLOW,300);
+            marquePositionSurAxeSOC(soc,soc.ZPlanPrincipal1(),Color.LIGHTYELLOW,300,"H");
+            marquePositionSurAxeSOC(soc,soc.ZPlanPrincipal2(),Color.LIGHTYELLOW,300,"H'");
         }
 
         if (soc.MontrerPlansNodaux()) {
-            marquePositionSurAxeSOC(soc,soc.ZPlanNodal1(),Color.PALEVIOLETRED,300);
-            marquePositionSurAxeSOC(soc,soc.ZPlanNodal2(),Color.PALEVIOLETRED,300);
+            marquePositionSurAxeSOC(soc,soc.ZPlanNodal1(),Color.PALEVIOLETRED,300,"N");
+            marquePositionSurAxeSOC(soc,soc.ZPlanNodal2(),Color.PALEVIOLETRED,300,"N'");
         }
 
         if (soc.MontrerObjet())
@@ -2079,16 +1724,22 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
 //        gc.stroke();
 
-    }    
-    
+    }
+
+
+    private void marquePositionSurAxeSOC(SystemeOptiqueCentre soc, Double z_sur_axe, Color c,double hauteur) {
+        marquePositionSurAxeSOC(soc,z_sur_axe,c,hauteur,null);
+    }
+
     /**
      * Marque une position d'abscisse donnée sur l'axe optique d'un SOC, avec une hauteur et une couleur de marque paramétrables
      * @param soc
      * @param z_sur_axe
      * @param c
      * @param hauteur : hauteur en nombre de resolutions de l'environnement
+     * @param label : texte à positionner sur la marque
      */
-    private void marquePositionSurAxeSOC(SystemeOptiqueCentre soc, Double z_sur_axe, Color c,double hauteur) {
+    private void marquePositionSurAxeSOC(SystemeOptiqueCentre soc, Double z_sur_axe, Color c,double hauteur, String label) {
 
         if (z_sur_axe==null)
             return;
@@ -2104,18 +1755,45 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         Point2D pt = origine.add(soc.direction().multiply(z_sur_axe.doubleValue())) ;
 
-//        if (cae.boite_limites().contains(pt)) {
+//        Paint s = gc.getStroke() ;
+//        Paint f = gc.getFill() ;
 
-            Paint s = gc.getStroke() ;
+        gc.save();
 
-            gc.setStroke(c);
+        gc.setStroke(c);
 
-            gc.strokeLine(pt.getX() + demi_hauteur * res * perp.getX(), pt.getY() + demi_hauteur * res * perp.getY(),
-                    pt.getX() - demi_hauteur * res * perp.getX(), pt.getY() - demi_hauteur * res * perp.getY());
+        gc.strokeLine(pt.getX() + demi_hauteur * res * perp.getX(), pt.getY() + demi_hauteur * res * perp.getY(),
+                pt.getX() - demi_hauteur * res * perp.getX(), pt.getY() - demi_hauteur * res * perp.getY());
 
-            gc.setStroke(s) ;
-//        }
+        if (label != null) {
 
+            gc.setFill(c);
+
+//            // On met provisoirement de côté la transformation actuelle
+//            Affine aff = gc.getTransform();
+
+            // Position du texte à afficher en coordonnées du GC du Canvas
+            Point2D pos_texte_gc = gc.getTransform().transform(pt.getX(), pt.getY()).add(marge_label_x, marge_label_y);
+
+            // Nouvelle transformation à appliquer : simple homothétie centré sur le point d'affichage du texte
+            Affine zoom_texte = new Affine();
+            zoom_texte.appendScale(facteur_zoom_label, facteur_zoom_label, pos_texte_gc.getX(), pos_texte_gc.getY());
+            gc.setTransform(zoom_texte);
+
+            // Ecriture de l'étiquette
+            gc.setFont(fonte_labels);
+
+            gc.fillText(label, pos_texte_gc.getX(), pos_texte_gc.getY());
+
+//            // Restauration de la transformation
+//            gc.setTransform(aff);
+//
+//            // Restauration de la couleur de remplissage
+//            gc.setFill(f);
+        }
+
+//        gc.setStroke(s) ;
+        gc.restore();
 
     }
 
