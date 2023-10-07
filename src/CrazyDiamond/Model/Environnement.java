@@ -31,12 +31,11 @@ public class Environnement {
 
     protected final ObjectProperty<Color> couleur_fond;
 
+    protected final StringProperty commentaire ;
+
     protected final DoubleProperty indice_refraction ;
-
     private final ListProperty<Obstacle> obstacles ;
-
     private final ListProperty<Source> sources ;
-
     private final ListProperty<SystemeOptiqueCentre> systemes_optiques_centres ;
 
     // TODO : une clip zone non rectangulaire (environnement circulaire, etc.)
@@ -59,6 +58,8 @@ public class Environnement {
         reflexion_avec_refraction.addListener((observable, oldValue,newValue) -> {
             this.illuminerToutesSources();
         });
+
+        this.commentaire = new SimpleStringProperty("") ;
 
         ObservableList<Obstacle> olo = FXCollections.observableArrayList() ;
         obstacles = new SimpleListProperty<Obstacle>(olo);
@@ -99,6 +100,7 @@ public class Environnement {
 //            }
 //        };
 
+        // Si des obstacles sont ajoutés ou supprimés, il faut recalculer les tracés des rayons des sources
         ListChangeListener<Obstacle>  lcl_obstacles = (ListChangeListener<Obstacle>) change -> {
             while (change.next()) {
 
@@ -579,6 +581,19 @@ public class Environnement {
 
     public BooleanProperty reflexionAvecRefractionProperty() {
         return reflexion_avec_refraction ;
+    }
+
+    public StringProperty commentaireProperty() {
+        return commentaire ;
+    }
+
+
+    public void definirCommentaire(String commentaire_saisi) {
+        commentaire.set(commentaire_saisi);
+    }
+
+    public String commentaire() {
+        return commentaire.get() ;
     }
 }
 

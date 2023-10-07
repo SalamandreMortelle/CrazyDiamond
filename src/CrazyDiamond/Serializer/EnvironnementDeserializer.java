@@ -35,7 +35,14 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
         String str_couleur_fond = env_node.get("couleur_fond").asText() ;
         boolean reflexion_avec_refraction = env_node.get("reflexion_avec_refraction").asBoolean() ;
 
+        String str_commentaire = null;
+        if (env_node.has("commentaire"))
+            str_commentaire = env_node.get("commentaire").asText() ;
+
         Environnement e = new Environnement(Color.valueOf(str_couleur_fond),reflexion_avec_refraction) ;
+
+        if (str_commentaire!=null)
+            e.definirCommentaire(str_commentaire);
 
 //        deserializationContext.setAttribute("environnement",e) ;
 

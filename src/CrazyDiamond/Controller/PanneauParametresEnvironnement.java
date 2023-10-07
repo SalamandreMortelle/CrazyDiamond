@@ -1,13 +1,18 @@
 package CrazyDiamond.Controller;
 
-import CrazyDiamond.Model.ElementAvecContour;
-import CrazyDiamond.Model.ElementAvecMatiere;
-import CrazyDiamond.Model.Environnement;
-import CrazyDiamond.Model.Source;
+import CrazyDiamond.Model.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ColorPicker;
+import javafx.scene.control.*;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PanneauParametresEnvironnement {
 
@@ -15,9 +20,13 @@ public class PanneauParametresEnvironnement {
     public ColorPicker colorpicker_contour_nouveaux_obstacles;
     public ColorPicker colorpicker_couleur_nouveaux_rayons;
     public CheckBox checkbox_fresnel;
+    public Button editer_texte_commentaire;
 
     // Modèle
     Environnement environnement ;
+
+    private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
+    private static final ResourceBundle rb = ResourceBundle.getBundle("CrazyDiamond") ;
 
     @FXML
     public ColorPicker colorpicker_fond;
@@ -45,6 +54,7 @@ public class PanneauParametresEnvironnement {
         colorpicker_couleur_nouveaux_rayons.valueProperty().bindBidirectional(Source.couleurParDefautProperty());
 
         checkbox_fresnel.selectedProperty().bindBidirectional(environnement.reflexionAvecRefractionProperty());
+
 
 
 //        colorpicker_contour_nouveaux_obstacles.setValue(ElementAvecContour.couleur_contour_par_defaut_property.getValue());
@@ -76,4 +86,64 @@ public class PanneauParametresEnvironnement {
 //        ElementAvecContour.couleur_contour_par_defaut.saturate() ;
     }
 
+    public void traiterEditionCommentaire(ActionEvent actionEvent) {
+
+        ButtonType okButtonType = new ButtonType(rb.getString("bouton.dialogue.edition_commentaire.ok"), ButtonBar.ButtonData.OK_DONE);
+        ButtonType annulerButtonType = new ButtonType(rb.getString("bouton.dialogue.edition_commentaire.annuler"), ButtonBar.ButtonData.CANCEL_CLOSE);
+        Dialog<String> boite_dialogue = new Dialog<>() ;
+
+        boite_dialogue.setTitle(rb.getString("titre.dialogue.edition_commentaire"));
+        boite_dialogue.setHeaderText(rb.getString("invite.dialogue.edition_commentaire"));
+
+//        ObservableList<Obstacle> obstacles_a_proposer =  FXCollections.observableArrayList();
+//
+//        Iterator<Obstacle> ito =  environnement.iterateur_obstacles() ;
+//        while (ito.hasNext()) {
+//            Obstacle o = ito.next() ;
+//            // Rechercher si l'obstacle o implemente l'interface ElementAvecMatiere car eux seuls peuvent faire partie d'une composition
+//            if (o instanceof ElementAvecMatiere)
+//                obstacles_a_proposer.add( o ) ;
+//        }
+//
+//        ListView<Obstacle> lo = new ListView<Obstacle>(obstacles_a_proposer) ;
+//
+//        // TODO Limiter la composition à deux objets : proposer deux listview en sélection SINGLE côte à côte (mais
+//        // interdire de choisir le même objet dans les deux listes... : retirer de la 2ème l'objet sélectionné dans
+//        // la première, et le remettre si il n'est plus sélectionné dans la première... Mais quid si on sélectionne
+//        // d'abord dans la 2eme liste, avant la première ??
+//
+//        ScrollPane sp = new ScrollPane(lo) ;
+//        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+//
+//        lo.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+//
+//        boite_dialogue.getDialogPane().setContent(lo);
+
+        TextArea zone_saisie = new TextArea(environnement.commentaire()) ;
+        zone_saisie.setWrapText(true);
+
+        boite_dialogue.getDialogPane().setContent(zone_saisie);
+
+        boite_dialogue.setResultConverter( buttonType -> {
+            if (buttonType == okButtonType)
+                return zone_saisie.getText() ;
+
+            return null ;
+        });
+
+        boite_dialogue.getDialogPane().getButtonTypes().add(okButtonType);
+        boite_dialogue.getDialogPane().getButtonTypes().add(annulerButtonType);
+
+
+        Optional<String> op_commentaire_saisi =  boite_dialogue.showAndWait() ;
+        if (op_commentaire_saisi.isPresent()) {
+
+            String commentaire_saisi = op_commentaire_saisi.get() ;
+
+            environnement.definirCommentaire(commentaire_saisi) ;
+        }
+
+
+
+    }
 }

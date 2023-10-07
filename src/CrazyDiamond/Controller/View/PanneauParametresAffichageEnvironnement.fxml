@@ -37,4 +37,12 @@
 
     <CheckBox fx:id="checkbox_prolongements_arriere_visibles" alignment="TOP_LEFT" graphicTextGap="400.0" mnemonicParsing="false" prefHeight="37.0" prefWidth="191.0" text="Prolonger les rayons vers l'arrière" wrapText="true" />
 
+    <Separator>
+        <padding>
+            <Insets top="5.0" />
+        </padding>
+    </Separator>
+
+    <CheckBox fx:id="checkbox_commentaire_visible" alignment="TOP_LEFT" graphicTextGap="400.0" mnemonicParsing="false" text="Afficher le commentaire" wrapText="true"/>
+
 </VBox>

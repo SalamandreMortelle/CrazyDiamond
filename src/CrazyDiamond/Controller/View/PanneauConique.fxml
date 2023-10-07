@@ -48,7 +48,7 @@
       <Label text="Paramètre" />
       <Spinner fx:id="spinner_parametre" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0d"  max="%spinner_distance_max" />
       <Label text="Excentricité" />
-      <Spinner fx:id="spinner_excentricite" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0" max="%spinner_excenticite_conique_max"/>
+      <Spinner fx:id="spinner_excentricite" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0" max="%spinner_excentricite_conique_max"/>
       <Label text="Orientation (°)" />
       <Spinner fx:id="spinner_orientation" amountToStepBy="5.0" editable="true" initialValue="0.0" max="360.0" min="0.0" />
       <Slider fx:id="slider_orientation" majorTickUnit="45.0" max="360.0" min="0.0" minorTickCount="5" showTickLabels="true" showTickMarks="true" snapToTicks="true" />

@@ -15,6 +15,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
+import javafx.scene.text.Text;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.Screen;
@@ -95,6 +96,9 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     protected final ObjectProperty<Color> couleur_normales ;
     protected final BooleanProperty  prolongements_avant_visibles ;
     protected final BooleanProperty  prolongements_arriere_visibles ;
+    protected final BooleanProperty  commentaire_visible ;
+
+    protected Text texte_commentaire ;
 
     protected final MapProperty<SystemeOptiqueCentre,Boolean> montrer_plans_focaux_de_soc ;
     protected final MapProperty<SystemeOptiqueCentre,Boolean> montrer_plans_principaux_de_soc ;
@@ -206,6 +210,16 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         prolongements_arriere_visibles.addListener((observable, oldValue,newValue) -> {
             this.rafraichirDecor();
         });
+
+        this.commentaire_visible = new SimpleBooleanProperty(true) ;
+        commentaire_visible.addListener((observable, oldValue,newValue) -> {
+            // TODO : Mettre à jour le controle Text qui se trouve au-dessus du Canvas
+        });
+
+        this.texte_commentaire = new Text() ;
+        this.texte_commentaire.setFill(Color.WHITE);
+        this.texte_commentaire.visibleProperty().bindBidirectional(this.commentaire_visible);
+        this.texte_commentaire.textProperty().bind(environnement.commentaireProperty());
 
     this.montrer_plans_focaux_de_soc = new SimpleMapProperty<SystemeOptiqueCentre, Boolean>() ;
     this.montrer_plans_principaux_de_soc = new SimpleMapProperty<SystemeOptiqueCentre, Boolean>() ;
@@ -383,6 +397,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         });
 
         setOnScroll(this::traiterMoletteSourisCanvas);
+        texte_commentaire.setOnScroll(this::fireEvent);
 
     }
 

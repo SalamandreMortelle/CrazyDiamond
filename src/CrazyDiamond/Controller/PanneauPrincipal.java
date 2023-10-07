@@ -13,6 +13,7 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -286,7 +287,14 @@ public class PanneauPrincipal {
         // pourraient y être définis aussi.
         canvas_affichage_environnement.initialize();
 
-        racine.setCenter(canvas_affichage_environnement);
+        StackPane stack_racine = new StackPane(canvas_affichage_environnement, canvas_affichage_environnement.texte_commentaire) ;
+        canvas_affichage_environnement.texte_commentaire.wrappingWidthProperty().bind(canvas_affichage_environnement.widthProperty());
+
+        StackPane.setAlignment(canvas_affichage_environnement.texte_commentaire, Pos.BOTTOM_CENTER);
+//        StackPane stack_racine = new StackPane( canvas_affichage_environnement.texte_commentaire) ;
+//
+        racine.setCenter(stack_racine);
+//        racine.setCenter(canvas_affichage_environnement);
 
 
 
@@ -407,11 +415,21 @@ public class PanneauPrincipal {
             } } );
 
         canvas_affichage_environnement.setOnMouseClicked(this::traiterClicSourisCanvas);
+//        canvas_affichage_environnement.texte_commentaire.addEventHandler(MouseEvent.MOUSE_CLICKED,canvas_affichage_environnement::fireEvent);
+        canvas_affichage_environnement.texte_commentaire.setOnMouseClicked(canvas_affichage_environnement::fireEvent);
         canvas_affichage_environnement.setOnMouseMoved(this::traiterDeplacementSourisCanvas);
+        canvas_affichage_environnement.texte_commentaire.setOnMouseMoved(canvas_affichage_environnement::fireEvent);
+//        canvas_affichage_environnement.texte_commentaire.addEventHandler(MouseEvent.MOUSE_MOVED,canvas_affichage_environnement::fireEvent);
+//        canvas_affichage_environnement.texte_commentaire.addEventHandler(MouseEvent.MOUSE_MOVED, mouseEvent -> {
+//            canvas_affichage_environnement.fireEvent(mouseEvent);
+//        } );
 
         canvas_affichage_environnement.setOnMousePressed(this::traiterBoutonSourisPresse);
+        canvas_affichage_environnement.texte_commentaire.setOnMousePressed(canvas_affichage_environnement::fireEvent);
         canvas_affichage_environnement.setOnMouseDragged(this::traiterGlisserSourisCanvas);
+        canvas_affichage_environnement.texte_commentaire.setOnMouseDragged(canvas_affichage_environnement::fireEvent);
         canvas_affichage_environnement.setOnMouseReleased(this::traiterBoutonSourisRelache);
+        canvas_affichage_environnement.texte_commentaire.setOnMouseReleased(canvas_affichage_environnement::fireEvent);
 
         map_element_panneau_droit = new HashMap<Object, Node>(8) ;
         map_element_panneau_bas = new HashMap<Object, Node>(4) ;

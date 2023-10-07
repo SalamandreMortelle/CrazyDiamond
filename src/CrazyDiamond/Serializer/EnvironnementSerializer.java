@@ -32,6 +32,9 @@ public class EnvironnementSerializer extends StdSerializer<Environnement> {
         jsonGenerator.writeStringField("couleur_fond", environnement.couleurFond().toString());
         jsonGenerator.writeBooleanField("reflexion_avec_refraction", environnement.reflexionAvecRefraction());
 
+        if (!environnement.commentaire().isEmpty())
+          jsonGenerator.writeStringField("commentaire", environnement.commentaire());
+
         // Obstacles
         if (environnement.nombreObstacles()>0) {
             jsonGenerator.writeArrayFieldStart("obstacles");

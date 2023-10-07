@@ -15,6 +15,7 @@ public class PanneauParametresAffichageEnvironnement {
     public CheckBox checkbox_normales_visibles;
     public CheckBox checkbox_prolongements_avant_visibles;
     public CheckBox checkbox_prolongements_arriere_visibles;
+    public CheckBox checkbox_commentaire_visible;
 
     // Modèle
     CanvasAffichageEnvironnement cae ;
@@ -42,6 +43,8 @@ public class PanneauParametresAffichageEnvironnement {
 
         checkbox_prolongements_avant_visibles.selectedProperty().bindBidirectional(cae.prolongements_avant_visibles);
         checkbox_prolongements_arriere_visibles.selectedProperty().bindBidirectional(cae.prolongements_arriere_visibles);
+
+        checkbox_commentaire_visible.selectedProperty().bindBidirectional(cae.commentaire_visible);
 
     }
 
