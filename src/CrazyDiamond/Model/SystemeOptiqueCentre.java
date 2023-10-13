@@ -20,11 +20,6 @@ public class SystemeOptiqueCentre implements Nommable {
     private final Imp_Nommable imp_nommable;
 
     private final ObjectProperty<PositionEtOrientation> position_orientation ;
-//    protected final DoubleProperty x_origine;
-//    protected final DoubleProperty y_origine;
-//
-//    // Orientation de l'axe, en degrés
-//    protected final DoubleProperty orientation;
 
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
 
@@ -50,7 +45,6 @@ public class SystemeOptiqueCentre implements Nommable {
      * ne subit pas les réflexions sur les dioptres. Les propriétés de chacune de ces intersections sont renseignées également
      * (cf. attributs de la classe interne IntersectionAxeAvecSurface).
      */
-//    ArrayList<IntersectionAxeAvecSurface> intersections_sur_axe ;
     private final ListProperty<IntersectionAxeAvecSurface> intersections_sur_axe;
 
     /**
@@ -109,9 +103,6 @@ public class SystemeOptiqueCentre implements Nommable {
     private SimpleObjectProperty<Double>  z_image ;
     private SimpleObjectProperty<Double>  h_image ;
 
-    /**
-     *
-     */
     private SimpleObjectProperty<Double> z_pupille_entree ;
     private SimpleObjectProperty<Double> r_pupille_entree;
 
@@ -200,12 +191,9 @@ public class SystemeOptiqueCentre implements Nommable {
 
             if (obs_surface.aUneProprieteDiaphragme()) {
                 this.r_diaphragme = new SimpleObjectProperty<Double>(obs_surface.diaphragmeProperty().getValue()) ;
-//                this.r_diaphragme.bindBidirectional(obs_surface.diaphragmeProperty());
             }
             else
                 this.r_diaphragme = new SimpleObjectProperty<Double>(null) ;
-//                obs_surface.diaphragmeProperty().bind(this.r_diaphragme);
-//                this.r_diaphragme.bindBidirectional(obs_surface.diaphragmeProperty());
 
             this.indice_avant = new SimpleDoubleProperty(indice_avant);
             this.indice_apres = new SimpleDoubleProperty(indice_apres);
@@ -268,9 +256,7 @@ public class SystemeOptiqueCentre implements Nommable {
             this.matrice_transfert_partielle = a_copier.matrice_transfert_partielle ;
             this.sens_plus_en_sortie_matrice_partielle = a_copier.sens_plus_en_sortie_matrice_partielle ;
 
-
         }
-
 
         public void appliquerModalitesTraverseeDioptrePrecedentesSiApplicables(ModalitesTraverseeDioptre modalites_prec) {
             if (modalitesTraverseeDioptrePrecedentesApplicables(modalites_prec)) {
@@ -281,8 +267,6 @@ public class SystemeOptiqueCentre implements Nommable {
         }
 
         public boolean modalitesTraverseeDioptrePrecedentesApplicables(ModalitesTraverseeDioptre modalites_prec) {
-//            if (modalites_prec != null && modalites_prec.obs_surface == this.obstacleSurface()
-//                    && modalites_prec.indice_avant == this.indiceAvant() && modalites_prec.indice_apres == this.indiceApres())
               if (modalites_prec != null && modalites_prec.obs_surface == this.obstacleSurface())
                     return true ;
 
@@ -486,8 +470,8 @@ public class SystemeOptiqueCentre implements Nommable {
         }
 
         try {
-            // On ne met pas directement à jour la property matrice_transfet car cela déclencherait immédiatement
-            // un rafraichissement de l'affichage du SOC alors qu'on n'a pas encore mis à jour les positions des éléments cardinaux
+            // On ne met pas directement à jour la property matrice_transfert car cela déclencherait immédiatement
+            // un rafraichissement de l'affichage du , alors qu'on n'a pas encore mis à jour les positions des éléments cardinaux
             nouvelle_matrice_transfert = calculeMatriceTransfertOptique() ;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE,"Impossible de calculer la matrice de transfert",e);
@@ -1346,32 +1330,30 @@ public class SystemeOptiqueCentre implements Nommable {
         // (cf. ordonnancement fait dans la méthode ajouteObstacle : cela suppose que cet ordre ne change jamais dans l'environnement.
         // C'est le cas actuellement, mais si on permettait à l'utilisateur de changer l'ordre Z des obstacles, ça ne le serait plus)
         for (Obstacle o: obstacles_centres) {
-
-//            intersection = o.premiere_intersection(r_sur_axe) ;
+            // TODO : je pense qu'on peut simplifier en parcourant les obstacles_centres dans l'ordre inverse (du premier plan jusqu'à l'arrière-plan)
+            // Ainsi, si les limites de plusieurs obstacles, c'est celui qui est le plus "en avant" qui sera conservé, et non le plus éloigné
+            // On s'épargnerait de rechercher le bon obstacle d'emergence ou d'incidence (cf. l1409 et 1422) / et on résoudrait un bug
+            // qui existe certainement aujourd'hui puisqu'in retient a tort l'obstacle le plus lointain en Z order (au lieu du plus proche)
 
             z_intersection = o.abscissePremiereIntersectionSurAxe(origine(),direction(),z_depart,sens_plus,(inter_prec!=null?inter_prec.ZIntersection():null)) ;
 
-//            if (intersection==null)
             if (z_intersection==null)
                 continue ;
 
             intersection = origine().add(direction().multiply(z_intersection)) ;
 
-
-//            double distance_depart = intersection.distance(p_depart);
             double distance_depart = Math.abs(z_intersection-z_depart) ;
-
 
             // Si cette intersection avec l'obstacle o courant est la plus proche, ou si l'obstacle o englobe la
             // précédente intersection trouvée (alors qu'il se trouve après dans la liste des obstacles, ce qui signifie
             // qu'il n'est pas masqué par le précédent), cette intersection est celle qu'il faut considérer.
-            if (distance_depart<distance_intersection_la_plus_proche || (intersection_la_plus_proche!=null
-                    && o.contient(intersection_la_plus_proche))) {
+            if (distance_depart<distance_intersection_la_plus_proche
+                    || (Environnement.quasiEgal(distance_depart,distance_intersection_la_plus_proche))
+                    || (intersection_la_plus_proche!=null && o.contient(intersection_la_plus_proche))) {
 
                 distance_intersection_la_plus_proche = distance_depart ;
                 intersection_la_plus_proche = intersection ;
 
-//                resultat = new IntersectionAxeAvecSurface(intersection.subtract(origine()).dotProduct(direction()),o);
                 resultat = new IntersectionAxeAvecSurface(z_intersection,o);
 
             }
@@ -1388,50 +1370,42 @@ public class SystemeOptiqueCentre implements Nommable {
 
         // R. Diaphragme
         if (resultat.obstacleSurface().aUneProprieteDiaphragme()) {
-//            resultat.r_diaphragme = (ObjectProperty<Double>) resultat.obstacleSurface().diaphragmeProperty();
-
             Property<Double> diaphragme_property = resultat.obstacleSurface().diaphragmeProperty();
             resultat.r_diaphragme.bindBidirectional(diaphragme_property);
         }
         else
             resultat.r_diaphragme.set(resultat.obstacleSurface().rayonDiaphragmeParDefaut());
 
-        // Le rayon provient-il du milieu intérieur de l'obstacle rencontré ?
-        if (resultat.obs_surface.get().contient(p_depart.midpoint(intersection_la_plus_proche))) {
+        // Obstacle et indice du milieu d'arrivée du rayon
+        Obstacle obs_arrivee = environnement.obstacle_emergence_dans_soc(r_sur_axe,intersection_la_plus_proche, resultat.obstacleSurface(), this); ;
+        double indice_arrivee = (obs_arrivee!=null? obs_arrivee.indiceRefraction() : environnement.indiceRefraction()) ;
 
-            Obstacle obs_emergence = environnement.obstacle_emergence_dans_soc(r_sur_axe,intersection_la_plus_proche, resultat.obstacleSurface(), this); ;
+        // Obstacle et indice du milieu de départ du rayon
+        Rayon r_sur_axe_oppose = new Rayon(p_depart,r_sur_axe.direction().multiply(-1.0));
+        Obstacle obs_depart = environnement.obstacle_emergence_dans_soc(r_sur_axe_oppose,intersection_la_plus_proche, resultat.obstacleSurface(),this); ;
+        double indice_depart  = (obs_depart!=null?obs_depart.indiceRefraction():environnement.indiceRefraction()) ;
 
-            double indice_emergence = (obs_emergence!=null? obs_emergence.indiceRefraction() : environnement.indiceRefraction()) ;
+        if (resultat.obstacleSurface().normale(intersection_la_plus_proche).dotProduct(r_sur_axe.direction())<0) {
+            // Le rayon rentre dans l'obstacle
 
-            if (sens_plus) {
-                resultat.indice_avant.set(resultat.obstacleSurface().indiceRefraction());
-                resultat.indice_apres.set(indice_emergence) ;
-            }
-            else {
-                resultat.indice_avant.set(indice_emergence) ;
-                resultat.indice_apres.set(resultat.obstacleSurface().indiceRefraction());
-            }
-        } else { // Le rayon ne provient pas du milieu intérieur de l'obstacle rencontré : il faut trouver de quel milieu il provient
-
-            // On renverse le sens du rayon sur l'axe :
-            Rayon r_sur_axe_oppose = new Rayon(p_depart,r_sur_axe.direction().multiply(-1.0));
-
-            // ...et on cherche si on rencontre un obstacle "d'émergence" (avec un renversement du sens du rayon) qui
-            // correspond à notre obstacle d'incidence (c.-à-d. à l'obstacle d'où provient le rayon)
-            Obstacle obs_incidence = environnement.obstacle_emergence_dans_soc(r_sur_axe_oppose,intersection_la_plus_proche, resultat.obstacleSurface(),this); ;
-
-            double indice_incidence  = (obs_incidence!=null?obs_incidence.indiceRefraction():environnement.indiceRefraction()) ;
-
-            if (sens_plus) {
-                resultat.indice_avant.set(indice_incidence);
-                resultat.indice_apres.set((resultat.obs_surface.get().natureMilieu()!=NatureMilieu.PAS_DE_MILIEU?resultat.obs_surface.get().indiceRefraction():indice_incidence));
-            }
-            else {
-                resultat.indice_avant.set((resultat.obs_surface.get().natureMilieu()!=NatureMilieu.PAS_DE_MILIEU?resultat.obs_surface.get().indiceRefraction():indice_incidence));
-                resultat.indice_apres.set(indice_incidence);
-            }
-
+            if (sens_plus)
+                resultat.indice_avant.set(indice_depart);
+            else
+                resultat.indice_apres.set(indice_depart);
         }
+        else {
+            // Le rayon sort de l'obstacle
+
+            if (sens_plus)
+                resultat.indice_avant.set(resultat.obstacleSurface().indiceRefraction());
+            else
+                resultat.indice_apres.set(resultat.obstacleSurface().indiceRefraction());
+        }
+
+        if (sens_plus)
+            resultat.indice_apres.set(indice_arrivee) ;
+        else
+            resultat.indice_avant.set(indice_arrivee) ;
 
         return resultat;
     }
@@ -1492,40 +1466,6 @@ public class SystemeOptiqueCentre implements Nommable {
             suspendre_calcul_elements_cardinaux = false ;
 
         });
-
-//        this.x_origine.addListener((observable, oldValue, newValue) -> {
-//
-//            Point2D tr = new Point2D(newValue.doubleValue() - oldValue.doubleValue(), 0d) ;
-//            suspendre_calcul_elements_cardinaux = true ;
-//            for (Obstacle o : obstacles_centres)
-//                o.translater(tr);
-//            suspendre_calcul_elements_cardinaux = false ;
-//
-//        });
-//
-//        this.y_origine.addListener((observable, oldValue, newValue) -> {
-//
-//            Point2D tr = new Point2D( 0d , newValue.doubleValue() - oldValue.doubleValue()) ;
-//            suspendre_calcul_elements_cardinaux = true ;
-//            for (Obstacle o : obstacles_centres)
-//                o.translater(tr);
-//            suspendre_calcul_elements_cardinaux = false ;
-//        });
-
-//        this.orientation = new SimpleDoubleProperty(orientation_deg);
-
-//        this.orientation.addListener((observable, oldValue, newValue) -> {
-//            try {
-//
-//                for (Obstacle o : obstacles_centres) {
-//                    suspendre_calcul_elements_cardinaux = true ;
-//                    o.tournerAutourDe(this.origine(), newValue.doubleValue()-oldValue.doubleValue());
-//                    suspendre_calcul_elements_cardinaux = false ;
-//                }
-//            } catch (Exception e) {
-//                System.err.println("Exception inattendue dans SystemeOptiqueCentre");
-//            }
-//        }) ;
 
         this.couleur_axe = new SimpleObjectProperty<Color>(couleur_axe_par_defaut) ;
 
@@ -1696,9 +1636,6 @@ public class SystemeOptiqueCentre implements Nommable {
 
     public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
         position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        x_origine.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        y_origine.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
         couleur_axe.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
 
         montrer_dioptres.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
@@ -1725,17 +1662,11 @@ public class SystemeOptiqueCentre implements Nommable {
 
 
     public void translater(Point2D tr) {
-
         position_orientation.set(new PositionEtOrientation(origine().add(tr),orientation()));
-//        x_origine.set(x_origine.get()+tr.getX());
-//        y_origine.set(y_origine.get()+tr.getY());
-
     }
 
     public Point2D origine() {
         return position_orientation.get().position();
-//        return new Point2D(x_origine.get(),y_origine.get()) ;
-
     }
 
     public void definirOrientation(double or_deg) {
@@ -1751,17 +1682,14 @@ public class SystemeOptiqueCentre implements Nommable {
 
         if (direction.getY()>=0d)
             definirOrientation(angle_deg);
-//            orientation.set(angle_deg);
         else
             definirOrientation(360d-angle_deg);
-//            orientation.set(360d-angle_deg);
 
     }
 
     public void retaillerPourSourisEn(Point2D pos_souris) {
         // Si on est sur l'origine, ne rien faire
         if (pos_souris.equals(origine()))
-//        if (pos_souris.getX()==x_origine.get() && pos_souris.getY()==y_origine.get())
             return ;
 
         // On oriente la direction du SOC sur la position courante de la souris
@@ -1772,7 +1700,6 @@ public class SystemeOptiqueCentre implements Nommable {
     public Contour positions_poignees() {
         Contour c_poignees = new Contour(1) ;
 
-//        c_poignees.ajoutePoint(x_origine.get(),y_origine.get());
         c_poignees.ajoutePoint(origine());
 
         return c_poignees ;
@@ -1791,11 +1718,8 @@ public class SystemeOptiqueCentre implements Nommable {
     }
 
     public Point2D perpendiculaireDirection() {
-
         Point2D dir = direction() ;
-
         return new Point2D(-dir.getY(),dir.getX()) ;
-
     }
 
     public void accepte(VisiteurEnvironnement v) {
@@ -1828,9 +1752,6 @@ public class SystemeOptiqueCentre implements Nommable {
             p_inter_opp2 = null ;
 
         ArrayList<Point2D> its = new ArrayList<Point2D>(2) ;
-
-//        if (boite.aSurSaSurface(origine()))
-//            its.add(origine()) ;
 
         if (p_inter1!=null)
             its.add(p_inter1) ;
@@ -1868,9 +1789,7 @@ public class SystemeOptiqueCentre implements Nommable {
                 // Trier les obstacles du SOC dans le même ordre que dans l'environnement (aura son importance pour chercher
                 // les intersections sur l'axe du SOC). ATTENTION : si l'ordre des obstacles changeait dans l'environnement
                 // il faudrait actualiser l'ordre des obstacles dans les SOC en conséquence (via un listener dans l'environnement)
-                Comparator<Obstacle> comparateur = (o1, o2) -> {
-                    return Integer.compare(environnement.indexObstacle(o1), environnement.indexObstacle(o2));
-                } ;
+                Comparator<Obstacle> comparateur = (o1, o2) -> Integer.compare(environnement.indexObstacle(o1), environnement.indexObstacle(o2));
 
                 obstacles_centres.sort(comparateur);
 
@@ -1883,11 +1802,8 @@ public class SystemeOptiqueCentre implements Nommable {
 
     }
 
-//    private void positionnerObstacle(Obstacle o) throws Exception {
-    private void positionnerObstacle(Obstacle o)  {
 
-//        if (!o.aSymetrieDeRevolution())
-//            throw new UnsupportedOperationException("Impossible d'intégrer l'Obstacle "+o+" dans le Système Optique Centré "+this+" car il n'a pas de symétrie de révolution.") ;
+    private void positionnerObstacle(Obstacle o)  {
 
         Point2D axe_soc = direction() ;
         Point2D point_sur_axe_revolution = o.pointSurAxeRevolution().subtract(origine()) ;
@@ -1917,7 +1833,7 @@ public class SystemeOptiqueCentre implements Nommable {
         obstacles_centres.remove(o) ;
 
         // TODO : il faudrait aussi retirer le rappel qui déclenche le recalcul des elements cardinaux
-        // qinon, on délcenche des reclaculs inutiles de ces éléments cardinaux
+        // sinon, on déclenche des recalculs inutiles de ces éléments cardinaux
         //o.retirerRappelSurChangementToutePropriete(this::calculeElementsCardinaux);
 
         o.definirAppartenanceSystemeOptiqueCentre(false);
