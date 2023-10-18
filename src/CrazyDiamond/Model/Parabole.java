@@ -18,29 +18,8 @@ public class Parabole implements Obstacle, Identifiable, Nommable,ElementAvecCon
     protected final DoubleProperty c ;
 
     private static int compteur_parabole ;
-    private BooleanProperty appartenance_composition;
-    private BooleanProperty appartenance_systeme_optique_centre;
-
-    public Parabole(TypeSurface type_surface, double  coeff_a , Point2D pextremum) throws IllegalArgumentException {
-
-        this(type_surface,coeff_a,-pextremum.getX()*2*coeff_a,pextremum.getY()-3*coeff_a*pextremum.getX()*pextremum.getX()) ;
-
-//        if (coeff_a==0)
-//            throw new IllegalArgumentException("Le coefficient a d'une parabole ne peut pas être nul.") ;
-//
-//        imp_identifiable = new Imp_Identifiable() ;
-//        imp_nommable = new Imp_Nommable("Parabole "+(++compteur_parabole));
-//        imp_elementAvecContour = new Imp_ElementAvecContour(null) ;
-//        imp_elementAvecMatiere = new Imp_ElementAvecMatiere(type_surface,null,1.0,null   );
-//
-//
-//        this.a = new SimpleDoubleProperty(coeff_a);
-//        this.b = new SimpleDoubleProperty(-pextremum.getX()*2*coeff_a);
-//        this.c = new SimpleDoubleProperty(pextremum.getY()-3*coeff_a*pextremum.getX()*pextremum.getX());
-//
-//        this.appartenance_systeme_optique_centre = new SimpleBooleanProperty(false) ;
-
-    }
+    private final BooleanProperty appartenance_composition;
+    private final BooleanProperty appartenance_systeme_optique_centre;
 
     public Parabole(TypeSurface type_surface, double coeff_a, double coeff_b, double coeff_c) throws IllegalArgumentException {
 
@@ -151,9 +130,9 @@ public class Parabole implements Obstacle, Identifiable, Nommable,ElementAvecCon
         imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
         imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
 
-        a.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        b.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        c.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        a.addListener((observable, oldValue, newValue) -> rap.rappel());
+        b.addListener((observable, oldValue, newValue) -> rap.rappel());
+        c.addListener((observable, oldValue, newValue) -> rap.rappel());
     }
 
     @Override
@@ -161,10 +140,9 @@ public class Parabole implements Obstacle, Identifiable, Nommable,ElementAvecCon
         imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
         imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
-
-        a.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        b.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        c.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        a.addListener((observable, oldValue, newValue) -> rap.rappel());
+        b.addListener((observable, oldValue, newValue) -> rap.rappel());
+        c.addListener((observable, oldValue, newValue) -> rap.rappel());
 
     }
 
@@ -175,11 +153,10 @@ public class Parabole implements Obstacle, Identifiable, Nommable,ElementAvecCon
 
     @Override
     public Contour positions_poignees() {
-        Contour c_poignees = new Contour(4);
 
         // NYI
 
-        return c_poignees;
+        return new Contour(4);
     }
 
 
@@ -234,7 +211,6 @@ public class Parabole implements Obstacle, Identifiable, Nommable,ElementAvecCon
 
         double a = this.a.get() ;
         double b = this.b.get() ;
-        double c = this.c.get() ;
 
         if (typeSurface() == TypeSurface.CONCAVE)
             if (a>0)
@@ -265,8 +241,8 @@ public class Parabole implements Obstacle, Identifiable, Nommable,ElementAvecCon
 
 
 //    @Override
-//    public Double abscissePremiereIntersectionSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart,boolean sens_z_croissants) {
-//        LOGGER.log(Level.SEVERE,"abscissePremiereIntersectionSurAxe pas implémenté dans la classe Parabole");
+//    public Double abscisseIntersectionSuivanteSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart,boolean sens_z_croissants) {
+//        LOGGER.log(Level.SEVERE,"abscisseIntersectionSuivanteSurAxe pas implémenté dans la classe Parabole");
 //        return null ;
 //
 //    }

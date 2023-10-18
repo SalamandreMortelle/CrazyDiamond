@@ -888,14 +888,14 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
     }
 
     @Override
-    public Double abscissePremiereIntersectionSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart,boolean sens_z_croissants, Double z_inter_prec) {
+    public Double ZMinorantSurAxe(Point2D origine_axe, Point2D direction_axe) {
+        return centre().distance(origine_axe)*(centre().subtract(origine_axe).dotProduct(direction_axe)>=0?1d:-1d) - largeur()*0.5d;
+    }
 
-        double z_centre ;
+    @Override
+    public Double abscisseIntersectionSuivanteSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {
 
-        if (centre().subtract(origine_axe).dotProduct(direction_axe)>=0)
-            z_centre = centre().distance(origine_axe) ;
-        else
-            z_centre = -centre().distance(origine_axe) ;
+        double z_centre = centre().distance(origine_axe)*(centre().subtract(origine_axe).dotProduct(direction_axe)>=0?1d:-1d) ;
 
         double demi_largeur = largeur.get()*0.5d ;
 

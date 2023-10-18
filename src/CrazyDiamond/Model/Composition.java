@@ -948,7 +948,27 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
     }
 
     @Override
-    public Double abscissePremiereIntersectionSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {
+    public Double ZMinorantSurAxe(Point2D origine_axe, Point2D direction_axe) {
+
+        Double z_resultat = null;
+
+        for (Obstacle o : elements) {
+            Double z_min = o.ZMinorantSurAxe(origine_axe,direction_axe) ;
+
+            if (z_min==null)
+                continue;
+
+            // On prend le z_min même s'il n'est pas sur la surface de la composition : on ne cherche qu'un minorant
+            // et pas le z de la premiere interaction de la composition avec l'axe
+            if (z_resultat==null || z_min<=z_resultat)
+                z_resultat = z_min ;
+        }
+
+        return z_resultat ;
+    }
+
+    @Override
+    public Double abscisseIntersectionSuivanteSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {
 
 //        Double z_intersection = null;
         Double z_resultat = null;
@@ -956,7 +976,7 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
         Point2D p_depart = origine_axe.add(direction_axe.multiply(z_depart));
 
         for (Obstacle o : elements) {
-//            z_intersection = o.abscissePremiereIntersectionSurAxe(origine_axe, direction_axe, z_depart, sens_z_croissants);
+//            z_intersection = o.abscisseIntersectionSuivanteSurAxe(origine_axe, direction_axe, z_depart, sens_z_croissants);
             ArrayList<Double> z_intersections = o.abscissesToutesIntersectionsSurAxe(origine_axe, direction_axe, z_depart, sens_z_croissants,z_inter_prec);
 
 //            z_intersection = (z_intersections.size()==0?null:z_intersections.get(0)) ;

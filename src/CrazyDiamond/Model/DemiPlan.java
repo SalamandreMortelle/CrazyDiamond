@@ -101,6 +101,11 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
     public ObjectProperty<PositionEtOrientation> positionEtOrientationObjectProperty() { return position_orientation ;}
 //    public DoubleProperty xOrigineProperty() { return x_origine ;}
 
+    @Override
+    public Double ZMinorantSurAxe(Point2D origine_axe, Point2D direction_axe) {
+        return origine().distance(origine_axe)*(origine().subtract(origine_axe).dotProduct(direction_axe)>=0?1d:-1d) ;
+    }
+
     /**
      * @param origine_axe
      * @param direction_axe
@@ -110,14 +115,9 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
      * @return
      */
     @Override
-    public Double abscissePremiereIntersectionSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {
+    public Double abscisseIntersectionSuivanteSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {
 
-        double z_origine ;
-
-        if (origine().subtract(origine_axe).dotProduct(direction_axe)>=0)
-            z_origine = origine().distance(origine_axe) ;
-        else
-            z_origine = -origine().distance(origine_axe) ;
+        double z_origine = origine().distance(origine_axe)*(origine().subtract(origine_axe).dotProduct(direction_axe)>=0?1d:-1d) ;
 
         if (z_inter_prec!=null && z_origine == z_inter_prec)
             return null ;
@@ -143,7 +143,7 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
 
         ArrayList<Double> resultat = new ArrayList<>(1) ;
 
-        Double z_int = abscissePremiereIntersectionSurAxe(origine_axe,direction_axe,z_depart,sens_z_croissants,z_inter_prec) ;
+        Double z_int = abscisseIntersectionSuivanteSurAxe(origine_axe,direction_axe,z_depart,sens_z_croissants,z_inter_prec) ;
 
         if (z_int==null)
             return resultat ;

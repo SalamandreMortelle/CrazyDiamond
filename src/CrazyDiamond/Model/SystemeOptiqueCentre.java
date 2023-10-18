@@ -471,7 +471,7 @@ public class SystemeOptiqueCentre implements Nommable {
 
         try {
             // On ne met pas directement à jour la property matrice_transfert car cela déclencherait immédiatement
-            // un rafraichissement de l'affichage du , alors qu'on n'a pas encore mis à jour les positions des éléments cardinaux
+            // un rafraichissement de l'affichage du SOC, alors qu'on n'a pas encore mis à jour les positions des éléments cardinaux
             nouvelle_matrice_transfert = calculeMatriceTransfertOptique() ;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE,"Impossible de calculer la matrice de transfert",e);
@@ -672,6 +672,7 @@ public class SystemeOptiqueCentre implements Nommable {
         // Mémorisons les modalités de traversée des dioptres (rayons des diaphragmes, dioptres à ignorer) qui étaient
         // précédemment définies (pour épargner à l'utilisateur de les re-saisir à chaque modification du SOC)
         ArrayList<ModalitesTraverseeDioptre> modalites_traversee_precedentes = new ArrayList<>(intersections_reelles_sur_axe.size())  ;
+
         if (intersections_reelles_sur_axe.size()>0) {
 
             for (IntersectionAxeAvecSurface its : intersections_reelles_sur_axe)
@@ -1246,7 +1247,27 @@ public class SystemeOptiqueCentre implements Nommable {
         return Math.toDegrees(Math.atan(h/(z-z_observateur))) ;
 //        return Math.toDegrees(Math.atan2(h,(z-z_observateur))) ;
     }
-    
+
+    public Double ZMinorantSurAxe() {
+
+        Double z_resultat = null;
+
+        for (Obstacle o : obstacles_centres) {
+            Double z_min = o.ZMinorantSurAxe(origine(),direction()) ;
+
+            if (z_min==null)
+                continue;
+
+            if (z_resultat==null || z_min<=z_resultat) // On prend le z_min même s'il n'est pas sur la surface de la composition
+                z_resultat = z_min ;
+
+        }
+
+        return z_resultat ;
+
+    }
+
+
     /**
      * Construit la liste des intersections de l'axe avec les dioptres du SOC, triées de l'abscisse z = - l'infini à
      * z = + l'infini (abscisse dans le référentiel du SOC), sans tenir compte de la nature (réfléchissante ou
@@ -1257,7 +1278,9 @@ public class SystemeOptiqueCentre implements Nommable {
 
         ArrayList<IntersectionAxeAvecSurface> resultat = new ArrayList<>(2*obstacles_centres.size()) ;
 
-        Point2D p_depart = origine() ;
+//        Point2D p_depart = origine() ;
+
+        Point2D p_depart = origine().add(direction().multiply(ZMinorantSurAxe())) ;
 
 //        // La méthode premiere_intersection appelée dans chercheIntersectionSuivanteDepuis() ne retourne pas le point
 //        // de départ s'il est déjà sur la surface, or nous en avons besoin : il faut déplacer le pt de départ si c'est le cas.
@@ -1268,6 +1291,8 @@ public class SystemeOptiqueCentre implements Nommable {
         // Recherche dans le sens des Z croissants, depuis l'origine
         IntersectionAxeAvecSurface inter = chercheIntersectionSuivanteDepuis(p_depart,true,inter_prec) ;
 
+//        IntersectionAxeAvecSurface premiere_inter_positive = premiere_inter_positive = (inter!=null?inter:null) ;
+
         while (inter!=null) {
             resultat.add(inter) ;
             inter_prec = inter ;
@@ -1277,18 +1302,17 @@ public class SystemeOptiqueCentre implements Nommable {
             inter = chercheIntersectionSuivanteDepuis(nouveau_point_depart,true,inter_prec) ;
         }
 
-        // Recherche dans le sens des X décroissants, depuis le point de départ défini
-        inter_prec = null;
-        inter = chercheIntersectionSuivanteDepuis(p_depart,false,inter_prec) ;
-
-        while (inter!=null) {
-            resultat.add(0,inter);
-            inter_prec = inter;
-
-            Point2D nouveau_point_depart = origine().add(direction().multiply(inter.z_intersection.get())) ;
-
-            inter = chercheIntersectionSuivanteDepuis(nouveau_point_depart,false,inter_prec) ;
-        }
+//        // Recherche dans le sens des X décroissants, depuis le point de départ défini
+//        inter = chercheIntersectionSuivanteDepuis(p_depart,false,premiere_inter_positive) ;
+//
+//        while (inter!=null) {
+//            resultat.add(0,inter);
+//            inter_prec = inter;
+//
+//            Point2D nouveau_point_depart = origine().add(direction().multiply(inter.z_intersection.get())) ;
+//
+//            inter = chercheIntersectionSuivanteDepuis(nouveau_point_depart,false,inter_prec) ;
+//        }
 
         return resultat ;
     }
@@ -1335,7 +1359,7 @@ public class SystemeOptiqueCentre implements Nommable {
             // On s'épargnerait de rechercher le bon obstacle d'emergence ou d'incidence (cf. l1409 et 1422) / et on résoudrait un bug
             // qui existe certainement aujourd'hui puisqu'in retient a tort l'obstacle le plus lointain en Z order (au lieu du plus proche)
 
-            z_intersection = o.abscissePremiereIntersectionSurAxe(origine(),direction(),z_depart,sens_plus,(inter_prec!=null?inter_prec.ZIntersection():null)) ;
+            z_intersection = o.abscisseIntersectionSuivanteSurAxe(origine(),direction(),z_depart,sens_plus,(inter_prec!=null?inter_prec.ZIntersection():null)) ;
 
             if (z_intersection==null)
                 continue ;
@@ -1607,11 +1631,9 @@ public class SystemeOptiqueCentre implements Nommable {
 
     @Override public String toString() { return nom(); }
 
-//    public DoubleProperty XOrigineProperty() { return x_origine ;}
+    public Point2D Origine() { return position_orientation.get().position() ;}
     public double XOrigine() { return position_orientation.get().position().getX() ;}
-//    public DoubleProperty YOrigineProperty() { return y_origine ;}
     public double YOrigine() { return position_orientation.get().position().getY() ;}
-//    public DoubleProperty orientationProperty() { return orientation ;}
 
     public ObjectProperty<PositionEtOrientation> positionEtOrientationObjectProperty() { return position_orientation ;}
 

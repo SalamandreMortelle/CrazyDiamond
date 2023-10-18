@@ -18,7 +18,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane stylesheets="@styles.css" fx:id="racine" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CrazyDiamond.Controller.PanneauPrincipal">
+<BorderPane fx:id="racine" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CrazyDiamond.Controller.PanneauPrincipal">
     <top>
       <VBox>
          <BorderPane.margin>
@@ -46,10 +46,10 @@
 <!--            </MenuBar>-->
               <HBox>
                   <ToolBar HBox.hgrow="ALWAYS">
-                  <Button fx:id="nouveau" onAction="#traiterNouvelEnvironnement" mnemonicParsing="false" text="%nouveau" />
-                  <Button fx:id="charger" onAction="#traiterChargerEnvironnement" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="%charger" />
-                  <Button fx:id="sauvegarder" onAction="#traiterSauvegarderEnvironnement" layoutX="70.0" layoutY="10.0" mnemonicParsing="false" text="%sauvegarder" />
-                  <Button fx:id="sauvegarder_sous" onAction="#traiterSauvegarderEnvironnementSous" layoutX="70.0" layoutY="10.0" mnemonicParsing="false" text="%sauvegarder_sous" />
+                  <Button fx:id="nouveau" mnemonicParsing="false" onAction="#traiterNouvelEnvironnement" text="%nouveau" />
+                  <Button fx:id="charger" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" onAction="#traiterChargerEnvironnement" text="%charger" />
+                  <Button fx:id="sauvegarder" layoutX="70.0" layoutY="10.0" mnemonicParsing="false" onAction="#traiterSauvegarderEnvironnement" text="%sauvegarder" />
+                  <Button fx:id="sauvegarder_sous" layoutX="70.0" layoutY="10.0" mnemonicParsing="false" onAction="#traiterSauvegarderEnvironnementSous" text="%sauvegarder_sous" />
                   <Separator layoutX="361.0" layoutY="10.0">
                      <padding>
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

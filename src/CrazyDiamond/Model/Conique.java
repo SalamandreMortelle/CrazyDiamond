@@ -1217,17 +1217,18 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
 
     @Override
-    public Double abscissePremiereIntersectionSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart,boolean sens_z_croissants, Double z_inter_prec) {
+    public Double ZMinorantSurAxe(Point2D origine_axe, Point2D direction_axe) {
+        return foyer().distance(origine_axe)*(foyer().subtract(origine_axe).dotProduct(direction_axe)>=0?1d:-1d) - parametre()/(1+excentricite())  ;
+    }
 
-        double z_foyer ;
 
-        if (foyer().subtract(origine_axe).dotProduct(direction_axe)>=0)
-            z_foyer = foyer().distance(origine_axe) ;
-        else
-            z_foyer = -foyer().distance(origine_axe) ;
+    @Override
+    public Double abscisseIntersectionSuivanteSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {
 
-        double p = parametre.get() ;
-        double e = excentricite.get() ;
+        double z_foyer = foyer().distance(origine_axe)*(foyer().subtract(origine_axe).dotProduct(direction_axe)>=0?1d:-1d) ;
+
+        double p = parametre() ;
+        double e = excentricite() ;
 
         Double z_int_min = z_foyer - p/(1+e) ;
         Double z_int_max = (e<1? z_foyer + p/(1-e) : null) ;

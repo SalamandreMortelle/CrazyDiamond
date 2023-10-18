@@ -99,6 +99,11 @@ public interface Obstacle {
     void definirAppartenanceComposition(boolean b) ;
     boolean appartientAComposition() ;
 
+    default public Double ZMinorantSurAxe(Point2D origine_axe, Point2D direction_axe) {
+        LOGGER.log(Level.SEVERE,"ZMinorantSurAxe pas implémenté par l'obstacle ",this);
+        return null ;
+    }
+
     /**
      * Si cet obstacle est sur un axe d'origine origine_axe et de direction direction_axe_deg (en degrés), retourne
      * l'abscisse de la première intersection différente de z_inter_prec en partant de l'abscisse z_depart et en progressant dans le sens des
@@ -110,8 +115,8 @@ public interface Obstacle {
      * @param z_inter_prec : abscisse z d'une précedente intersection
      * @return l'abscisse de la première intersection trouvée, ou "null" s'il n'y en a pas
      */
-    default public Double abscissePremiereIntersectionSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart,boolean sens_z_croissants, Double z_inter_prec) {
-        LOGGER.log(Level.SEVERE,"abscissePremiereIntersectionSurAxe pas implémenté par l'obstacle ",this);
+    default public Double abscisseIntersectionSuivanteSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {
+        LOGGER.log(Level.SEVERE,"abscisseIntersectionSuivanteSurAxe pas implémenté par l'obstacle ",this);
         return null ;
     }
 
