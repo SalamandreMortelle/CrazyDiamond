@@ -101,11 +101,6 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
     public ObjectProperty<PositionEtOrientation> positionEtOrientationObjectProperty() { return position_orientation ;}
 //    public DoubleProperty xOrigineProperty() { return x_origine ;}
 
-    @Override
-    public Double ZMinorantSurAxe(Point2D origine_axe, Point2D direction_axe) {
-        return origine().distance(origine_axe)*(origine().subtract(origine_axe).dotProduct(direction_axe)>=0?1d:-1d) ;
-    }
-
     /**
      * @param origine_axe
      * @param direction_axe

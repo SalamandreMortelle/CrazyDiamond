@@ -331,11 +331,6 @@ public class Cercle  implements Obstacle, Identifiable, Nommable,ElementAvecCont
     @Override public double rayonDiaphragmeMaximumConseille() { return rayon() ; }
 
     @Override
-    public Double ZMinorantSurAxe(Point2D origine_axe, Point2D direction_axe) {
-        return centre().distance(origine_axe)*(centre().subtract(origine_axe).dotProduct(direction_axe)>=0?1d:-1d) - rayon() ;
-    }
-
-    @Override
     public Double abscisseIntersectionSuivanteSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {
 
         double z_centre = centre().distance(origine_axe)*(centre().subtract(origine_axe).dotProduct(direction_axe)>=0?1d:-1d) ;

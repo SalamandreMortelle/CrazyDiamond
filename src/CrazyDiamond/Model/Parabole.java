@@ -270,7 +270,6 @@ public class Parabole implements Obstacle, Identifiable, Nommable,ElementAvecCon
         double xdir = r.direction().getX() ;
         double ydir = r.direction().getY() ;
 
-
         // Cas particulier du rayon vertical
         if (r.direction().getX()==0) {
             if ( typeSurface() == TypeSurface.CONCAVE && ( (a>0 && r.direction().getY()<0) || (a<0 && r.direction().getY()>0) ) )

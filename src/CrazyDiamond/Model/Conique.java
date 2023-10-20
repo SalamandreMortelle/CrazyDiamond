@@ -1212,15 +1212,7 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
         return parametre.get();
     }
 
-
     @Override public double rayonDiaphragmeMaximumConseille() { return parametre.get() ; }
-
-
-    @Override
-    public Double ZMinorantSurAxe(Point2D origine_axe, Point2D direction_axe) {
-        return foyer().distance(origine_axe)*(foyer().subtract(origine_axe).dotProduct(direction_axe)>=0?1d:-1d) - parametre()/(1+excentricite())  ;
-    }
-
 
     @Override
     public Double abscisseIntersectionSuivanteSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {

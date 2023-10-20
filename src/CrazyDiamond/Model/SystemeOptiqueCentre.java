@@ -1248,26 +1248,6 @@ public class SystemeOptiqueCentre implements Nommable {
 //        return Math.toDegrees(Math.atan2(h,(z-z_observateur))) ;
     }
 
-    public Double ZMinorantSurAxe() {
-
-        Double z_resultat = null;
-
-        for (Obstacle o : obstacles_centres) {
-            Double z_min = o.ZMinorantSurAxe(origine(),direction()) ;
-
-            if (z_min==null)
-                continue;
-
-            if (z_resultat==null || z_min<=z_resultat) // On prend le z_min même s'il n'est pas sur la surface de la composition
-                z_resultat = z_min ;
-
-        }
-
-        return z_resultat ;
-
-    }
-
-
     /**
      * Construit la liste des intersections de l'axe avec les dioptres du SOC, triées de l'abscisse z = - l'infini à
      * z = + l'infini (abscisse dans le référentiel du SOC), sans tenir compte de la nature (réfléchissante ou
@@ -1278,20 +1258,13 @@ public class SystemeOptiqueCentre implements Nommable {
 
         ArrayList<IntersectionAxeAvecSurface> resultat = new ArrayList<>(2*obstacles_centres.size()) ;
 
-//        Point2D p_depart = origine() ;
-
-        Point2D p_depart = origine().add(direction().multiply(ZMinorantSurAxe())) ;
-
-//        // La méthode premiere_intersection appelée dans chercheIntersectionSuivanteDepuis() ne retourne pas le point
-//        // de départ s'il est déjà sur la surface, or nous en avons besoin : il faut déplacer le pt de départ si c'est le cas.
-//        while (this.aSurSaSurface(p_depart))
-//            p_depart = p_depart.add(direction().multiply(-1d)) ;
+        Point2D p_depart = origine() ;
 
         IntersectionAxeAvecSurface inter_prec = null ;
         // Recherche dans le sens des Z croissants, depuis l'origine
         IntersectionAxeAvecSurface inter = chercheIntersectionSuivanteDepuis(p_depart,true,inter_prec) ;
 
-//        IntersectionAxeAvecSurface premiere_inter_positive = premiere_inter_positive = (inter!=null?inter:null) ;
+        IntersectionAxeAvecSurface premiere_inter_positive = premiere_inter_positive = (inter!=null?inter:null) ;
 
         while (inter!=null) {
             resultat.add(inter) ;
@@ -1302,17 +1275,17 @@ public class SystemeOptiqueCentre implements Nommable {
             inter = chercheIntersectionSuivanteDepuis(nouveau_point_depart,true,inter_prec) ;
         }
 
-//        // Recherche dans le sens des X décroissants, depuis le point de départ défini
-//        inter = chercheIntersectionSuivanteDepuis(p_depart,false,premiere_inter_positive) ;
-//
-//        while (inter!=null) {
-//            resultat.add(0,inter);
-//            inter_prec = inter;
-//
-//            Point2D nouveau_point_depart = origine().add(direction().multiply(inter.z_intersection.get())) ;
-//
-//            inter = chercheIntersectionSuivanteDepuis(nouveau_point_depart,false,inter_prec) ;
-//        }
+        // Recherche dans le sens des X décroissants, depuis le point de départ défini
+        inter = chercheIntersectionSuivanteDepuis(p_depart,false,premiere_inter_positive) ;
+
+        while (inter!=null) {
+            resultat.add(0,inter);
+            inter_prec = inter;
+
+            Point2D nouveau_point_depart = origine().add(direction().multiply(inter.z_intersection.get())) ;
+
+            inter = chercheIntersectionSuivanteDepuis(nouveau_point_depart,false,inter_prec) ;
+        }
 
         return resultat ;
     }
@@ -1650,6 +1623,23 @@ public class SystemeOptiqueCentre implements Nommable {
 
     public ObservableList<Obstacle> obstacles_centres() {
         return obstacles_centres.get() ;
+    }
+
+    /**
+     * Recherche de l'obstacle le plus à l'avant-plan contenant strictement un certain point.
+     * @param p le point
+     * @return l'obstacle trouvé
+     */
+    public Obstacle obstacle_contenant_strictement(Point2D p) {
+
+        Obstacle resultat = null ;
+
+        for (Obstacle o : obstacles_centres) {
+            if (o.contient_strict(p))
+                resultat = o ;
+        }
+
+        return resultat ;
     }
 
     public void appliquerSurNommable(ConsumerAvecException<Object, IOException> consumer) throws IOException {

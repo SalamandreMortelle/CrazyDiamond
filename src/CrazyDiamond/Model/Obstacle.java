@@ -99,11 +99,6 @@ public interface Obstacle {
     void definirAppartenanceComposition(boolean b) ;
     boolean appartientAComposition() ;
 
-    default public Double ZMinorantSurAxe(Point2D origine_axe, Point2D direction_axe) {
-        LOGGER.log(Level.SEVERE,"ZMinorantSurAxe pas implémenté par l'obstacle ",this);
-        return null ;
-    }
-
     /**
      * Si cet obstacle est sur un axe d'origine origine_axe et de direction direction_axe_deg (en degrés), retourne
      * l'abscisse de la première intersection différente de z_inter_prec en partant de l'abscisse z_depart et en progressant dans le sens des
