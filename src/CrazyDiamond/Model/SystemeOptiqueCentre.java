@@ -11,6 +11,8 @@ import javafx.scene.transform.Affine;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,7 +21,7 @@ public class SystemeOptiqueCentre implements Nommable {
     private final Environnement environnement;
     private final Imp_Nommable imp_nommable;
 
-    private final ObjectProperty<PositionEtOrientation> position_orientation ;
+    private final ObjectProperty<PositionEtOrientation> axe;
 
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
 
@@ -41,17 +43,19 @@ public class SystemeOptiqueCentre implements Nommable {
     // Propriétés calculées du système optique centré
 
     /**
-     * Liste ordonnée dans le sens des Z croissants des intersections avec tous les dioptres du système d'un rayon qui
-     * ne subit pas les réflexions sur les dioptres. Les propriétés de chacune de ces intersections sont renseignées également
-     * (cf. attributs de la classe interne IntersectionAxeAvecSurface).
+     * Liste ordonnée dans le sens des Z croissants et des rayons de courbures "croissants" (de 0- à -infini et de +infini
+     * à 0+) de tous les dioptres du système. Le signe des rayons de courbure est celui qui correspond à un rayon qui progresse
+     * dans le sens des Z croissants. Les autres propriétés de chacun de ces dioptres sont renseignées également
+     * (cf. attributs de la classe DioptreParaxial).
      */
-    private final ListProperty<IntersectionAxeAvecSurface> intersections_sur_axe;
+    private final ListProperty<DioptreParaxial> dioptres;
 
     /**
-     * Liste de toutes intersections réelles d'un rayon incident sur l'axe dans le sens +  avec certains des dioptres du
-     * système. Les propriétés de chacune de ces intersections sont renseignées également?
+     * Liste de tous les dioptres réellement rencontrés par un rayon arrivant sur l'axe, dans le sens des Z croissants mais
+     * qui peut ensuite subir des réflexions et progresser dans le sens opposé, auquel cas les signes des rayons de courbure
+     * et les indices avant/après la rencontre du dioptre sont adaptés en conséquence.
      */
-    private final ListProperty<IntersectionAxeAvecSurface> intersections_reelles_sur_axe;
+    private final ListProperty<RencontreDioptreParaxial> dioptres_rencontres;
 
     /**
      * Abscisse du plan de référence d'entrée du système optique, positionné sur le dioptre du système ayant la plus petite abscisse
@@ -131,7 +135,7 @@ public class SystemeOptiqueCentre implements Nommable {
 
     private boolean suspendre_calcul_elements_cardinaux = false;
 
-    public void definirPosition(Point2D pos) { position_orientation.set(new PositionEtOrientation(pos,orientation()));
+    public void definirPosition(Point2D pos) { axe.set(new PositionEtOrientation(pos,orientation()));
     }
 
     public Double zPlanEntree() { return z_plan_entree; }
@@ -141,219 +145,13 @@ public class SystemeOptiqueCentre implements Nommable {
     public record PositionElement(double z, double hauteur) {
     }
 
-    public class IntersectionAxeAvecSurface {
-        // Abscisse de l'intersection dans le référentiel du SOC
-
-        SystemeOptiqueCentre soc ;
-        DoubleProperty z_intersection;
-
-        // Rayon de courbure de la surface rencontree, au niveau du point de rencontre, ou "null" si la surface est plane
-        ObjectProperty<Double> r_courbure ;
-
-        // Indice du milieu "avant" la surface (lorsque x est juste inférieur à x_intersection)
-        DoubleProperty indice_avant ;
-        // Indice du milieu "après" la surface (lorsque x est juste supérieur à x_intersection)
-        DoubleProperty indice_apres ;
-
-        ObjectProperty<Obstacle> obs_surface ;
-
-        ObjectProperty<Double> r_diaphragme ;
-
-        BooleanProperty ignorer ;
-
-        StringProperty sens ;
-
-        StringProperty est_diaphragme_ouverture ;
-        StringProperty est_diaphragme_champ ;
-        StringProperty est_diaphragme_champ_pleine_lumiere ;
-        StringProperty est_diaphragme_champ_total ;
-
-        ObjectProperty<Double> h_limite_ouverture;
-        ObjectProperty<Double> h_limite_champ;
-        ObjectProperty<Double> h_limite_champ_pleine_lumiere ;
-        ObjectProperty<Double> h_limite_champ_total ;
-
-        ObjectProperty<PositionElement> antecedent_diaphragme ;
-
-        // TODO : pas nécessaire d'en faire une Property
-        Affine matrice_transfert_partielle ;
-        boolean sens_plus_en_sortie_matrice_partielle ;
-
-
-        public IntersectionAxeAvecSurface(double z_intersection, Obstacle obs_surface) {
-            this(z_intersection,null,0.0,0.0,obs_surface) ;
-        }
-
-        public IntersectionAxeAvecSurface(double z_intersection, Double r_courbure, double indice_avant, double indice_apres, Obstacle obs_surface) {
-            this.z_intersection = new SimpleDoubleProperty(z_intersection);
-            this.r_courbure = new SimpleObjectProperty<Double>(r_courbure) ;
-
-
-            if (obs_surface.aUneProprieteDiaphragme()) {
-                this.r_diaphragme = new SimpleObjectProperty<Double>(obs_surface.diaphragmeProperty().getValue()) ;
-            }
-            else
-                this.r_diaphragme = new SimpleObjectProperty<Double>(null) ;
-
-            this.indice_avant = new SimpleDoubleProperty(indice_avant);
-            this.indice_apres = new SimpleDoubleProperty(indice_apres);
-            this.obs_surface = new SimpleObjectProperty<Obstacle>(obs_surface) ;
-            this.ignorer = new SimpleBooleanProperty(false) ;
-            this.sens = new SimpleStringProperty("⟶") ;
-            this.est_diaphragme_ouverture = new SimpleStringProperty("") ;
-            this.est_diaphragme_champ = new SimpleStringProperty("") ;
-            this.est_diaphragme_champ_pleine_lumiere = new SimpleStringProperty("") ;
-            this.est_diaphragme_champ_total = new SimpleStringProperty("") ;
-
-            this.h_limite_ouverture = new SimpleObjectProperty<Double>(null) ;
-
-            this.h_limite_champ = new SimpleObjectProperty<Double>(null) ;
-            this.h_limite_champ_pleine_lumiere = new SimpleObjectProperty<Double>(null) ;
-            this.h_limite_champ_total = new SimpleObjectProperty<Double>(null) ;
-
-            this.antecedent_diaphragme = new SimpleObjectProperty<PositionElement>(null) ;
-
-            this.matrice_transfert_partielle = null ;
-            this.sens_plus_en_sortie_matrice_partielle = true ;
-
-
-        }
-
-        // Constructeur de copie (deep copy) : n'initialise pas les propriétés r_diaphragme et ignorer qui relèvent des
-        // modalités de traversée du dioptre et sont définies dans un second temps
-        public IntersectionAxeAvecSurface(IntersectionAxeAvecSurface a_copier) {
-
-            // Pour les propriétés qui sont propres à chaque traversée du dioptre (i.e. qui dépendent du sens de
-            // propagation de la lumière, ou de choix faits par l'utilisateur), on crée une nouvelle propriété.
-            // Pour les autres, qui sont des propriétés intrinsèques de l'obstacles, on se contente de reprendre (copîer)
-            // la référence de la propriété existante
-//            this.z_intersection = new SimpleDoubleProperty(a_copier.ZIntersection());
-            this.z_intersection = a_copier.z_intersection ;
-            this.r_courbure = new SimpleObjectProperty<Double>(a_copier.rayonCourbure()) ;
-            this.indice_avant = new SimpleDoubleProperty(a_copier.indiceAvant());
-            this.indice_apres = new SimpleDoubleProperty(a_copier.indiceApres());
-//            this.obs_surface = new SimpleObjectProperty<Obstacle>(a_copier.obstacleSurface()) ;
-            this.obs_surface = a_copier.obs_surface;
-
-
-            this.r_diaphragme = a_copier.r_diaphragme;
-//            this.r_diaphragme = new SimpleObjectProperty<Double>(a_copier.rayonDiaphragme());
-//            this.r_diaphragme.bindBidirectional(a_copier.r_diaphragme);
-
-            this.ignorer = new SimpleBooleanProperty(a_copier.ignorer());
-            this.sens = new SimpleStringProperty(a_copier.sens()) ;
-            this.est_diaphragme_ouverture = new SimpleStringProperty(a_copier.estDiaphragmeOuverture()) ;
-            this.est_diaphragme_champ = new SimpleStringProperty(a_copier.estDiaphragmeChamp()) ;
-            this.est_diaphragme_champ_pleine_lumiere = new SimpleStringProperty(a_copier.estDiaphragmeChampPleineLumiere()) ;
-            this.est_diaphragme_champ_total = new SimpleStringProperty(a_copier.estDiaphragmeChampTotal()) ;
-            this.h_limite_ouverture = new SimpleObjectProperty<Double>(a_copier.HLimiteOuverture()) ;
-            this.h_limite_champ = new SimpleObjectProperty<Double>(a_copier.HLimiteChamp()) ;
-            this.h_limite_champ_pleine_lumiere = new SimpleObjectProperty<Double>(a_copier.HLimiteChampPleineLumiere()) ;
-            this.h_limite_champ_total = new SimpleObjectProperty<Double>(a_copier.HLimiteChampTotal()) ;
-
-            this.antecedent_diaphragme = new SimpleObjectProperty<PositionElement>(a_copier.antecedentDiaphragme()) ;
-
-            this.matrice_transfert_partielle = a_copier.matrice_transfert_partielle ;
-            this.sens_plus_en_sortie_matrice_partielle = a_copier.sens_plus_en_sortie_matrice_partielle ;
-
-        }
-
-        public void appliquerModalitesTraverseeDioptrePrecedentesSiApplicables(ModalitesTraverseeDioptre modalites_prec) {
-            if (modalitesTraverseeDioptrePrecedentesApplicables(modalites_prec)) {
-                if (!this.obstacleSurface().aUneProprieteDiaphragme())
-                    this.r_diaphragme.set(modalites_prec.r_diaphragme);
-                this.ignorer.set(modalites_prec.ignorer);
-            }
-        }
-
-        public boolean modalitesTraverseeDioptrePrecedentesApplicables(ModalitesTraverseeDioptre modalites_prec) {
-              if (modalites_prec != null && modalites_prec.obs_surface == this.obstacleSurface())
-                    return true ;
-
-            return false ;
-        }
-
-        public void permuterIndicesAvantApres() {
-            double ind = indice_avant.get() ;
-            indice_avant.set(indice_apres.get());
-            indice_apres.set(ind);
-        }
-
-        public void propagerIndiceAvant() { indice_apres.set(indice_avant.get()); }
-        public void propagerIndiceApres() { indice_avant.set(indice_apres.get()); }
-
-        public double ZIntersection() { return z_intersection.get() ;}
-        public Double rayonCourbure() { return r_courbure.get() ; }
-        public ObjectProperty<Double> rayonCourbureProperty() { return r_courbure ; }
-
-        public double indiceAvant() { return indice_avant.get() ; }
-        public double indiceApres() { return indice_apres.get() ; }
-        public Obstacle obstacleSurface() { return obs_surface.get() ;}
-        public Double rayonDiaphragme() { return r_diaphragme.get() ; }
-        public ObjectProperty<Double> rayonDiaphragmeProperty() { return r_diaphragme ; }
-        public boolean ignorer() { return ignorer.get() ; }
-        public String sens() { return sens.get() ; }
-        public String estDiaphragmeOuverture() { return est_diaphragme_ouverture.get() ; }
-        public String estDiaphragmeChamp() { return est_diaphragme_champ.get() ; }
-        private String estDiaphragmeChampPleineLumiere() { return est_diaphragme_champ_pleine_lumiere.get() ;}
-        private String estDiaphragmeChampTotal() { return est_diaphragme_champ_total.get() ;}
-
-        public Double HLimiteOuverture() { return h_limite_ouverture.get() ; }
-        public Double HLimiteChamp() { return h_limite_champ.get() ; }
-        public Double HLimiteChampPleineLumiere() { return h_limite_champ_pleine_lumiere.get() ; }
-        public Double HLimiteChampTotal() { return h_limite_champ_total.get() ; }
-        public PositionElement antecedentDiaphragme() {return antecedent_diaphragme.get() ;}
-
-        public Affine matriceTransfertPartielle() { return matrice_transfert_partielle ;}
-        public boolean sensPlusEnSortieMatricePartielle() { return sens_plus_en_sortie_matrice_partielle ;}
-
-        public void activerDeclenchementCalculElementsCardinauxSiChangementModalitesTraversee(SystemeOptiqueCentre soc) {
-
-            this.ignorer.addListener((observable, oldValue,newValue) -> {
-               soc.calculeElementsCardinaux();
-            });
-
-            // Si l'obstacle a "nativement" une propriété diaphragme, inutile de déclencher un calcul des éléments
-            // cardinaux en cas de changement de cette dernière : c'est déjà pris en charge par le rappel sur changement
-            // de toute propriété lorsque l'obstacle a été ajouté au SOC (cf. SystemeOptiqueCentre::ajouterObstacle)
-            if (!obstacleSurface().aUneProprieteDiaphragme()) {
-                this.r_diaphragme.addListener((observable, oldValue, newValue) -> {
-                    soc.calculeElementsCardinaux();
-                });
-            }
-        }
-
-        public PositionElement diaphragme() {
-            if (rayonDiaphragme()==null)
-                return null ;
-
-            return new PositionElement(ZIntersection(),rayonDiaphragme());
-        }
-
-        public Double z() { return z_intersection.get() ;}
-
-        public DoubleProperty zProperty() {return z_intersection ;}
-
-        public DoubleProperty indiceAvantProperty() { return indice_avant ; }
-        public DoubleProperty indiceApresProperty() { return indice_apres ; }
-
-        public BooleanProperty ignorerProperty() { return ignorer ;}
-
-        public StringProperty sensProperty() { return sens ;}
-
-        public StringProperty estDiaphragmeOuvertureProperty() {return est_diaphragme_ouverture ; }
-        public StringProperty estDiaphragmeChampProperty() {return est_diaphragme_champ ; }
-        public StringProperty estDiaphragmeChampPleineLumiereProperty() { return est_diaphragme_champ_pleine_lumiere ; }
-        public StringProperty estDiaphragmeChampTotalProperty() { return est_diaphragme_champ_total ; }
-    }
-
     /**
      * Classe utilitaire pour conserver les modalités de traversée de dioptre définies par l'utilisateur lorsque le
      * SOC change.
      */
     class ModalitesTraverseeDioptre {
 
-        // Champs servant à l'identification du dioptre dans la liste des IntersectionAxeAvecSurface réelles
+        // Champs servant à l'identification du dioptre dans la liste des DioptreParaxial réelles
 
         Obstacle obs_surface;
         double indice_avant;
@@ -372,16 +170,16 @@ public class SystemeOptiqueCentre implements Nommable {
 
         /**
          * Construit les Modalités de traversée d'un dioptre par copie de certains attributs d'une intersection
-         * @param intersectionAxeAvecSurface
+         * @param renc_dioptre_paraxial
          */
-        public ModalitesTraverseeDioptre(IntersectionAxeAvecSurface intersectionAxeAvecSurface) {
+        public ModalitesTraverseeDioptre(RencontreDioptreParaxial renc_dioptre_paraxial) {
 
-            this.obs_surface = intersectionAxeAvecSurface.obstacleSurface() ;
-            this.indice_avant = intersectionAxeAvecSurface.indiceAvant() ;
-            this.indice_apres = intersectionAxeAvecSurface.indiceApres() ;
+            this.obs_surface = renc_dioptre_paraxial.obstacleSurface() ;
+            this.indice_avant = renc_dioptre_paraxial.indiceAvant() ;
+            this.indice_apres = renc_dioptre_paraxial.indiceApres() ;
 
-            this.r_diaphragme = intersectionAxeAvecSurface.rayonDiaphragme() ;
-            this.ignorer = intersectionAxeAvecSurface.ignorer() ;
+            this.r_diaphragme = renc_dioptre_paraxial.rayonDiaphragme() ;
+            this.ignorer = renc_dioptre_paraxial.ignorer() ;
 
         }
     }
@@ -458,12 +256,12 @@ public class SystemeOptiqueCentre implements Nommable {
         if (suspendre_calcul_elements_cardinaux)
             return ;
 
-        intersections_sur_axe.clear(); ;
+        dioptres.clear(); ;
         Affine nouvelle_matrice_transfert = null ;
 
         try {
-            // Calcule de toutes les intersections du SOC avec l'axe optique dans l'ordre des Z croissants
-            intersections_sur_axe.setAll(calculeIntersectionsAvecAxe());
+            // Calcul de tous les dioptres du SOC le sens des Z croissants et des Rcourbure "croissants"
+            dioptres.setAll(extraireDioptresParaxiaux());
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE,"Impossible de calculer les intersections du SOC avec l'axe",e);
             return ;
@@ -611,20 +409,19 @@ public class SystemeOptiqueCentre implements Nommable {
     public boolean MontrerPlansNodaux() { return montrer_plans_nodaux.get() ; }
 
 
-    public ListProperty<IntersectionAxeAvecSurface> IntersectionsSurAxeProperty() {
-        return intersections_sur_axe ;
+    public ListProperty<DioptreParaxial> IntersectionsSurAxeProperty() {
+        return dioptres;
     }
-    public ObservableList<IntersectionAxeAvecSurface> InterSectionsSurAxe() {
-        return intersections_sur_axe.get() ;
-    }
-
-    public ListProperty<IntersectionAxeAvecSurface> IntersectionsReellesSurAxeProperty() {
-        return intersections_reelles_sur_axe ;
-    }
-    public ObservableList<IntersectionAxeAvecSurface> InterSectionsReellesSurAxe() {
-        return intersections_reelles_sur_axe.get() ;
+    public ObservableList<DioptreParaxial> InterSectionsSurAxe() {
+        return dioptres.get() ;
     }
 
+    public ListProperty<RencontreDioptreParaxial> dioptresRencontresProperty() {
+        return dioptres_rencontres;
+    }
+    public ObservableList<RencontreDioptreParaxial> dioptresRencontres() {
+        return dioptres_rencontres.get() ;
+    }
 
     public Affine matriceTransfertOptique() {
         return matrice_transfert_es.get() ;
@@ -634,36 +431,36 @@ public class SystemeOptiqueCentre implements Nommable {
         return matrice_transfert_es ;
     }
 
-
-
     /**
-     * Calcule et retourne la Matrice de Transfert Optique du système, entre son plan d'entrée (plan de front du 1er
-     * dioptre rencontré par la lumière, qui progresse dans le sens de l'axe z) et son plan de sortie (plan du dernier dioptre
-     * rencontré ; la lumière pouvant sortir du système dans le sens de l'axe z du système, ou dans le sens opposé ; toutefois
+     * <p>Calcule et retourne la Matrice de Transfert Optique du système, entre son plan d'entrée (plan de front du 1er
+     * dioptre rencontré par la lumière, qui progresse dans le sens de l'axe Z) et son plan de sortie (plan du dernier dioptre
+     * rencontré ; la lumière pouvant sortir du système dans le sens de l'axe Z du système, ou dans le sens opposé ; toutefois
      * la lumière progresse toujours dans le sens des abscisses croissantes de l'axe optioque. L'axe optique "se retourne" si la
-     * lumière rencontre une surface réfléchissante)
-     *
+     * lumière rencontre une surface réfléchissante)</p><br>
+     * <p>
      * Pré-condition :
-     * toutes les intersections sur l'axe (dans le sens des z croissants, en supposant les dioptres tous transparents)
-     * sont déjà calculées et classées dans l'attribut intersections_sur_axe
-     *
+     * tous les dioptres (dans le sens des z croissants, et des RC "croissants") en supposant les dioptres tous transparents
+     * sont déjà calculées et classées dans l'attribut dioptres (via la méthode extraireDioptresParaxiaux() appelée dans
+     * calculeElementsCardinaux())
+     * </p><br>
+     * <p>
      * Post-conditions :
      *  z_plan_entree est calculé
      *  n_entree est calculé
      *  z_plan_sortie est calculé
      *  n_sortie est calculé
      *  sens_plue_en_sortie est calculé (true si la lumière progresse dans le sens de l'axe Z en sortie du système, false sinon)
-     *  la liste (ordonnée dans l'ordre où elles ont lieu) des intersections réelles d'un rayon sur l'axe avec les
-     *  surfaces des dioptres (en tenant compte du caractère transparent ou réfléchissant de ces derniers) est calculée
-     *  dans intersections_reelles_sur_axe avec pour chacune d'entre elles, le rayon de courbure algébrique, l'obstacle
-     *  dont la surface a été rencontrée, les indices des milieux avant/après
-     *
+     *  la liste (ordonnée dans l'ordre où elles ont lieu) des dioptres réellement rencontrés par un rayon paraxial colinéaire
+     *  à l'axe du système, en tenant compte du caractère transparent ou réfléchissant des surfaces des dioptres, est calculée
+     *  dans dioptres_rencontres avec pour chacun d'entre eux, le rayon de courbure algébrique, l'obstacle dont la surface
+     *  a été rencontrée, les indices des milieux avant/après.
+     *  </p>
      * @return la matrice de transfert optique du système Mt(ES)
      * @throws Exception
      */
     private Affine calculeMatriceTransfertOptique() throws Exception {
 
-        if (intersections_sur_axe.size()==0)
+        if (dioptres.size()==0)
             return null ;
 
         Affine resultat = new Affine(1d,0d,0d,
@@ -671,18 +468,18 @@ public class SystemeOptiqueCentre implements Nommable {
 
         // Mémorisons les modalités de traversée des dioptres (rayons des diaphragmes, dioptres à ignorer) qui étaient
         // précédemment définies (pour épargner à l'utilisateur de les re-saisir à chaque modification du SOC)
-        ArrayList<ModalitesTraverseeDioptre> modalites_traversee_precedentes = new ArrayList<>(intersections_reelles_sur_axe.size())  ;
+        ArrayList<ModalitesTraverseeDioptre> modalites_traversee_precedentes = new ArrayList<>(dioptres_rencontres.size())  ;
 
-        if (intersections_reelles_sur_axe.size()>0) {
+        if (dioptres_rencontres.size()>0) {
 
-            for (IntersectionAxeAvecSurface its : intersections_reelles_sur_axe)
+            for (RencontreDioptreParaxial its : dioptres_rencontres)
                 modalites_traversee_precedentes.add(new ModalitesTraverseeDioptre(its)) ;
         }
 
-        intersections_reelles_sur_axe.clear();
+        dioptres_rencontres.clear();
 
-        z_plan_entree = intersections_sur_axe.get(0).ZIntersection();
-        n_entree.set(intersections_sur_axe.get(0).indiceAvant()) ;
+        z_plan_entree = dioptres.get(0).ZIntersection();
+        n_entree.set(dioptres.get(0).indiceAvant()) ;
 
         int i = 0;
         int pas = +1 ;
@@ -697,8 +494,8 @@ public class SystemeOptiqueCentre implements Nommable {
         int index_diaphragme_ouverture_bis = -1 ; // Position du diaphragme d'ouverture dans la liste des intersections réelles du SOC
         // Fin
 
-        IntersectionAxeAvecSurface intersection_prec = null ;
-        IntersectionAxeAvecSurface intersection = null ;
+        RencontreDioptreParaxial precedent_dioptre_rencontre = null ;
+        RencontreDioptreParaxial dioptre_rencontre = null ;
 
         // Indice du milieu à appliquer, si le dioptre précédent est marqué "à ignorer"
         Double n_a_appliquer = null ;
@@ -707,61 +504,52 @@ public class SystemeOptiqueCentre implements Nommable {
         // NB : la condition sur nb_reflexions<3 est utile pour éviter une suite infinie d'allers-retours du rayon entre
         // deux surfaces réfléchissantes (situation qui peut se produire si la première surface "laisse entrer"  le rayon
         // dans la cavité optique, lorsqu'elle est semi réflechissante)
-        while (nb_reflexions<3 && i<intersections_sur_axe.size() && i>=0) {
+        while (nb_reflexions<3 && i< dioptres.size() && i>=0) {
 
-            // Copions telle quelle l'intersection courante dans la liste des intersections réelles
-            intersection = new IntersectionAxeAvecSurface(intersections_sur_axe.get(i)) ;
+            // Instancions une rencontre de dioptre à partir du dioptre courant, en tenant compte du sens de propagation
+            // de la lumière
+            dioptre_rencontre = new RencontreDioptreParaxial(dioptres.get(i),pas>0) ;
 
-            // Modifions cette intersection pour l'adapter au sens réel de propagation de la lumière...
-            // Conventions de sens et de signe ; cf. Optique, fondements et applications J-Ph. Pérez, Chap 13 (pp. 144/145)
-            // l'axe optique est toujours dans le sens de marche du rayon
-            if (pas<0) {
-                intersection.permuterIndicesAvantApres();
-                if (intersection.rayonCourbure()!=null)
-                    intersection.r_courbure.set(-intersection.rayonCourbure());
-                intersection.sens.set("⟵");
-            }
-
-            intersections_reelles_sur_axe.add(intersection) ;
+            dioptres_rencontres.add(dioptre_rencontre) ;
 
             // On reprend les modalités de traversée précédentes, si elles sont applicables
             if (nb_dioptres_rencontres<modalites_traversee_precedentes.size())
-                intersection.appliquerModalitesTraverseeDioptrePrecedentesSiApplicables(modalites_traversee_precedentes.get(nb_dioptres_rencontres)) ;
+                dioptre_rencontre.appliquerModalitesTraverseeDioptrePrecedentesSiApplicables(modalites_traversee_precedentes.get(nb_dioptres_rencontres)) ;
 
-            intersection.activerDeclenchementCalculElementsCardinauxSiChangementModalitesTraversee(this) ;
+            dioptre_rencontre.activerDeclenchementCalculElementsCardinauxSiChangementModalitesTraversee(this) ;
 
-            ignorer_dioptre_courant = intersection.ignorer() ;
+            ignorer_dioptre_courant = dioptre_rencontre.ignorer() ;
 
             if (n_a_appliquer!=null)
-                intersection.indice_avant.set(n_a_appliquer);
+                dioptre_rencontre.indice_avant.set(n_a_appliquer);
 
             if (ignorer_dioptre_courant) {
 
                 if (n_a_appliquer==null) // Le milieu avant le dioptre devient aussi le milieu après le dioptre, vu qu'on ignore le dioptre
-                    n_a_appliquer = intersection.indiceAvant();
+                    n_a_appliquer = dioptre_rencontre.indiceAvant();
 
-                intersection.indice_apres.set(n_a_appliquer);
+                dioptre_rencontre.indice_apres.set(n_a_appliquer);
 
             } else { // Le dioptre courant n'est pas à ignorer
 
-                if (n_a_appliquer!=null &&  ( ! intersection.obstacleSurface().estReflechissant() ) )
+                if (n_a_appliquer!=null &&  ( ! dioptre_rencontre.obstacleSurface().estReflechissant() ) )
                     n_a_appliquer = null;
 
             }
 
 
-            if (intersection.rayonCourbure()!=null && intersection.rayonCourbure()==0)
-                throw new Exception("Rayon de courbure nul sur l'obstacle "+intersection.obstacleSurface()
+            if (dioptre_rencontre.rayonCourbure()!=null && dioptre_rencontre.rayonCourbure()==0)
+                throw new Exception("Rayon de courbure nul sur l'obstacle "+dioptre_rencontre.obstacleSurface()
                         +" : impossible de calculer une matrice de transfert (point anguleux sur l'axe)") ;
 
-            // Si on arrive d'une intersection précédente (i.e. on n'est pas sur le dioptre d'entrée du SOC)...
-            if (intersection_prec!=null) {
+            // Si on arrive d'un dioptre_rencontre précédent (i.e. on n'est pas sur le dioptre d'entrée du SOC)...
+            if (precedent_dioptre_rencontre!=null) {
                 // ...il y a une matrice de translation à ajouter
 
                 // Conventions de sens et de signe ; cf. Optique, fondements et applications J-Ph. Pérez, Chap 13 (pp. 144/145)
                 // L'axe optique change de sens après un miroir (le rayon progresse donc toujours dans le sens + de l'axe optique)
-                double intervalle = (pas>0?1d:-1d)*(intersection.ZIntersection() - intersection_prec.ZIntersection())
-                        / intersection.indiceAvant() ;
+                double intervalle = (pas>0?1d:-1d)*(dioptre_rencontre.ZIntersection() - precedent_dioptre_rencontre.ZIntersection())
+                        / dioptre_rencontre.indiceAvant() ;
 
                 if (intervalle!=0d)
                     resultat.prepend(new Affine(1d, intervalle, 0d,
@@ -770,20 +558,19 @@ public class SystemeOptiqueCentre implements Nommable {
             }
 
             // Mémorisation de la matrice de transfert partielle (sera utilisée pour la recherche du Diaph. de Champ)
-            intersection.matrice_transfert_partielle = resultat.clone() ;
-            intersection.sens_plus_en_sortie_matrice_partielle = (pas>0) ;
+            dioptre_rencontre.matrice_transfert_partielle = resultat.clone() ;
+            dioptre_rencontre.sens_plus_en_sortie_matrice_partielle = (pas>0) ;
 
             // Recherche du diaphragme d'ouverture et de l'angle d'ouverture
-            if (/*!ignorer_dioptre_courant &&*/ intersection.rayonDiaphragme()!=null) {
+            if (/*!ignorer_dioptre_courant &&*/ dioptre_rencontre.rayonDiaphragme()!=null) {
 
                 if (ZObjet()!=null /* && (z_antecedent_diaphragme-ZObjet())>0 */) {
                     // La recherche du DO dépend de la position de l'objet z_objet, ce n'est pas une propriété intrinsèque du SOC
 
                     // Methode 1 pour trouver le DO : ratio hauteur d'émergence sur dioptre i / rayon diaphragme i maximal pour un rayon
-                    // issu de l'intersection du plan objet et de l'axe, avec un angle non nul par rapport à l'axe (ici 1°)
+                    // issu de l'dioptre_rencontre du plan objet et de l'axe, avec un angle non nul par rapport à l'axe (ici 1°)
                     // Cette méthode permet aussi de trouver les hauteurs limites du "cone d'ouverture" sur chaque dioptre
                     // et d'en faire une jolie, et parlante représentation graphique
-
 
                     Affine mat_transfert_depuis_objet = resultat.clone() ;
 
@@ -799,20 +586,20 @@ public class SystemeOptiqueCentre implements Nommable {
 
                     double ratio_h_emergent = Double.MAX_VALUE ;
 
-                    if (intersection.rayonDiaphragme()!=0d)
-                        ratio_h_emergent = Math.abs(r_emergent.getX() / intersection.rayonDiaphragme()) ;
+                    if (dioptre_rencontre.rayonDiaphragme()!=0d)
+                        ratio_h_emergent = Math.abs(r_emergent.getX() / dioptre_rencontre.rayonDiaphragme()) ;
 
-                    // Enregistrement de la hauteur X de l'intersection avec le diaphragme
-                    intersection.h_limite_ouverture.set(r_emergent.getX());
+                    // Enregistrement de la hauteur X de l'dioptre_rencontre avec le diaphragme
+                    dioptre_rencontre.h_limite_ouverture.set(r_emergent.getX());
 
                     LOGGER.log(Level.FINE,"Ratio x/x_diaphragme du diaphragme {0} : {1}",
                             new Object[] {nb_dioptres_rencontres,ratio_h_emergent} ) ;
 
                     PositionElement antecedent_diaphragme_relatif_soc =
-                            positionAntecedent(resultat, new PositionElement(0d,intersection.rayonDiaphragme()),
-                                    NEntree(), intersection.indiceApres());
+                            positionAntecedent(resultat, new PositionElement(0d,dioptre_rencontre.rayonDiaphragme()),
+                                    NEntree(), dioptre_rencontre.indiceApres());
 
-                    intersection.antecedent_diaphragme.set(
+                    dioptre_rencontre.antecedent_diaphragme.set(
                             new PositionElement(z_plan_entree + antecedent_diaphragme_relatif_soc.z(),
                                     antecedent_diaphragme_relatif_soc.hauteur()) ) ;
 
@@ -826,17 +613,17 @@ public class SystemeOptiqueCentre implements Nommable {
                         ratio_h_emergent_max_depuis_objet = ratio_h_emergent ;
                         index_diaphragme_ouverture_bis = nb_dioptres_rencontres ;
 
-//                        z_pupille_entree_potentielle = intersection.antecedentDiaphragme().z(); ;
-//                        h_pupille_entree_potentielle = intersection.antecedentDiaphragme().hauteur() ;
+//                        z_pupille_entree_potentielle = dioptre_rencontre.antecedentDiaphragme().z(); ;
+//                        h_pupille_entree_potentielle = dioptre_rencontre.antecedentDiaphragme().hauteur() ;
                     }
 
                     // Méthode 2 pour trouver le DO : antecedent de diaphragme (par le système en amont de celui-ci) que l'on voit sous le
                     // plus petit angle par rapport à la position de l'objet. TODO : a supprimer à terme
-                    double tan_angle_antecedent_depuis_z_objet = Math.abs(intersection.antecedentDiaphragme().hauteur())
-                            / Math.abs(intersection.antecedentDiaphragme().z() - ZObjet());
+                    double tan_angle_antecedent_depuis_z_objet = Math.abs(dioptre_rencontre.antecedentDiaphragme().hauteur())
+                            / Math.abs(dioptre_rencontre.antecedentDiaphragme().z() - ZObjet());
 
                     LOGGER.log(Level.FINE,"Pupille entrée du diaphragme {0} : hauteur {1}, angle vu de objet : {2}°",
-                            new Object[] {nb_dioptres_rencontres, Double.valueOf(intersection.antecedentDiaphragme().hauteur()) ,
+                            new Object[] {nb_dioptres_rencontres, Double.valueOf(dioptre_rencontre.antecedentDiaphragme().hauteur()) ,
                                     Math.toDegrees(Math.atan(tan_angle_antecedent_depuis_z_objet))}) ;
 
                     if (tan_angle_antecedent_depuis_z_objet<tan_demi_ouverture) {
@@ -852,17 +639,17 @@ public class SystemeOptiqueCentre implements Nommable {
             } // Fin du bloc de recherche du DO
 
             // Prise en compte du dioptre courant dans la matrice de transfert ES
-            if (!ignorer_dioptre_courant && (! (intersection.obstacleSurface().aUneProprieteDiaphragme()
-                    && (intersection.rayonDiaphragme()!=null && intersection.rayonDiaphragme()>0d) )) )  {
+            if (!ignorer_dioptre_courant && (! (dioptre_rencontre.obstacleSurface().aUneProprieteDiaphragme()
+                    && (dioptre_rencontre.rayonDiaphragme()!=null && dioptre_rencontre.rayonDiaphragme()>0d) )) )  {
                 // Rencontre d'une surface absorbante ou d'un diaphragme totalement fermé ? => fin de la propagation
-                if (intersection.obstacleSurface().traitementSurface() == TraitementSurface.ABSORBANT
-                        || (intersection.rayonDiaphragme()!=null && intersection.rayonDiaphragme()==0d)) {
+                if (dioptre_rencontre.obstacleSurface().traitementSurface() == TraitementSurface.ABSORBANT
+                        || (dioptre_rencontre.rayonDiaphragme()!=null && dioptre_rencontre.rayonDiaphragme()==0d)) {
 
                     // Le milieu de sortie est le dernier milieu traversé, à savoir celui qui précède la surface
                     // absorbante (dans le sens de la marche du rayon)
-                    intersection.propagerIndiceAvant();
+                    dioptre_rencontre.propagerIndiceAvant();
 
-                    intersection.sens.set((pas>0)?"⇥":"⇤");
+                    dioptre_rencontre.sens.set((pas>0)?"⇥":"⇤");
 
                     ++nb_dioptres_rencontres ;
 
@@ -870,33 +657,33 @@ public class SystemeOptiqueCentre implements Nommable {
                     break ;
 
                 } else // Rencontre d'une surface réfléchissante ? => propagation se poursuit, en renversant le sens
-                    if (intersection.obstacleSurface().estReflechissant()  ) {
+                    if (dioptre_rencontre.obstacleSurface().estReflechissant()  ) {
 
-                        intersection.sens.set((pas>0)?"⮌":"⮎");
+                        dioptre_rencontre.sens.set((pas>0)?"⮌":"⮎");
 
                         // Renversement du sens de marche du rayon
                         pas = -pas;
                         ++nb_reflexions;
 
                         // L'indice avant réflexion est aussi l'indice après réflexion (rappel : on a déjà mis les indices avant/apres dans le bon ordre)
-                        intersection.propagerIndiceAvant();
+                        dioptre_rencontre.propagerIndiceAvant();
 
-                        if (intersection.rayonCourbure() == null) {
+                        if (dioptre_rencontre.rayonCourbure() == null) {
                             // Miroir plan : rien d'autre à faire (matrice transfert = matrice identité dans ce cas)
                         } else {
                             // Miroir localement sphérique
                             resultat.prepend(new Affine(1d, 0d, 0d,
-                                    2d * intersection.indiceAvant() / intersection.rayonCourbure(), 1d, 0d));
+                                    2d * dioptre_rencontre.indiceAvant() / dioptre_rencontre.rayonCourbure(), 1d, 0d));
                         }
 
                     } else { // La surface est majoritairement transparente
-                        if (intersection.obstacleSurface().natureMilieu() != NatureMilieu.PAS_DE_MILIEU) // Il y a un "vrai" dioptre entre deux milieux
-                            if (intersection.rayonCourbure() != null) {
+                        if (dioptre_rencontre.obstacleSurface().natureMilieu() != NatureMilieu.PAS_DE_MILIEU) // Il y a un "vrai" dioptre entre deux milieux
+                            if (dioptre_rencontre.rayonCourbure() != null) {
 
                                 // Coefficients a,b,c,d : cf. Optique, fondements et applications J-Ph. Pérez, Chap 4 (p. 45)
                                 // (déterminant de la matrice de transfert vaut 1)
                                 resultat.prepend(new Affine(1, 0, 0,
-                                        -(intersection.indiceApres() - intersection.indiceAvant()) / intersection.rayonCourbure(), 1, 0));
+                                        -(dioptre_rencontre.indiceApres() - dioptre_rencontre.indiceAvant()) / dioptre_rencontre.rayonCourbure(), 1, 0));
                             } else { // Dioptre plan (rayon de courbure infini)
                                 // Matrice a b c d = matrice identité. Rien à faire
                             }
@@ -904,15 +691,15 @@ public class SystemeOptiqueCentre implements Nommable {
 
             } // if (!ignorer_dioptre_courant)
 
-            intersection_prec = intersection ;
+            precedent_dioptre_rencontre = dioptre_rencontre ;
             ++nb_dioptres_rencontres ;
 
             i += pas ;
         }
 
-        z_plan_sortie = intersection.ZIntersection()  ;
+        z_plan_sortie = dioptre_rencontre.ZIntersection()  ;
         sens_plus_en_sortie.set(pas>0) ;
-        n_sortie.set(intersection.indiceApres()) ;
+        n_sortie.set(dioptre_rencontre.indiceApres()) ;
 
         // Mise à jour immédiate de la position de l'image : on en a besoin un peu plus loin dans cette méthode
 
@@ -925,11 +712,11 @@ public class SystemeOptiqueCentre implements Nommable {
         if (index_diaphragme_ouverture>=0) {
 
             // ..on le marque ;
-            intersections_reelles_sur_axe.get(index_diaphragme_ouverture).est_diaphragme_ouverture.set("✓");
+            dioptres_rencontres.get(index_diaphragme_ouverture).est_diaphragme_ouverture.set("✓");
             //...son antécédent est la pupille d'entrée du système
-            z_pupille_entree.set(intersections_reelles_sur_axe.get(index_diaphragme_ouverture).antecedentDiaphragme().z()) ;
+            z_pupille_entree.set(dioptres_rencontres.get(index_diaphragme_ouverture).antecedentDiaphragme().z()) ;
             // Par convention, on choisit de prendre r_pupille entrée > 0
-            r_pupille_entree.set(Math.abs(intersections_reelles_sur_axe.get(index_diaphragme_ouverture).antecedentDiaphragme().hauteur())) ;
+            r_pupille_entree.set(Math.abs(dioptres_rencontres.get(index_diaphragme_ouverture).antecedentDiaphragme().hauteur())) ;
 
             // ...et l'image de la pupille d'entrée est la pupille de sortie du système
             PositionElement image_pupille_entree =
@@ -949,9 +736,9 @@ public class SystemeOptiqueCentre implements Nommable {
         // Boucle utilisée pour :
         // 1) Recaler les hauteurs du cone d'ouverture limite (ayons marginaux) sur chacun des diaphragmes (pour visualisation de l'ouverture)
         // 2) Rechercher le Diaphragme de Champ et la Lucarne d'entrée
-        for ( int j = 0 ; j< intersections_reelles_sur_axe.size() ; j++) {
+        for (int j = 0; j< dioptres_rencontres.size() ; j++) {
 
-            IntersectionAxeAvecSurface its = intersections_reelles_sur_axe.get(j) ;
+            RencontreDioptreParaxial its = dioptres_rencontres.get(j) ;
 
             // 1) Calage de la hauteur des rayons marginaux
             if (its.HLimiteOuverture()!=null && ratio_h_emergent_max_depuis_objet !=0d) {
@@ -985,7 +772,7 @@ public class SystemeOptiqueCentre implements Nommable {
                 if (its.rayonDiaphragme()!=0d)
                     ratio_h_emergent = Math.abs(r_emergent.getX() / its.rayonDiaphragme());
 
-                // Enregistrement de la hauteur X de l'intersection avec le diaphragme
+                // Enregistrement de la hauteur X du dioptre_rencontre avec le diaphragme
                 its.h_limite_champ.set(r_emergent.getX());
 
                 LOGGER.log(Level.FINE, "Ratio x/x_diaphragme du diaphragme {0} : {1}",
@@ -1015,11 +802,11 @@ public class SystemeOptiqueCentre implements Nommable {
         } // Fin for its
 
         if (index_diaphragme_champ>=0) {
-            intersections_reelles_sur_axe.get(index_diaphragme_champ).est_diaphragme_champ.set("✓");
+            dioptres_rencontres.get(index_diaphragme_champ).est_diaphragme_champ.set("✓");
 
             // L'antécédent du diaphragme de champ par la partie de système qui le précède est la lucarne d'entrée du SOC...
-            z_lucarne_entree.set(intersections_reelles_sur_axe.get(index_diaphragme_champ).antecedentDiaphragme().z());
-            r_lucarne_entree.set(Math.abs(intersections_reelles_sur_axe.get(index_diaphragme_champ).antecedentDiaphragme().hauteur()));
+            z_lucarne_entree.set(dioptres_rencontres.get(index_diaphragme_champ).antecedentDiaphragme().z());
+            r_lucarne_entree.set(Math.abs(dioptres_rencontres.get(index_diaphragme_champ).antecedentDiaphragme().hauteur()));
 
 
             //        z_lucarne_entree.set(z_lucarne_entree_potentielle) ;
@@ -1068,9 +855,9 @@ public class SystemeOptiqueCentre implements Nommable {
 
             int index_diaphragme_cpl =-1 , index_diaphragme_ct = -1 ;
 
-            for (int k=0 ; k<intersections_reelles_sur_axe.size();k++) {
+            for (int k = 0; k< dioptres_rencontres.size(); k++) {
 
-                IntersectionAxeAvecSurface its = intersections_reelles_sur_axe.get(k) ;
+                RencontreDioptreParaxial its = dioptres_rencontres.get(k) ;
 
                 // 1) Calage de la hauteur des rayons limites du champ moyen
                 if (its.HLimiteChamp() != null /* && ratio_h_emergent_max_depuis_pupille_entree != 0d */ ) {
@@ -1180,8 +967,8 @@ public class SystemeOptiqueCentre implements Nommable {
 
             if (index_diaphragme_cpl>=0 && index_diaphragme_ct>=0) {
 
-                intersections_reelles_sur_axe.get(index_diaphragme_cpl).est_diaphragme_champ_pleine_lumiere.set("✓");
-                intersections_reelles_sur_axe.get(index_diaphragme_ct).est_diaphragme_champ_total.set("✓");
+                dioptres_rencontres.get(index_diaphragme_cpl).est_diaphragme_champ_pleine_lumiere.set("✓");
+                dioptres_rencontres.get(index_diaphragme_ct).est_diaphragme_champ_total.set("✓");
 
                 // NB : ces rayons ne sont pas algébriques, ils sont toujours positifs (cf.le abs() plus haut)
                 r_champ_pleine_lumiere_objet.set(r_cpl_provisoire);
@@ -1216,9 +1003,9 @@ public class SystemeOptiqueCentre implements Nommable {
 //            angle_champ_total_image.set(angleDeVuDe(z_plan_sortie+image_objet_ct.z(),Math.abs(image_objet_ct.hauteur())+ r_pupille_sortie.get(),z_pupille_sortie.get())) ;
 
 
-                for (int l = 0; l < intersections_reelles_sur_axe.size(); l++) {
+                for (int l = 0; l < dioptres_rencontres.size(); l++) {
 
-                    IntersectionAxeAvecSurface its = intersections_reelles_sur_axe.get(l);
+                    RencontreDioptreParaxial its = dioptres_rencontres.get(l);
 
                     // Calcul des h limite du champ de pleine lumiere et du champ total sur chaque dioptre
 
@@ -1226,7 +1013,7 @@ public class SystemeOptiqueCentre implements Nommable {
                     Point2D r_emergent_cpl = its.matriceTransfertPartielle().transform(h_incidence_entree_cpl_provisoire, Math.toRadians(angle_champ_pleine_lumiere_objet.get()));
                     Point2D r_emergent_ct = its.matriceTransfertPartielle().transform(h_incidence_entree_ct_provisoire, Math.toRadians(angle_champ_total_objet.get()));
 
-                    // Enregistrement de la hauteur X de l'intersection avec le diaphragme/dioptre
+                    // Enregistrement de la hauteur X du dioptre_rencontre avec le diaphragme/dioptre
                     its.h_limite_champ_pleine_lumiere.set(r_emergent_cpl.getX());
                     its.h_limite_champ_total.set(r_emergent_ct.getX());
 
@@ -1249,46 +1036,98 @@ public class SystemeOptiqueCentre implements Nommable {
     }
 
     /**
-     * Construit la liste des intersections de l'axe avec les dioptres du SOC, triées de l'abscisse z = - l'infini à
-     * z = + l'infini (abscisse dans le référentiel du SOC), sans tenir compte de la nature (réfléchissante ou
-     * transparente) de ces dioptres (qui sont donc ici supposés tous transparents).
-     * @return la liste triée des intersections
+     * Construit la liste de tous les dioptres au voisinage de l'axe du SOC, triée de l'abscisse z = -infini à
+     * z = +infini et, à abscisse égale,  de Rc = 0- à -infini puis de +infini à 0+, sans tenir compte de la nature
+     * (réfléchissante ou transparente) de ces dioptres (qui sont donc ici supposés, en quelque sorte, tous transparents).
+     * @return la liste triée des dioptres
      */
-    private ArrayList<IntersectionAxeAvecSurface> calculeIntersectionsAvecAxe() throws Exception {
+    private ArrayList<DioptreParaxial> extraireDioptresParaxiaux() throws Exception {
 
-        ArrayList<IntersectionAxeAvecSurface> resultat = new ArrayList<>(2*obstacles_centres.size()) ;
+        ArrayList<DioptreParaxial> resultat = new ArrayList<>(2*obstacles_centres.size()) ;
 
-        Point2D p_depart = origine() ;
+        Iterator<Obstacle> itoc = obstacles_centres.iterator() ;
 
-        IntersectionAxeAvecSurface inter_prec = null ;
-        // Recherche dans le sens des Z croissants, depuis l'origine
-        IntersectionAxeAvecSurface inter = chercheIntersectionSuivanteDepuis(p_depart,true,inter_prec) ;
+        if (itoc.hasNext()) // Les dioptres de l'obstacle le plus en arrière sont a priori, tous visibles
+            resultat.addAll(itoc.next().dioptresParaxiaux(axe())) ;
 
-        IntersectionAxeAvecSurface premiere_inter_positive = premiere_inter_positive = (inter!=null?inter:null) ;
+        // Itération sur les obstacles centrés suivants, qui sont classés de l'arrière-plan vers l'avant plan
+        while (itoc.hasNext()) {
 
-        while (inter!=null) {
-            resultat.add(inter) ;
-            inter_prec = inter ;
+            Obstacle oc = itoc.next() ;
 
-            Point2D nouveau_point_depart = origine().add(direction().multiply(inter.z_intersection.get())) ;
+            Double z_deb_recouv = -Double.MAX_VALUE ;
+            Double rc_deb_recouv = -Double.MIN_VALUE ;
 
-            inter = chercheIntersectionSuivanteDepuis(nouveau_point_depart,true,inter_prec) ;
+            List<DioptreParaxial> dioptres_oc = oc.dioptresParaxiaux(axe()) ;
+            Iterator <DioptreParaxial> itd  = dioptres_oc.iterator() ;
+
+            // Itération sur les dioptres de l'obstacle qui sont classés par Z croissant, et Rc "croissants"
+            while (itd.hasNext()) {
+
+                DioptreParaxial d = itd.next() ;
+
+                if (d.indiceApres()==0 && d.indiceAvant()>0) { // On SORT de l'obstacle oc
+
+                    // Création d'un dioptre virtuel dont la position marque la zone de début de recouvrement
+                    DioptreParaxial d_dep_recouv = new DioptreParaxial(z_deb_recouv,rc_deb_recouv) ;
+
+                    double indice_apres = DioptreParaxial.captureIndiceApres(resultat,d) ;
+
+                    DioptreParaxial.supprimeDioptresEntre(resultat,d_dep_recouv,d);
+
+                    d.indice_apres.set(indice_apres);
+
+                    // On n'est plus en train de recouvrir des obstacles en arrière-plan
+                    z_deb_recouv = null ;
+                    rc_deb_recouv = null ;
+
+                } else if (d.indiceAvant()==0 && d.indiceApres()>0) { // On RENTRE dans l'obstacle oc
+
+                    // On commence à recouvrir des obstacles en arrière-plan
+                    z_deb_recouv = d.z() ;
+                    rc_deb_recouv = d.rayonCourbure() ;
+
+                    double indice_avant = DioptreParaxial.captureIndiceAvant(resultat,d);
+
+                    d.indice_avant.set(indice_avant);
+
+                } else if (d.indiceAvant()==0 && d.indiceApres()==0) { // Obstacle de type segment (qui, pour rappel, ne peut faire partie d'une composition)
+                } else { // Indice avant et indice après sont égaux et non-nuls ("faux dioptre" fusionné qui ne sert qu'à porter un R diaphragme)
+                }
+            }
+
+            if (z_deb_recouv!=null && z_deb_recouv!=-Double.MAX_VALUE) { // On était en train de recouvrir des obstacles en arrière-plan
+                // Création d'un dioptre virtuel dont la position marque la zone de début de recouvrement.
+                DioptreParaxial d_dep_recouv = new DioptreParaxial(z_deb_recouv,rc_deb_recouv) ;
+
+                DioptreParaxial.supprimeDioptresApres(resultat,d_dep_recouv);
+            }
+
+            // Tous les dioptres recouverts ont été supprimés de résultat. Il ne reste plus qu'à ajouter tous les dioptres
+            // de l'obstacle courant qui est en avant ("au-dessus") de tous les précédents.
+
+            resultat.addAll(dioptres_oc) ;
+
         }
 
-        // Recherche dans le sens des X décroissants, depuis le point de départ défini
-        inter = chercheIntersectionSuivanteDepuis(p_depart,false,premiere_inter_positive) ;
+        // Rappel : la méthode Obstacle::extraireDioptresParaxiaux() ne retourne normalement pas de dioptres avec un Rcourbure quasi
+        // égal à 0 sinon il faudrait ici les supprimer :
+        // resultat.removeIf(d -> Environnement.quasiEgal(d.rayonCourbure() , 0d )) ;
 
-        while (inter!=null) {
-            resultat.add(0,inter);
-            inter_prec = inter;
+        // On trie le résultat (pour l'affichage à l'utilisateur). On peut ignorer le niveau de profondeur des obstacles dans ce tri,
+        // car les recouvrements ont déjà été pris en compte : il ne reste que des dioptres réellement visibles.
+        resultat.sort(DioptreParaxial.comparateur) ;
 
-            Point2D nouveau_point_depart = origine().add(direction().multiply(inter.z_intersection.get())) ;
-
-            inter = chercheIntersectionSuivanteDepuis(nouveau_point_depart,false,inter_prec) ;
+        // Renseigner les indices d'arrière-plan à la place des indices à 0
+        for (DioptreParaxial d : resultat) {
+            if (d.indiceAvant()==0) d.indice_avant.set(environnement.indiceRefraction());
+            if (d.indiceApres()==0) d.indice_apres.set(environnement.indiceRefraction());
         }
 
         return resultat ;
+
     }
+
 
     private boolean aSurSaSurface(Point2D pt) {
         for (Obstacle o: obstacles_centres) {
@@ -1297,114 +1136,6 @@ public class SystemeOptiqueCentre implements Nommable {
         }
 
         return false ;
-    }
-
-    /**
-     * Recherche l'intersection du SOC avec l'axe la plus proche de p_depart dans le sens des Z croissants si sens_plus
-     * vaut "true", dans le sens des Z décroissants sinon. L'intersection trouvée doit être distincte de inter_prec
-     * @param p_depart : point de départ de la recherche, qui doit être sur l'axe du SOC
-     * @param sens_plus : direction dans laquelle on cherche, mais les courbures retournées le seront toujours pour un
-     *                  rayon qui progresse dans le sens des X croissants
-     * @param inter_prec : intersection précédemment trouvée (ou null s'il n'y en a pas)
-     * @return l'intersection trouvée avec ses caractéristiques, ou null si pas d'intersection trouvée
-     */
-    protected IntersectionAxeAvecSurface chercheIntersectionSuivanteDepuis(Point2D p_depart, boolean sens_plus,IntersectionAxeAvecSurface inter_prec) throws Exception {
-
-        double coeff_sens = (sens_plus?1.0:-1.0) ;
-
-        Rayon r_sur_axe = new Rayon(p_depart,direction().multiply(coeff_sens));
-
-        double distance_intersection_la_plus_proche = Double.MAX_VALUE ;
-        Point2D intersection_la_plus_proche = null ;
-
-        Point2D intersection;
-        Double z_intersection;
-        double z_depart = p_depart.subtract(origine()).dotProduct(direction()) ;
-
-        IntersectionAxeAvecSurface resultat = null ;
-
-        // On suppose ici que les obstacles du SOC sont rangés comme dans l'environnement : de l'arrière-plan jusqu'au premier plan
-        // (cf. ordonnancement fait dans la méthode ajouteObstacle : cela suppose que cet ordre ne change jamais dans l'environnement.
-        // C'est le cas actuellement, mais si on permettait à l'utilisateur de changer l'ordre Z des obstacles, ça ne le serait plus)
-        for (Obstacle o: obstacles_centres) {
-            // TODO : je pense qu'on peut simplifier en parcourant les obstacles_centres dans l'ordre inverse (du premier plan jusqu'à l'arrière-plan)
-            // Ainsi, si les limites de plusieurs obstacles, c'est celui qui est le plus "en avant" qui sera conservé, et non le plus éloigné
-            // On s'épargnerait de rechercher le bon obstacle d'emergence ou d'incidence (cf. l1409 et 1422) / et on résoudrait un bug
-            // qui existe certainement aujourd'hui puisqu'in retient a tort l'obstacle le plus lointain en Z order (au lieu du plus proche)
-
-            z_intersection = o.abscisseIntersectionSuivanteSurAxe(origine(),direction(),z_depart,sens_plus,(inter_prec!=null?inter_prec.ZIntersection():null)) ;
-
-            if (z_intersection==null)
-                continue ;
-
-            intersection = origine().add(direction().multiply(z_intersection)) ;
-
-            double distance_depart = Math.abs(z_intersection-z_depart) ;
-
-            // Si cette intersection avec l'obstacle o courant est la plus proche, ou si l'obstacle o englobe la
-            // précédente intersection trouvée (alors qu'il se trouve après dans la liste des obstacles, ce qui signifie
-            // qu'il n'est pas masqué par le précédent), cette intersection est celle qu'il faut considérer.
-            if (distance_depart<distance_intersection_la_plus_proche
-                    || (Environnement.quasiEgal(distance_depart,distance_intersection_la_plus_proche))
-                    || (intersection_la_plus_proche!=null && o.contient(intersection_la_plus_proche))) {
-
-                distance_intersection_la_plus_proche = distance_depart ;
-                intersection_la_plus_proche = intersection ;
-
-                resultat = new IntersectionAxeAvecSurface(z_intersection,o);
-
-            }
-        }
-
-        if (resultat==null)
-            return null ;
-
-        // Obtenons le rayon de courbure (algébrique) rencontré dans le sens des X croissants (positif si convexe)
-        Double r_courb = resultat.obstacleSurface().courbureRencontreeAuSommet(intersection_la_plus_proche,r_sur_axe.direction()) ;
-
-        // Le rayon de courbure n'est pas défini (infini) si le dioptre est plan
-        resultat.r_courbure.set(r_courb==null?null:r_courb*coeff_sens) ;
-
-        // R. Diaphragme
-        if (resultat.obstacleSurface().aUneProprieteDiaphragme()) {
-            Property<Double> diaphragme_property = resultat.obstacleSurface().diaphragmeProperty();
-            resultat.r_diaphragme.bindBidirectional(diaphragme_property);
-        }
-        else
-            resultat.r_diaphragme.set(resultat.obstacleSurface().rayonDiaphragmeParDefaut());
-
-        // Obstacle et indice du milieu d'arrivée du rayon
-        Obstacle obs_arrivee = environnement.obstacle_emergence_dans_soc(r_sur_axe,intersection_la_plus_proche, resultat.obstacleSurface(), this); ;
-        double indice_arrivee = (obs_arrivee!=null? obs_arrivee.indiceRefraction() : environnement.indiceRefraction()) ;
-
-        // Obstacle et indice du milieu de départ du rayon
-        Rayon r_sur_axe_oppose = new Rayon(p_depart,r_sur_axe.direction().multiply(-1.0));
-        Obstacle obs_depart = environnement.obstacle_emergence_dans_soc(r_sur_axe_oppose,intersection_la_plus_proche, resultat.obstacleSurface(),this); ;
-        double indice_depart  = (obs_depart!=null?obs_depart.indiceRefraction():environnement.indiceRefraction()) ;
-
-        if (resultat.obstacleSurface().normale(intersection_la_plus_proche).dotProduct(r_sur_axe.direction())<0) {
-            // Le rayon rentre dans l'obstacle
-
-            if (sens_plus)
-                resultat.indice_avant.set(indice_depart);
-            else
-                resultat.indice_apres.set(indice_depart);
-        }
-        else {
-            // Le rayon sort de l'obstacle
-
-            if (sens_plus)
-                resultat.indice_avant.set(resultat.obstacleSurface().indiceRefraction());
-            else
-                resultat.indice_apres.set(resultat.obstacleSurface().indiceRefraction());
-        }
-
-        if (sens_plus)
-            resultat.indice_apres.set(indice_arrivee) ;
-        else
-            resultat.indice_avant.set(indice_arrivee) ;
-
-        return resultat;
     }
 
     private static int compteur_soc = 0 ;
@@ -1437,7 +1168,7 @@ public class SystemeOptiqueCentre implements Nommable {
         // binding entre les milieux d'entrée/sortie du SOC et le milieu de l'environnement, en activant les deux lignes
         // ci-dessous. Mais il faudrait aussi faire les unbinds correspondants lorsqu'on ajoute dans le SOC un milieu
         // illimité qui devient le nouveau milieu d'entrée, ou de sortie (et les défaire lorsque cet obstacle illimité est
-        // retiré du SOC). Il y aurait plusieurs choses à revoir dans la méthode chercheIntersectionSuivanteDepuis(),
+        // retiré du SOC). Il y aurait plusieurs choses à revoir dans la méthode old_chercheIntersectionSuivanteDepuis(),
         // pour garder une référence sur l'obstacle illimité du SOC qui constitue son milieu d'entrée (s'il y en a un)
         // et une autre sur celui qui constitue son milieu de sortie (s'il y en a un), et dans la methode
         // calculeMatriceTransfertOptique() pour faire/défaire les bindings lorsqu'on définit n_entree et n_sortie
@@ -1445,11 +1176,11 @@ public class SystemeOptiqueCentre implements Nommable {
 //        this.n_entree.bind(env.indiceRefractionProperty());
 //        this.n_sortie.bind(env.indiceRefractionProperty());
 
-        this.position_orientation = new SimpleObjectProperty<PositionEtOrientation>(new PositionEtOrientation(origine,orientation_deg)) ;
+        this.axe = new SimpleObjectProperty<PositionEtOrientation>(new PositionEtOrientation(origine,orientation_deg)) ;
 //        this.x_origine = new SimpleDoubleProperty(origine.getX());
 //        this.y_origine = new SimpleDoubleProperty(origine.getY());
 
-        this.position_orientation.addListener((observable, oldValue, newValue) -> {
+        this.axe.addListener((observable, oldValue, newValue) -> {
 
             Point2D delta_pos = newValue.position().subtract(oldValue.position()) ;
             double delta_angle_rot_deg = newValue.orientation_deg()- oldValue.orientation_deg() ;
@@ -1584,11 +1315,11 @@ public class SystemeOptiqueCentre implements Nommable {
         };
         h_image.bind(calcule_h_image);
 
-        ObservableList<IntersectionAxeAvecSurface> oli_int = FXCollections.observableArrayList() ;
-        this.intersections_sur_axe = new SimpleListProperty<IntersectionAxeAvecSurface>(oli_int);
+        ObservableList<DioptreParaxial> oli_int = FXCollections.observableArrayList() ;
+        this.dioptres = new SimpleListProperty<DioptreParaxial>(oli_int);
 
-        ObservableList<IntersectionAxeAvecSurface> oli_int_r = FXCollections.observableArrayList() ;
-        this.intersections_reelles_sur_axe = new SimpleListProperty<IntersectionAxeAvecSurface>(oli_int_r);
+        ObservableList<RencontreDioptreParaxial> oli_int_r = FXCollections.observableArrayList() ;
+        this.dioptres_rencontres = new SimpleListProperty<RencontreDioptreParaxial>(oli_int_r);
 
     }
 
@@ -1604,13 +1335,14 @@ public class SystemeOptiqueCentre implements Nommable {
 
     @Override public String toString() { return nom(); }
 
-    public Point2D Origine() { return position_orientation.get().position() ;}
-    public double XOrigine() { return position_orientation.get().position().getX() ;}
-    public double YOrigine() { return position_orientation.get().position().getY() ;}
+    public Point2D Origine() { return axe.get().position() ;}
+    public double XOrigine() { return axe.get().position().getX() ;}
+    public double YOrigine() { return axe.get().position().getY() ;}
 
-    public ObjectProperty<PositionEtOrientation> positionEtOrientationObjectProperty() { return position_orientation ;}
+    public ObjectProperty<PositionEtOrientation> axeObjectProperty() { return axe;}
+    public PositionEtOrientation axe() { return axe.get() ;}
 
-    public double orientation() { return position_orientation.get().orientation_deg(); }
+    public double orientation() { return axe.get().orientation_deg(); }
 
     public PositionElement pupilleEntree() {return ((z_pupille_entree!=null&&z_pupille_entree.get()!=null&&r_pupille_entree!=null&&r_pupille_entree.get()!=null)?new PositionElement(z_pupille_entree.get(),r_pupille_entree.get()):null) ;}
     public PositionElement pupilleSortie() {return ((z_pupille_sortie!=null&&z_pupille_sortie.get()!=null&&r_pupille_sortie!=null&&r_pupille_sortie.get()!=null)?new PositionElement(z_pupille_sortie.get(),r_pupille_sortie.get()):null) ;}
@@ -1626,7 +1358,8 @@ public class SystemeOptiqueCentre implements Nommable {
     }
 
     /**
-     * Recherche de l'obstacle le plus à l'avant-plan contenant strictement un certain point.
+     * Recherche de l'obstacle le plus à l'avant-plan contenant "strictement" un certain point (i.e. l'obstacle retourné
+     * ne doit pas avoir le point à sa surface).
      * @param p le point
      * @return l'obstacle trouvé
      */
@@ -1647,7 +1380,7 @@ public class SystemeOptiqueCentre implements Nommable {
     }
 
     public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        axe.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
         couleur_axe.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
 
         montrer_dioptres.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
@@ -1674,15 +1407,15 @@ public class SystemeOptiqueCentre implements Nommable {
 
 
     public void translater(Point2D tr) {
-        position_orientation.set(new PositionEtOrientation(origine().add(tr),orientation()));
+        axe.set(new PositionEtOrientation(origine().add(tr),orientation()));
     }
 
     public Point2D origine() {
-        return position_orientation.get().position();
+        return axe.get().position();
     }
 
     public void definirOrientation(double or_deg) {
-        position_orientation.set(new PositionEtOrientation(origine(),or_deg));
+        axe.set(new PositionEtOrientation(origine(),or_deg));
     }
     public void definirDirection(Point2D direction) {
 
@@ -1825,12 +1558,18 @@ public class SystemeOptiqueCentre implements Nommable {
         // Peut-être faut-il prendre l'opposé :  à tester...
         Point2D translation = perpendiculaireDirection().multiply(distance_algebrique_point_sur_axe_revolution_axe_soc) ;
 
+        // TODO : il faudrait désactiver les rappels avant de faire cette translation (déclenche d'inutiles recalculs de tous les rayons...)
+        // et les réactiver juste après
+
         o.translater(translation);
 
 //        if (!o.estOrientable())
 //            return ;
 
         // Tourner autour du point sur axe translaté (pour gérer les Composition)
+
+        // TODO : à revoir, pour une ellipse, on peut se retrouver avec le périhélie tantot avant l'origine du SOC, et tantot après (le long de l'axe Z)
+        // or le calcul des z des dioptres (pour l'ellipse) fait l'hypothèse qu'il est toujours avant (cf. Ellipse::extraireDioptresParaxiaux : z_int_min = z_foyer - p/(1+e) )
         o.tournerAutourDe(o.pointSurAxeRevolution(),(orientation() - o.orientation())%180d);
 //        o.definirOrientation(orientation()) ;
 

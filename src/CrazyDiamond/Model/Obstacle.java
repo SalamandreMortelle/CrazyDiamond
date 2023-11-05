@@ -8,6 +8,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.transform.Rotate;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -100,23 +101,23 @@ public interface Obstacle {
     boolean appartientAComposition() ;
 
     /**
-     * Si cet obstacle est sur un axe d'origine origine_axe et de direction direction_axe_deg (en degrés), retourne
-     * l'abscisse de la première intersection différente de z_inter_prec en partant de l'abscisse z_depart et en progressant dans le sens des
-     * abscisses croissantes, ou décroissantes.
-     * @param origine_axe
-     * @param direction_axe
-     * @param z_depart abscisse de départ de la recherche
-     * @param sens_z_croissants indique si la recherche doit se faire dans le sens des abscisses z croissantes ou décroissantes
-     * @param z_inter_prec : abscisse z d'une précedente intersection
-     * @return l'abscisse de la première intersection trouvée, ou "null" s'il n'y en a pas
+     * Pour un obstacle avec symétrie de révolution, calcule les positions et retourne les propriétés (courbures,
+     * indices avant/apres, valeurs de diaphragmes...) de tous les dioptres de l'obstacle qui coupent l'axe fourni en
+     * paramètre. L'axe est supposé être l'axe de symétrie de révolution de l'Obstacle.
+     *
+     * Le rayon de courbure ne peut pas être quasi égal à 0. Un dioptre avec ce rayon de courbure ne sera pas retourné.
+     *
+     * Les rayons de courbure sont positifs si la surface est convexe dans le sens de l'axe fourni, négatifs sinon.
+     *
+     * Les indices des milieux hors de l'obstacle sont mis à 0.0 par défaut. A charge pour l'appelant de les renseigner
+     * ensuite correctement selon ce qu'il souhaite faire.
+     *
+     * Pré-condition : l'axe fourni en paramètre est l'axe de révolution (choisi selon les mêmes conventions que l'axe d'un SOC)
+     * @param axe
+     * @return la liste des dioptres sur l'axe de révolution fourni, classés par Z croissants, Rcourbure "croissants"
      */
-    default public Double abscisseIntersectionSuivanteSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {
-        LOGGER.log(Level.SEVERE,"abscisseIntersectionSuivanteSurAxe pas implémenté par l'obstacle ",this);
-        return null ;
-    }
-
-    default public ArrayList<Double> abscissesToutesIntersectionsSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart,boolean sens_z_croissants, Double z_inter_prec) {
-        LOGGER.log(Level.SEVERE,"abscissesToutesIntersectionsSurAxe pas implémenté par l'obstacle ",this);
+    default public List<DioptreParaxial> dioptresParaxiaux(PositionEtOrientation axe) {
+        LOGGER.log(Level.SEVERE,"dioptresParaxiaux() pas implémenté par l'obstacle (l'obstacle doit avoir une symétrie de révolution)",this);
         return null ;
     }
 

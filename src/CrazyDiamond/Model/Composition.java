@@ -948,112 +948,229 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
     }
 
     @Override
-    public Double abscisseIntersectionSuivanteSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {
+    public List<DioptreParaxial> dioptresParaxiaux(PositionEtOrientation axe) {
 
-//        Double z_intersection = null;
-        Double z_resultat = null;
-        double distance_min = Double.MAX_VALUE;
-        Point2D p_depart = origine_axe.add(direction_axe.multiply(z_depart));
+        ArrayList<DioptreParaxial> resultat = new ArrayList<>(2*elements.size()) ;
+        ArrayList<DioptreParaxial> dioptres_composition = new ArrayList<>(2*elements.size()) ;
 
-        for (Obstacle o : elements) {
-//            z_intersection = o.abscisseIntersectionSuivanteSurAxe(origine_axe, direction_axe, z_depart, sens_z_croissants);
-            ArrayList<Double> z_intersections = o.abscissesToutesIntersectionsSurAxe(origine_axe, direction_axe, z_depart, sens_z_croissants,z_inter_prec);
+        // Pour les UNIONs et les INTERSECTIONs
+        int nb_obs_contenant = 0 ;
 
-//            z_intersection = (z_intersections.size()==0?null:z_intersections.get(0)) ;
+        // Pour les DIFFERENCEs
+        Obstacle obs_principal = (elements.size()>0?elements.get(0):null) ;
+        int nb_obs_principal_contenant = 0 ;
+        int nb_obs_secondaire_contenant = 0 ;
 
-            for (Double z_intersection : z_intersections) {
+        // Pour les INTERSECTIONs
+        int nb_obs_avec_matiere = 0 ;
 
-//                if (z_intersection == null)
-//                    continue;
+        // Construction de la liste "brute" des dioptres de tous les obstacles de la composition. Comptage du nombre
+        // total d'obstacles (hors obstacles sans matière comme un cercle de rayon nul) et du nombre d'obstacles qui
+        // s'étendent sur z = -infini
+        for (int i = 0 ; i<elements.size() ; i++) {
 
-                Point2D p_intersection = origine_axe.add(direction_axe.multiply(z_intersection));
+            Obstacle o = elements.get(i) ;
 
-                double distance = Math.abs(z_intersection - z_depart);
+            List<DioptreParaxial> dioptres_o = o.dioptresParaxiaux(axe);
 
-//            double distance = p_intersection.distance(p_depart) ;
+            if (dioptres_o.isEmpty()) // Pour écarter les Cercles (ou les ellipses...) de rayon (ou de paramètre) nul
+                continue;
 
-                // On ne garde que les points qui sont sur la surface de la composition
-                if (distance < distance_min && aSurSaSurface(p_intersection)) {
-                    z_resultat = z_intersection;
-                    distance_min = distance;
-                }
+            if (dioptres_o.get(0).indiceAvant() > 0d ) {
+                ++nb_obs_contenant;
+
+                if (i==0)
+                    ++nb_obs_principal_contenant ;
+                else
+                    ++nb_obs_secondaire_contenant ;
             }
+
+            ++nb_obs_avec_matiere; // Rappel : une Composition ne peut contenir que des obstacles avec matière (pas de segments)
+
+            dioptres_composition.addAll(dioptres_o) ;
         }
 
-        return z_resultat;
+        // Tri par Z croissant et Rc "croissant"
+        dioptres_composition.sort(DioptreParaxial.comparateur) ;
+
+        for (DioptreParaxial d_c : dioptres_composition) {
+
+            // On remplace tous les indices non nuls des dioptres de la composition par l'indice de la Composition
+            if (d_c.indiceAvant()>0d)
+                d_c.indice_avant.set(indiceRefraction());
+            if (d_c.indiceApres()>0d)
+                d_c.indice_apres.set(indiceRefraction());
+
+            switch (operateur()) {
+                case UNION -> {
+
+                    if (nb_obs_contenant>0) { // On est déjà dans un obstacle
+                        if (d_c.indiceApres() > 0) { // Entrée dans un obstacle
+                            ++nb_obs_contenant;
+                        } else { // Sortie d'un obstacle
+                            --nb_obs_contenant;
+                            if (nb_obs_contenant == 0)
+                                resultat.add(d_c);
+                        }
+                    } else { // On n'est pas dans un obstacle
+                        if (d_c.indiceApres() > 0) { // Entrée dans un obstacle
+                            ++nb_obs_contenant;
+                            resultat.add(d_c) ;
+                        } else { // Sortie d'un obstacle
+                            LOGGER.log(Level.SEVERE,"Impossible de sortir d'un obstacle sans y être entré.") ;
+                        }
+
+                    }
+
+                }
+                case INTERSECTION -> {
+                    if (nb_obs_contenant==nb_obs_avec_matiere) { // On est dans la Composition car on est dans tous ses obstacles
+                        if (d_c.indiceApres()==0) { // Sortie d'un obstacle
+                            resultat.add(d_c) ;
+                            --nb_obs_contenant ;
+                        } else { // Entrée dans un obstacle
+                            LOGGER.log(Level.SEVERE,"Impossible de rentrer dans un obstacle si on est déjà dans tous.") ;
+                        }
+                    } else { // On n'est pas dans la Composition
+                        if (d_c.indiceApres() > 0) { // Entrée dans un obstacle
+                            ++nb_obs_contenant;
+                            if (nb_obs_contenant == nb_obs_avec_matiere) // Est_on maintenant dans tous les obstacles ?
+                                resultat.add(d_c) ;
+                        } else { // Sortie d'un obstacle
+                            --nb_obs_contenant ;
+                        }
+
+                    }
+                }
+                case DIFFERENCE -> {
+                    if (nb_obs_principal_contenant>0) { // On est déjà dans l'obstacle principal de la DIFFERENCE
+                        if (nb_obs_secondaire_contenant==0) { // On n'est pas encore dans un objet secondaire
+                            if (d_c.indiceApres()>0) { // Entrée dans un obstacle (forcément secondaire)
+                                d_c.permuterIndicesAvantApres(); // Cette entrée dans l'obstacle nous fait sortir de la compo : il faut permuter les indices
+                                resultat.add(d_c);
+                                ++nb_obs_secondaire_contenant ;
+                            } else { // Sortie d'un obstacle
+                                if (d_c.obstacleSurface()==obs_principal) { // Sortie de l'obstacle principal
+                                    resultat.add(d_c) ;
+                                    --nb_obs_principal_contenant ;
+                                } else { // Sortie d'un objet (forcément secondaire)
+                                    LOGGER.log(Level.SEVERE,"Impossible de sortir d'un obstacle secondaire sans y être entré.") ;
+                                }
+                            }
+                        } else { // On est déjà dans un objet secondaire
+                            if (d_c.indiceApres()>0) { // Entrée dans un obstacle (forcément secondaire)
+                                ++nb_obs_secondaire_contenant ;
+                            } else { // Sortie d'un obstacle
+                                if (d_c.obstacleSurface()==obs_principal) { // Sortie de l'obstacle principal
+                                    --nb_obs_principal_contenant ;
+                                } else { // Sortie d'un objet secondaire
+                                    --nb_obs_secondaire_contenant ;
+                                    if (nb_obs_secondaire_contenant==0) {
+                                        d_c.permuterIndicesAvantApres(); // Cette sortie dans un obstacle secondaire nous fait entrer dans la compo : il faut permuter les indices
+                                        resultat.add(d_c);
+                                    }
+                                }
+                            }
+                        }
+                    } else { // On n'est pas encore dans l'obstacle principal
+                        if (nb_obs_secondaire_contenant==0) { // On n'est pas encore dans un objet secondaire
+                            if (d_c.indiceApres()>0) { // Entrée dans un obstacle
+                                if (d_c.obstacleSurface()==obs_principal) { // Entrée dans l'obstacle principal
+                                    resultat.add(d_c) ;
+                                    ++nb_obs_principal_contenant ;
+                                } else { // Entrée dans un obstacle secondaire
+                                    ++nb_obs_secondaire_contenant ;
+                                }
+                            } else { // Sortie d'un obstacle
+                                LOGGER.log(Level.SEVERE,"Impossible de sortir d'un obstacle sans y être entré.") ;
+                            }
+                        } else { // On est déjà dans un ou plusieurs obstacles secondaires
+                            if (d_c.indiceApres()>0) { // Entrée dans un obstacle
+                                if (d_c.obstacleSurface()==obs_principal) { // Entrée dans l'obstacle principal
+                                    ++nb_obs_principal_contenant ;
+                                } else { // Entrée dans un obstacle secondaire
+                                    ++nb_obs_secondaire_contenant ;
+                                }
+                            } else { // Sortie d'un obstacle (forcément secondaire)
+                                --nb_obs_secondaire_contenant ;
+                            }
+                        }
+                    } // Fin du cas "pas encore dans l'objet principal"
+                }
+                case DIFFERENCE_SYMETRIQUE -> {
+                    if (nb_obs_contenant==0) { // On n'est pas encore dans un obstacle
+                        if (d_c.indiceApres()>0) { // On entre dans un obstacle
+                            resultat.add(d_c) ;
+                            ++nb_obs_contenant ;
+                        } else { // On sort d'un obstacle
+                            LOGGER.log(Level.SEVERE,"Impossible de sortir d'un obstacle sans y être entré.") ;
+                        }
+                    } else { // On est déjà dans un ou plusieurs obstacles
+                        if (d_c.indiceApres()>0) { // On entre dans un (autre) obstacle
+                            ++nb_obs_contenant ;
+                            if (nb_obs_contenant==2) {// Si on est maintenant dans deux obstacles, on vient de sortir de la composition -> dioptre à ajouter
+                                d_c.permuterIndicesAvantApres(); // Cette entrée dans un obstacle nous fait sortir de la compo : il faut permuter les indices
+                                resultat.add(d_c);
+                            }
+                        } else { // On sort d'un obstacle
+                            --nb_obs_contenant ;
+                            if (nb_obs_contenant<=1) {
+
+                                if (nb_obs_contenant==1) // Si on n'est plus que dans un obstacle, c'est que cette sortie
+                                    // nous a fait entrer dans la compo : il faut permuter les indices.
+                                    d_c.permuterIndicesAvantApres();
+
+                                resultat.add(d_c);
+                            }
+                        }
+                    }
+                }
+            }
+
+
+        }
+
+
+        //  On peut se retrouver avec des dioptres qui sont "confondus" (même Z, même Rc algébrique) que l'on peut
+        //  "fusionner" en mettant à jour de façon cohérente les indices avant/après (et en tenant compte de la présence
+        //  éventuelle de diaphragmes, qu'il faut alors conserver)
+        // NB : ce traitement de fusion n'est probablement pas strictement nécessaire, mais avoir des dioptres inutiles
+        // complique inutilement les calculs de la matrice de transfert optique, et de toutes les propriétés optiques du SOC
+
+        return fusionneDioptres(resultat) ;
+//        return resultat ;
 
     }
 
-    @Override
-    public ArrayList<Double> abscissesToutesIntersectionsSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {
+     private List<DioptreParaxial> fusionneDioptres(List<DioptreParaxial> liste_dioptres) {
 
-        ArrayList<Double> resultats = new ArrayList<>(2 * elements.size());
+        ArrayList<DioptreParaxial> resultat_fusionne = new ArrayList<>(liste_dioptres.size()) ;
 
-        // A priori, pas besoin de la classe Intersection (pas besoin de savoir quel obstacle est rencontré à chaque intersection)
-        //ArrayList<Intersection> liste_intersections = new ArrayList<>(2* obstacles.size()) ;
-        //ArrayList<Point2D> liste_intersections = new ArrayList<>(2* elements.size()) ;
+        DioptreParaxial d_prec = null;
 
+        for (DioptreParaxial d_courant : liste_dioptres) {
 
-//        for (Obstacle o : obstacles) {
-//            ArrayList<Point2D> intersections_o = o.cherche_toutes_intersections(r) ;
-//
-//            for (Point2D p : intersections_o)
-//                liste_intersections.add(new Intersection(p,o)) ;
-//        }
-
-        for (Obstacle o : elements) {
-            ArrayList<Double> z_intersections = o.abscissesToutesIntersectionsSurAxe(origine_axe, direction_axe, z_depart, sens_z_croissants,z_inter_prec);
-//            ArrayList<Point2D> intersections_o = o.cherche_toutes_intersections(r) ;
-
-            LOGGER.log(Level.FINER, "{0} intersection(s) trouvée(s) avec l'obstacle {1} de la Composition : {2} ", new Object[]{z_intersections.size(), o, this});
-
-            // On ne garde que les points qui sont sur la surface de la composition
-//            for (Point2D p : intersections_o) {
-            for (Double z : z_intersections) {
-
-                Point2D p = origine_axe.add(direction_axe.multiply(z));
-
-                if (aSurSaSurface(p)) {
-//                    resultats.add(p);
-                    resultats.add(z);
-                    LOGGER.log(Level.FINER, "    L'intersection z={0} est sur la surface de la Composition", z);
+            if (d_prec != null) {
+                if (d_prec.estConfonduAvec(d_courant)) {
+                    d_prec.fusionneAvecDioptreConfondu(d_courant);
+                    continue; // On saute le dioptre courant d_res, puisqu'il a été fusionné dans le précédent
+                } else {
+                    if (d_prec.estInutile())
+                        resultat_fusionne.remove(resultat_fusionne.size()-1) ;
                 }
             }
 
+            resultat_fusionne.add(d_courant) ;
+
+            d_prec = d_courant;
         }
 
-        Comparator<Double> comparateur = (z1, z2) -> {
+        int dernier_index = resultat_fusionne.size()-1 ;
+        if (dernier_index>=0 && resultat_fusionne.get(dernier_index).estInutile())
+            resultat_fusionne.remove(dernier_index) ;
 
-//            double distance_p1_depart = p1.subtract(r.depart()).magnitude() ;
-            double distance_z1_depart = Math.abs(z1 - z_depart);
-//            double distance_p2_depart = p2.subtract(r.depart()).magnitude() ;
-            double distance_z2_depart = Math.abs(z2 - z_depart);
-
-            return Double.compare(distance_z1_depart, distance_z2_depart);
-
-        };
-
-
-//        Comparator<Intersection> comparateur = (i1, i2) -> {
-//
-//            double distance_i1_depart = i1.point.subtract(r.depart).magnitude() ;
-//            double distance_i2_depart = i2.point.subtract(r.depart).magnitude() ;
-//
-//            return Double.compare(distance_i1_depart, distance_i2_depart);
-//
-//        } ;
-
-//        liste_intersections.sort(comparateur);
-        resultats.sort(comparateur);
-
-//        // On ne garde que les points qui sont sur la surface de la composition
-//        for (Intersection i : liste_intersections) {
-//            if (aSurSaSurface(i.point))
-//                resultats.add(i.point) ;
-//        }
-
-        return resultats;
-
+        return resultat_fusionne ;
 
     }
+
 }

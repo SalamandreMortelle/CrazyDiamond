@@ -8,6 +8,7 @@ import javafx.util.Pair;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecContour,ElementAvecMatiere {
 
@@ -17,9 +18,6 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
     private final Imp_ElementAvecMatiere imp_elementAvecMatiere ;
 
     private final ObjectProperty<PositionEtOrientation> position_orientation ;
-//    protected final DoubleProperty x_centre ;
-//    protected final DoubleProperty y_centre ;
-//    protected final DoubleProperty orientation ;
 
     protected final DoubleProperty largeur ;
     protected final DoubleProperty hauteur ;
@@ -49,13 +47,9 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
         imp_elementAvecMatiere = iem;
 
         this.position_orientation = new SimpleObjectProperty<PositionEtOrientation>(new PositionEtOrientation(new Point2D(x_centre,y_centre),orientation_deg)) ;
-//        this.x_centre = new SimpleDoubleProperty(x_centre);
-//        this.y_centre = new SimpleDoubleProperty(y_centre);
-//        this.orientation = new SimpleDoubleProperty(orientation_deg) ;
 
         this.largeur = new SimpleDoubleProperty(largeur);
         this.hauteur = new SimpleDoubleProperty(hauteur);
-
 
         this.appartenance_composition = new SimpleBooleanProperty(false) ;
         this.appartenance_systeme_optique_centre = new SimpleBooleanProperty(false) ;
@@ -106,20 +100,14 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
 
     public void definirCentre(Point2D centre) {position_orientation.set(new PositionEtOrientation(centre,orientation()));}
 
-//    public void definirXcentre(double x_c) { this.x_centre.set(x_c); }
-//    public void definirYcentre(double y_c) { this.y_centre.set(y_c); }
-
     public void definirLargeur(double larg) { this.largeur.set(larg); }
     public void definirHauteur(double haut) { this.hauteur.set(haut); }
 
-//    public DoubleProperty xCentreProperty() { return x_centre; }
-//    public DoubleProperty yCentreProperty() { return y_centre; }
     public DoubleProperty largeurProperty() { return largeur; }
     public double largeur() { return largeur.get(); }
     public DoubleProperty hauteurProperty() { return hauteur; }
     public double hauteur() { return hauteur.get(); }
 
-//    public DoubleProperty orientationProperty() { return orientation ;}
     public ObjectProperty<PositionEtOrientation> positionEtOrientationObjectProperty() {
         return position_orientation ;
     }
@@ -139,8 +127,6 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
 
     public void translater(Point2D vecteur) {
         position_orientation.set(new PositionEtOrientation(centre().add(vecteur),orientation()));
-//        x_centre.set(vecteur.getX()+x_centre.get()) ;
-//        y_centre.set(vecteur.getY()+y_centre.get()) ;
     }
 
 
@@ -295,174 +281,13 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
 
     }
 
-    ContoursObstacle couper_old(BoiteLimiteGeometrique boite, boolean avec_contours_surface) {
-
-        ContoursObstacle contours = new ContoursObstacle() ;
-
-        double xmin = boite.getMinX() ;
-        double xmax = boite.getMaxX() ;
-        double ymin = boite.getMinY() ;
-        double ymax = boite.getMaxY() ;
-
-//        BoiteLimiteGeometrique boite_rect = boite() ;
-        BoiteLimiteGeometrique boite_rect = new BoiteLimiteGeometrique(0,0,1,2) ;
-
-        // Boite totalement hors zone visible (et n'englobe pas la zone visible)
-        if (  boite_rect.getMinY() > ymax || boite_rect.getMaxY() < ymin
-                || boite_rect.getMinX() > xmax || boite_rect.getMaxX() < xmin ) {
-
-            if (typeSurface() == TypeSurface.CONCAVE)
-                contours.ajouterContourMasse(boite.construireContour());
-//                gc.fillRect(cae.xmin(),cae.ymin(),cae.xmax()-cae.xmin(),cae.ymax()-cae.ymin());
-
-//            gc.setFill(pf);
-//            gc.setStroke(s);
-
-            return contours ; // Rien à faire si le rectangle est convexe et hors zone
-
-        }
-
-        // Boite englobe totalement la zone visible
-        if ( ( boite_rect.getMinY() < ymin && boite_rect.getMaxY() > ymax )
-                && ( boite_rect.getMinX() < xmin &&  boite_rect.getMaxX() > xmax ) ) {
-
-            if (typeSurface() == TypeSurface.CONVEXE)
-                contours.ajouterContourMasse(boite.construireContour());
-//                gc.fillRect(cae.xmin(),cae.ymin(),cae.xmax()-cae.xmin(),cae.ymax()-cae.ymin());
-
-//            gc.setFill(pf);
-//            gc.setStroke(s);
-
-            return contours; // Rien à faire si le rectangle est concave et englobe la zone visible
-        }
-
-
-
-        // Construction du contour visible du rectangle, dans le sens trigo
-        Contour contour_travail = new Contour(4) ;
-        Contour contour_surface = new Contour(4) ;
-
-        // Coin HD est-il visible
-        if (boite.contains(boite_rect.coin(Coin.HD)))
-            contour_travail.ajoutePoint(boite_rect.coin(Coin.HD));
-        else { // Coin HD hors zone
-            // Coin HD trop à droite mais pas trop haut (morceau de l'horizontale droite visible)
-            if ( boite_rect.getMaxX()>xmax && boite_rect.getMaxY()<=ymax)
-                contour_travail.ajoutePoint(xmax,boite_rect.getMaxY());
-            // Sinon reste le cas trop haut mais rien à faire dans ce cas
-        }
-
-        // Coin HG est-il visible
-        if (boite.contains(boite_rect.coin(Coin.HG)))
-            contour_travail.ajoutePoint(boite_rect.coin(Coin.HG));
-        else { // Coin HG hors zone
-            // Coin HG trop à gauche mais pas trop haut (morceau horizontale haute visible)
-            if (boite_rect.getMinX() < xmin && boite_rect.getMaxY() <= ymax) {
-                contour_travail.ajoutePoint(xmin, boite_rect.getMaxY()); // Point de sortie
-                if (avec_contours_surface && contour_travail.nombrePoints() > 1)
-                    contour_surface.concatene(contour_travail);
-//                    cae.tracerPolyligne(contour_masse.xpoints, contour_masse.ypoints);
-                contour_travail.raz();
-            } else if (boite_rect.getMinX()>=xmin && boite_rect.getMaxY() > ymax ) { // Point HG trop haut mais pas trop à gauche (morceau verticale gauche visible)
-                contour_travail.ajoutePoint(boite_rect.getMinX(),ymax);
-            } // Sinon reste le cas trop haut ET trop à gauche mais rien à faire dans ce cas
-        }
-
-        // Coin BG est-il visible
-        if (boite.contains(boite_rect.coin(Coin.BG)))
-            contour_travail.ajoutePoint(boite_rect.coin(Coin.BG));
-        else { // Coin BG hors zone
-            // Coin BG trop bas mais pas trop à gauche (morceau verticale gauche visible)
-            if ( boite_rect.getMinX()>=xmin && boite_rect.getMinY() < ymin ) {
-                contour_travail.ajoutePoint(boite_rect.getMinX(), ymin); // Point de sortie
-                if (avec_contours_surface && contour_travail.nombrePoints() > 1)
-                    contour_surface.concatene(contour_travail);
-//                if (contour_masse.taille() > 1)
-//                    cae.tracerPolyligne(contour_masse.xpoints, contour_masse.ypoints);
-                contour_travail.raz();
-            } else if (boite_rect.getMinY()>=ymin && boite_rect.getMinX()<xmin ) { // Point BG trop à gauche mais pas trop bas (morceau horizontale basse visible)
-                contour_travail.ajoutePoint(xmin, boite_rect.getMinY()); // Nouveau pt de départ (entrée dans zone)
-            } // Sinon reste le cas trop bas ET trop à gauche mais rien à faire dans ce cas
-
-        }
-
-        // Coin BD est-il visible
-        if (boite.contains(boite_rect.coin(Coin.BD)))
-            contour_travail.ajoutePoint(boite_rect.coin(Coin.BD));
-        else { // Coin BD hors zone
-            // Coin BD pas trop bas mais trop à droite (morceau horizontale basse visible)
-            if ( boite_rect.getMinY()>=ymin && boite_rect.getMaxX() > xmax) {
-                contour_travail.ajoutePoint(xmax, boite_rect.getMinY());
-                if (avec_contours_surface && contour_travail.nombrePoints() > 1)
-                    contour_surface.concatene(contour_travail);
-//                if (contour_masse.taille() > 1)
-//                    cae.tracerPolyligne(contour_masse.xpoints, contour_masse.ypoints);
-                contour_travail.raz();
-            } else if (boite_rect.getMaxX()<=xmax && boite_rect.getMinY()<ymin) {// Coin BD trop bas mais pas trop à droite (morceau verticale droite visible)
-                contour_travail.ajoutePoint(boite_rect.getMaxX(),ymin); // Nouveau point de départ (entrée dans zone)
-            }
-        }
-
-        // Retour sur HD pour bouclage éventuel du circuit :
-        // Coin HD est-il visible
-        if (boite.contains(boite_rect.coin(Coin.HD)))
-            contour_travail.ajoutePoint(boite_rect.coin(Coin.HD));
-        else { // Coin HD hors zone
-            // Coin HD trop haut mais pas trop à droite (morceau verticale droite visible)
-            if ( boite_rect.getMaxY()>ymax && boite_rect.getMaxX()<=xmax )
-                contour_travail.ajoutePoint(boite_rect.getMaxX(),ymax);
-            // Sinon reste le cas trop à droite mais  rien à faire dans ce cas
-        }
-
-        if (avec_contours_surface && contour_travail.nombrePoints() > 1)
-            contour_surface.concatene(contour_travail);
-//            cae.tracerPolyligne(contour_masse.xpoints, contour_masse.ypoints);
-
-        if (avec_contours_surface && contour_surface.nombrePoints()>1)
-            contours.ajouterContourSurface(contour_surface);
-
-        BoiteLimiteGeometrique partie_visible = boite_rect.couper(boite) ;
-
-        if (partie_visible==null) // Ne doit pas arriver : ce cas est déjà écarté (cf. returns en debut de fonction)
-            throw new IllegalStateException("Problème dans le tracé du rectangle "+this) ;
-
-        if (typeSurface()== TypeSurface.CONVEXE)
-            contours.ajouterContourMasse(partie_visible.construireContour());
-//            gc.fillRect(partie_visible.getMinX(),partie_visible.getMinY(),partie_visible.getWidth(),partie_visible.getHeight()) ;
-        else { //CONCAVE
-            contours.ajouterContourMasse(boite.construireContourAntitrigo());
-            contours.ajouterContourMasse(partie_visible.construireContour());
-        }
-
-        return contours ;
-
-//        if (rect.typeSurface()== Obstacle.TypeSurface.CONVEXE)
-//            gc.fillRect(boite.getMinX(),boite.getMinY(),boite.getWidth(),boite.getHeight()) ;
-//        else { // CONCAVE
-//            gc.fillRect(cae.xmin(), cae.ymin(),boite.getMinX()- cae.xmin(), cae.ymax()- cae.ymin()); // Partie gauche
-//            gc.fillRect(boite.getMaxX(), cae.ymin(), cae.xmax()-boite.getMaxX(), cae.ymax()- cae.ymin()); // Partie droite
-//            gc.fillRect(boite.getMinX(), cae.ymin(),boite.getWidth(),boite.getMinY()- cae.ymin()) ; // Partie centrale basse
-//            gc.fillRect(boite.getMinX(),boite.getMaxY(),boite.getWidth(), cae.ymax()-boite.getHeight()-boite.getMinY()); // Partie centrale haute
-//        }
-
-//        gc.strokeRect(boite.getMinX(),boite.getMinY(),boite.getWidth(),boite.getHeight());
-
-//        gc.setFill(pf);
-//        gc.setStroke(s);
-        // Note : on pourrait aussi utiliser gc.save() au début de la méthode puis gc.restore() à la fin
-
-
-    }
-
     @Override
     public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
         imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
         imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
 
         position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        x_centre.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        y_centre.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+
         largeur.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
         hauteur.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
     }
@@ -473,12 +298,9 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
         imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
         position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        x_centre.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        y_centre.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+
         largeur.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
         hauteur.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-
     }
 
     public void retaillerPourSourisEn(Point2D pos_souris) {
@@ -533,18 +355,12 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
 
             largeur.set(Math.abs(2d*longueur_demi_diagonale*Math.cos(alpha)));
             hauteur.set(Math.abs(2d*longueur_demi_diagonale*Math.sin(alpha)));
-
         }
-
     }
-
 
     @Override
     public Contour positions_poignees() {
         Contour c_poignees = new Contour(1);
-
-//        double demi_largeur = largeur.get()/2d ;
-//        double demi_hauteur = hauteur.get()/2d ;
 
         c_poignees.ajoutePoint(coin(Coin.HD));
 
@@ -841,12 +657,6 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
 
         Point2D nouveau_centre = r.transform(centre()) ;
 
-//        // Très important : mettre à jour l'orientation en premier
-//        orientation.set(orientation.get()+angle_rot_deg);
-//
-//        x_centre.set(nouveau_centre.getX());
-//        y_centre.set(nouveau_centre.getY());
-
         position_orientation.set(new PositionEtOrientation(nouveau_centre,orientation()+angle_rot_deg));
 
     }
@@ -888,108 +698,36 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
     }
 
     @Override
-    public Double abscisseIntersectionSuivanteSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {
+    public List<DioptreParaxial> dioptresParaxiaux(PositionEtOrientation axe) {
 
-        double z_centre = centre().distance(origine_axe)*(centre().subtract(origine_axe).dotProduct(direction_axe)>=0?1d:-1d) ;
+        if (Environnement.quasiEgal(largeur.get(),0d)) // Pas de dioptres si la largeur est quasi nulle
+            return new ArrayList<>(0) ;
+
+        ArrayList<DioptreParaxial> resultat = new ArrayList<>(2) ;
 
         double demi_largeur = largeur.get()*0.5d ;
+
+        double z_centre = centre().subtract(axe.position()).dotProduct(axe.direction()) ;
 
         double z_int_min = z_centre - demi_largeur ;
         double z_int_max = z_centre + demi_largeur ;
 
-        // S'assurer de ne pas retourner à nouveau l'intersection z_inter_prec
-        if (z_inter_prec!=null) {
-            if (z_int_min==z_inter_prec)
-                return (sens_z_croissants?z_int_max:null) ;
-            if (z_int_max==z_inter_prec)
-                return (sens_z_croissants?null:z_int_min) ;
+        DioptreParaxial d_z_min ;
+        DioptreParaxial d_z_max ;
+
+        if (typeSurface()==TypeSurface.CONVEXE) {
+            d_z_min = new DioptreParaxial(z_int_min, null, 0d , indiceRefraction(), this);
+            d_z_max = new DioptreParaxial(z_int_max, null, indiceRefraction(), 0d, this);
+        } else {
+            d_z_min = new DioptreParaxial(z_int_min, null, indiceRefraction(),0d, this);
+            d_z_max = new DioptreParaxial(z_int_max, null, 0d,indiceRefraction(), this);
         }
 
-//        // Cas particuliers où le point de départ est sur une des intersections
-//        if (Environnement.quasiEgal(z_depart,z_int_min))
-//            return (sens_z_croissants?z_int_max:null) ;
-//        if (Environnement.quasiEgal(z_depart,z_int_max))
-//            return (sens_z_croissants?null:z_int_min) ;
-
-        if (z_depart==z_int_min) return z_int_min ;
-        if (z_depart==z_int_max) return z_int_max ;
-
-        // Cas général
-        if (z_depart<z_int_min)
-            return (sens_z_croissants?z_int_min:null) ;
-        else if (z_int_min<z_depart && z_depart<z_int_max)
-            return (sens_z_croissants?z_int_max:z_int_min) ;
-        else // z_depart>z_int_max
-            return (sens_z_croissants?null:z_int_max) ;
-
-    }
-
-    @Override
-    public ArrayList<Double> abscissesToutesIntersectionsSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {
-
-        ArrayList<Double> resultat = new ArrayList<>(2) ;
-
-        double z_centre ;
-
-        if (centre().subtract(origine_axe).dotProduct(direction_axe)>=0)
-            z_centre = centre().distance(origine_axe) ;
-        else
-            z_centre = -centre().distance(origine_axe) ;
-
-        double demi_largeur = largeur.get()*0.5d ;
-
-        double z_int_min = z_centre - demi_largeur ;
-        double z_int_max = z_centre + demi_largeur ;
-
-        // S'assurer de ne pas retourner à nouveau l'intersection z_inter_prec
-        if (z_inter_prec!=null) {
-            if (z_int_min==z_inter_prec) {
-                if (sens_z_croissants) resultat.add(z_int_max);
-                return resultat ;
-            }
-            if (z_int_max==z_inter_prec) {
-                if (!sens_z_croissants) resultat.add(z_int_min);
-                return resultat ;
-            }
-        }
-
-//        // Cas particuliers où le point de départ est sur une des intersections
-//        if (Environnement.quasiEgal(z_depart,z_int_min)) {
-//            if (sens_z_croissants) resultat.add(z_int_max);
-//            return resultat ;
-//        }
-//        if (Environnement.quasiEgal(z_depart,z_int_max)) {
-//            if (!sens_z_croissants) resultat.add(z_int_min);
-//            return resultat ;
-//        }
-
-        // Cas général
-        if (z_depart<z_int_min) {
-
-            if (!sens_z_croissants)
-                return resultat ;
-
-            resultat.add(z_int_min) ;
-            if (demi_largeur!=0d) resultat.add(z_int_max) ;
-
-        }        else if (z_int_min<z_depart && z_depart<z_int_max) {
-            if (sens_z_croissants)
-                resultat.add(z_int_max) ;
-            else
-                resultat.add(z_int_min) ;
-
-        }
-        else // z_depart>z_int_max
-        {
-            if (sens_z_croissants)
-                return resultat ;
-
-            resultat.add(z_int_max) ;
-            if (demi_largeur!=0d) resultat.add(z_int_min) ;
-
-        }
+        resultat.add(d_z_min) ;
+        resultat.add(d_z_max) ;
 
         return resultat ;
 
     }
+
 }

@@ -16,9 +16,6 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
     private final Imp_ElementAvecMatiere imp_elementAvecMatiere ;
 
     private final ObjectProperty<PositionEtOrientation> position_orientation ;
-//    protected final DoubleProperty x_centre;
-//    protected final DoubleProperty y_centre;
-//    protected final DoubleProperty orientation ;
     protected final DoubleProperty angle_sommet;
     protected final DoubleProperty largeur_base;
 
@@ -131,8 +128,6 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
 
     public void translater(Point2D vecteur) {
         position_orientation.set(new PositionEtOrientation(centre().add(vecteur),orientation()));
-//        x_centre.set(vecteur.getX()+ x_centre.get()) ;
-//        y_centre.set(vecteur.getY()+ y_centre.get()) ;
     }
 
 
@@ -154,13 +149,11 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
     @Override
     public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
 
-
     DemiDroiteOuSegment cote(BordPrisme b) {
 
         if (b == BordPrisme.GAUCHE) return DemiDroiteOuSegment.construireSegment(sommet(Sommet.H),sommet(Sommet.BG)) ;
         if (b == BordPrisme.BAS) return  DemiDroiteOuSegment.construireSegment(sommet(Sommet.BG),sommet(Sommet.BD)) ;
         return DemiDroiteOuSegment.construireSegment(sommet(Sommet.BD),sommet(Sommet.H)) ;
-
 
     }
 
@@ -169,11 +162,6 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
         Rotate r = new Rotate(angle_rot_deg,centre_rot.getX(),centre_rot.getY()) ;
 
         Point2D nouveau_centre = r.transform(centre()) ;
-
-//        x_centre.set(nouveau_centre.getX());
-//        y_centre.set(nouveau_centre.getY());
-//
-//        orientation.set(orientation.get()+angle_rot_deg);
 
         position_orientation.set(new PositionEtOrientation(nouveau_centre,orientation()+angle_rot_deg));
 
@@ -308,9 +296,7 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
         imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
 
         position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        x_centre.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        y_centre.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+
         angle_sommet.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
         largeur_base.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
     }
@@ -320,14 +306,10 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
         imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
         imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
-
         position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        x_centre.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        y_centre.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+
         angle_sommet.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
         largeur_base.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-
     }
 
     public void retaillerPourSourisEn(Point2D pos_souris) {
@@ -665,7 +647,6 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
         }
 
         return intersections ;
-
     }
 
     public ObjectProperty<PositionEtOrientation> positionEtOrientationObjectProperty() {

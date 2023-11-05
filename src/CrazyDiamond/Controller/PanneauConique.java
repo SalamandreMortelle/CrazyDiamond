@@ -92,7 +92,7 @@ public class PanneauConique  {
 
         conique.positionEtOrientationObjectProperty().addListener(new ChangeListenerAvecGarde<PositionEtOrientation>(this::prendreEnComptePositionEtOrientation));
 
-//        conique.positionEtOrientationObjectProperty().addListener(new ChangeListener<PositionEtOrientation>() {
+//        conique.axeObjectProperty().addListener(new ChangeListener<PositionEtOrientation>() {
 //            private boolean changement_en_cours = false ;
 //            @Override
 //            public void changed(ObservableValue<? extends PositionEtOrientation> observableValue, PositionEtOrientation old_value, PositionEtOrientation new_value) {

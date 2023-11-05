@@ -7,8 +7,9 @@ import javafx.scene.transform.Rotate;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
-public class Cercle  implements Obstacle, Identifiable, Nommable,ElementAvecContour,ElementAvecMatiere,ObstaclePolaire {
+public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecContour,ElementAvecMatiere,ObstaclePolaire {
 
     private final Imp_Identifiable imp_identifiable ;
     private final Imp_Nommable imp_nommable;
@@ -58,15 +59,12 @@ public class Cercle  implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
         this.centre = new SimpleObjectProperty<>(new Point2D(xcentre,ycentre)) ;
 
-//        this.x_centre = new SimpleDoubleProperty(xcentre) ;
-//        this.y_centre = new SimpleDoubleProperty(ycentre) ;
         this.rayon = new SimpleDoubleProperty(rayon) ;
 
         this.appartenance_composition = new SimpleBooleanProperty(false) ;
         this.appartenance_systeme_optique_centre = new SimpleBooleanProperty(false) ;
 
     }
-
 
     @Override public String id() { return imp_identifiable.id(); }
 
@@ -292,13 +290,7 @@ public class Cercle  implements Obstacle, Identifiable, Nommable,ElementAvecCont
     public void tournerAutourDe(Point2D centre_rot, double angle_rot_deg) {
         Rotate r = new Rotate(angle_rot_deg,centre_rot.getX(),centre_rot.getY()) ;
 
-//        Point2D nouveau_centre = r.transform(x_centre.get(),y_centre.get()) ;
-//        centre.set(nouveau_centre);
-
         centre.set(r.transform(centre()));
-
-//        x_centre.set(nouveau_centre.getX());
-//        y_centre.set(nouveau_centre.getY());
     }
 
     @Override
@@ -330,119 +322,57 @@ public class Cercle  implements Obstacle, Identifiable, Nommable,ElementAvecCont
      */
     @Override public double rayonDiaphragmeMaximumConseille() { return rayon() ; }
 
-    @Override
-    public Double abscisseIntersectionSuivanteSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {
+    /**
+     * Calcule l'abscisse du centre du cercle par rapport à un axe
+     * @param axe
+     */
+    private double ZCentre(PositionEtOrientation axe) {
 
-        double z_centre = centre().distance(origine_axe)*(centre().subtract(origine_axe).dotProduct(direction_axe)>=0?1d:-1d) ;
+        double z_centre ;
 
-        double r = rayon() ;
+        if (centre().subtract(axe.position()).dotProduct(axe.direction())>=0)
+            z_centre = centre().distance(axe.position()) ;
+        else
+            z_centre = -centre().distance(axe.position()) ;
 
-        double z_int_min = z_centre - r ;
-        double z_int_max = z_centre + r ;
-
-
-//        // Cas particuliers où le point de départ est sur une des intersections
-//        if (Environnement.quasiEgal(z_depart,z_int_min))
-//            return (sens_z_croissants?z_int_max:null) ;
-//        if (Environnement.quasiEgal(z_depart,z_int_max))
-//            return (sens_z_croissants?null:z_int_min) ;
-
-         if (z_inter_prec!=null) {
-             if (z_int_min==z_inter_prec)
-                 return (sens_z_croissants?(r!=0d?z_int_max:null):null) ;
-             if (z_int_max==z_inter_prec)
-                 return (sens_z_croissants?null:(r!=0d?z_int_min:null)) ;
-         }
-
-         if (z_depart==z_int_min) return z_int_min ;
-         if (z_depart==z_int_max) return z_int_max ;
-
-        // Cas général
-        if (z_depart<z_int_min)
-            return (sens_z_croissants?z_int_min:null) ;
-        else if (z_int_min<z_depart && z_depart<z_int_max)
-            return (sens_z_croissants?z_int_max:z_int_min) ;
-        else // (z_depart>z_int_max)
-            return (sens_z_croissants?null:z_int_max) ;
-
-//        if (z_depart==z_int_min)
-//            return (sens_z_croissants?z_int_max:null) ;
-//        // if (z_depart==z_int_max)
-//        return (sens_z_croissants?null:z_int_min) ;
-
+        return z_centre ;
 
     }
 
     @Override
-    public ArrayList<Double> abscissesToutesIntersectionsSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart,boolean sens_z_croissants, Double z_inter_prec) {
+    public List<DioptreParaxial> dioptresParaxiaux(PositionEtOrientation axe) {
 
-        ArrayList<Double> resultat = new ArrayList<>(2) ;
+        if (Environnement.quasiEgal(2*rayon(),0d)) // Pas de dioptres si le diamètre est quasi nul
+            return new ArrayList<>(0) ;
 
-        double z_centre ;
+        ArrayList<DioptreParaxial> resultat = new ArrayList<>(2) ;
 
-        if (centre().subtract(origine_axe).dotProduct(direction_axe)>=0)
-            z_centre = centre().distance(origine_axe) ;
-        else
-            z_centre = -centre().distance(origine_axe) ;
+        double z_centre = centre().subtract(axe.position()).dotProduct(axe.direction()) ;
 
-        double r = rayon() ;
+        double z_int_min = z_centre - rayon() ;
+        double z_int_max = z_centre + rayon() ;
 
-        double z_int_min = z_centre - r ;
-        double z_int_max = z_centre + r ;
+        DioptreParaxial d_z_min ;
+        DioptreParaxial d_z_max ;
 
-        // S'assurer de ne pas retourner à nouveau l'intersection z_inter_prec
-        if (z_inter_prec!=null) {
-            if (z_int_min==z_inter_prec) {
-                if (sens_z_croissants && r!=0d) resultat.add(z_int_max);
-                return resultat ;
-            }
-            if (z_int_max==z_inter_prec) {
-                if (!sens_z_croissants && r!=0d) resultat.add(z_int_min);
-                return resultat ;
-            }
+        if (typeSurface()==TypeSurface.CONVEXE) {
+            d_z_min = new DioptreParaxial(z_int_min, rayon(), 0d , indiceRefraction(), this);
+            d_z_max = new DioptreParaxial(z_int_max, -rayon(), indiceRefraction(), 0d, this);
+        } else {
+            d_z_min = new DioptreParaxial(z_int_min, rayon(), indiceRefraction(),0d, this);
+            d_z_max = new DioptreParaxial(z_int_max, -rayon(), 0d,indiceRefraction(), this);
         }
 
-//        // Cas particuliers où le point de départ est sur une des intersections
-//        if (Environnement.quasiEgal(z_depart,z_int_min)) {
-//            if (sens_z_croissants) resultat.add(z_int_max);
-//            return resultat ;
-//        }
-//        if (Environnement.quasiEgal(z_depart,z_int_max)) {
-//            if (!sens_z_croissants) resultat.add(z_int_min);
-//            return resultat ;
-//        }
-
-        // Cas général
-        if (z_depart<=z_int_min) {
-
-            if (!sens_z_croissants)
-                return resultat ;
-
-            resultat.add(z_int_min) ;
-            if (r!=0d) resultat.add(z_int_max) ;
-
-        } else if (z_int_min<z_depart && z_depart<=z_int_max) {
-            if (sens_z_croissants)
-                resultat.add(z_int_max) ;
-            else
-                resultat.add(z_int_min) ;
-
-        }
-        else // z_depart>z_int_max
-        {
-            if (sens_z_croissants)
-                return resultat ;
-
-            resultat.add(z_int_max) ;
-            if (r!=0d) resultat.add(z_int_min) ;
-
-        }
+        resultat.add(d_z_min) ;
+        resultat.add(d_z_max) ;
 
         return resultat ;
 
     }
 
-    // TODO : Écrire une implémentation spécifique  de la méthode cherche_toutes_intersections(Rayon r) plus optimisée que l'implémentation par défaut
+
+    // TODO : Écrire une implémentation spécifique  de la méthode cherche_toutes_intersections(Rayon r) plus optimisée
+    //  que l'implémentation par défaut
     // @Override
     // public ArrayList<Point2D> cherche_toutes_intersections(Rayon r)
 
@@ -680,8 +610,6 @@ public class Cercle  implements Obstacle, Identifiable, Nommable,ElementAvecCont
     public double[][] intersections_horizontale(double y_horizontale, double xmin, double xmax,boolean x_sol_croissant) {
         double rayon = rayon() ;
 
-//        double x_centre = xCentre() ;
-//        double y_centre = yCentre() ;
         double x_centre = centre().getX() ;
         double y_centre = centre().getY() ;
 
@@ -739,24 +667,18 @@ public class Cercle  implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
         return new double[0][0] ;
 
-
     }
-
 
     protected Point2D point_sur_cercle(double theta) {
 
-//        double x_centre = xCentre() ;
-//        double y_centre = yCentre() ;
         double x_centre = centre().getX() ;
         double y_centre = centre().getY() ;
 
         double rayon = rayon(); ;
 
         return centre().add(rayon*Math.cos(theta), rayon*Math.sin(theta) ) ;
-//        return new Point2D(x_centre + rayon*Math.cos(theta), y_centre+rayon*Math.sin(theta)) ;
 
     }
-
 
     protected Contour arc_de_cercle(double theta_debut,double theta_fin, int nombre_pas_angulaire_par_arc) {
 
@@ -836,228 +758,6 @@ public class Cercle  implements Obstacle, Identifiable, Nommable,ElementAvecCont
     }
 
     public BooleanProperty appartenanceSystemeOptiqueProperty() {return appartenance_systeme_optique_centre ;}
-
-
-
-//    public ContoursObstacle couper_old(BoiteLimites boite, int nombre_pas_angulaire_par_arc) {
-//
-//        ContoursObstacle contours = new ContoursObstacle() ;
-//
-//        double xmin = boite.getMinX() ;
-//        double xmax = boite.getMaxX() ;
-//        double ymin = boite.getMinY() ;
-//        double ymax = boite.getMaxY() ;
-//
-//        double[][] i_droites = intersections_verticale(xmax, ymin, ymax,true) ;
-//        double[][] i_hautes  = intersections_horizontale(ymax, xmin, xmax,false) ;
-//        double[][] i_gauches = intersections_verticale(xmin, ymin, ymax,false) ;
-//        double[][] i_basses  = intersections_horizontale(ymin, xmin, xmax,true) ;
-//
-//        SelecteurCoins sc = new SelecteurCoins(xmin, ymin, xmax, ymax);
-//
-////        System.out.println("Nombre d'intersections avec les bords : "+n_intersections);
-//
-//        // Tableau qui contiendra au plus 4 intervalles [theta min, theta max] où la courbe est visible
-//        // ordonnés dans le sens trigonométrique en partant dy coin BD de l'écran
-//        ArrayList<Double> valeurs_theta_intersection = new ArrayList<Double>(8) ;
-//
-//        ArrayList<Double> valeurs_x_intersection = new ArrayList<Double>(8) ;
-//        ArrayList<Double> valeurs_y_intersection = new ArrayList<Double>(8) ;
-//
-//        int n_intersections = sc.ordonneIntersections(i_droites,i_hautes,i_gauches,i_basses,
-//                valeurs_theta_intersection,valeurs_x_intersection,valeurs_y_intersection) ;
-//
-//        // Si aucune intersection, ou si 1 seule intersection (TODO : tester le cas à 1 intersection)
-//        if (n_intersections<=1) {
-//
-//            // Cercle entièrement contenu dans la zone visible ?
-//            if (boite.contains(point_sur_cercle(0))) {
-////                ArrayList<Double> x_arc = xpoints_sur_cercle( 0, 2 * Math.PI, nombre_pas_angulaire_par_arc);
-////                ArrayList<Double> y_arc = ypoints_sur_cercle( 0, 2 * Math.PI, nombre_pas_angulaire_par_arc);
-//
-//                // Rappel : on est par défaut en FillRule NON_ZERO => pour faire une surface avec un trou, il suffit
-//                // de faire deux contours dans des sens contraires (trigo et antitrigo)
-////                cae.gc.beginPath();
-//
-//                // Tracé du contour, ou du trou (chemin fermé), dans le sens trigo
-////                cae.completerPathAvecContourFerme(x_arc, y_arc);
-//
-//                Contour arc = arc_de_cercle(0, 2 * Math.PI, nombre_pas_angulaire_par_arc) ;
-//
-//                contours.ajouterContourSurface(arc);
-//
-//                // TODO : à remplacer par methode arcTo / plus propre qu'un polygone, et peut-être plus rapide...
-//
-//                // Tracé du contour (apparemment, cela ne termine pas le path, on peut continuer à lui ajouter des éléments
-////                cae.gc.stroke();
-//
-//                if (typeSurface() == TypeSurface.CONCAVE) {
-//                    // Tracé du rectangle de la zone visible, dans le sens antitrigo : le Contour du cercle sera un trou
-//                    // dans cette zone
-//                    contours.ajouterContourMasse(boite.construireContourAntitrigo());
-//                }
-//
-//                Contour arc_masse = new Contour(arc) ;
-//                contours.ajouterContourMasse(arc_masse);
-//
-//                // Le fill déclenche aussi l'appel closePath
-////                cae.gc.fill();
-//
-//            } else { // Aucun point de la surface n'est dans la zone visible
-//                if (contient(boite.centre())) {
-//
-////                    sc.selectionne_tous();
-//
-//                    // Toute la zone visible est dans la masse du cercle
-//                    contours.ajouterContourMasse(boite.construireContour());
-////                    CanvasAffichageEnvironnement.remplirPolygone(cae, sc.xcoins_selectionne(true), sc.ycoins_selectionne(true));
-//                } else {
-//                    // Toute la zone visible est hors de la masse du cercle
-//                    // rien à faire
-//                }
-//            }
-//
-//            // C'est fini
-//            return contours ;
-//        }
-//
-//        // Au moins 2 intersections, et jusqu'à 8...
-//
-////        ArrayList<Double> x_masse = new ArrayList<Double>(nombre_pas_angulaire_par_arc+4) ;
-////        ArrayList<Double> y_masse = new ArrayList<Double>(nombre_pas_angulaire_par_arc+4) ;
-//
-//        Contour arc_masse = new Contour() ;
-//
-//        // Boucle sur les intersections, dans le sens trigo par rapport au centre de l'écran
-//        for (int i=0 ; i<valeurs_theta_intersection.size(); i++) {
-//            double theta_deb = valeurs_theta_intersection.get(i) ;
-//            if (theta_deb<0)
-//                theta_deb += 2*Math.PI ;
-//
-//            int i_suivant = (i + 1) % (valeurs_theta_intersection.size()) ;
-//            double theta_fin ;
-//
-//            if (i_suivant != i)
-//                theta_fin = valeurs_theta_intersection.get(i_suivant) ;
-//            else
-//                theta_fin=theta_deb + 2*Math.PI ;
-//            if (theta_fin<0)
-//                theta_fin += 2*Math.PI ;
-//
-//            double x_deb = valeurs_x_intersection.get(i) ;
-//            double y_deb = valeurs_y_intersection.get(i) ;
-//            Point2D pt_deb = new Point2D(x_deb,y_deb) ;
-//            double x_fin = valeurs_x_intersection.get(i_suivant) ;
-//            double y_fin = valeurs_y_intersection.get(i_suivant) ;
-//            Point2D pt_fin = new Point2D(x_fin,y_fin) ;
-//
-//            if (theta_fin<theta_deb)
-//                theta_fin += 2*Math.PI ;
-//
-//
-//            Point2D pt = point_sur_cercle((theta_deb+theta_fin)/2 ) ;
-//
-//            // Si cet arc est visible
-//            if (boite.contains(pt)) {
-////                ArrayList<Double> x_arc = new ArrayList<Double>(nombre_pas_angulaire_par_arc) ;
-////                ArrayList<Double> y_arc = new ArrayList<Double>(nombre_pas_angulaire_par_arc) ;
-////
-////
-////                // Ajouter le point exact de l'intersection pt_deb pour éviter les décrochages dûs au pas du tracé
-////                x_arc.add(x_deb) ;
-////                y_arc.add(y_deb) ;
-////
-////                x_arc.addAll(xpoints_sur_cercle(theta_deb,theta_fin,nombre_pas_angulaire_par_arc)) ;
-////                y_arc.addAll(ypoints_sur_cercle(theta_deb,theta_fin,nombre_pas_angulaire_par_arc)) ;
-////
-////                // Ajouter le point exact de l'intersection pt_fin pour éviter les décrochages dûs au pas du tracé
-////                x_arc.add(x_fin) ;
-////                y_arc.add(y_fin) ;
-//
-//                Contour arc = arc_de_cercle(theta_deb,theta_fin,nombre_pas_angulaire_par_arc) ;
-//
-//                // Ajouter les points d'intersection exacts pour un tracé précis
-//                arc.ajoutePointDevant(x_deb,y_deb);
-//                arc.ajoutePoint(x_fin,y_fin);
-//
-//                // Cet arc est à la fois un morceau de la surface de l'obstacle et un morceau du contour de la masse
-//                contours.ajouterContourSurface(arc);
-//
-//                // On trace l'arc de ce contour visible
-////                cae.tracerPolyligne(x_arc,y_arc);
-//                // TODO : à remplacer par methode arcTo / plus propre qu'un polygone, et peut-être plus rapide...
-//
-//                arc_masse.concatene(arc);
-//
-////                x_masse.addAll(x_arc) ;
-////                y_masse.addAll(y_arc) ;
-//                // TODO : voir la masse comme un Path et la construire avec le methode arcTo / plus propre qu'un polygone, et peut-être plus rapide...
-//
-////                x_arc.clear();
-////                y_arc.clear();
-//
-//                // Si les 2 intersections sont sur un même bord et que leur milieu est dans le cercle, il n'y a pas
-//                // d'autre arc de contour à tracer, on peut sortir tout de suite de la boucle sur les intersections
-//                if ( (x_deb==x_fin || y_deb==y_fin) && contient(pt_deb.midpoint(pt_fin)))
-//                    break ;
-//
-//                // Sinon, chercher les coins contigus (càd non séparés des extrémités par une intersection) et qui sont
-//                // dans l'interieur du contour, que le cercle soit convexe ou concave
-//                SelecteurCoins sc_coins_interieurs = sc.sequence_coins_continus(false,pt_deb,pt_fin,valeurs_x_intersection,valeurs_y_intersection) ;
-//
-//                if(     ( typeSurface()== Obstacle.TypeSurface.CONVEXE
-//                        && contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
-//                        || ( typeSurface()== Obstacle.TypeSurface.CONCAVE
-//                        && !contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
-//                ) {
-//                    // Les ajouter au tracé du contour de masse
-//                    arc_masse.concatene(sc_coins_interieurs.coins_selectionne_antitrigo(true));
-//
-////                    x_masse.addAll(sc_coins_interieurs.xcoins_selectionne_antitrigo(true));
-////                    y_masse.addAll(sc_coins_interieurs.ycoins_selectionne_antitrigo(true));
-//
-//                    break ;
-//                }
-//
-//            } else { // Arc non visible
-//
-//                // Ajouter la sequence des coins de cette portion (dans ordre trigo) si ils sont dans le cercle (et si il y en a)
-//                SelecteurCoins sc_coins_interieurs = sc.sequence_coins_continus(true,pt_deb,pt_fin,valeurs_x_intersection,valeurs_y_intersection) ;
-//
-//                if(  ( typeSurface()== Obstacle.TypeSurface.CONVEXE
-//                        && contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
-//                        || ( typeSurface()== Obstacle.TypeSurface.CONCAVE
-//                        && !contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
-//                ) {
-//                    // Les ajouter au contour de masse
-//                    // TODO : voir la masse comme un Path constitué d'arc (arcTo et de points) : tracé sera plus efficace
-//                    // mais pour l'utilisation de Clipper, il faudra continuer à le voir comme un polygone...
-//                    arc_masse.concatene(sc_coins_interieurs.coins_selectionne(true));
-////                    x_masse.addAll(sc_coins_interieurs.xcoins_selectionne(true));
-////                    y_masse.addAll(sc_coins_interieurs.ycoins_selectionne(true));
-//                }
-//
-//            }
-//        } // Fin boucle sur intersections
-//
-////        cae.gc.beginPath();
-//
-//        if (typeSurface() == TypeSurface.CONCAVE) {
-//            // Tracé du rectangle de la zone visible, dans le sens antitrigo : le Path de l'ellipse sera un trou
-//            // dans cette zone
-//            contours.ajouterContourMasse(boite.construireContourAntitrigo());
-////            cae.gc.moveTo(xmax, ymin);
-////            cae.gc.lineTo(xmin, ymin);
-////            cae.gc.lineTo(xmin, ymax);
-////            cae.gc.lineTo(xmax, ymax);
-//        }
-//        // Tracé du contour de masse , ou du trou (chemin fermé), dans le sens trigo
-////        cae.completerPathAvecContourFerme(x_masse,y_masse);
-//        contours.ajouterContourMasse(arc_masse);
-////        cae.gc.fill();
-//
-//        return contours ;
-//    }
 
 }
 

@@ -96,7 +96,7 @@ public class PanneauSystemeOptiqueCentre {
         baseElementIdentifieController.initialize(soc);
 
         // Position
-        soc.positionEtOrientationObjectProperty().addListener(new ChangeListenerAvecGarde<PositionEtOrientation>(this::prendreEnComptePositionEtOrientation));
+        soc.axeObjectProperty().addListener(new ChangeListenerAvecGarde<PositionEtOrientation>(this::prendreEnComptePositionEtOrientation));
 //        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_xorigine,soc.origine().getX());
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_xorigine, soc.XOrigine(), this::definirXOrigineSOC);
 //        soc_xorigine_object_property = soc.XOrigineProperty().asObject() ;

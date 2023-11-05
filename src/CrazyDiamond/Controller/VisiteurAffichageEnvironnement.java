@@ -1361,14 +1361,14 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             // Marquage des dioptres
             if (soc.MontrerDioptres()&&soc.InterSectionsSurAxe()!=null) {
 
-//                ArrayList<SystemeOptiqueCentre.IntersectionAxeAvecSurface> intersections ;
+//                ArrayList<SystemeOptiqueCentre.DioptreParaxial> intersections ;
 
 //                try {
 //                    intersections = soc.intersectionsAvecAxe();
 
 //                    soc.calculeElementsCardinaux();
 
-                    for (SystemeOptiqueCentre.IntersectionAxeAvecSurface intersection : soc.InterSectionsSurAxe()) {
+                    for (DioptreParaxial intersection : soc.InterSectionsSurAxe()) {
 
                         // Marquage de la position du dioptre
                         marquePositionSurAxeSOC(soc,intersection.z(),Color.RED,50);
@@ -1393,7 +1393,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         }
 
-        for (SystemeOptiqueCentre.IntersectionAxeAvecSurface its : soc.InterSectionsReellesSurAxe()) {
+        for (RencontreDioptreParaxial its : soc.dioptresRencontres()) {
             afficheDiaphragmeAntecedentDe(soc,its,Color.LIGHTGREY);
         }
 
@@ -1435,7 +1435,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     // Affichage des rayons limites du diaphragme d'ouverture (rayons marginaux)
     private void afficheRayonsMarginaux(SystemeOptiqueCentre soc) {
 
-        if (soc.InterSectionsReellesSurAxe()==null)
+        if (soc.dioptresRencontres()==null)
             return ;
 
         GraphicsContext gc = cae.gc() ;
@@ -1462,10 +1462,10 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         gc.setStroke(c_rm);
 
         // Objet virtuel ?
-        if (soc.InterSectionsReellesSurAxe().size()>0 && soc.InterSectionsReellesSurAxe().get(0).ZIntersection()<soc.ZObjet())
+        if (soc.dioptresRencontres().size()>0 && soc.dioptresRencontres().get(0).ZIntersection()<soc.ZObjet())
             gc.setLineDashes(2*res,6*res);
 
-        for (SystemeOptiqueCentre.IntersectionAxeAvecSurface intersection : soc.InterSectionsReellesSurAxe()) {
+        for (RencontreDioptreParaxial intersection : soc.dioptresRencontres()) {
 
             if (intersection.HLimiteOuverture()==null)
                 continue;
@@ -1485,7 +1485,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         if (soc.ZImage()!=null) {
             // Objet virtuel ?
-            if (soc.InterSectionsReellesSurAxe().size() > 0 && soc.InterSectionsReellesSurAxe().get(soc.InterSectionsReellesSurAxe().size() - 1).ZIntersection() > soc.ZImage())
+            if (soc.dioptresRencontres().size() > 0 && soc.dioptresRencontres().get(soc.dioptresRencontres().size() - 1).ZIntersection() > soc.ZImage())
                 gc.setLineDashes(2 * res, 6 * res);
 
             gc.strokeLine(pt_prec_haut.getX(), pt_prec_haut.getY(), pimage.getX(), pimage.getY());
@@ -1500,7 +1500,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
     }
 
-    private void afficheDiaphragmeAntecedentDe(SystemeOptiqueCentre soc, SystemeOptiqueCentre.IntersectionAxeAvecSurface it_avec_diaph, Color c) {
+    private void afficheDiaphragmeAntecedentDe(SystemeOptiqueCentre soc, RencontreDioptreParaxial it_avec_diaph, Color c) {
 
         if (it_avec_diaph.rayonDiaphragme()==null)
             return ;
@@ -1585,7 +1585,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         if ( (!champ_moyen) && (!champ_pleine_lumiere) && (!champ_total))
             return ;
 
-        if (soc.InterSectionsReellesSurAxe()==null || soc.InterSectionsReellesSurAxe().size()==0)
+        if (soc.dioptresRencontres()==null || soc.dioptresRencontres().size()==0)
             return ;
 
         Color c_rm = Color.YELLOW ;
@@ -1630,10 +1630,10 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         Point2D pt_prec_ct_bas = pt_objet_ct_bas ;
 
         // Objet virtuel ?
-        if (soc.InterSectionsReellesSurAxe().size()>0 && soc.InterSectionsReellesSurAxe().get(0).ZIntersection()<soc.ZObjet())
+        if (soc.dioptresRencontres().size()>0 && soc.dioptresRencontres().get(0).ZIntersection()<soc.ZObjet())
             gc.setLineDashes(2*res,6*res);
 
-        for (SystemeOptiqueCentre.IntersectionAxeAvecSurface intersection : soc.InterSectionsReellesSurAxe()) {
+        for (RencontreDioptreParaxial intersection : soc.dioptresRencontres()) {
 
 //            if (intersection.HLimiteChamp()==null)
 //                continue;
@@ -1690,7 +1690,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             return ;
 
         // Image virtuelle ?
-        if (soc.InterSectionsReellesSurAxe().size()>0 && soc.ZPlanSortie()>soc.ZImage())
+        if (soc.dioptresRencontres().size()>0 && soc.ZPlanSortie()>soc.ZImage())
             gc.setLineDashes(2*res,6*res);
 
         // Points image d'arrivée

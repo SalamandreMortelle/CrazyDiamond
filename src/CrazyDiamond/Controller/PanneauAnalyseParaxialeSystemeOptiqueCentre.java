@@ -1,5 +1,7 @@
 package CrazyDiamond.Controller;
 
+//import CrazyDiamond.Model.DioptreParaxial;
+import CrazyDiamond.Model.RencontreDioptreParaxial;
 import CrazyDiamond.Model.Environnement;
 import CrazyDiamond.Model.SystemeOptiqueCentre;
 import CrazyDiamond.Model.TraitementSurface;
@@ -93,19 +95,19 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
 
     @FXML private ToggleButton toggle_montrer_dioptres;
     @FXML private TableView table_intersections;
-    @FXML private  TableColumn<SystemeOptiqueCentre.IntersectionAxeAvecSurface,Number> col_numero;
-    @FXML private  TableColumn<SystemeOptiqueCentre.IntersectionAxeAvecSurface,Double> col_z;
-    @FXML private  TableColumn<SystemeOptiqueCentre.IntersectionAxeAvecSurface,Double> col_r_courbure;
-    @FXML private  TableColumn<SystemeOptiqueCentre.IntersectionAxeAvecSurface,Double> col_r_diaphragme;
-    @FXML private  TableColumn<SystemeOptiqueCentre.IntersectionAxeAvecSurface,Double> col_n_avant;
-    @FXML private  TableColumn<SystemeOptiqueCentre.IntersectionAxeAvecSurface,Double> col_n_apres;
-    @FXML private  TableColumn<SystemeOptiqueCentre.IntersectionAxeAvecSurface,String> col_element;
-    @FXML private  TableColumn<SystemeOptiqueCentre.IntersectionAxeAvecSurface,Boolean> col_ignorer;
-    @FXML private  TableColumn<SystemeOptiqueCentre.IntersectionAxeAvecSurface,String> col_sens;
-    @FXML private  TableColumn<SystemeOptiqueCentre.IntersectionAxeAvecSurface,String> col_do;
-    @FXML private  TableColumn<SystemeOptiqueCentre.IntersectionAxeAvecSurface,String> col_dc;
-    @FXML private  TableColumn<SystemeOptiqueCentre.IntersectionAxeAvecSurface,String> col_dcpl;
-    @FXML private  TableColumn<SystemeOptiqueCentre.IntersectionAxeAvecSurface,String> col_dct;
+    @FXML private  TableColumn<RencontreDioptreParaxial,Number> col_numero;
+    @FXML private  TableColumn<RencontreDioptreParaxial,Double> col_z;
+    @FXML private  TableColumn<RencontreDioptreParaxial,Double> col_r_courbure;
+    @FXML private  TableColumn<RencontreDioptreParaxial,Double> col_r_diaphragme;
+    @FXML private  TableColumn<RencontreDioptreParaxial,Double> col_n_avant;
+    @FXML private  TableColumn<RencontreDioptreParaxial,Double> col_n_apres;
+    @FXML private  TableColumn<RencontreDioptreParaxial,String> col_element;
+    @FXML private  TableColumn<RencontreDioptreParaxial,Boolean> col_ignorer;
+    @FXML private  TableColumn<RencontreDioptreParaxial,String> col_sens;
+    @FXML private  TableColumn<RencontreDioptreParaxial,String> col_do;
+    @FXML private  TableColumn<RencontreDioptreParaxial,String> col_dc;
+    @FXML private  TableColumn<RencontreDioptreParaxial,String> col_dcpl;
+    @FXML private  TableColumn<RencontreDioptreParaxial,String> col_dct;
 
     @FXML private Label label_n_entree;
     @FXML private Label label_n_sortie;
@@ -172,7 +174,7 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
                     return "-" ;
 
 
-                for (SystemeOptiqueCentre.IntersectionAxeAvecSurface itas : soc.InterSectionsSurAxe())
+                for (RencontreDioptreParaxial itas : soc.dioptresRencontres())
                     if ((itas.obstacleSurface().traitementSurface()== TraitementSurface.REFLECHISSANT
                             || ( (itas.obstacleSurface().traitementSurface()==TraitementSurface.PARTIELLEMENT_REFLECHISSANT)
                             && (itas.obstacleSurface().tauxReflexionSurface()>50)))) {
@@ -586,7 +588,7 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         label_interstice.textProperty().bind(calcul_et_formatage_interstice);
 
         // Faire les bindings du tableau des intersections
-        table_intersections.setItems(soc.InterSectionsReellesSurAxe());
+        table_intersections.setItems(soc.dioptresRencontres());
 
         col_numero.setCellValueFactory(column-> new ReadOnlyObjectWrapper<Number>(table_intersections.getItems().indexOf(column.getValue())+1)) ;
 
@@ -595,7 +597,7 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         col_z.setCellFactory(TextFieldTableCell.forTableColumn(new DoubleStringConverterSansException()));
 
         col_z.setOnEditCommit(e-> {
-            SystemeOptiqueCentre.IntersectionAxeAvecSurface intersection = e.getTableView().getItems().get(e.getTablePosition().getRow());
+            RencontreDioptreParaxial intersection = e.getTableView().getItems().get(e.getTablePosition().getRow());
 
             if (e.getNewValue()==null) {
                 table_intersections.refresh();
@@ -616,7 +618,7 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         col_r_diaphragme.setCellValueFactory(p -> p.getValue().rayonDiaphragmeProperty());
         col_r_diaphragme.setCellFactory(TextFieldTableCell.forTableColumn(new DoubleStringConverterSansException()));
         col_r_diaphragme.setOnEditCommit(e-> {
-            SystemeOptiqueCentre.IntersectionAxeAvecSurface intersection = e.getTableView().getItems().get(e.getTablePosition().getRow());
+            RencontreDioptreParaxial intersection = e.getTableView().getItems().get(e.getTablePosition().getRow());
             double pup_max = intersection.obstacleSurface().rayonDiaphragmeMaximumConseille() ;
 
             if (e.getNewValue()==null || e.getNewValue()>pup_max) {

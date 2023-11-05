@@ -7,6 +7,7 @@ import javafx.scene.transform.Rotate;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -15,20 +16,15 @@ import java.util.Objects;
  * La branche pour laquelle r(theta) est négatif est ignorée.
  */
 public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecContour,ElementAvecMatiere,ObstaclePolaire {
-
     private final Imp_Identifiable imp_identifiable ;
     private final Imp_Nommable imp_nommable;
     private final Imp_ElementAvecContour imp_elementAvecContour ;
     private final Imp_ElementAvecMatiere imp_elementAvecMatiere ;
 
     private final ObjectProperty<PositionEtOrientation> position_orientation ;
-//    protected final DoubleProperty x_foyer ;
-//    protected final DoubleProperty y_foyer ;
-//
-//    protected final DoubleProperty orientation ;
 
     private final BooleanProperty appartenance_systeme_optique_centre;
-    private BooleanProperty appartenance_composition ;
+    private final BooleanProperty appartenance_composition ;
 
     @Override
     public Double rayon_polaire(double theta) {
@@ -52,7 +48,6 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
             r = p / (1+e*Math.cos(theta-theta_axe_focal)) ;
 
         return r ;
-
     }
 
     @Override
@@ -97,15 +92,11 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
         this.position_orientation = new SimpleObjectProperty<PositionEtOrientation>(new PositionEtOrientation(new Point2D(x_foyer,y_foyer),orientation_deg)) ;
 
-//        this.x_foyer = new SimpleDoubleProperty(x_foyer) ;
-//        this.y_foyer = new SimpleDoubleProperty(y_foyer) ;
-//
-//        this.orientation = new SimpleDoubleProperty(orientation_deg) ;
-//
         this.parametre = new SimpleDoubleProperty(parametre) ;
         this.excentricite = new SimpleDoubleProperty(excentricite) ;
 
         this.appartenance_systeme_optique_centre = new SimpleBooleanProperty(false) ;
+        this.appartenance_composition = new SimpleBooleanProperty(false);
 
     }
 
@@ -151,8 +142,6 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
     public BooleanProperty appartenanceSystemeOptiqueProperty() {return appartenance_systeme_optique_centre ;}
 
-
-
     @Override public String toString() { return nom(); }
 
     public void appliquerSurIdentifiable(ConsumerAvecException<Object, IOException> consumer) throws IOException {
@@ -190,10 +179,6 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
     @Override
     public void translater(Point2D vecteur) {
         position_orientation.set(new PositionEtOrientation(foyer().add(vecteur),orientation()));
-
-//        position_orientation.set(new PositionEtOrientation(new Point2D(xFoyer()+ vecteur.getX(),yFoyer()+ vecteur.getY()),orientation()));
-//        x_foyer.set(vecteur.getX()+x_foyer.get()) ;
-//        y_foyer.set(vecteur.getY()+y_foyer.get()) ;
     }
 
 
@@ -203,9 +188,6 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
         imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
 
         position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        x_foyer.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        y_foyer.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
         parametre.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
         excentricite.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
     }
@@ -216,12 +198,8 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
         imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
         position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        x_foyer.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        y_foyer.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
         parametre.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
         excentricite.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-
     }
 
     @Override
@@ -943,228 +921,6 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
         return ypoints_conique ;
     }
 
-//    public ContoursObstacle couper_old(BoiteLimites boite, int nombre_pas_angulaire_par_arc) {
-//
-//        ContoursObstacle contours = new ContoursObstacle() ;
-//
-////        double e = excentricite.get() ;
-//
-//        double xmin = boite.getMinX() ;
-//        double xmax = boite.getMaxX() ;
-//        double ymin = boite.getMinY() ;
-//        double ymax = boite.getMaxY() ;
-//
-//        double[][] i_droites = intersections_verticale(xmax, ymin, ymax,true) ;
-//        double[][] i_hautes  = intersections_horizontale(ymax, xmin, xmax,false) ;
-//        double[][] i_gauches = intersections_verticale(xmin, ymin, ymax,false) ;
-//        double[][] i_basses  = intersections_horizontale(ymin, xmin, xmax,true) ;
-//
-//        SelecteurCoins sc = new SelecteurCoins(xmin, ymin, xmax, ymax);
-//
-////        System.out.println("Nombre d'intersections avec les bords : "+n_intersections);
-//
-//        // Tableau qui contiendra au plus 4 intervalles [theta min, theta max] où la courbe est visible
-//        // ordonnés dans le sens trigonométrique en partant de de l'axe X par rapport au centre de l'écran
-//        ArrayList<Double> valeurs_theta_intersection = new ArrayList<Double>(8) ;
-//
-//        ArrayList<Double> valeurs_x_intersection = new ArrayList<Double>(8) ;
-//        ArrayList<Double> valeurs_y_intersection = new ArrayList<Double>(8) ;
-//
-//        int n_intersections = sc.ordonneIntersections(i_droites, i_hautes, i_gauches, i_basses,
-//                valeurs_theta_intersection, valeurs_x_intersection, valeurs_y_intersection);
-//
-//        // Si aucune intersection, --ou si 1 seule intersection (TODO : tester le cas à 1 intersection avec une ellipse)
-//        if (n_intersections<=1) {
-//
-//            // Ellipse entièrement contenue dans la zone visible ?
-////            if (e<1.0 && boite.contains(point_sur_conique(0))) {
-//            if (boite.contains(point_sur_conique(0))) {
-////                ArrayList<Double> x_arc = xpoints_sur_conique(0,2*Math.PI, nombre_pas_angulaire_par_arc) ;
-////                ArrayList<Double> y_arc = ypoints_sur_conique(0,2*Math.PI, nombre_pas_angulaire_par_arc) ;
-//
-//                // Rappel : on est par défaut en FillRule NON_ZERO => pour faire une surface avec un trou, il suffit
-//                // de faire deux contours dans des sens contraires (trigo et antitrigo)
-////                cae.gc.beginPath();
-//
-//                // Tracé du contour, ou du trou (chemin fermé), dans le sens trigo
-////                cae.completerPathAvecContourFerme(x_arc,y_arc);
-//
-//                Contour arc = arc_de_conique(0, 2 * Math.PI, nombre_pas_angulaire_par_arc) ;
-//
-//                contours.ajouterContourSurface(arc);
-//
-//                // Tracé du contour (apparemment, cela ne termine pas le path, on peut continuer à lui ajouter des éléments
-////                cae.gc.stroke();
-//
-//                if (typeSurface() == Obstacle.TypeSurface.CONCAVE) {
-//                    // Tracé du rectangle de la zone visible, dans le sens antitrigo : le Path de l'ellipse sera un trou
-//                    // dans cette zone
-//                    contours.ajouterContourMasse(boite.construireContourAntitrigo());
-//
-////                    cae.completerPathAvecContourZoneVisibleAntitrigo();
-//                }
-//
-//                Contour arc_masse = new Contour(arc) ;
-//                contours.ajouterContourMasse(arc_masse);
-//
-//                // Le fill déclenche aussi l'appel closePath
-////                cae.gc.fill();
-//
-//            }
-//            else { // Aucun point de la surface n'est dans la zone visible
-//                if (contient(boite.centre())) {
-//
-////                    sc.selectionne_tous();
-//
-//                    // Toute la zone visible est dans la masse de l'objet conique
-//                    contours.ajouterContourMasse(boite.construireContour());
-////                    CanvasAffichageEnvironnement.remplirPolygone(cae, sc.xcoins_selectionne(true), sc.ycoins_selectionne(true));
-//                } else {
-//                    // Toute la zone visible est hors de la masse de la conique
-//                    // rien à faire
-//                }
-//            }
-//
-//            // C'est fini
-//            return contours ;
-//        }
-//
-//        // Au moins 2 intersections, et jusqu'à 8...
-//
-////        ArrayList<Double> x_masse = new ArrayList<Double>(nombre_pas_angulaire_par_arc+4) ;
-////        ArrayList<Double> y_masse = new ArrayList<Double>(nombre_pas_angulaire_par_arc+4) ;
-//
-//        Contour arc_masse = new Contour() ;
-//
-//        // Boucle sur les intersections, dans le sens trigo par rapport au centre de l'écran
-//        for (int i=0 ; i<valeurs_theta_intersection.size(); i++) {
-//            double theta_deb = valeurs_theta_intersection.get(i) ;
-//            if (theta_deb<0)
-//                theta_deb += 2*Math.PI ;
-//
-//            int i_suivant = (i + 1) % (valeurs_theta_intersection.size()) ;
-//            double theta_fin ;
-//
-//            if (i_suivant != i)
-//                theta_fin = valeurs_theta_intersection.get(i_suivant) ;
-//            else
-//                theta_fin=theta_deb + 2*Math.PI ;
-//            if (theta_fin<0)
-//                theta_fin += 2*Math.PI ;
-//
-//            double x_deb = valeurs_x_intersection.get(i) ;
-//            double y_deb = valeurs_y_intersection.get(i) ;
-//            Point2D pt_deb = new Point2D(x_deb,y_deb) ;
-//            double x_fin = valeurs_x_intersection.get(i_suivant) ;
-//            double y_fin = valeurs_y_intersection.get(i_suivant) ;
-//            Point2D pt_fin = new Point2D(x_fin,y_fin) ;
-//
-//            if (theta_fin<theta_deb)
-//                theta_fin += 2*Math.PI ;
-//
-//
-//            Point2D pt = point_sur_conique((theta_deb+theta_fin)/2 ) ;
-//
-//            // Si cet arc est visible
-//            if (pt!=null && boite.contains(pt)) {
-////                ArrayList<Double> x_arc = new ArrayList<Double>(nombre_pas_angulaire_par_arc) ;
-////                ArrayList<Double> y_arc = new ArrayList<Double>(nombre_pas_angulaire_par_arc) ;
-////
-////                // Ajouter le point exact de l'intersection pt_deb pour éviter les décrochages dûs au pas du tracé
-////                x_arc.add(x_deb) ;
-////                y_arc.add(y_deb) ;
-////
-////                x_arc.addAll(xpoints_sur_conique(theta_deb,theta_fin, nombre_pas_angulaire_par_arc)) ;
-////                y_arc.addAll(ypoints_sur_conique(theta_deb,theta_fin, nombre_pas_angulaire_par_arc)) ;
-////
-////                // Ajouter le point exact de l'intersection pt_fin pour éviter les décrochages dûs au pas du tracé
-////                x_arc.add(x_fin) ;
-////                y_arc.add(y_fin) ;
-//
-//                Contour arc = arc_de_conique(theta_deb,theta_fin,nombre_pas_angulaire_par_arc) ;
-//
-//                // Ajouter les points d'intersection exacts pour un tracé précis
-//                arc.ajoutePointDevant(x_deb,y_deb);
-//                arc.ajoutePoint(x_fin,y_fin);
-//
-//                // Cet arc est à la fois un morceau de la surface de l'obstacle et un morceau du contour de la masse
-//                contours.ajouterContourSurface(arc);
-//
-//                arc_masse.concatene(arc);
-//
-////                // On trace l'arc de ce contour visible
-////                cae.tracerPolyligne(x_arc,y_arc);
-////
-////                x_masse.addAll(x_arc) ;
-////                y_masse.addAll(y_arc) ;
-////
-////                x_arc.clear();
-////                y_arc.clear();
-//
-//                // Si les 2 intersections sont sur un même bord et que leur milieu est dans la conique, il n'y a pas
-//                // d'autre arc de contour à tracer, on peut sortir tout de suite de la boucle sur les intersections
-//                if ( (x_deb==x_fin || y_deb==y_fin) && contient(pt_deb.midpoint(pt_fin)))
-//                    break ;
-//
-//                // Sinon, chercher les coins contigus (càd non séparés des extrémités par une intersection) et qui sont
-//                // dans l'interieur du contour, que la conique soit convexe ou concave
-//                SelecteurCoins sc_coins_interieurs = sc.sequence_coins_continus(false,pt_deb,pt_fin,valeurs_x_intersection,valeurs_y_intersection) ;
-//
-//                if(     ( typeSurface()== Obstacle.TypeSurface.CONVEXE
-//                        && contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
-//                        || ( typeSurface()== Obstacle.TypeSurface.CONCAVE
-//                        && !contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
-//                ) {
-//                    // Les ajouter au tracé du contour de masse
-//                    arc_masse.concatene(sc_coins_interieurs.coins_selectionne_antitrigo(true));
-//
-////                    x_masse.addAll(sc_coins_interieurs.xcoins_selectionne_antitrigo(true));
-////                    y_masse.addAll(sc_coins_interieurs.ycoins_selectionne_antitrigo(true));
-//
-//                    break ;
-//                }
-//
-//            } else { // Arc non visible
-//
-//                // Ajouter la sequence des coins de cette portion (dans ordre trigo) si ils sont dans la conique (et si il y en a)
-//                SelecteurCoins sc_coins_interieurs = sc.sequence_coins_continus(true,pt_deb,pt_fin,valeurs_x_intersection,valeurs_y_intersection) ;
-//                if(  ( typeSurface()== Obstacle.TypeSurface.CONVEXE
-//                        && contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
-//                        || ( typeSurface()== Obstacle.TypeSurface.CONCAVE
-//                        && !contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
-//                ) {
-//                    // Les ajouter au contour de masse
-//                    arc_masse.concatene(sc_coins_interieurs.coins_selectionne(true));
-//
-////                    x_masse.addAll(sc_coins_interieurs.xcoins_selectionne(true));
-////                    y_masse.addAll(sc_coins_interieurs.ycoins_selectionne(true));
-//                }
-//
-//            }
-//        } // Fin boucle sur intersections
-//
-////        cae.gc.beginPath();
-//
-//        if (typeSurface() == Obstacle.TypeSurface.CONCAVE) {
-//            // Tracé du rectangle de la zone visible, dans le sens antitrigo : le Path de l'ellipse sera un trou
-//            // dans cette zone
-//            contours.ajouterContourMasse(boite.construireContourAntitrigo());
-////            cae.gc.moveTo(xmax, ymin);
-////            cae.gc.lineTo(xmin, ymin);
-////            cae.gc.lineTo(xmin, ymax);
-////            cae.gc.lineTo(xmax, ymax);
-//        }
-//        // Tracé du contour, ou du trou (chemin fermé), dans le sens trigo
-////        cae.completerPathAvecContourFerme(x_masse,y_masse);
-//
-//        contours.ajouterContourMasse(arc_masse);
-//
-////        cae.gc.fill();
-//
-//        return contours ;
-//
-//    }
-
     @Override
     public boolean aSymetrieDeRevolution() { return true ;}
 
@@ -1180,7 +936,6 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
     public void definirFoyer(Point2D foyer)  {
         position_orientation.set(new PositionEtOrientation(foyer,orientation()));
-//        this.orientation.set(orientation_deg);
     }
 
     @Override
@@ -1215,108 +970,51 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
     @Override public double rayonDiaphragmeMaximumConseille() { return parametre.get() ; }
 
     @Override
-    public Double abscisseIntersectionSuivanteSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {
-
-        double z_foyer = foyer().distance(origine_axe)*(foyer().subtract(origine_axe).dotProduct(direction_axe)>=0?1d:-1d) ;
-
-        double p = parametre() ;
-        double e = excentricite() ;
-
-        Double z_int_min = z_foyer - p/(1+e) ;
-        Double z_int_max = (e<1? z_foyer + p/(1-e) : null) ;
-
-        if (z_inter_prec!=null) {
-            if (z_inter_prec.equals(z_int_min))
-                return (sens_z_croissants?(p!=0d?z_int_max:null):null) ;
-            if (Objects.equals(z_int_max, z_inter_prec))
-                return (sens_z_croissants?null:(p!=0d?z_int_min:null)) ;
-        }
-
-//        // Cas particuliers où le point de départ est sur une des intersections
-//        if (Environnement.quasiEgal(z_depart,z_int_min))
-//            return (sens_z_croissants? z_int_max:null) ;
-//        if (z_int_max!=null && Environnement.quasiEgal(z_depart,z_int_max))
-//            return (sens_z_croissants?null:z_int_min) ;
-
-        if (z_depart==z_int_min) return z_int_min ;
-        if (Objects.equals(z_depart,z_int_max)) return z_int_max ;
-
-
-        // Cas général
-        if (z_depart<z_int_min)
-            return (sens_z_croissants?z_int_min:null) ;
-        else if (z_int_min<z_depart && (z_int_max==null || z_depart<z_int_max))
-            return (sens_z_croissants?z_int_max:z_int_min) ; // Ce genre d'expression exige que z_int_min soit de type Double comme z_int_max (sinon exception lorsque z_int_max est null)
-        else // z_depart>z_int_max
-            return (sens_z_croissants?null:z_int_max) ;
-
-    }
-
-    @Override
-    public ArrayList<Double> abscissesToutesIntersectionsSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart,boolean sens_z_croissants, Double z_inter_prec) {
-
-        ArrayList<Double> resultat = new ArrayList<>(2) ;
-
-        double z_foyer ;
-
-        if (foyer().subtract(origine_axe).dotProduct(direction_axe)>=0)
-            z_foyer = foyer().distance(origine_axe) ;
-        else
-            z_foyer = -foyer().distance(origine_axe) ;
+    public List<DioptreParaxial> dioptresParaxiaux(PositionEtOrientation axe) {
 
         double p = parametre.get() ;
         double e = excentricite.get() ;
 
-        double z_int_min = z_foyer - p/(1+e) ;
-        Double z_int_max = (e<1? z_foyer + p/(1-e) : null) ;
+        if (e<1d && Environnement.quasiEgal(2*p/(1-e*e),0d))
+            // Pas de dioptres si le diamètre sur l'axe est quasi nul (évite les dioptres avec un Rcourbure quasi nul)
+            return new ArrayList<>(0) ;
 
-        // S'assurer de ne pas retourner à nouveau l'intersection z_inter_prec
-        if (z_inter_prec!=null) {
-            if (z_int_min==z_inter_prec) {
-                if (sens_z_croissants) resultat.add(z_int_max);
-                return resultat ;
-            }
-            if (Objects.equals(z_inter_prec,z_int_max)) {
-                if (!sens_z_croissants) resultat.add(z_int_min);
-                return resultat ;
-            }
+        ArrayList<DioptreParaxial> resultat = new ArrayList<>((e<1d?2:1)) ;
+
+        double z_foyer = foyer().subtract(axe.position()).dotProduct(axe.direction()) ;
+
+        Double z_int_min ;
+        Double z_int_max ;
+
+        if (Math.abs(axe.orientation_deg() - orientation())>90d) { // Cet écart angulaire vaut soit 0 soit 180° (cf. SOC::positionnerObstacle)
+            z_int_min = z_foyer - p / (1 + e);
+            z_int_max = (e < 1d ? z_foyer + p / (1 - e) : null);
+        }
+        else {
+            z_int_min = (e < 1d ? z_foyer - p / (1 - e) : null);
+            z_int_max = z_foyer + p / (1 + e);
         }
 
-//        // Cas particuliers où le point de départ est sur une des intersections
-//        if (Environnement.quasiEgal(z_depart,z_int_min)) {
-//            if (sens_z_croissants) resultat.add(z_int_max);
-//            return resultat ;
-//        }
-//        if (Environnement.quasiEgal(z_depart,z_int_max)) {
-//            if (!sens_z_croissants) resultat.add(z_int_min);
-//            return resultat ;
-//        }
+        DioptreParaxial d_z_min = null ;
+        DioptreParaxial d_z_max = null ;
 
-        // Cas général
-        if (z_depart<z_int_min) {
-
-            if (!sens_z_croissants)
-                return resultat ;
-
-            resultat.add(z_int_min) ;
-            if (p!=0d) resultat.add(z_int_max) ;
-
-        }        else if (z_int_min<z_depart && z_depart<z_int_max) {
-            if (sens_z_croissants)
-                resultat.add(z_int_max) ;
-            else
-                resultat.add(z_int_min) ;
-
+        if (typeSurface()==TypeSurface.CONVEXE) {
+            if (z_int_min!=null)
+                d_z_min = new DioptreParaxial(z_int_min, parametre(), 0d , indiceRefraction(), this);
+            if (z_int_max != null)
+                d_z_max = new DioptreParaxial(z_int_max, -parametre(), indiceRefraction(), 0d, this);
+        } else {
+            if (z_int_min!=null)
+                d_z_min = new DioptreParaxial(z_int_min, parametre(), indiceRefraction(),0d, this);
+            if (z_int_max != null)
+                d_z_max = new DioptreParaxial(z_int_max, -parametre(), 0d,indiceRefraction(), this);
         }
-        else // z_depart>z_int_max
-        {
-            if (sens_z_croissants)
-                return resultat ;
 
-            resultat.add(z_int_max) ;
-            if (p!=0d) resultat.add(z_int_min) ;
+        if (z_int_min!=null)
+            resultat.add(d_z_min) ;
 
-        }
+        if (z_int_max!=null)
+            resultat.add(d_z_max) ;
 
         return resultat ;
 
@@ -1327,12 +1025,6 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
         Rotate r = new Rotate(angle_rot_deg,centre_rot.getX(),centre_rot.getY()) ;
 
         Point2D nouveau_foyer = r.transform(foyer()) ;
-//        Point2D nouveau_foyer = r.transform(x_foyer.get(),y_foyer.get()) ;
-//
-//        x_foyer.set(nouveau_foyer.getX());
-//        y_foyer.set(nouveau_foyer.getY());
-//
-//        orientation.set(orientation.get()+angle_rot_deg);
 
         position_orientation.set(new PositionEtOrientation(nouveau_foyer,orientation()+angle_rot_deg));
     }

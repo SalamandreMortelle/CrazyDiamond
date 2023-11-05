@@ -100,7 +100,7 @@ public class PanneauRectangle {
 
         rectangle.positionEtOrientationObjectProperty().addListener(new ChangeListenerAvecGarde<PositionEtOrientation>(this::prendreEnComptePositionEtOrientation));
 
-//        rectangle.positionEtOrientationObjectProperty().addListener(new ChangeListener<PositionEtOrientation>() {
+//        rectangle.axeObjectProperty().addListener(new ChangeListener<PositionEtOrientation>() {
 //            private boolean changement_en_cours = false ;
 //            @Override
 //            public void changed(ObservableValue<? extends PositionEtOrientation> observableValue, PositionEtOrientation old_value, PositionEtOrientation new_value) {

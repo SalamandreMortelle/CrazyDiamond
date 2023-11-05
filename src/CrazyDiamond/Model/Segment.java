@@ -7,6 +7,7 @@ import javafx.scene.transform.Rotate;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecContour,ElementSansEpaisseur {
 
@@ -15,11 +16,6 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
     private final Imp_ElementAvecContour imp_elementAvecContour;
     private final Imp_ElementSansEpaisseur imp_elementSansEpaisseur;
 
-//    private final DoubleProperty x_centre;
-//    private final DoubleProperty y_centre;
-//
-//    // Orientation de la normale au segment (0° = segment vertical)
-//    private final DoubleProperty orientation;
     // Orientation est celle de la normale au segment (0° = segment vertical)
     private final ObjectProperty<PositionEtOrientation> position_orientation ;
     private final DoubleProperty longueur;
@@ -55,9 +51,6 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
         imp_elementSansEpaisseur = iese;
 
         this.position_orientation = new SimpleObjectProperty<PositionEtOrientation>(new PositionEtOrientation(new Point2D(x_centre,y_centre),orientation)) ;
-//        this.x_centre = new SimpleDoubleProperty(x_centre);
-//        this.y_centre = new SimpleDoubleProperty(y_centre);
-//        this.orientation = new SimpleDoubleProperty(orientation);
 
         this.longueur = new SimpleDoubleProperty(longueur);
         this.rayon_diaphragme = new SimpleDoubleProperty(rayon_diaphragme);
@@ -77,29 +70,6 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
             segment_support.tournerAutourDe(segment_support.milieu(), newValue.orientation_deg()%360d);
 
         }) ;
-
-//        this.x_centre.addListener((observable, oldValue, newValue) -> {
-//            double delta_x = newValue.doubleValue() - segment_support.milieu().getX();
-//            segment_support.definirDepartEtArrivee(
-//                    new Point2D(segment_support.depart().getX()+delta_x,segment_support.depart().getY()),
-//                    new Point2D(segment_support.arrivee().getX()+delta_x,segment_support.arrivee().getY())
-//            );
-//        }) ;
-//
-//        this.y_centre.addListener((observable, oldValue, newValue) -> {
-//            double delta_y = newValue.doubleValue() - segment_support.milieu().getY();
-//            segment_support.definirDepartEtArrivee(
-//                    new Point2D(segment_support.depart().getX(),segment_support.depart().getY()+delta_y),
-//                    new Point2D(segment_support.arrivee().getX(),segment_support.arrivee().getY()+delta_y)
-//            );
-//        }) ;
-//
-//        this.orientation.addListener((observable, oldValue, newValue) -> {
-//            segment_support.definirDepartEtArrivee(new Point2D(this.x_centre.get(),this.y_centre.get()-this.longueur.get()/2d),
-//                    new Point2D(this.x_centre.get(),this.y_centre.get()+this.longueur.get()/2d));
-//            segment_support.tournerAutourDe(segment_support.milieu(), newValue.doubleValue()%360d);
-//
-//        } ) ;
 
         this.longueur.addListener((observable, oldValue, newValue) -> {
             double demi_l = (newValue.doubleValue())/2d ;
@@ -504,22 +474,6 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
     @Override
     public void definirOrientation(double orientation_deg) {
         position_orientation.set(new PositionEtOrientation(centre(),orientation_deg));
-
-//        orientation.set(orientation_deg);
-
-//        double delta_orientation = Math.toRadians(orientation_deg - orientation()) ;
-//
-//        Point2D centre = new Point2D((X1()+X2())/2d,(Y1()+Y2())/2d ) ;
-//
-//        Point2D p1_r = new Point2D(X1()-centre.getX() , Y1()-centre.getY() ) ;
-//        Point2D p2_r = new Point2D(X2()-centre.getX() , Y2()-centre.getY() ) ;
-//
-//        x1.set( centre.getX() + p1_r.getX()*Math.cos(delta_orientation)-p1_r.getY()*Math.sin(delta_orientation) ) ;
-//        y1.set( centre.getY() + p1_r.getX()*Math.sin(delta_orientation)+p1_r.getY()*Math.cos(delta_orientation) ) ;
-//
-//        x2.set( centre.getX() + p2_r.getX()*Math.cos(delta_orientation)-p2_r.getY()*Math.sin(delta_orientation) ) ;
-//        y2.set( centre.getY() + p2_r.getX()*Math.sin(delta_orientation)+p2_r.getY()*Math.cos(delta_orientation) ) ;
-
     }
 
     @Override
@@ -529,19 +483,7 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
     @Override
     public double orientation()  {
-
         return position_orientation.get().orientation_deg() ;
-//        return orientation.get() ;
-
-//         Point2D normale = DemiDroiteOuSegment.construireSegment(x1.get(),y1.get(),x2.get(),y2.get()).normale() ;
-//
-//         double res = Math.toDegrees(Math.atan2(normale.getY(), normale.getX())) ;
-//
-//         if (res<0)
-//             res=360d+res ;
-//
-//         return res ;
-
     }
 
     @Override
@@ -586,61 +528,18 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
         return longueur.get();
     }
 
-
     @Override
-    public Double abscisseIntersectionSuivanteSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {
+    public List<DioptreParaxial> dioptresParaxiaux(PositionEtOrientation axe) {
 
-        double z_centre = centre().distance(origine_axe)*(centre().subtract(origine_axe).dotProduct(direction_axe)>=0?1d:-1d) ;
+        ArrayList<DioptreParaxial> resultat = new ArrayList<>(1) ;
 
-        // S'assurer de ne pas retourner à nouveau l'intersection z_inter_prec
-        if (z_inter_prec!=null && z_centre==z_inter_prec)
-            return null ;
+        double z_centre = centre().subtract(axe.position()).dotProduct(axe.direction()) ;
 
-//        // Cas particuliers où le point de départ est sur l'intersection
-//        if (Environnement.quasiEgal(z_depart,z_centre))
-//            return null ;
+        DioptreParaxial d_z_centre = new DioptreParaxial(z_centre, null, 0d , 0d, this);
 
-        // Cas général
-        if (z_depart<z_centre)
-            return (sens_z_croissants?z_centre:null) ;
-
-        // z_depart > z_centre
-        return (sens_z_croissants?null:z_centre) ;
-
-    }
-
-    @Override
-    public ArrayList<Double> abscissesToutesIntersectionsSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart,boolean sens_z_croissants, Double z_inter_prec) {
-
-        ArrayList<Double> resultat = new ArrayList<>(2) ;
-
-        double z_centre ;
-
-        if (centre().subtract(origine_axe).dotProduct(direction_axe)>=0)
-            z_centre = centre().distance(origine_axe) ;
-        else
-            z_centre = -centre().distance(origine_axe) ;
-
-
-        // S'assurer de ne pas retourner à nouveau l'intersection z_inter_prec
-        if (z_inter_prec!=null && z_centre==z_inter_prec) {
-                return resultat ;
-        }
-
-//        // Cas particulier où le point de départ est sur l'intersection
-//        if (Environnement.quasiEgal(z_depart,z_centre))
-//            return resultat ;
-
-        // Cas général
-        if (z_depart<z_centre && sens_z_croissants) {
-            resultat.add(z_centre) ;
-        }
-        else if (z_depart > z_centre && !sens_z_croissants) {
-            resultat.add(z_centre) ;
-        }
+        resultat.add(d_z_centre) ;
 
         return resultat ;
-
     }
 
     public ObjectProperty<PositionEtOrientation> positionEtOrientationObjectProperty() {

@@ -7,6 +7,7 @@ import javafx.scene.transform.Rotate;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 
 public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecContour, ElementAvecMatiere {
@@ -17,11 +18,6 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
     private final Imp_ElementAvecMatiere imp_elementAvecMatiere ;
 
     private final ObjectProperty<PositionEtOrientation> position_orientation ;
-//    protected final DoubleProperty x_origine;
-//    protected final DoubleProperty y_origine;
-//
-//    // Orientation de la normale, en degrés
-//    protected final DoubleProperty orientation;
 
     private static int compteur_demi_plan = 0 ;
     private final BooleanProperty appartenance_composition;
@@ -44,10 +40,6 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
         imp_elementAvecMatiere = iem;
 
         this.position_orientation = new SimpleObjectProperty<PositionEtOrientation>(new PositionEtOrientation(new Point2D(x_origine,y_origine),orientation_deg)) ;
-//        this.x_origine = new SimpleDoubleProperty(x_origine);
-//        this.y_origine = new SimpleDoubleProperty(y_origine);
-//
-//        this.orientation = new SimpleDoubleProperty(orientation_deg);
 
         this.appartenance_composition = new SimpleBooleanProperty(false) ;
         this.appartenance_systeme_optique_centre = new SimpleBooleanProperty(false) ;
@@ -99,58 +91,30 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
     @Override public String toString() { return nom(); }
 
     public ObjectProperty<PositionEtOrientation> positionEtOrientationObjectProperty() { return position_orientation ;}
-//    public DoubleProperty xOrigineProperty() { return x_origine ;}
 
-    /**
-     * @param origine_axe
-     * @param direction_axe
-     * @param z_depart          abscisse de départ de la recherche
-     * @param sens_z_croissants indique si la recherche doit se faire dans le sens des abscisses z croissantes ou décroissantes
-     * @param z_inter_prec      : abscisse z d'une précedente intersection
-     * @return
-     */
     @Override
-    public Double abscisseIntersectionSuivanteSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {
+    public List<DioptreParaxial> dioptresParaxiaux(PositionEtOrientation axe) {
 
-        double z_origine = origine().distance(origine_axe)*(origine().subtract(origine_axe).dotProduct(direction_axe)>=0?1d:-1d) ;
+        ArrayList<DioptreParaxial> resultat = new ArrayList<>(1) ;
 
-        if (z_inter_prec!=null && z_origine == z_inter_prec)
-            return null ;
+        double z_origine = origine().subtract(axe.position()).dotProduct(axe.direction()) ;
 
-        if (z_depart<z_origine)
-            return (sens_z_croissants?z_origine:null) ;
+        DioptreParaxial d_z_origine ;
 
-        // z_depart > z_origine
-        return (sens_z_croissants?null:z_origine) ;
+        if (typeSurface()==TypeSurface.CONVEXE)
+            d_z_origine = new DioptreParaxial(z_origine, null,  indiceRefraction(), 0d, this);
+        else
+            d_z_origine = new DioptreParaxial(z_origine, null, 0d, indiceRefraction() , this);
 
-    }
+        if (Math.abs(axe.orientation_deg() - orientation())>90d) // Cet écart vaut 0 ou 180°
+            d_z_origine.permuterIndicesAvantApres();
 
-    /**
-     * @param origine_axe
-     * @param direction_axe
-     * @param z_depart
-     * @param sens_z_croissants
-     * @param z_inter_prec
-     * @return
-     */
-    @Override
-    public ArrayList<Double> abscissesToutesIntersectionsSurAxe(Point2D origine_axe, Point2D direction_axe, double z_depart, boolean sens_z_croissants, Double z_inter_prec) {
-
-        ArrayList<Double> resultat = new ArrayList<>(1) ;
-
-        Double z_int = abscisseIntersectionSuivanteSurAxe(origine_axe,direction_axe,z_depart,sens_z_croissants,z_inter_prec) ;
-
-        if (z_int==null)
-            return resultat ;
-
-        resultat.add(z_int) ;
+        resultat.add(d_z_origine) ;
 
         return resultat ;
+
     }
 
-//    public DoubleProperty yOrigineProperty() { return y_origine ;}
-
-//    public DoubleProperty orientationProperty() { return orientation ;}
 
     public Point2D origine() {return position_orientation.get().position(); }
     public double xOrigine() { return position_orientation.get().position().getX(); }
@@ -159,7 +123,6 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
     // Direction de la frontière du demi-plan
     public Point2D direction() {
 
-//        double ori_rad = Math.toRadians(orientation.doubleValue()) ;
         double ori_rad = Math.toRadians(orientation()) ;
         Point2D p_norm = new Point2D(Math.cos(ori_rad),Math.sin(ori_rad)) ;
 
@@ -182,10 +145,7 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
     @Override
     public void translater(Point2D vecteur) {
         position_orientation.set(new PositionEtOrientation(origine().add(vecteur),orientation()));
-//        x_origine.set(vecteur.getX()+x_origine.get()) ;
-//        y_origine.set(vecteur.getY()+y_origine.get()) ;
     }
-
 
     @Override
     public boolean contient(Point2D p) {
@@ -248,7 +208,6 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
 
     @Override
     public Point2D cherche_intersection(Rayon r, ModeRecherche mode) {
-//    public Point2D premiere_intersection(Rayon r) {
 
         if (aSurSaSurface(r.depart()))
             return null ;
@@ -459,9 +418,6 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
         imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
 
         position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        x_origine.addListener((observable, oldValue, newValue) -> {rap.rappel(); });
-//        y_origine.addListener((observable, oldValue, newValue) -> {rap.rappel(); });
-//        orientation.addListener((observable, oldValue, newValue) -> {rap.rappel(); });
     }
 
     @Override
@@ -471,9 +427,6 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
         imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
         position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        x_origine.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        y_origine.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
     }
 
     @Override
@@ -517,11 +470,6 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
         Rotate r = new Rotate(angle_rot_deg,centre_rot.getX(),centre_rot.getY()) ;
 
         Point2D nouvelle_origine = r.transform(origine()) ;
-
-//        x_origine.set(nouvelle_origine.getX());
-//        y_origine.set(nouvelle_origine.getY());
-//
-//        orientation.set(orientation.get()+angle_rot_deg);
 
         position_orientation.set(new PositionEtOrientation(nouvelle_origine,orientation()+angle_rot_deg));
     }

@@ -9,7 +9,6 @@ import javafx.geometry.Point2D;
  */
 public class DemiDroiteOuSegment {
 
-
     public static DemiDroiteOuSegment construireSegment(double xdep, double ydep, double xarr, double yarr) {
         DemiDroiteOuSegment s = new DemiDroiteOuSegment() ;
         s.definirDepartEtArrivee(new Point2D(xdep,ydep),new Point2D(xarr,yarr));

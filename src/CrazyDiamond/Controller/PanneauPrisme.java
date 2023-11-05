@@ -103,7 +103,7 @@ public class PanneauPrisme {
 
         prisme.positionEtOrientationObjectProperty().addListener(new ChangeListenerAvecGarde<PositionEtOrientation>(this::prendreEnComptePositionEtOrientation));
 
-//        prisme.positionEtOrientationObjectProperty().addListener(new ChangeListener<PositionEtOrientation>() {
+//        prisme.axeObjectProperty().addListener(new ChangeListener<PositionEtOrientation>() {
 //            private boolean changement_en_cours = false ;
 //            @Override
 //            public void changed(ObservableValue<? extends PositionEtOrientation> observableValue, PositionEtOrientation old_value, PositionEtOrientation new_value) {
