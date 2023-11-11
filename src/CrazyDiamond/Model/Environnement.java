@@ -171,8 +171,6 @@ public class Environnement {
             itsoc.next().accepte(v);
 
         v.apresVisiteSystemesOptiquesCentres();
-
-
     }
 
     public void ajouterListenerListeSources(ListChangeListener<Source> lcl_s) {
@@ -521,10 +519,7 @@ public class Environnement {
         return null ;
     }
 
-
-
-
-        public static boolean quasiEgal(double a, double b) {
+    public static boolean quasiEgal(double a, double b) {
         if ( Math.abs(a-b)<=Environnement.resolution )
             return true ;
 
@@ -569,7 +564,6 @@ public class Environnement {
     public static boolean quasiConfondus(Point2D a, Point2D b) {
         return ( quasiEgal(a.getX(),b.getX()) && quasiEgal(a.getY(),b.getY()) ) ;
     }
-
 
     public Obstacle obstacle(String obs_id) {
         for (Obstacle o : obstacles) {

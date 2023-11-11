@@ -1441,7 +1441,6 @@ public class PanneauPrincipal {
 
     public void traiterGlisserSourisCanvas(MouseEvent mouseEvent) {
 
-
         glisser_en_cours = true ;
 
         canvas_affichage_environnement.getScene().setCursor(Cursor.MOVE);
@@ -1468,7 +1467,6 @@ public class PanneauPrincipal {
                 ob_select.translater(vec_dir.multiply(vec_dir.dotProduct(v_glisser_g)));
             }
 
-
 //            canvas_affichage_environnement.obstacleSelectionne().translater(v_glisser_g);
 //            canvas_affichage_environnement.deselectionneObstacle();
         } else if (modeCourant() == selection && canvas_affichage_environnement.sourceSelectionnee() != null) {
@@ -1476,12 +1474,7 @@ public class PanneauPrincipal {
         } else if (modeCourant() == selection && canvas_affichage_environnement.systemeOptiqueCentreSelectionne() != null) {
             canvas_affichage_environnement.systemeOptiqueCentreSelectionne().translater(v_glisser_g);
         } else {
-            double nouveau_xmin = canvas_affichage_environnement.xmin() - v_glisser_g.getX() ;
-            double nouveau_ymin = canvas_affichage_environnement.ymin() - v_glisser_g.getY() ;
-            double nouveau_xmax = canvas_affichage_environnement.xmax() - v_glisser_g.getX() ;
-            double nouveau_ymax = canvas_affichage_environnement.ymax() - v_glisser_g.getY() ;
-
-            canvas_affichage_environnement.definirLimites(nouveau_xmin,nouveau_ymin,nouveau_xmax,nouveau_ymax);
+            canvas_affichage_environnement.translaterLimites(v_glisser_g.getX(),v_glisser_g.getY());
         }
 
         canvas_affichage_environnement.rafraichirDecor();
@@ -1541,7 +1534,7 @@ public class PanneauPrincipal {
             canvas_affichage_environnement.systemeOptiqueCentreSelectionne().translater(v_glisser_g);
         // Sinon, aucun élément n'était sélectionné : on était en train de déplacer la zone visible
         } else
-            canvas_affichage_environnement.definirLimites(canvas_affichage_environnement.xmin()-v_glisser_g.getX(), canvas_affichage_environnement.ymin()-v_glisser_g.getY(), canvas_affichage_environnement.xmax()-v_glisser_g.getX(), canvas_affichage_environnement.ymax()-v_glisser_g.getY());
+            canvas_affichage_environnement.translaterLimites(v_glisser_g.getX(),v_glisser_g.getY());
 
         canvas_affichage_environnement.rafraichirDecor();
     }

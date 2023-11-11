@@ -31,6 +31,10 @@ public class SystemeOptiqueCentre implements Nommable {
     // Liste des obstacles (obligatoirement des surfaces de révolution centrées sur l'axe du SOC)
     private final ListProperty<Obstacle> obstacles_centres ;
 
+    /**
+     * Matrice de transfert optique en optique paraxiale, entre les plans de référence d'abscisses z_plan_entree et
+     * z_plan_sortie Seules les 4 composantes xx,xy,yx et yy de la matrice sont significatives.
+     */
     private final ObjectProperty<Affine> matrice_transfert_es;
 
     private final BooleanProperty montrer_dioptres;
@@ -84,54 +88,43 @@ public class SystemeOptiqueCentre implements Nommable {
      */
     BooleanProperty sens_plus_en_sortie ;
 
+    private final SimpleObjectProperty<Double> z_plan_principal_1;
+    private final SimpleObjectProperty<Double> z_plan_principal_2;
+    private final SimpleObjectProperty<Double> z_plan_nodal_1;
+    private final SimpleObjectProperty<Double> z_plan_nodal_2;
+    private final SimpleObjectProperty<Double> z_plan_focal_1;
+    private final SimpleObjectProperty<Double> z_plan_focal_2;
 
-    /**
-     * Matrice de transfert optique en optique paraxiale, entre les plans de référence d'abscisses x_plan_entree et x_plan_sortie
-     * Seules les 4 composantes xx,xy,yx et yy de la matrice sont significatives.
-     */
-//    private Affine matrice_transfert  ;
+    private final SimpleObjectProperty<Double> z_objet ;
+    private final SimpleObjectProperty<Double> h_objet ;
+    private final SimpleObjectProperty<Double> z_image ;
+    private final SimpleObjectProperty<Double> h_image ;
 
-//    private SimpleObjectProperty<Double> vergence;
-//    private SimpleObjectProperty<Double> focale_objet;
-//    private SimpleObjectProperty<Double> focale_image;
-
-    private SimpleObjectProperty<Double> z_plan_principal_1;
-    private SimpleObjectProperty<Double> z_plan_principal_2;
-    private SimpleObjectProperty<Double> z_plan_nodal_1;
-    private SimpleObjectProperty<Double> z_plan_nodal_2;
-    private SimpleObjectProperty<Double> z_plan_focal_1;
-    private SimpleObjectProperty<Double> z_plan_focal_2;
-
-    private SimpleObjectProperty<Double>  z_objet ;
-    private SimpleObjectProperty<Double>  h_objet ;
-    private SimpleObjectProperty<Double>  z_image ;
-    private SimpleObjectProperty<Double>  h_image ;
-
-    private SimpleObjectProperty<Double> z_pupille_entree ;
-    private SimpleObjectProperty<Double> r_pupille_entree;
+    private final SimpleObjectProperty<Double> z_pupille_entree ;
+    private final SimpleObjectProperty<Double> r_pupille_entree;
 
     // Demi-angle sous lequel on voit la Pupille d'entrée depuis le plan objet (en degrés)
-    private SimpleObjectProperty<Double> angle_ouverture ;
+    private final SimpleObjectProperty<Double> angle_ouverture ;
 
-    private SimpleObjectProperty<Double> r_champ_moyen_objet;
-    private SimpleObjectProperty<Double> r_champ_pleine_lumiere_objet;
-    private SimpleObjectProperty<Double> r_champ_total_objet;
-    private SimpleObjectProperty<Double> r_champ_moyen_image;
-    private SimpleObjectProperty<Double> r_champ_pleine_lumiere_image;
-    private SimpleObjectProperty<Double> r_champ_total_image;
-    private SimpleObjectProperty<Double> angle_champ_moyen_objet ;
-    private SimpleObjectProperty<Double> angle_champ_pleine_lumiere_objet ;
-    private SimpleObjectProperty<Double> angle_champ_total_objet ;
-    private SimpleObjectProperty<Double> angle_champ_moyen_image ;
-    private SimpleObjectProperty<Double> angle_champ_pleine_lumiere_image ;
-    private SimpleObjectProperty<Double> angle_champ_total_image ;
-    private SimpleObjectProperty<Double> z_pupille_sortie ;
-    private SimpleObjectProperty<Double> r_pupille_sortie;
+    private final SimpleObjectProperty<Double> r_champ_moyen_objet;
+    private final SimpleObjectProperty<Double> r_champ_pleine_lumiere_objet;
+    private final SimpleObjectProperty<Double> r_champ_total_objet;
+    private final SimpleObjectProperty<Double> r_champ_moyen_image;
+    private final SimpleObjectProperty<Double> r_champ_pleine_lumiere_image;
+    private final SimpleObjectProperty<Double> r_champ_total_image;
+    private final SimpleObjectProperty<Double> angle_champ_moyen_objet ;
+    private final SimpleObjectProperty<Double> angle_champ_pleine_lumiere_objet ;
+    private final SimpleObjectProperty<Double> angle_champ_total_objet ;
+    private final SimpleObjectProperty<Double> angle_champ_moyen_image ;
+    private final SimpleObjectProperty<Double> angle_champ_pleine_lumiere_image ;
+    private final SimpleObjectProperty<Double> angle_champ_total_image ;
+    private final SimpleObjectProperty<Double> z_pupille_sortie ;
+    private final SimpleObjectProperty<Double> r_pupille_sortie;
 
-    private SimpleObjectProperty<Double> z_lucarne_entree ;
-    private SimpleObjectProperty<Double> r_lucarne_entree;
-    private SimpleObjectProperty<Double> z_lucarne_sortie ;
-    private SimpleObjectProperty<Double> r_lucarne_sortie;
+    private final SimpleObjectProperty<Double> z_lucarne_entree ;
+    private final SimpleObjectProperty<Double> r_lucarne_entree;
+    private final SimpleObjectProperty<Double> z_lucarne_sortie ;
+    private final SimpleObjectProperty<Double> r_lucarne_sortie;
 
     private boolean suspendre_calcul_elements_cardinaux = false;
 
@@ -160,13 +153,6 @@ public class SystemeOptiqueCentre implements Nommable {
         // Champs à la main de l'utilisateur :
         Double r_diaphragme;
         boolean ignorer;
-
-
-        public ModalitesTraverseeDioptre() {
-            this.r_diaphragme = null ;
-            this.ignorer = false ;
-
-        }
 
         /**
          * Construit les Modalités de traversée d'un dioptre par copie de certains attributs d'une intersection
@@ -288,7 +274,6 @@ public class SystemeOptiqueCentre implements Nommable {
         double b = nouvelle_matrice_transfert.getMxy();
         double c = nouvelle_matrice_transfert.getMyx();
         double d = nouvelle_matrice_transfert.getMyy();
-
 
         LOGGER.log(Level.FINE,"[ "+a+" "+b+" ]");
         LOGGER.log(Level.FINE,"[ "+c+" "+d+" ]");
@@ -1092,6 +1077,8 @@ public class SystemeOptiqueCentre implements Nommable {
                     d.indice_avant.set(indice_avant);
 
                 } else if (d.indiceAvant()==0 && d.indiceApres()==0) { // Obstacle de type segment (qui, pour rappel, ne peut faire partie d'une composition)
+                    d.indice_avant.set(DioptreParaxial.captureIndiceAvant(resultat,d));
+                    d.indice_apres.set(DioptreParaxial.captureIndiceApres(resultat,d));
                 } else { // Indice avant et indice après sont égaux et non-nuls ("faux dioptre" fusionné qui ne sert qu'à porter un R diaphragme)
                 }
             }
@@ -1177,8 +1164,6 @@ public class SystemeOptiqueCentre implements Nommable {
 //        this.n_sortie.bind(env.indiceRefractionProperty());
 
         this.axe = new SimpleObjectProperty<PositionEtOrientation>(new PositionEtOrientation(origine,orientation_deg)) ;
-//        this.x_origine = new SimpleDoubleProperty(origine.getX());
-//        this.y_origine = new SimpleDoubleProperty(origine.getY());
 
         this.axe.addListener((observable, oldValue, newValue) -> {
 

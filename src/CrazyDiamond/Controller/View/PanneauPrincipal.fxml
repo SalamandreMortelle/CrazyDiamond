@@ -47,7 +47,7 @@
               <HBox>
                   <ToolBar HBox.hgrow="ALWAYS">
                   <Button fx:id="nouveau" mnemonicParsing="false" onAction="#traiterNouvelEnvironnement" text="%nouveau" />
-                  <Button fx:id="charger" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" onAction="#traiterChargerEnvironnement" text="%charger" />
+                  <Button fx:id="charger" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" onAction="#traiterChargerEnvironnement" text="%ouvrir" />
                   <Button fx:id="sauvegarder" layoutX="70.0" layoutY="10.0" mnemonicParsing="false" onAction="#traiterSauvegarderEnvironnement" text="%sauvegarder" />
                   <Button fx:id="sauvegarder_sous" layoutX="70.0" layoutY="10.0" mnemonicParsing="false" onAction="#traiterSauvegarderEnvironnementSous" text="%sauvegarder_sous" />
                   <Separator layoutX="361.0" layoutY="10.0">

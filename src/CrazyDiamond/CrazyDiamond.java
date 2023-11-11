@@ -20,12 +20,8 @@ import java.util.logging.Level;
 
 public class CrazyDiamond extends Application {
 
-//    // Récupération d'un gestionnaire de logs
-//    private static final LogManager logManager = LogManager.getLogManager();
-
     // Récupération du logger
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
-
     private static final ResourceBundle rb = ResourceBundle.getBundle("CrazyDiamond",CrazyDiamond.class.getModule()) ;
 
     // Bloc statique pour configurer le gestionnaire de logs, avant toute création d'objet
@@ -34,11 +30,8 @@ public class CrazyDiamond extends Application {
                 LogManager.getLogManager().readConfiguration(is);
             } catch (IOException e) {
                 LOGGER.log(Level.SEVERE,"Impossible de charger le fichier logging.properties",e);
-//                e.printStackTrace();
             }
     }
-
-//    protected Parent root ;
 
     protected Environnement environnement_initial_a_charger;
 
@@ -98,7 +91,6 @@ public class CrazyDiamond extends Application {
         DependencyInjection.setBundle(rb);
 
         // Create factories
-//        Callable<?> controleurPanneauPrincipalFactory = () -> { return new PanneauPrincipal(environnement_initial_a_charger); };
         Callable<?> controleurPanneauPrincipalFactory = () -> new PanneauPrincipal(environnement_initial_a_charger);
 
         // Save the factory in the injector
