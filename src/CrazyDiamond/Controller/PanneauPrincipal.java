@@ -3,6 +3,8 @@ package CrazyDiamond.Controller;
 import CrazyDiamond.Model.*;
 import CrazyDiamond.Serializer.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.cfg.ContextAttributes;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import javafx.beans.value.ChangeListener;
@@ -20,7 +22,6 @@ import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
 import javafx.scene.layout.*;
-import javafx.scene.transform.Affine;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -44,6 +45,9 @@ public class PanneauPrincipal {
 
     static {
 
+        // Serializers
+        simpleModule.addSerializer(CanvasAffichageEnvironnement.class, new AffichageEnvironnementSerializer());
+
         simpleModule.addSerializer(Environnement.class, new EnvironnementSerializer());
 
         simpleModule.addSerializer(Imp_Identifiable.class, new Imp_IdentifiableSerializer());
@@ -61,6 +65,9 @@ public class PanneauPrincipal {
         simpleModule.addSerializer(Composition.class, new CompositionSerializer());
 
         simpleModule.addSerializer(Source.class, new SourceSerializer());
+
+        // Deserializers
+        simpleModule.addDeserializer(CanvasAffichageEnvironnement.class, new AffichageEnvironnementDeserializer()) ;
 
         simpleModule.addSerializer(SystemeOptiqueCentre.class, new SystemeOptiqueCentreSerializer());
 
@@ -84,6 +91,8 @@ public class PanneauPrincipal {
 
         simpleModule.addDeserializer(SystemeOptiqueCentre.class, new SystemeOptiqueCentreDeserializer());
 
+
+        // Enregistrement du module
         jsonMapper.registerModule(simpleModule);
 
         // only allow .crd files to be selected using chooser
@@ -99,9 +108,11 @@ public class PanneauPrincipal {
     public Label label_droit;
 
     private final Environnement environnement ;
-    private Environnement nouvel_environnement = null ;
+
+    private CanvasAffichageEnvironnement nouveau_canvas_affichage_environnement = null;
 
     CanvasAffichageEnvironnement canvas_affichage_environnement;
+
 
     // Récupération du logger
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
@@ -231,14 +242,16 @@ public class PanneauPrincipal {
 
     private boolean retaillage_selection_en_cours = false ;
 
-    public PanneauPrincipal(Environnement e) {
+
+    public PanneauPrincipal(CanvasAffichageEnvironnement cae) {
 
         LOGGER.log(Level.FINE,"Construction du PanneauPrincipal") ;
 
-        if (e==null)
-            throw new IllegalArgumentException("L'objet environnement attaché au PanneauPrincipal ne peut pas être 'null'") ;
+        if (cae==null)
+            throw new IllegalArgumentException("L'objet affichage environnement attaché au PanneauPrincipal ne peut pas être 'null'") ;
 
-        environnement = e ;
+        canvas_affichage_environnement = cae ;
+        environnement = cae.environnement() ;
 
         menuContextuelSources = new ContextMenu() ;
         MenuItem deleteItemSource = new MenuItem(rb.getString("supprimer.source"));
@@ -262,7 +275,8 @@ public class PanneauPrincipal {
 
         setUpDependecyInjector();
 
-        canvas_affichage_environnement = new CanvasAffichageEnvironnement(environnement) ;
+//        if (nouvel_environnement == null)
+//            canvas_affichage_environnement = new CanvasAffichageEnvironnement(environnement) ;
 
         try {
             panneau_parametres_affichage_environnement = DependencyInjection.load("View/PanneauParametresAffichageEnvironnement.fxml");
@@ -288,6 +302,9 @@ public class PanneauPrincipal {
         canvas_affichage_environnement.initialize();
 
         StackPane stack_racine = new StackPane(canvas_affichage_environnement, canvas_affichage_environnement.texte_commentaire) ;
+        stack_racine.setMinWidth(0);  // Permet au StackPane de se réduire autant que possible, ce qui évite que ce soit
+        stack_racine.setMinHeight(0); //  les panneaux latéraux qui rétrecissent quand on réduit la largeur de la fenêtre.
+
         canvas_affichage_environnement.texte_commentaire.wrappingWidthProperty().bind(canvas_affichage_environnement.widthProperty());
 
         StackPane.setAlignment(canvas_affichage_environnement.texte_commentaire, Pos.BOTTOM_CENTER);
@@ -803,80 +820,56 @@ public class PanneauPrincipal {
         DependencyInjection.removeInjectionMethod(PanneauPrincipal.class);
 
         // Create factory
-        Callable<?> controleurPanneauPrincipalFactory = () -> { return new PanneauPrincipal(nouvel_environnement); };
+        Callable<?> controleurPanneauPrincipalFactory = () -> new PanneauPrincipal(nouveau_canvas_affichage_environnement);
 
         // Save the factory in the injector
         DependencyInjection.addInjectionMethod(PanneauPrincipal.class, controleurPanneauPrincipalFactory);
 
 
         //create factory
-        Callable<?> controleurPanneauSourceFactory = () -> {
-
-            return new PanneauSource(source_en_attente_de_panneau , canvas_affichage_environnement) ;
-        };
+        Callable<?> controleurPanneauSourceFactory = () -> new PanneauSource(source_en_attente_de_panneau , canvas_affichage_environnement);
 
         //save the factory in the injector
         DependencyInjection.addInjectionMethod(PanneauSource.class, controleurPanneauSourceFactory) ;
 
-        Callable<?> controleurPanneauParametresAffichageEnvironnementFactory = () -> {
-
-            return new PanneauParametresAffichageEnvironnement(canvas_affichage_environnement) ;
-        };
+        Callable<?> controleurPanneauParametresAffichageEnvironnementFactory = () -> new PanneauParametresAffichageEnvironnement(canvas_affichage_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauParametresAffichageEnvironnement.class, controleurPanneauParametresAffichageEnvironnementFactory) ;
 
 
-        Callable<?> controleurPanneauDemiPlanFactory = () -> {
-            return new PanneauDemiPlan((DemiPlan)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement) ;
-        };
+        Callable<?> controleurPanneauDemiPlanFactory = () -> new PanneauDemiPlan((DemiPlan)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauDemiPlan.class, controleurPanneauDemiPlanFactory) ;
 
-        Callable<?> controleurPanneauSegmentFactory = () -> {
-            return new PanneauSegment((Segment)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement) ;
-        };
+        Callable<?> controleurPanneauSegmentFactory = () -> new PanneauSegment((Segment)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauSegment.class, controleurPanneauSegmentFactory) ;
 
-        Callable<?> controleurPanneauPrismeFactory = () -> {
-            return new PanneauPrisme((Prisme)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement) ;
-        };
+        Callable<?> controleurPanneauPrismeFactory = () -> new PanneauPrisme((Prisme)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauPrisme.class, controleurPanneauPrismeFactory) ;
 
-        Callable<?> controleurPanneauRectangleFactory = () -> {
-            return new PanneauRectangle((Rectangle)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement) ;
-        };
+        Callable<?> controleurPanneauRectangleFactory = () -> new PanneauRectangle((Rectangle)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauRectangle.class, controleurPanneauRectangleFactory) ;
 
-        Callable<?> controleurPanneauCercleFactory = () -> {
-            return new PanneauCercle((Cercle)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement) ;
-        };
+        Callable<?> controleurPanneauCercleFactory = () -> new PanneauCercle((Cercle)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauCercle.class, controleurPanneauCercleFactory) ;
 
-        Callable<?> controleurPanneauConiqueFactory = () -> {
-            return new PanneauConique((Conique)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement) ;
-        };
+        Callable<?> controleurPanneauConiqueFactory = () -> new PanneauConique((Conique)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauConique.class, controleurPanneauConiqueFactory) ;
 
-        Callable<?> controleurPanneauCompositionFactory = () -> {
-            return new PanneauComposition((Composition) obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement) ;
-        };
+        Callable<?> controleurPanneauCompositionFactory = () -> new PanneauComposition((Composition) obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauComposition.class, controleurPanneauCompositionFactory) ;
 
-        Callable<?> controleurPanneauSystemeOptiqueCentre = () -> {
-            return new PanneauSystemeOptiqueCentre((SystemeOptiqueCentre) soc_en_attente_de_panneau,canvas_affichage_environnement) ;
-        };
+        Callable<?> controleurPanneauSystemeOptiqueCentre = () -> new PanneauSystemeOptiqueCentre((SystemeOptiqueCentre) soc_en_attente_de_panneau,canvas_affichage_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauSystemeOptiqueCentre.class, controleurPanneauSystemeOptiqueCentre) ;
 
-        Callable<?> controleurPanneauAnalyseParaxialeSystemeOptiqueCentre = () -> {
-            return new PanneauAnalyseParaxialeSystemeOptiqueCentre((SystemeOptiqueCentre) soc_en_attente_de_panneau,canvas_affichage_environnement) ;
-        };
+        Callable<?> controleurPanneauAnalyseParaxialeSystemeOptiqueCentre = () -> new PanneauAnalyseParaxialeSystemeOptiqueCentre((SystemeOptiqueCentre) soc_en_attente_de_panneau,canvas_affichage_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauAnalyseParaxialeSystemeOptiqueCentre.class, controleurPanneauAnalyseParaxialeSystemeOptiqueCentre) ;
 
@@ -1117,7 +1110,7 @@ public class PanneauPrincipal {
     protected void integrerSourceDansVue(Source s) {
 
         // Rafraichissement automatique de la liste des sources quand le nom de la source change
-        ChangeListener<String> listenerNom = (obs, oldName, newName) -> { listview_sources.refresh(); };
+        ChangeListener<String> listenerNom = (obs, oldName, newName) -> listview_sources.refresh();
         s.nomProperty().addListener(listenerNom);
 
         Parent panneau_source_courante = null ;
@@ -1143,7 +1136,7 @@ public class PanneauPrincipal {
     protected void integrerSystemeOptiqueCentreDansVue(SystemeOptiqueCentre s) {
 
         // Rafraichissement automatique de la liste des socs quand le nom du SOC change
-        ChangeListener<String> listenerNom = (obs, oldName, newName) -> { listview_socs.refresh(); };
+        ChangeListener<String> listenerNom = (obs, oldName, newName) -> listview_socs.refresh();
         s.nomProperty().addListener(listenerNom);
 
         Parent panneau_droit_soc_courant = null ;
@@ -1248,14 +1241,9 @@ public class PanneauPrincipal {
 
     protected void integrerObstacleDansVue(Obstacle o, TreeItem<Obstacle> parent) {
 
-        if (parent==treeview_obstacles.getRoot())
-            creerPanneauSimplePourObstacle(o,false) ;
-        else
-            creerPanneauSimplePourObstacle(o,true) ;
-
+        creerPanneauSimplePourObstacle(o, parent != treeview_obstacles.getRoot()) ;
 
         TreeItem<Obstacle> tio = ajouterObstacleDansArbre(parent,o);
-
 
         if (o.getClass()==Composition.class) {
              ObservableList<Obstacle> obstacles = ((Composition) o).elements() ;
@@ -1301,16 +1289,14 @@ public class PanneauPrincipal {
 //        String coord = String.format("(X : %.4f , Y : %.4f)",pos_souris.getX(),pos_souris.getY()) ;
 //        label_droit.setText(coord);
 
-        StringBuilder sb = new StringBuilder("(X : ") ;
-        sb.append(canvas_affichage_environnement.convertisseurAffichageDistance().toString(pos_souris.getX())) ;
-        sb.append(" , Y : ") ;
-        sb.append(canvas_affichage_environnement.convertisseurAffichageDistance().toString(pos_souris.getY())) ;
-        sb.append(")");
+        String sb = "(X : " + canvas_affichage_environnement.convertisseurAffichageDistance().toString(pos_souris.getX()) +
+                " , Y : " + canvas_affichage_environnement.convertisseurAffichageDistance().toString(pos_souris.getY()) +
+                ")";
 
-        label_droit.setText(sb.toString());
+        label_droit.setText(sb);
 
         Obstacle obs = canvas_affichage_environnement.obstacle_pointe_en(pos_souris) ;
-        Source src = null ;
+        Source src;
 
         if (obs!=null) {
             label_gauche.setText(obs.nom() + " (" + obs.natureMilieu().toString().toLowerCase() + (obs.natureMilieu() == NatureMilieu.TRANSPARENT ? " n=" + obs.indiceRefraction()+")":")"));
@@ -1618,7 +1604,8 @@ public class PanneauPrincipal {
 
     public void traiterNouvelEnvironnement(ActionEvent actionEvent) {
 
-        nouvel_environnement = new Environnement() ;
+        nouveau_canvas_affichage_environnement = new CanvasAffichageEnvironnement(new Environnement()) ;
+//        nouvel_environnement = new Environnement() ;
 
         Parent nouvelle_racine = null ;
 
@@ -1655,26 +1642,48 @@ public class PanneauPrincipal {
         try {
             // Remplacement de l'environnement courant par celui que l'on charge (on n'aura donc plus de référence à l'ancien
             // environnement, ce qui permettra au GarbageCollector de libérer la mémoire qu'il occupait)
-            nouvel_environnement = jsonMapper.readValue(fichier_a_charger,Environnement.class) ;
+//            nouvel_environnement = jsonMapper.readValue(fichier_a_charger,Environnement.class) ;
+
+
+//            Map<String, Double> map = new HashMap<>(2) ;
+//            map.put("largeur_graphique",canvas_affichage_environnement.largeurGraphique()) ;
+//            map.put("hauteur_graphique",canvas_affichage_environnement.hauteurGraphique()) ;
+            ContextAttributes ca = ContextAttributes.getEmpty() ;
+            ca = ca.withSharedAttribute("largeur_graphique", canvas_affichage_environnement.largeurGraphique()) ;
+            ca = ca.withSharedAttribute("hauteur_graphique", canvas_affichage_environnement.hauteurGraphique()) ;
+
+//            jsonMapper.setDefaultAttributes(ca) ;
+
+            ObjectReader or = jsonMapper.readerFor(CanvasAffichageEnvironnement.class).with(ca) ;
+
+            // Préparation du nouveau canvas qui va remplacer l'actuel (le jsonMapper l'a déjà associé au nouvel Environnement chargé)
+            nouveau_canvas_affichage_environnement = or.readValue(fichier_a_charger,CanvasAffichageEnvironnement.class) ;
+
+//            // Recalage sur les dimensions graphiques actuelles
+//            nouveau_canvas_affichage_environnement.definirDimensionsGraphiques(canvas_affichage_environnement.largeurGraphique(),
+//                                                                                canvas_affichage_environnement.hauteurGraphique());
+
+
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE,"Exception lors du chargement du fichier : ",e) ;
 
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setHeaderText("Impossible de charger l'environnement");
+            alert.setHeaderText("Impossible de charger l'environnement ou l'affichage associé");
             alert.setContentText(e.getMessage()+System.lineSeparator()+"in :"+System.lineSeparator()+e.getStackTrace()[0].toString());
             alert.showAndWait();
 
         }
 
         // Si on n'a pas pu construire un nouvel environnement, il n'y a rien d'autre à faire
-        if (nouvel_environnement==null)
+        if (nouveau_canvas_affichage_environnement==null)
             return;
 
         Parent nouvelle_racine = null ;
 
         try {
 
-            // Cette injection va récupérer le nouvel environnement depuis l'attribut nouvel_environnement du PanneauPrincipal actuel
+            // Cette injection va récupérer le nouvel environnement et le nouveau canvas affichage depuis l'attribut
+            // nouveau_canvas_affichage_environnement du PanneauPrincipal actuel
             nouvelle_racine = DependencyInjection.load("View/PanneauPrincipal.fxml");
 
             LOGGER.log(Level.FINE,"Panneau principal créé");
@@ -1742,16 +1751,16 @@ public class PanneauPrincipal {
         String json = null ;
 
         try {
-
-            json = jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(environnement);
-
+//            json.append(jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(environnement));
+            json = jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(canvas_affichage_environnement);
         } catch (JsonProcessingException e) {
-            LOGGER.log(Level.SEVERE,"Exception lors de la sérialisation en JSON de l'Environnement : ",e);
+            LOGGER.log(Level.SEVERE,"Exception lors de la sérialisation en JSON de l'Environnement ou des propriétés d'afffichage associées : ",e);
 
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setHeaderText("Impossible de sauvegarder l'environnement");
             alert.setContentText(e.getMessage()+System.lineSeparator()+e.getCause());
             alert.showAndWait();
+            return ;
         }
 
 //        System.out.println(json);
@@ -1768,6 +1777,7 @@ public class PanneauPrincipal {
             alert.setHeaderText("Impossible de sauvegarder l'environnement");
             alert.setContentText(e.getMessage()+System.lineSeparator()+e.getCause());
             alert.showAndWait();
+            return ;
         }
 
         try {
@@ -1787,6 +1797,5 @@ public class PanneauPrincipal {
         s.setTitle( ((File)s.getUserData()).getName() );
 
     }
-
 
 }

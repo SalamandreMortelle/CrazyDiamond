@@ -20,14 +20,7 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
         super(vc);
     }
 
-    /**
-     * @param jsonParser
-     * @param deserializationContext
-     * @return
-     * @throws IOException
-     * @throws JacksonException
-     */
-    @Override
+      @Override
     public Environnement deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JacksonException {
         final ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
         final JsonNode env_node = mapper.readTree(jsonParser);
@@ -57,13 +50,13 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
                 JsonNode obs_node = liste_obs_node.get(i) ;
 
                 switch (obs_node.get("@type").asText()) {
-                    case "Cercle" -> { e.ajouterObstacle(mapper.treeToValue(obs_node, Cercle.class)); }
-                    case "Conique" -> { e.ajouterObstacle(mapper.treeToValue(obs_node, Conique.class)); }
-                    case "DemiPlan" -> { e.ajouterObstacle(mapper.treeToValue(obs_node, DemiPlan.class)); }
-                    case "Prisme" -> { e.ajouterObstacle(mapper.treeToValue(obs_node, Prisme.class)); }
-                    case "Rectangle" -> { e.ajouterObstacle(mapper.treeToValue(obs_node, Rectangle.class)); }
-                    case "Segment" -> { e.ajouterObstacle(mapper.treeToValue(obs_node, Segment.class)); }
-                    case "Composition" -> { e.ajouterObstacle(mapper.treeToValue(obs_node, Composition.class)); }
+                    case "Cercle" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Cercle.class));
+                    case "Conique" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Conique.class));
+                    case "DemiPlan" -> e.ajouterObstacle(mapper.treeToValue(obs_node, DemiPlan.class));
+                    case "Prisme" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Prisme.class));
+                    case "Rectangle" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Rectangle.class));
+                    case "Segment" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Segment.class));
+                    case "Composition" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Composition.class));
                 }
 
             }
@@ -90,7 +83,6 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
             }
 
         }
-
 
         return e;
 

@@ -17,8 +17,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Affine;
-import javafx.scene.transform.NonInvertibleTransformException;
-import javafx.scene.transform.Transform;
 import javafx.stage.Screen;
 
 import java.util.Collection;
@@ -27,11 +25,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 // Cette classe est à la fois la Vue et le Controleur qui permet d'afficher un Environnement dans un Canvas JavaFX
-// redimensionnable et dynamique lié (via des Bindings) à tous les objets (sources+obstacles) de l'Environnement.
+// redimensionnable et dynamique lié (via des Bindings) à tous les objets (sources+obstacles+socs) de l'Environnement.
 public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
     // Modèle
-    protected final Environnement environnement;
+    protected Environnement environnement;
     protected Obstacle obstacle_selectionne = null ;
     public Source source_selectionnee = null ;
     protected SystemeOptiqueCentre soc_selectionne = null ;
@@ -99,8 +97,13 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     }
 
     public boolean normalesVisibles() { return normales_visibles.get() ;  }
+    public void definirNormalesVisibles(boolean b) { normales_visibles.set(b) ;  }
     public boolean prolongementsAvantVisibles() { return prolongements_avant_visibles.get() ;  }
+    public void definirProlongementsAvantVisibles(boolean b) { prolongements_avant_visibles.set(b) ;  }
     public boolean prolongementsArriereVisibles() { return prolongements_arriere_visibles.get() ;  }
+    public void definirProlongementsArriereVisibles(boolean b) { prolongements_arriere_visibles.set(b) ;  }
+    public boolean commentaireVisible() { return commentaire_visible.get() ;  }
+    public void definirCommentaireVisible(boolean b) { commentaire_visible.set(b) ;  }
 
     public SystemeOptiqueCentre soc_pointe_en(Point2D pt_g) {
         if (poignee_soc_pointee_en(pt_g))
@@ -540,9 +543,14 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         if ( (xmin>xmax) || (ymin>ymax) )
             throw new IllegalArgumentException("xmax de la zone à afficher doit être plus grand que xmin. Idem pour ymax et ymin.") ;
 
+        // Recalage de y_min et y_max pour préserver le ratio d'aspect tout en maintenant l'ordonnée (y_min+y_max)/2
+        // pour le milieu de la vue
+        double nouv_ymin = ((ymax+ymin)-(xmax-xmin)* hauteur_graphique/largeur_graphique)*0.5d ;
+        double nouv_ymax = ((ymax+ymin)+(xmax-xmin)* hauteur_graphique/largeur_graphique)*0.5d ;
+
         // Resolution = dimensions d'un pixel graphique en coordonnées géométriques de l'Environnement
         double nouvelle_resolution_x = (xmax-xmin) / largeur_graphique ;
-        double nouvelle_resolution_y = (ymax-ymin) / hauteur_graphique ;
+        double nouvelle_resolution_y = (nouv_ymax-nouv_ymin) / hauteur_graphique ;
         double nouvelle_resolution = Math.min(nouvelle_resolution_x,nouvelle_resolution_y) ;
 
         double resolution_minimale_autorisee = 1E-4;
@@ -553,8 +561,10 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         if (nouvelle_resolution> resolution_maximale_autorisee)
             throw new IllegalArgumentException("La zone à afficher est trop grande (exposant max d'une coordonnée dans un javafx.scene.canvas.GraphicsContext est limitée à celui d'un float soit environ 1E38)") ;
 
+
         // Tous les contrôles de paramètres ont été faits : on peut modifier les propriétés du Canvas
-        boite_limites = new BoiteLimiteGeometrique(xmin,ymin,xmax-xmin,ymax-ymin) ;
+        boite_limites = new BoiteLimiteGeometrique(xmin,nouv_ymin,xmax-xmin,nouv_ymax-nouv_ymin) ;
+//        boite_limites = new BoiteLimiteGeometrique(xmin,ymin,xmax-xmin,ymax-ymin) ;
 
         resolution_x = nouvelle_resolution_x ;
         resolution_y = nouvelle_resolution_y ;
@@ -565,9 +575,12 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
         // Définition de la transformation affine qui permet de passer des coordonnées géométriques aux coordonnées sur
         // l'écran, en préservant le ratio largeur_graphique/hauteur_graphique
-        Affine nouvelle_transform = new Affine() ;
-        nouvelle_transform.appendTranslation(-xmin * largeur_graphique / (xmax - xmin), hauteur_graphique + ymin * hauteur_graphique / (ymax - ymin)); ;
-        nouvelle_transform.appendScale(largeur_graphique / (xmax - xmin), -hauteur_graphique / (ymax - ymin));
+        Affine nouvelle_transform = new Affine(largeur_graphique/(xmax-xmin)    ,0,-largeur_graphique*xmin/(xmax-xmin),
+                                               0,-hauteur_graphique/(nouv_ymax-nouv_ymin),hauteur_graphique*nouv_ymax/(nouv_ymax-nouv_ymin) ) ;
+//        nouvelle_transform.appendTranslation(-xmin * largeur_graphique / (xmax - xmin), hauteur_graphique + nouv_ymin * hauteur_graphique / (nouv_ymax - nouv_ymin)); ;
+//        nouvelle_transform.appendTranslation(-xmin * largeur_graphique / (xmax - xmin), hauteur_graphique + ymin * hauteur_graphique / (ymax - ymin)); ;
+//        nouvelle_transform.appendScale(largeur_graphique / (xmax - xmin), -hauteur_graphique / (nouv_ymax - nouv_ymin));
+//        nouvelle_transform.appendScale(largeur_graphique / (xmax - xmin), -hauteur_graphique / (ymax - ymin));
 
         gc.setTransform(nouvelle_transform);
 
@@ -604,11 +617,13 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         definirLimites(b_limites.getMinX(),b_limites.getMinY(),b_limites.getMaxX(),b_limites.getMaxY());
     }
 
+    public void definirDimensionsGraphiques(double larg_g, double haut_g) {
+        largeur_graphique = larg_g;
+        hauteur_graphique = haut_g;
+    }
 
     public void definirDimensionsGraphiquesEtLimites(double larg_g, double haut_g, double xmin, double ymin, double xmax, double ymax) {
-        largeur_graphique = larg_g ;
-        hauteur_graphique = haut_g ;
-
+        definirDimensionsGraphiques(larg_g,haut_g);
         definirLimites(xmin, ymin, xmax, ymax);
     }
 
@@ -1006,4 +1021,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         return environnement.derniere_source_tres_proche(pt_g, tolerance_pointage());
     }
 
+    public void definirEnvironnement(Environnement nouvel_environnement) {
+        environnement = nouvel_environnement ;
+    }
 }

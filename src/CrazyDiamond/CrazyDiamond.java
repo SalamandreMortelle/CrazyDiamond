@@ -1,5 +1,6 @@
 package CrazyDiamond;
 
+import CrazyDiamond.Controller.CanvasAffichageEnvironnement;
 import CrazyDiamond.Controller.DependencyInjection;
 import CrazyDiamond.Controller.PanneauPrincipal;
 import CrazyDiamond.Model.Environnement;
@@ -33,7 +34,7 @@ public class CrazyDiamond extends Application {
             }
     }
 
-    protected Environnement environnement_initial_a_charger;
+    protected CanvasAffichageEnvironnement affichage_environnement_initial_a_charger;
 
     @Override
     public void start(Stage primaryStage) /*throws Exception*/ {
@@ -43,7 +44,7 @@ public class CrazyDiamond extends Application {
         this.setUpDependecyInjector();
 
         // Création d'un environnement vide
-        environnement_initial_a_charger = new Environnement();
+        affichage_environnement_initial_a_charger = new CanvasAffichageEnvironnement(new Environnement());
 
         Parent root = null ;
 
@@ -58,7 +59,7 @@ public class CrazyDiamond extends Application {
         // Ne pas garder une référence de l'environnement initial, car il est possible qu'un autre environnement soit
         // ultérieurement chargé par l'utilisateur (et passé en paramètre du constructeur d'un nouveau PanneauPrincipal).
         // Ainsi, la mémoire allouée à cet environnement initial, devenue inaccessible sera libérée par le GarbageCollector.
-        environnement_initial_a_charger = null ;
+        affichage_environnement_initial_a_charger = null ;
 
         primaryStage.setTitle(rb.getString("nom_application"));
 //        primaryStage.setTitle("Crazy Diamond");
@@ -91,7 +92,7 @@ public class CrazyDiamond extends Application {
         DependencyInjection.setBundle(rb);
 
         // Create factories
-        Callable<?> controleurPanneauPrincipalFactory = () -> new PanneauPrincipal(environnement_initial_a_charger);
+        Callable<?> controleurPanneauPrincipalFactory = () -> new PanneauPrincipal(affichage_environnement_initial_a_charger);
 
         // Save the factory in the injector
         DependencyInjection.addInjectionMethod(PanneauPrincipal.class, controleurPanneauPrincipalFactory);
