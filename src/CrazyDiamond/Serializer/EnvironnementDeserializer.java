@@ -1,7 +1,6 @@
 package CrazyDiamond.Serializer;
 
 import CrazyDiamond.Model.*;
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -21,23 +20,39 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
     }
 
       @Override
-    public Environnement deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JacksonException {
-        final ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
-        final JsonNode env_node = mapper.readTree(jsonParser);
+    public Environnement deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
+          final ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
+          final JsonNode node = mapper.readTree(jsonParser);
+          JsonNode env_node;
 
-        String str_couleur_fond = env_node.get("couleur_fond").asText() ;
-        boolean reflexion_avec_refraction = env_node.get("reflexion_avec_refraction").asBoolean() ;
+          Environnement env_hote = (Environnement) deserializationContext.getAttribute("environnement_hote") ;
 
-        String str_commentaire = null;
-        if (env_node.has("commentaire"))
-            str_commentaire = env_node.get("commentaire").asText() ;
+          Environnement e;
 
-        Environnement e = new Environnement(Color.valueOf(str_couleur_fond),reflexion_avec_refraction) ;
+          if (env_hote == null) {
+              env_node = node ;
+              String str_couleur_fond = env_node.get("couleur_fond").asText();
+              boolean reflexion_avec_refraction = env_node.get("reflexion_avec_refraction").asBoolean();
 
-        if (str_commentaire!=null)
-            e.definirCommentaire(str_commentaire);
+              String str_commentaire = null;
+              if (env_node.has("commentaire"))
+                  str_commentaire = env_node.get("commentaire").asText();
 
-//        deserializationContext.setAttribute("environnement",e) ;
+              e = new Environnement(Color.valueOf(str_couleur_fond), reflexion_avec_refraction);
+
+              if (str_commentaire != null)
+                  e.definirCommentaire(str_commentaire);
+          } else { // Importation des éléments
+
+              if (node.has("environnement"))
+                  // Descendre au niveau du sous-objet environnement
+                  env_node = node.get("environnement") ;
+              else // Si jamais on importe un fichier dont l'élément racine est directement un environnement (et pas
+                   // un AffichageEnvironnement)
+                  env_node = node ;
+
+              e = env_hote ;
+          }
 
         if (env_node.has("obstacles")) {
 

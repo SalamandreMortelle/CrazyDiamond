@@ -20,90 +20,97 @@
 
 <BorderPane fx:id="racine" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CrazyDiamond.Controller.PanneauPrincipal">
     <top>
-      <VBox>
-         <BorderPane.margin>
-            <Insets />
-         </BorderPane.margin>
-         <children>
-<!--            <MenuBar>-->
-<!--              <menus>-->
-<!--                <Menu mnemonicParsing="false" text="File">-->
-<!--                  <items>-->
-<!--                    <MenuItem mnemonicParsing="false" text="Close" />-->
-<!--                  </items>-->
-<!--                </Menu>-->
-<!--                <Menu mnemonicParsing="false" text="Edit">-->
-<!--                  <items>-->
-<!--                    <MenuItem mnemonicParsing="false" text="Delete" />-->
-<!--                  </items>-->
-<!--                </Menu>-->
-<!--                <Menu mnemonicParsing="false" text="Help">-->
-<!--                  <items>-->
-<!--                    <MenuItem mnemonicParsing="false" text="About" />-->
-<!--                  </items>-->
-<!--                </Menu>-->
-<!--              </menus>-->
-<!--            </MenuBar>-->
-              <HBox>
-                  <ToolBar HBox.hgrow="ALWAYS">
-                  <Button fx:id="nouveau" mnemonicParsing="false" onAction="#traiterNouvelEnvironnement" text="%nouveau" />
-                  <Button fx:id="charger" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" onAction="#traiterChargerEnvironnement" text="%ouvrir" />
-                  <Button fx:id="sauvegarder" layoutX="70.0" layoutY="10.0" mnemonicParsing="false" onAction="#traiterSauvegarderEnvironnement" text="%sauvegarder" />
-                  <Button fx:id="sauvegarder_sous" layoutX="70.0" layoutY="10.0" mnemonicParsing="false" onAction="#traiterSauvegarderEnvironnementSous" text="%sauvegarder_sous" />
-                  <Separator layoutX="361.0" layoutY="10.0">
-                     <padding>
-                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                     </padding>
-                  </Separator>
-                  <ToggleButton fx:id="selection" mnemonicParsing="false" selected="true" text="%selectionner">
-                     <toggleGroup>
-                               <ToggleGroup fx:id="choix_mode" />
-                     </toggleGroup>
-                  </ToggleButton>
-                  <Separator>
-                     <padding>
-                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                     </padding>
-                  </Separator>
-      <!--                 <ToggleButton fx:id="ajout_source" text="%ajouter.source" toggleGroup="$choix_mode" />-->
-                       <ToggleButton fx:id="ajout_source" text="%ajouter.source" toggleGroup="$choix_mode" />
-                       <Separator>
-                      <padding>
-                          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                      </padding>
-                       </Separator>
-                       <ToggleButton fx:id="ajout_demi_plan" text="%ajouter.demiplan" toggleGroup="$choix_mode" />
-                       <ToggleButton fx:id="ajout_segment" text="%ajouter.segment" toggleGroup="$choix_mode" />
-                       <ToggleButton fx:id="ajout_prisme" text="%ajouter.prisme" toggleGroup="$choix_mode" />
-                       <ToggleButton fx:id="ajout_rectangle" text="%ajouter.rectangle" toggleGroup="$choix_mode" />
-                       <ToggleButton fx:id="ajout_cercle" text="%ajouter.cercle" toggleGroup="$choix_mode" />
-                       <ToggleButton fx:id="ajout_conique" text="%ajouter.conique" toggleGroup="$choix_mode" />
-                       <Separator>
-                           <padding>
-                               <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                           </padding>
-                       </Separator>
-                       <ToggleButton fx:id="ajout_composition" onAction="#traiterCreationComposition" text="%ajouter.composition" toggleGroup="$choix_mode" />
-                      <Separator>
-                          <padding>
-                              <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                          </padding>
-                      </Separator>
-                      <ToggleButton fx:id="ajout_axe_soc" text="%ajouter.axe_soc" toggleGroup="$choix_mode" />
-                  </ToolBar>
-                       <ToolBar HBox.hgrow="NEVER">
-      <!--                     <MenuButton fx:id="paramètres" onAction="#traiterDefinitionParametresEnvironnement" text="%parametres">-->
-                           <MenuButton text="%parametres">
-                               <items>
-                                   <MenuItem onAction="#traiterDefinitionParametresEnvironnement" text="%parametres.environnement" />
-                                   <MenuItem onAction="#traiterDefinitionParametresAffichage" text="%parametres.affichage_env" />
-                               </items>
-                           </MenuButton>
-      
-                       </ToolBar>
-                   </HBox>
-         </children>
-      </VBox>
+        <VBox>
+            <BorderPane.margin>
+                <Insets/>
+            </BorderPane.margin>
+            <!--            <MenuBar>-->
+            <!--              <menus>-->
+            <!--                <Menu mnemonicParsing="false" text="File">-->
+            <!--                  <items>-->
+            <!--                    <MenuItem mnemonicParsing="false" text="Close" />-->
+            <!--                  </items>-->
+            <!--                </Menu>-->
+            <!--                <Menu mnemonicParsing="false" text="Edit">-->
+            <!--                  <items>-->
+            <!--                    <MenuItem mnemonicParsing="false" text="Delete" />-->
+            <!--                  </items>-->
+            <!--                </Menu>-->
+            <!--                <Menu mnemonicParsing="false" text="Help">-->
+            <!--                  <items>-->
+            <!--                    <MenuItem mnemonicParsing="false" text="About" />-->
+            <!--                  </items>-->
+            <!--                </Menu>-->
+            <!--              </menus>-->
+            <!--            </MenuBar>-->
+            <HBox>
+                <ToolBar HBox.hgrow="ALWAYS">
+                    <Button fx:id="nouveau" mnemonicParsing="false" onAction="#traiterNouvelEnvironnement"
+                            text="%nouveau"/>
+                    <Button fx:id="charger" layoutX="10.0" layoutY="10.0" mnemonicParsing="false"
+                            onAction="#traiterChargerEnvironnement" text="%ouvrir"/>
+                    <Button fx:id="sauvegarder" layoutX="70.0" layoutY="10.0" mnemonicParsing="false"
+                            onAction="#traiterSauvegarderEnvironnement" text="%sauvegarder"/>
+                    <Button fx:id="sauvegarder_sous" layoutX="70.0" layoutY="10.0" mnemonicParsing="false"
+                            onAction="#traiterSauvegarderEnvironnementSous" text="%sauvegarder_sous"/>
+                    <Button fx:id="importer" layoutX="70.0" layoutY="10.0" mnemonicParsing="false"
+                            onAction="#traiterImporter" text="%importer"/>
+                    <Separator layoutX="361.0" layoutY="10.0">
+                        <padding>
+                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                        </padding>
+                    </Separator>
+                    <ToggleButton fx:id="selection" mnemonicParsing="false" selected="true" text="%selectionner">
+                        <toggleGroup>
+                            <ToggleGroup fx:id="choix_mode"/>
+                        </toggleGroup>
+                    </ToggleButton>
+                    <Separator>
+                        <padding>
+                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                        </padding>
+                    </Separator>
+                    <!--                 <ToggleButton fx:id="ajout_source" text="%ajouter.source" toggleGroup="$choix_mode" />-->
+                    <ToggleButton fx:id="ajout_source" text="%ajouter.source" toggleGroup="$choix_mode"/>
+                    <Separator>
+                        <padding>
+                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                        </padding>
+                    </Separator>
+                    <ToggleButton fx:id="ajout_demi_plan" text="%ajouter.demiplan" toggleGroup="$choix_mode"/>
+                    <ToggleButton fx:id="ajout_segment" text="%ajouter.segment" toggleGroup="$choix_mode"/>
+                    <ToggleButton fx:id="ajout_prisme" text="%ajouter.prisme" toggleGroup="$choix_mode"/>
+                    <ToggleButton fx:id="ajout_rectangle" text="%ajouter.rectangle" toggleGroup="$choix_mode"/>
+                    <ToggleButton fx:id="ajout_cercle" text="%ajouter.cercle" toggleGroup="$choix_mode"/>
+                    <ToggleButton fx:id="ajout_conique" text="%ajouter.conique" toggleGroup="$choix_mode"/>
+                    <Separator>
+                        <padding>
+                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                        </padding>
+                    </Separator>
+                    <ToggleButton fx:id="ajout_composition" onAction="#traiterCreationComposition"
+                                  text="%ajouter.composition" toggleGroup="$choix_mode"/>
+                    <Separator>
+                        <padding>
+                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                        </padding>
+                    </Separator>
+                    <ToggleButton fx:id="ajout_axe_soc" text="%ajouter.axe_soc" toggleGroup="$choix_mode"/>
+                </ToolBar>
+                <ToolBar HBox.hgrow="NEVER">
+                    <!--                     <MenuButton fx:id="paramètres" onAction="#traiterDefinitionParametresEnvironnement" text="%parametres">-->
+                    <MenuButton text="%parametres">
+                        <items>
+                            <MenuItem onAction="#traiterDefinitionParametresEnvironnement"
+                                      text="%parametres.environnement"/>
+                            <MenuItem onAction="#traiterDefinitionParametresAffichage"
+                                      text="%parametres.affichage_env"/>
+                        </items>
+                    </MenuButton>
+
+                </ToolBar>
+            </HBox>
+        </VBox>
 
     </top>
     <left>

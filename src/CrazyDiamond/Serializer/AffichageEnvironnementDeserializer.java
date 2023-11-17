@@ -21,15 +21,8 @@ public class AffichageEnvironnementDeserializer extends StdDeserializer<CanvasAf
         super(vc);
     }
 
-    /**
-     * @param jsonParser
-     * @param deserializationContext
-     * @return
-     * @throws IOException
-     * @throws JacksonException
-     */
     @Override
-    public CanvasAffichageEnvironnement deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JacksonException {
+    public CanvasAffichageEnvironnement deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
         final ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
         final JsonNode ae_node = mapper.readTree(jsonParser);
 
@@ -59,16 +52,12 @@ public class AffichageEnvironnementDeserializer extends StdDeserializer<CanvasAf
         boolean prolongements_arriere_visibles = pae_node.get("prolongements_arriere_visibles").asBoolean() ;
         boolean commentaire_visible = pae_node.get("commentaire_visible").asBoolean() ;
 
-        CanvasAffichageEnvironnement cae = new CanvasAffichageEnvironnement(env, larg_g, haut_g, x_min,y_min,x_max,y_max) ;
-//        cae.definirDimensionsGraphiquesEtLimites(); ;
-
-        cae.definirNormalesVisibles(normales_visibles) ;
-        cae.definirProlongementsAvantVisibles(prolongements_avant_visibles) ;
-        cae.definirProlongementsArriereVisibles(prolongements_arriere_visibles) ;
-        cae.definirCommentaireVisible(commentaire_visible) ;
-        cae.definirCouleurNormales(Color.valueOf(couleur_normales)) ;
-
-        return cae;
+        return new CanvasAffichageEnvironnement(env, larg_g, haut_g, x_min,y_min,x_max,y_max,
+                normales_visibles,
+                prolongements_avant_visibles,
+                prolongements_arriere_visibles,
+                commentaire_visible,
+                Color.valueOf(couleur_normales));
 
     }
 }

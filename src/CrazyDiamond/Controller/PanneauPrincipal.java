@@ -448,8 +448,8 @@ public class PanneauPrincipal {
         canvas_affichage_environnement.setOnMouseReleased(this::traiterBoutonSourisRelache);
         canvas_affichage_environnement.texte_commentaire.setOnMouseReleased(canvas_affichage_environnement::fireEvent);
 
-        map_element_panneau_droit = new HashMap<Object, Node>(8) ;
-        map_element_panneau_bas = new HashMap<Object, Node>(4) ;
+        map_element_panneau_droit = new HashMap<>(8) ;
+        map_element_panneau_bas = new HashMap<>(4) ;
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Initialisation de la liste des sources : rattachement à la liste observable des sources de l'environnement
@@ -507,7 +507,7 @@ public class PanneauPrincipal {
         Cercle.razCompteur() ;
 
         treeview_obstacles.setShowRoot(false);
-        treeview_obstacles.setRoot(new TreeItem<Obstacle>(ob_racine));
+        treeview_obstacles.setRoot(new TreeItem<>(ob_racine));
         treeview_obstacles.getRoot().setExpanded(true);
 
         // Intégration dans la vue des éventuels obstacles déjà présents dans l'environnement (peut arriver si on a chargé l'environnement)
@@ -648,7 +648,7 @@ public class PanneauPrincipal {
 
         });
 
-        lcl_sources = (ListChangeListener<Source>) change -> {
+        lcl_sources = change -> {
             while (change.next()) {
                 //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
                 //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
@@ -676,7 +676,7 @@ public class PanneauPrincipal {
 
         environnement.ajouterListenerListeSources(lcl_sources);
 
-        lcl_obstacles = (ListChangeListener<Obstacle>) change -> {
+        lcl_obstacles = change -> {
             while (change.next()) {
                 if (change.wasRemoved()) {
                     for (Obstacle remitem : change.getRemoved()) {
@@ -701,16 +701,11 @@ public class PanneauPrincipal {
                     }
                 }
             }
-        } ;
+        };
 
         environnement.ajouterListenerListeObstacles(lcl_obstacles);
-//        environnement.obstacles().addListener(lcl_obstacles) ;
 
-
-
-
-
-        lcl_socs = (ListChangeListener<SystemeOptiqueCentre>) change -> {
+        lcl_socs = change -> {
             while (change.next()) {
                 //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
                 //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
@@ -865,11 +860,11 @@ public class PanneauPrincipal {
 
         DependencyInjection.addInjectionMethod(PanneauComposition.class, controleurPanneauCompositionFactory) ;
 
-        Callable<?> controleurPanneauSystemeOptiqueCentre = () -> new PanneauSystemeOptiqueCentre((SystemeOptiqueCentre) soc_en_attente_de_panneau,canvas_affichage_environnement);
+        Callable<?> controleurPanneauSystemeOptiqueCentre = () -> new PanneauSystemeOptiqueCentre(soc_en_attente_de_panneau,canvas_affichage_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauSystemeOptiqueCentre.class, controleurPanneauSystemeOptiqueCentre) ;
 
-        Callable<?> controleurPanneauAnalyseParaxialeSystemeOptiqueCentre = () -> new PanneauAnalyseParaxialeSystemeOptiqueCentre((SystemeOptiqueCentre) soc_en_attente_de_panneau,canvas_affichage_environnement);
+        Callable<?> controleurPanneauAnalyseParaxialeSystemeOptiqueCentre = () -> new PanneauAnalyseParaxialeSystemeOptiqueCentre(soc_en_attente_de_panneau,canvas_affichage_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauAnalyseParaxialeSystemeOptiqueCentre.class, controleurPanneauAnalyseParaxialeSystemeOptiqueCentre) ;
 
@@ -1198,7 +1193,7 @@ public class PanneauPrincipal {
      */
     protected TreeItem<Obstacle> ajouterObstacleDansArbre(TreeItem<Obstacle> parent, Obstacle o_a_ajouter) {
 
-        TreeItem<Obstacle> tio = new TreeItem<Obstacle>(o_a_ajouter) ;
+        TreeItem<Obstacle> tio = new TreeItem<>(o_a_ajouter) ;
 
         parent.getChildren().add(tio) ;
 
@@ -1544,7 +1539,7 @@ public class PanneauPrincipal {
                 obstacles_a_proposer.add( o ) ;
         }
 
-        ListView<Obstacle> lo = new ListView<Obstacle>(obstacles_a_proposer) ;
+        ListView<Obstacle> lo = new ListView<>(obstacles_a_proposer) ;
 
         // TODO Limiter la composition à deux objets : proposer deux listview en sélection SINGLE côte à côte (mais
         // interdire de choisir le même objet dans les deux listes... : retirer de la 2ème l'objet sélectionné dans
@@ -1560,7 +1555,7 @@ public class PanneauPrincipal {
 
         boite_dialogue.setResultConverter( buttonType -> {
             if (buttonType == okButtonType)
-                return new ArrayList<Obstacle>(lo.getSelectionModel().getSelectedItems()) ;
+                return new ArrayList<>(lo.getSelectionModel().getSelectedItems()) ;
 
             return null ;
         });
@@ -1638,31 +1633,16 @@ public class PanneauPrincipal {
         if (fichier_a_charger == null)
             return ;
 
-
         try {
-            // Remplacement de l'environnement courant par celui que l'on charge (on n'aura donc plus de référence à l'ancien
-            // environnement, ce qui permettra au GarbageCollector de libérer la mémoire qu'il occupait)
-//            nouvel_environnement = jsonMapper.readValue(fichier_a_charger,Environnement.class) ;
 
-
-//            Map<String, Double> map = new HashMap<>(2) ;
-//            map.put("largeur_graphique",canvas_affichage_environnement.largeurGraphique()) ;
-//            map.put("hauteur_graphique",canvas_affichage_environnement.hauteurGraphique()) ;
             ContextAttributes ca = ContextAttributes.getEmpty() ;
             ca = ca.withSharedAttribute("largeur_graphique", canvas_affichage_environnement.largeurGraphique()) ;
             ca = ca.withSharedAttribute("hauteur_graphique", canvas_affichage_environnement.hauteurGraphique()) ;
-
-//            jsonMapper.setDefaultAttributes(ca) ;
 
             ObjectReader or = jsonMapper.readerFor(CanvasAffichageEnvironnement.class).with(ca) ;
 
             // Préparation du nouveau canvas qui va remplacer l'actuel (le jsonMapper l'a déjà associé au nouvel Environnement chargé)
             nouveau_canvas_affichage_environnement = or.readValue(fichier_a_charger,CanvasAffichageEnvironnement.class) ;
-
-//            // Recalage sur les dimensions graphiques actuelles
-//            nouveau_canvas_affichage_environnement.definirDimensionsGraphiques(canvas_affichage_environnement.largeurGraphique(),
-//                                                                                canvas_affichage_environnement.hauteurGraphique());
-
 
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE,"Exception lors du chargement du fichier : ",e) ;
@@ -1682,8 +1662,8 @@ public class PanneauPrincipal {
 
         try {
 
-            // Cette injection va récupérer le nouvel environnement et le nouveau canvas affichage depuis l'attribut
-            // nouveau_canvas_affichage_environnement du PanneauPrincipal actuel
+            // Cette injection va récupérer le nouveau canvas affichage depuis l'attribut nouveau_canvas_affichage_environnement
+            // du PanneauPrincipal actuel et le nouvel environnement qu'il contient.
             nouvelle_racine = DependencyInjection.load("View/PanneauPrincipal.fxml");
 
             LOGGER.log(Level.FINE,"Panneau principal créé");
@@ -1696,6 +1676,8 @@ public class PanneauPrincipal {
 
         if (nouvelle_racine==null)
             return ;
+
+        nouveau_canvas_affichage_environnement.rafraichirDecor();
 
         // Remplacement du PanneauPrincipal courant par le nouveau (racine vaut 'null' apres cette instruction)
         racine.getScene().setRoot(nouvelle_racine);
@@ -1798,4 +1780,35 @@ public class PanneauPrincipal {
 
     }
 
+    public void traiterImporter(ActionEvent actionEvent) {
+        // Ouverture d'un FileChooser modal sur la fenêtre principale (un paramètre 'null' l'aurait rendu amodal)
+        File fichier_a_charger = fileChooser.showOpenDialog(canvas_affichage_environnement.getScene().getWindow());
+
+        if (fichier_a_charger == null)
+            return ;
+
+        try {
+
+            ContextAttributes ca = ContextAttributes.getEmpty() ;
+            // Passage d'un environnement hote dans lequel l'ObjectReader va ajouter les éléments importables du fichier
+            ca = ca.withSharedAttribute("environnement_hote", environnement) ;
+
+//            ObjectReader or = jsonMapper.readerFor(CanvasAffichageEnvironnement.class).with(ca) ;
+//            or.readValue(fichier_a_charger,CanvasAffichageEnvironnement.class) ;
+
+            ObjectReader or = jsonMapper.readerFor(Environnement.class).with(ca) ;
+            or.readValue(fichier_a_charger,Environnement.class) ;
+
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE,"Exception lors du chargement du fichier : ",e) ;
+
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText("Impossible de charger l'environnement ou l'affichage associé");
+            alert.setContentText(e.getMessage()+System.lineSeparator()+"in :"+System.lineSeparator()+e.getStackTrace()[0].toString());
+            alert.showAndWait();
+
+        }
+
+
+    }
 }

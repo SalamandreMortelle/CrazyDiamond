@@ -46,15 +46,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
     private ListChangeListener<SystemeOptiqueCentre> lcl_socs ;
 
-    private VisiteurAffichageEnvironnement visiteur_affichage ;
-
-
-    // Veut-on préserver le ratio d'aspect x/y (si 'false' un cercle en coordonnées géométriques donnera une ellipse en
-    // coordonnées graphiques, et les angles en coordonnées géométriques ne sont pas conservés en coordonnées graphiques)
-    // TODO : cet attribut n'est pas utilisé : le calcul de la matrice de transformation fait dans definirLimites() garantit
-    // la préservation permanente du ratio d'aspect
-    protected boolean preserver_ratio_xy = true ;
-
+    private final VisiteurAffichageEnvironnement visiteur_affichage ;
 
     // Limites par défaut de la zone d'intérêt (zone visible)
     protected static double xmin_par_defaut = -2.0 , xmax_par_defaut = 2.0 ;
@@ -62,6 +54,12 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
     protected static double largeur_graphique_par_defaut = 800 ;
     protected static double hauteur_graphique_par_defaut = 600 ;
+
+    private static final boolean normales_visibles_par_defaut = false ;
+    private static final boolean prolongements_avant_visibles_par_defaut = false ;
+    private static final boolean prolongements_arriere_visibles_par_defaut = false ;
+    private static final boolean commentaire_visible_par_defaut = false ;
+    private static final Color couleur_normales_par_defaut = Color.GREEN ;
 
 
     protected double largeur_graphique ;
@@ -86,9 +84,8 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     protected final MapProperty<SystemeOptiqueCentre,Boolean> montrer_plans_focaux_de_soc ;
     protected final MapProperty<SystemeOptiqueCentre,Boolean> montrer_plans_principaux_de_soc ;
     protected final MapProperty<SystemeOptiqueCentre,Boolean> montrer_plans_nodaux_de_soc ;
-    private static final Color couleur_normales_par_defaut = Color.GREEN ;
 
-    private static final boolean normales_visibles_par_defaut = false ;
+    protected ConvertisseurDoubleValidantAffichageDistance convertisseur_affichage_distance;
 
     public Color couleurNormales() { return couleur_normales.get() ; }
 
@@ -124,17 +121,16 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         if (poignees==null)
             return false ;
 
-        if (poignees.comporte_point_proche_de(pclic,tolerance_pointage()))
-            return true ;
-
-        return false ;
+        return poignees.comporte_point_proche_de(pclic, tolerance_pointage());
 
     }
 
-
-    protected ConvertisseurDoubleValidantAffichageDistance convertisseur_affichage_distance;
-
-    public CanvasAffichageEnvironnement(Environnement e, double larg_g, double haut_g, double xmin, double ymin, double xmax, double ymax, boolean preserver_ratio_xy) throws IllegalArgumentException {
+    public CanvasAffichageEnvironnement(Environnement e, double larg_g, double haut_g, double xmin, double ymin, double xmax, double ymax,
+                                        boolean normales_visibles,
+                                        boolean prolongements_avant_visibles,
+                                        boolean prolongements_arriere_visibles,
+                                        boolean commentaire_visible,
+                                        Color couleur_normales) throws IllegalArgumentException {
 
         super(larg_g,haut_g) ;
 
@@ -149,13 +145,6 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
         visiteur_affichage = new VisiteurAffichageEnvironnement(this) ;
 
-        this.preserver_ratio_xy = preserver_ratio_xy ;
-
-        // Recalcul du ymax si nécessité de preserver le ratio d'aspect x/y
-//        if (preserver_ratio_xy)
-//            ymax_init = ymin_init +  (xmax_init - xmin_init) * haut_g / larg_g ;
-//            ymax_init = ymin_init +  (xmax_init - xmin_init) * hauteurCourante / largeurCourante;
-
         convertisseur_affichage_distance = new ConvertisseurDoubleValidantAffichageDistance(this) ;
 
         resolution.addListener( ( (observableValue, oldValue, newValue) -> {
@@ -164,29 +153,20 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
                 } )
         );
 
+        this.normales_visibles = new SimpleBooleanProperty(normales_visibles) ;
+        this.normales_visibles.addListener((observable, oldValue,newValue) -> this.rafraichirDecor());
 
-        this.normales_visibles = new SimpleBooleanProperty(normales_visibles_par_defaut) ;
-        normales_visibles.addListener((observable, oldValue,newValue) -> {
-            this.rafraichirDecor();
-        });
+        this.couleur_normales = new SimpleObjectProperty<Color>(couleur_normales) ;
+        this.couleur_normales.addListener((observable, oldValue,newValue) -> this.rafraichirDecor());
 
-        this.couleur_normales = new SimpleObjectProperty<Color>(couleur_normales_par_defaut) ;
-        couleur_normales.addListener((observable, oldValue,newValue) -> {
-            this.rafraichirDecor();
-        });
+        this.prolongements_avant_visibles = new SimpleBooleanProperty(prolongements_avant_visibles) ;
+        this.prolongements_avant_visibles.addListener((observable, oldValue,newValue) -> this.rafraichirDecor());
 
-        this.prolongements_avant_visibles = new SimpleBooleanProperty(false) ;
-        prolongements_avant_visibles.addListener((observable, oldValue,newValue) -> {
-            this.rafraichirDecor();
-        });
+        this.prolongements_arriere_visibles = new SimpleBooleanProperty(prolongements_arriere_visibles) ;
+        this.prolongements_arriere_visibles.addListener((observable, oldValue,newValue) -> this.rafraichirDecor());
 
-        this.prolongements_arriere_visibles = new SimpleBooleanProperty(false) ;
-        prolongements_arriere_visibles.addListener((observable, oldValue,newValue) -> {
-            this.rafraichirDecor();
-        });
-
-        this.commentaire_visible = new SimpleBooleanProperty(true) ;
-        commentaire_visible.addListener((observable, oldValue,newValue) -> {
+        this.commentaire_visible = new SimpleBooleanProperty(commentaire_visible) ;
+        this.commentaire_visible.addListener((observable, oldValue,newValue) -> {
             // TODO : Mettre à jour le controle Text qui se trouve au-dessus du Canvas
         });
 
@@ -200,16 +180,21 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         this.montrer_plans_nodaux_de_soc = new SimpleMapProperty<SystemeOptiqueCentre, Boolean>() ;
     }
 
-    public CanvasAffichageEnvironnement(Environnement e, double larg_g, double haut_g, double xmin, double ymin, double xmax, double ymax) {
-        this(e,larg_g,haut_g,xmin,ymin,xmax,ymax,true) ;
+    public CanvasAffichageEnvironnement(Environnement e, double larg_g, double haut_g, double xmin, double ymin, double xmax, double ymax) throws IllegalArgumentException {
+        this(e,larg_g,haut_g,xmin,ymin,xmax,ymax,
+                normales_visibles_par_defaut,
+                prolongements_avant_visibles_par_defaut,
+                prolongements_arriere_visibles_par_defaut,
+                commentaire_visible_par_defaut,
+                couleur_normales_par_defaut) ;
     }
 
     public CanvasAffichageEnvironnement(Environnement e, double larg_g, double haut_g) {
-        this(e,larg_g,haut_g,xmin_par_defaut,ymin_par_defaut,xmax_par_defaut,ymax_par_defaut,true) ;
+        this(e,larg_g,haut_g,xmin_par_defaut,ymin_par_defaut,xmax_par_defaut,ymax_par_defaut) ;
     }
 
     public CanvasAffichageEnvironnement(Environnement e) {
-        this(e,largeur_graphique_par_defaut,hauteur_graphique_par_defaut,xmin_par_defaut,ymin_par_defaut,xmax_par_defaut,ymax_par_defaut,true) ;
+        this(e,largeur_graphique_par_defaut,hauteur_graphique_par_defaut,xmin_par_defaut,ymin_par_defaut,xmax_par_defaut,ymax_par_defaut) ;
     }
 
     public void initialize() {
@@ -598,8 +583,8 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
     /**
      * Translate les limites de la zone visible, sans changer d'échelle (ni de résolution)
-     * @param depl_x_g
-     * @param depl_y_g
+     * @param depl_x_g : déplacement sur l'axe X en coordonnées géométriques de l'environnement
+     * @param depl_y_g : déplacement sur l'axe X en coordonnées géométriques de l'environnement
      */
     public void translaterLimites(double depl_x_g, double depl_y_g) {
 
@@ -874,10 +859,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         if (poignees==null)
             return false ;
 
-        if (poignees.comporte_point_proche_de(pclic,tolerance_pointage()))
-            return true ;
-
-        return false ;
+        return poignees.comporte_point_proche_de(pclic, tolerance_pointage());
     }
 
     public boolean poignee_source_pointee_en(Point2D pclic) {
@@ -890,10 +872,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         if (poignees==null)
             return false ;
 
-        if (poignees.comporte_point_proche_de(pclic,tolerance_pointage()))
-            return true ;
-
-        return false ;
+        return poignees.comporte_point_proche_de(pclic, tolerance_pointage());
     }
 
     public void tracerPolyligne(Collection<Double> xpoints, Collection<Double> ypoints) {
