@@ -5,9 +5,9 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ColorPicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.ToggleButton?>
-<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
@@ -48,11 +48,39 @@
    <Label prefWidth="125.0" text="Couleur des nouveaux rayons" textAlignment="CENTER" wrapText="true" />
    <ColorPicker fx:id="colorpicker_couleur_nouveaux_rayons" editable="true" />
    <Separator prefWidth="200.0">
-      <padding>
-         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-      </padding></Separator>
+      <VBox.margin>
+         <Insets bottom="5.0" top="5.0" />
+      </VBox.margin></Separator>
    <CheckBox fx:id="checkbox_fresnel" alignment="TOP_LEFT" graphicTextGap="400.0" mnemonicParsing="false" prefHeight="59.0" prefWidth="168.0" text="Réfraction s'accompagne de réflexion (coefficents de Fresnel)" wrapText="true" />
-   <Separator prefWidth="200.0" />
+   <Separator prefWidth="200.0">
+      <VBox.margin>
+         <Insets bottom="5.0" top="5.0" />
+      </VBox.margin></Separator>
    <Label text="Commentaire" />
-   <Button fx:id="editer_texte_commentaire" mnemonicParsing="false" text="Texte..." onAction="#traiterEditionCommentaire" />
+   <Button fx:id="editer_texte_commentaire" mnemonicParsing="false" onAction="#traiterEditionCommentaire" text="Texte..." />
+
+   <Separator prefWidth="200.0">
+      <VBox.margin>
+         <Insets bottom="5.0" top="5.0" />
+      </VBox.margin></Separator>
+
+   <Label text="Unité de longueur" />
+   <VBox spacing="5.0">
+      <RadioButton fx:id="choix_unite_m" mnemonicParsing="false" text="%unite_m">
+         <toggleGroup>
+            <ToggleGroup fx:id="choix_unite" />
+         </toggleGroup>
+      </RadioButton>
+      <RadioButton fx:id="choix_unite_dm" mnemonicParsing="false" selected="true" text="%unite_dm" toggleGroup="$choix_unite" />
+      <RadioButton fx:id="choix_unite_cm" mnemonicParsing="false" selected="true" text="%unite_cm" toggleGroup="$choix_unite" />
+      <RadioButton fx:id="choix_unite_mm" mnemonicParsing="false" selected="true" text="%unite_mm" toggleGroup="$choix_unite" />
+      <VBox.margin>
+         <Insets left="5.0" />
+      </VBox.margin>
+   </VBox>
+
+   <padding>
+      <Insets top="10.0" />
+   </padding>
+
 </VBox>

@@ -33,12 +33,19 @@ public class CercleDeserializer extends StdDeserializer<Cercle> {
         final ObjectCodec mapper = jsonParser.getCodec();
         final JsonNode cercle_node = mapper.readTree(jsonParser);
 
+        double facteur_conversion = 1d ;
+
+        Object facteur_conversion_obj = deserializationContext.getAttribute("facteur_conversion") ;
+
+        if (facteur_conversion_obj!=null)
+            facteur_conversion = (Double) facteur_conversion_obj ;
+
         Imp_Identifiable ii = mapper.treeToValue(cercle_node, Imp_Identifiable.class) ;
         Imp_Nommable iei = mapper.treeToValue(cercle_node, Imp_Nommable.class) ;
         Imp_ElementAvecContour iec = mapper.treeToValue(cercle_node, Imp_ElementAvecContour.class) ;
         Imp_ElementAvecMatiere iem = mapper.treeToValue(cercle_node, Imp_ElementAvecMatiere.class) ;
 
-        Cercle cercle = new Cercle(ii,iei,iec,iem,cercle_node.get("x_centre").asDouble(),cercle_node.get("y_centre").asDouble(),cercle_node.get("rayon").asDouble()) ;
+        Cercle cercle = new Cercle(ii,iei,iec,iem,cercle_node.get("x_centre").asDouble()*facteur_conversion,cercle_node.get("y_centre").asDouble()*facteur_conversion,cercle_node.get("rayon").asDouble()*facteur_conversion) ;
 
         return cercle;
     }

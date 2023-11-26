@@ -219,6 +219,11 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
         definirRayon(pos_souris.subtract(centre()).magnitude());
     }
 
+    @Override
+    public void convertirDistances(double facteur_conversion) {
+        definirCentre( centre().multiply(facteur_conversion) ) ;
+        definirRayon( rayon()*facteur_conversion);
+    }
 
     @Override
     public boolean contient(Point2D p) {

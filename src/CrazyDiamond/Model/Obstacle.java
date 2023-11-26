@@ -18,8 +18,6 @@ import java.util.logging.Logger;
 // à condition qu'ils soient infinis.
 public interface Obstacle {
 
-
-
     enum ModeRecherche { PREMIERE, DERNIERE } ;
 
     // Récupération du logger
@@ -47,28 +45,6 @@ public interface Obstacle {
 
     default boolean aSymetrieDeRevolution()  { return false ; }
 
-//    default void integrerDansSystemeOptiqueCentre(SystemeOptiqueCentre soc) throws Exception {
-//        if (!aSymetrieDeRevolution())
-//            throw new UnsupportedOperationException("Impossible d'intégrer l'Obstacle "+this+" dans un Système Optique Centré car il n'a pas de symétrie de révolution.") ;
-//
-//        Point2D axe_soc = soc.direction() ;
-//        Point2D point_sur_axe_revolution = pointSurAxeRevolution().subtract(soc.origine()) ;
-//
-//        double distance_algebrique_point_sur_axe_revolution_axe_soc = (point_sur_axe_revolution.getX()*axe_soc.getY()-point_sur_axe_revolution.getY()*axe_soc.getX()) ;
-//
-//        // Peut-être faut-il prendre l'opposé :  à tester...
-//        Point2D translation = soc.perpendiculaireDirection().multiply(distance_algebrique_point_sur_axe_revolution_axe_soc) ;
-//
-//        translater(translation);
-//
-//        if (!estOrientable())
-//            return ;
-//
-//        definirOrientation(soc.orientation()) ;
-//
-////        throw new NoSuchMethodException("La méthode integrerDansSystemeOptiqueCentre() n'est pas implémentée par l'Obstacle "+this) ;
-//    }
-
     /**
      *
      * @return un point situé sur l'axe de révolution, si l'Obstacle a une symétrie de révolution, sinon 'null'
@@ -77,8 +53,6 @@ public interface Obstacle {
 
     default boolean estOrientable() { return false ; }
 
-//    void definirPositionEtOrientation(PositionEtOrientation pos_or) ;
-//    void definirPosition(Point2D pos) ;
     default void definirOrientation(double orientation_deg)  {
 //        throw new NoSuchMethodException("La méthode definirOrientation() n'est pas implémentée par l'Obstacle "+this) ;
     }
@@ -206,15 +180,17 @@ public interface Obstacle {
          throw new UnsupportedOperationException("L'obstacle "+this+" ne peut pas accepter un VisiteurElementAvecMatiere") ;
      }
 
-     void retaillerPourSourisEn(Point2D pos_souris) ;
+    void retaillerPourSourisEn(Point2D pos_souris) ;
     default void retaillerSelectionPourSourisEn(Point2D pclic) {
         retaillerPourSourisEn(pclic);
     }
 
-     default public Contour positions_poignees() { return null ; };
+    default public Contour positions_poignees() { return null ; };
 
-     default void translater(Point2D vecteur) { }
-     default boolean est_tres_proche_de(Point2D pt,double tolerance) { return false ; }
+    default void translater(Point2D vecteur) { }
+    default boolean est_tres_proche_de(Point2D pt,double tolerance) { return false ; }
+
+    public void convertirDistances(double facteur_conversion) ;
 
     public static Point2D normaleAuPointIncidence(Obstacle o,Rayon r) throws Exception {
 
@@ -770,260 +746,5 @@ public interface Obstacle {
 
         return rayons_res ;
     }
-
-//    public static RayonsRefracteEtReflechi old_rayonsRefracteEtReflechi(Obstacle o, Rayon r, Environnement env) throws Exception {
-//        RayonsRefracteEtReflechi rayons_res = new RayonsRefracteEtReflechi() ;
-//
-//        if (o.natureMilieu()==NatureMilieu.ABSORBANT) {
-//            rayons_res.rayon_reflechi = null ;
-//            rayons_res.rayon_refracte = null ;
-//
-//            return rayons_res ;
-//        }
-//
-//        Point2D inter = (r.arrivee() !=null)? r.arrivee() :o.premiere_intersection(r) ;
-//
-//        Point2D oppose_vecteur_incident = r.direction().multiply(-1.0) ;
-//        Point2D normale                 = o.normale(inter) ;
-//
-//        rayons_res.normale = normale ;
-//
-//        double n1 = r.indice_milieu_traverse ;
-//        double i1 = normale.angle(oppose_vecteur_incident) ;
-//
-//        if (i1>90.0)
-//            i1=180.0-i1 ;
-//
-//        Double sens_rotation_refraction ;
-//        Double sens_rotation_reflexion ;
-//
-//        if (oppose_vecteur_incident.crossProduct(normale).getZ() > 0)
-//            sens_rotation_reflexion = +1.0;
-//        else
-//            sens_rotation_reflexion = -1.0;
-//
-//        sens_rotation_refraction = - sens_rotation_reflexion ;
-//
-//        // Si l'obstacle est réfléchissant ou transparent, on peut avoir besoin de calculer le rayon réfléchi (au moins pour la réflexion totale)
-//        if (o.natureMilieu()==NatureMilieu.REFLECHISSANT || (o.natureMilieu()==NatureMilieu.TRANSPARENT /*&& env.reflexionAvecRefraction()*/)) {
-//            // Si l'obstacle o rencontré est concave, il est possible que le rayon parte de la SURFACE de ce dernier, et
-//            // soit réfléchi par cet obstacle lui-même. Mais si le point de départ est dans la masse de l'obstacle, et
-//            // pas dans sa surface, il n'y a pas de rayon réfléchi, sauf peut-être si le milieu de l'obstacle est transparent (si on
-//            // a atteint, ou dépassé, l'angle de la réflexion totale)
-//            if (o.contient(r.depart()) && !o.aSurSaSurface(r.depart()) && (o.natureMilieu()!=NatureMilieu.TRANSPARENT)) {
-//                rayons_res.rayon_reflechi = null ;
-//            }
-//            else
-//            {
-//
-//                // TODO : Vérifier ces calculs en affichant les angles des vecteurs incidents, réfléchis et de la normale
-//
-////                Affine rotation_reflexion = new Affine();
-////                rotation_reflexion.appendRotation(sens_rotation_reflexion * 2 * oppose_vecteur_incident.angle(normale));
-//
-//                Rotate rotation_reflexion = new Rotate(sens_rotation_reflexion * 2 * oppose_vecteur_incident.angle(normale)) ;
-//
-//                //         Rayon r_reflechi =  new Rayon(inter, rotation.transform(oppose_vecteur_incident), Rayon.PhenomeneOrigine.REFLEXION) ;
-//
-////                if (!env.reflexionAvecRefraction())
-//                // On calcule d'abord un rayon réfléchi total, on calculera plus loin sa réflectance et sa polarisation si besoin
-//                rayons_res.rayon_reflechi = new Rayon(inter, rotation_reflexion.transform(oppose_vecteur_incident), r.indice_milieu_traverse,
-//                        Rayon.PhenomeneOrigine.REFLEXION, r.ratio_puissance,
-//                        r.est_polarisee, r.angle_champ_electrique);
-////                else { // reflexion avec refraction
-////
-////                    // TODO
-////                    rayons_res.rayon_reflechi = new Rayon(inter, rotation.transform(oppose_vecteur_incident), r.indice_milieu_traverse,
-////                            Rayon.PhenomeneOrigine.REFLEXION, r.ratio_puissance,
-////                            r.est_polarisee, r.angle_champ_electrique);
-////
-////                }
-//
-//                // TODO : A mettre en assertion
-//                if(Math.abs(normale.angle(rayons_res.rayon_reflechi.direction())-normale.angle(oppose_vecteur_incident))>0.000001) {
-//                    LOGGER.log(Level.SEVERE,"ALERTE : L'angle i1' du rayon réfléchi est différent de l'angle i1 du rayon incident. (i1 = {0} , i1' = {0})",new Object[] {i1,normale.angle(rayons_res.rayon_reflechi.direction())});
-//
-////                    throw new Exception("L'angle i2 du rayon réfléchi est différent de l'angle i1 du rayon incident. (i1 = "+i1+"° et i2 ="+normale.angle(rayons_res.rayon_reflechi.direction)+"°)") ;
-//                }
-//
-//
-//            }
-//        } // Fin du blc de calcul du rayon réfléchi "total"
-//
-//        // Si l'obstacle rencontré est purement réfléchissant, on s'arrête là (pas de rayon réfracté à calculer)
-//        if (o.natureMilieu()==NatureMilieu.REFLECHISSANT)
-//            return rayons_res ;
-//
-//        // Calcul du rayon réfracté
-//
-////        // Pour la suite, il faut que la normale et l'opposé du vecteur incident soient orientés du même côté
-////        // (autrement dit rayon incident et normale aillent à la rencontre l'un de l'autre, ce qui signifie que le rayon entre
-////        // dans le milieu de l'obstacle rencontré)
-////        if (normale.dotProduct(oppose_vecteur_incident)<0) { // Le rayon sort de l'obstacle rencontré
-////            normale = normale.multiply(-1.0);
-////            Obstacle obs_emergence = env.autre_obstacle_contenant(inter,o) ;
-////
-////            n2 = obs_emergence!=null?obs_emergence.indiceRefraction():env.indiceRefraction() ;
-////        }
-//        double n2 = o.indiceRefraction() ;
-//
-//        // Pour la suite, il faut que la normale et l'opposé du vecteur incident soient orientés du même côté
-//        // (autrement dit rayon incident et normale aillent à la rencontre l'un de l'autre, ce qui signifie que le rayon entre
-//        // dans le milieu de l'obstacle rencontré)
-//        if (normale.dotProduct(oppose_vecteur_incident)<0) { // Le rayon sort de l'obstacle rencontré
-//            normale = normale.multiply(-1.0);
-//            sens_rotation_refraction = -1.0*sens_rotation_refraction ;
-//            Obstacle obs_emergence = env.autre_obstacle_contenant(inter,o) ;
-//
-//            n2 = obs_emergence!=null?obs_emergence.indiceRefraction():env.indiceRefraction() ;
-//        }
-//
-//        Point2D oppose_normale          = normale.multiply(-1.0) ;
-//
-//        LOGGER.log(Level.FINER,"Angle normale : {0}°",normale.angle(new Point2D(1,0))) ;
-//        LOGGER.log(Level.FINER,"Angle opposé de la normale : {0}°",oppose_normale.angle(new Point2D(1,0)));
-//
-//        LOGGER.log(Level.FINER,"Angle i1 : {0}°",normale.angle(oppose_vecteur_incident));
-////        LOGGER.log(Level.FINER,"Angle i1 : {0}°",oppose_vecteur_incident.angle(normale));
-//
-//
-//
-//        // TODO : Vérifier ces calculs en affichant les angles des vecteurs incidents, réfléchis et de la normale
-//
-//        LOGGER.log(Level.FINER,"n1 : {0}",n1);
-//        LOGGER.log(Level.FINER,"n2 : {0}",n2);
-//
-//        double sinus_i2 = (n1/n2)*Math.sin(Math.toRadians(i1)) ;
-//
-//        // A-t-on atteint l'angle de réflexion totale ?
-//        if (Math.abs(sinus_i2)>1.0) {
-//            LOGGER.log(Level.FINER,"Réflexion totale : pas de rayon transmis");
-//            rayons_res.rayon_refracte = null ;
-//
-//            // On avait déjà calculé le rayon réfléchi total : on a donc terminé
-//            return rayons_res ;
-//        }
-//
-//        // On n'est pas à la réflexion totale
-//
-//        // Oublier le rayon réflechi si on a juste une réfraction totale à calculer
-//        if(!env.reflexionAvecRefraction())
-//            rayons_res.rayon_reflechi = null ;
-//
-//        double i2 = Math.toDegrees(Math.asin(sinus_i2)) ;
-//
-////        Affine rotation_refraction = new Affine() ;
-////        rotation_refraction.appendRotation(sens_rotation_refraction*i2);
-//
-//        Rotate rotation_refraction = new Rotate(sens_rotation_refraction*i2) ;
-//
-//        // On commence par calculer le rayon réfracté "total", sans calcul de transmittance
-//
-////        Rayon r_refracte = null ;
-//
-//        if (!env.reflexionAvecRefraction()) // Pas de calcul de transmittance : toute la puissance du rayon incident est transmise au rayon réfracté
-//            rayons_res.rayon_refracte =  new Rayon(inter, rotation_refraction.transform(oppose_normale), n2, Rayon.PhenomeneOrigine.TRANSMISSION,r.ratio_puissance) ;
-//        else {
-//
-//            double cos_theta_i = Math.cos(Math.toRadians(i1)) ;
-//            double cos_theta_t = Math.cos(Math.toRadians(i2)) ;
-//            double coeff_reflexion_te = (n1*cos_theta_i-n2*cos_theta_t)/(n1*cos_theta_i+n2*cos_theta_t) ;
-//            double coeff_reflexion_tm = (n1*cos_theta_t-n2*cos_theta_i)/(n1*cos_theta_t+n2*cos_theta_i) ;
-//
-//            double reflectance_te = coeff_reflexion_te*coeff_reflexion_te ;
-//            double reflectance_tm = coeff_reflexion_tm*coeff_reflexion_tm ;
-//
-//
-//            // TODO à transformer en assertion, ou déclencher une exception et l'attraper dans Souce.calculerCheminDuRayon
-//            if (reflectance_te>1.0 )
-//                LOGGER.log(Level.SEVERE,"ALERTE : La réflectance TE doit être inférieure à 1. Valeur : {0})",reflectance_te);
-//            if (reflectance_tm>1.0 )
-//                LOGGER.log(Level.SEVERE,"ALERTE : La réflectance TM doit être inférieure à 1. Valeur : {0})",reflectance_tm);
-//
-//            double transmittance_te = 1.0 - reflectance_te ;
-//            double transmittance_tm = 1.0 - reflectance_tm ;
-//
-//            if (!r.est_polarisee) {
-//                // rayon incident non polarisé (= polarisation changeante à chaque instant) : la reflectance est la moyenne
-//                // des réflectances d'une lumière polarisée TE et d'une lumière polarisée TM
-//
-//                double moyenne_reflectance = 0.5*(reflectance_te+reflectance_tm) ;
-//                double moyenne_transmittance = 1.0 - moyenne_reflectance ;
-//
-//                rayons_res.rayon_refracte = new Rayon(inter, rotation_refraction.transform(oppose_normale), n2, Rayon.PhenomeneOrigine.TRANSMISSION, moyenne_transmittance*r.ratio_puissance,r.est_polarisee,r.angle_champ_electrique);
-//                // NB : on vient de supposer que l'onde transmise n'est absolument pas polarisée alors qu'elle l'est
-//                // en partie à l'issue de la réfraction, de même que l'onde réflechie.
-//                // TODO : introduire (et calculer) un taux de polarisation après chaque réflexion/réfraction ??
-//
-//                rayons_res.rayon_reflechi.ratio_puissance =  moyenne_reflectance * r.ratio_puissance ;
-//            }
-//            else // Onde incidente polarisée rectilignement
-//            {
-//
-//                if (r.angle_champ_electrique==0.0) // E_tm
-//                {
-//                    rayons_res.rayon_refracte = new Rayon(inter, rotation_refraction.transform(oppose_normale), n2, Rayon.PhenomeneOrigine.TRANSMISSION, transmittance_tm * r.ratio_puissance, true, 0.0) ;
-//                    rayons_res.rayon_reflechi.ratio_puissance = reflectance_tm  * r.ratio_puissance ;
-//                    rayons_res.rayon_reflechi.est_polarisee = true ;
-//                    rayons_res.rayon_reflechi.angle_champ_electrique = 0.0 ;
-//                }
-//                else if (r.angle_champ_electrique==90.0) // E_te
-//                {
-//                    rayons_res.rayon_refracte = new Rayon(inter, rotation_refraction.transform(oppose_normale), n2, Rayon.PhenomeneOrigine.TRANSMISSION, transmittance_te * r.ratio_puissance, true, 90.0) ;
-//                    rayons_res.rayon_reflechi.ratio_puissance = reflectance_te  * r.ratio_puissance ;
-//                    rayons_res.rayon_reflechi.est_polarisee = true ;
-//                    rayons_res.rayon_reflechi.angle_champ_electrique = 90.0 ;
-//                }
-//                else
-//                {
-//                    // tan_phi = E_te_incident/E_tm_incident
-//                    double cos_phi_i = Math.cos(Math.toRadians(r.angle_champ_electrique)) ;
-//                    double sin_phi_i = Math.sin(Math.toRadians(r.angle_champ_electrique)) ;
-//
-//                    double transmittance_resultante = cos_phi_i*cos_phi_i*transmittance_tm + sin_phi_i*sin_phi_i*transmittance_te ;
-//
-//                    // Calcul de l'angle de polarisation du champ E du rayon transmis
-//                    double phi_t = Math.atan(Math.sqrt((transmittance_te/transmittance_tm))*Math.tan(Math.toRadians(r.angle_champ_electrique))) ;
-//
-//                    rayons_res.rayon_refracte = new Rayon(inter, rotation_refraction.transform(oppose_normale), n2, Rayon.PhenomeneOrigine.TRANSMISSION, transmittance_resultante * r.ratio_puissance, true, phi_t);
-//
-//                    double reflectance_resultante = cos_phi_i*cos_phi_i*reflectance_tm + sin_phi_i*sin_phi_i*reflectance_te ;
-//
-//                    // Calcul de l'angle de polarisation du champ E du rayon réfléchi
-//                    double phi_r = Math.atan(Math.sqrt((reflectance_te/reflectance_tm))*Math.tan(Math.toRadians(r.angle_champ_electrique))) ;
-//
-//                    rayons_res.rayon_reflechi.ratio_puissance = reflectance_resultante * r.ratio_puissance ;
-//                    rayons_res.rayon_reflechi.est_polarisee = true ;
-//                    rayons_res.rayon_reflechi.angle_champ_electrique = phi_r ;
-//
-//                }
-//
-//            }
-//
-//        }
-//
-//
-//        LOGGER.log(Level.FINER,"Angle i1 : {0}°",normale.angle(oppose_vecteur_incident));
-//
-//        LOGGER.log(Level.FINER,"Ratio puissance du rayon réfléchi  : {0}",(rayons_res.rayon_reflechi!=null)?(rayons_res.rayon_reflechi.ratio_puissance):0.0);
-//
-//
-//        LOGGER.log(Level.FINER,"Angle rayon réfracté  : {0}°", rayons_res.rayon_refracte.direction().angle(new Point2D(1,0)));
-//        LOGGER.log(Level.FINER,"Angle i2 : {0}°",i2);
-//
-//        LOGGER.log(Level.FINER,"Ratio puissance du rayon réfracté  : {0}",rayons_res.rayon_refracte.ratio_puissance);
-//        LOGGER.log(Level.FINER,"Rayon réfracté polarisé ? {0}",rayons_res.rayon_refracte.est_polarisee);
-//
-//        LOGGER.log(Level.FINER,"Angle polarisation champ E du rayon réfracté : {0}",rayons_res.rayon_refracte.angle_champ_electrique);
-//
-//
-//        // TODO : Transformer en assertion
-//        if(Math.abs(n1*Math.sin(Math.toRadians(i1)) - n2*Math.sin(Math.toRadians(i2)))>0.000001) {
-//            LOGGER.log(Level.SEVERE,"ALERTE n1*sin(i1) différent de n2*sin(i2)");
-////            throw new Exception("L'angle i2 du rayon réfléchi est différent de l'angle i1 du rayon incident. (i1 = "+normale.angle(oppose_vecteur_incident)+"° et i2 ="+normale.angle(r_reflechi.direction)+"°)") ;
-//        }
-//
-//        return rayons_res ;
-//    }
 
 }

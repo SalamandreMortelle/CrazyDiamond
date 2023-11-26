@@ -22,6 +22,19 @@ public class PanneauParametresEnvironnement {
     public CheckBox checkbox_fresnel;
     public Button editer_texte_commentaire;
 
+    @FXML
+    private ToggleGroup choix_unite ;
+
+    @FXML
+    private RadioButton choix_unite_m;
+    @FXML
+    private RadioButton choix_unite_dm;
+    @FXML
+    private RadioButton choix_unite_cm;
+    @FXML
+    private RadioButton choix_unite_mm;
+
+
     // Modèle
     Environnement environnement ;
 
@@ -65,6 +78,44 @@ public class PanneauParametresEnvironnement {
 //                text.setFill(colorPicker.getValue());
 //            }
 //        });
+
+        if (environnement.unite() == Unite.M)
+            choix_unite_m.setSelected(true);
+        else if (environnement.unite() == Unite.DM)
+            choix_unite_dm.setSelected(true);
+        else if (environnement.unite() == Unite.CM)
+            choix_unite_cm.setSelected(true);
+        else if (environnement.unite() == Unite.MM)
+            choix_unite_mm.setSelected(true);
+
+        // Ce listener est mono-directionnel Vue > Modèle (mais l'état initial du toggle choix_unite est déjà positionné)
+        choix_unite.selectedToggleProperty().addListener((observable, oldValue,newValue) -> {
+            LOGGER.log(Level.FINE,"Choix unité passe de {0} à {1}", new Object[] {oldValue,newValue}) ;
+
+            if (newValue== choix_unite_m && environnement.unite()!= Unite.M)
+                environnement.changerUnite(environnement.unite(),Unite.M);
+            else if (newValue== choix_unite_dm && environnement.unite()!= Unite.DM)
+                environnement.changerUnite(environnement.unite(),Unite.DM);
+            else if (newValue== choix_unite_cm && environnement.unite()!= Unite.CM)
+                environnement.changerUnite(environnement.unite(),Unite.CM);
+            else if (newValue== choix_unite_mm && environnement.unite()!= Unite.MM)
+                environnement.changerUnite(environnement.unite(),Unite.MM);
+
+        });
+
+        environnement.uniteProperty().addListener( (observableValue, oldValue, newValue) -> {
+            LOGGER.log(Level.FINE,"Unité passe de {0} à {1}", new Object[] {oldValue,newValue}) ;
+
+            if (newValue == Unite.M && choix_unite.getSelectedToggle()!= choix_unite_m)
+                choix_unite.selectToggle(choix_unite_m);
+            else if (newValue == Unite.DM && choix_unite.getSelectedToggle()!= choix_unite_dm)
+                choix_unite.selectToggle(choix_unite_dm);
+            else if (newValue == Unite.CM && choix_unite.getSelectedToggle()!= choix_unite_cm)
+                choix_unite.selectToggle(choix_unite_cm);
+            else if (newValue == Unite.MM && choix_unite.getSelectedToggle()!= choix_unite_mm)
+                choix_unite.selectToggle(choix_unite_mm);
+
+        } );
 
 
     }

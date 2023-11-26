@@ -41,17 +41,27 @@ public class SourceDeserializer extends StdDeserializer<Source> {
 //        final TypeSurface t_s = TypeSurface.fromValue(cercle_node.get("type_surface").asText()) ;
 //        final TypeSurface t_s = mapper.treeToValue(cercle_node,TypeSurface.class) ;
 
-        Object env = deserializationContext.getAttribute("environnement") ;
+        double facteur_conversion = 1d ;
 
+        Object facteur_conversion_obj = deserializationContext.getAttribute("facteur_conversion") ;
+
+        if (facteur_conversion_obj!=null)
+            facteur_conversion = (Double) facteur_conversion_obj ;
+
+
+        Object env = deserializationContext.getAttribute("environnement") ;
 
         Imp_Nommable iei = mapper.treeToValue(source_node, Imp_Nommable.class) ;
 
-        Point2D position = new Point2D(source_node.get("position_x").asDouble(),source_node.get("position_y").asDouble()) ;
+        Point2D position = new Point2D(
+                source_node.get("position_x").asDouble()*facteur_conversion,
+                source_node.get("position_y").asDouble()*facteur_conversion ) ;
+
         double angle = source_node.get("angle").asDouble() ;
         int nb_max_obst_renc = source_node.get("nombre_max_obstacles_rencontres").asInt() ;
         int nb_rayons = source_node.get("nombre_rayons").asInt() ;
         double ouverture_pinceau = source_node.get("ouverture_pinceau").asDouble() ;
-        double largeur_projecteur = source_node.get("largeur_projecteur").asDouble() ;
+        double largeur_projecteur = source_node.get("largeur_projecteur").asDouble()*facteur_conversion ;
 
         String type_source = source_node.get("type").asText() ;
         final Source.TypeSource t_s = Source.TypeSource.fromValue(type_source) ;

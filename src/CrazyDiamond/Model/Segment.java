@@ -247,7 +247,7 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
             Point2D vec_centre_pos = pos_souris.subtract(centre);
             longueur.set(2d * vec_centre_pos.magnitude());
-            rayon_diaphragme.set(Math.min(rayon_diaphragme.get(),longueur.get()));
+            rayon_diaphragme.set(Math.min(rayon_diaphragme.get(),0.5d*longueur.get()));
 
             double or = Math.toDegrees(Math.atan2(vec_centre_pos.getY(), vec_centre_pos.getX()));
 
@@ -557,4 +557,12 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
     public void definirRayonDiaphragme(Double r_d) {
         rayon_diaphragme.set(r_d);
     }
+
+    @Override
+    public void convertirDistances(double facteur_conversion) {
+        position_orientation.set(new PositionEtOrientation(centre().multiply(facteur_conversion),orientation()));
+        rayon_diaphragme.set(rayonDiaphragme()*facteur_conversion);
+        longueur.set(longueur()*facteur_conversion);
+    }
+
 }

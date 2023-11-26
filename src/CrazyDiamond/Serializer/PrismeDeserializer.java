@@ -33,14 +33,23 @@ public class PrismeDeserializer extends StdDeserializer<Prisme> {
         final ObjectCodec mapper = jsonParser.getCodec();
         final JsonNode prisme_node = mapper.readTree(jsonParser);
 
+        double facteur_conversion = 1d ;
+
+        Object facteur_conversion_obj = deserializationContext.getAttribute("facteur_conversion") ;
+
+        if (facteur_conversion_obj!=null)
+            facteur_conversion = (Double) facteur_conversion_obj ;
+
         Imp_Identifiable ii = mapper.treeToValue(prisme_node, Imp_Identifiable.class) ;
         Imp_Nommable iei = mapper.treeToValue(prisme_node, Imp_Nommable.class) ;
         Imp_ElementAvecContour iec = mapper.treeToValue(prisme_node, Imp_ElementAvecContour.class) ;
         Imp_ElementAvecMatiere iem = mapper.treeToValue(prisme_node, Imp_ElementAvecMatiere.class) ;
 
-        Prisme prisme = new Prisme(ii,iei,iec,iem,prisme_node.get("x_centre").asDouble(),prisme_node.get("y_centre").asDouble(),
+        Prisme prisme = new Prisme(ii,iei,iec,iem,
+                prisme_node.get("x_centre").asDouble()*facteur_conversion,
+                prisme_node.get("y_centre").asDouble()*facteur_conversion,
                 prisme_node.get("angle_sommet").asDouble(),
-                prisme_node.get("largeur_base").asDouble(),
+                prisme_node.get("largeur_base").asDouble()*facteur_conversion,
                 prisme_node.get("orientation").asDouble()) ;
 
         return prisme;

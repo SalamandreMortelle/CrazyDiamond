@@ -33,12 +33,22 @@ public class DemiPlanDeserializer extends StdDeserializer<DemiPlan> {
         final ObjectCodec mapper = jsonParser.getCodec();
         final JsonNode demi_plan_node = mapper.readTree(jsonParser);
 
+        double facteur_conversion = 1d ;
+
+        Object facteur_conversion_obj = deserializationContext.getAttribute("facteur_conversion") ;
+
+        if (facteur_conversion_obj!=null)
+            facteur_conversion = (Double) facteur_conversion_obj ;
+
         Imp_Identifiable ii = mapper.treeToValue(demi_plan_node, Imp_Identifiable.class) ;
         Imp_Nommable iei = mapper.treeToValue(demi_plan_node, Imp_Nommable.class) ;
         Imp_ElementAvecContour iec = mapper.treeToValue(demi_plan_node, Imp_ElementAvecContour.class) ;
         Imp_ElementAvecMatiere iem = mapper.treeToValue(demi_plan_node, Imp_ElementAvecMatiere.class) ;
 
-        DemiPlan demi_plan = new DemiPlan(ii,iei,iec,iem,demi_plan_node.get("x_origine").asDouble(),demi_plan_node.get("y_origine").asDouble(),demi_plan_node.get("orientation").asDouble()) ;
+        DemiPlan demi_plan = new DemiPlan(ii,iei,iec,iem,
+                demi_plan_node.get("x_origine").asDouble()*facteur_conversion,
+                demi_plan_node.get("y_origine").asDouble()*facteur_conversion,
+                demi_plan_node.get("orientation").asDouble()) ;
 
         return demi_plan;
     }

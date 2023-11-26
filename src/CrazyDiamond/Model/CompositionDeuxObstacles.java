@@ -370,4 +370,11 @@ public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable
     @Override
     public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
 
+    @Override
+    public void convertirDistances(double facteur_conversion) {
+        obstacle1.get().convertirDistances(facteur_conversion);
+        obstacle2.get().convertirDistances(facteur_conversion);
+    }
+
+
 }

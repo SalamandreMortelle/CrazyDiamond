@@ -24,11 +24,11 @@ public class DemiDroiteOuSegment {
 
     private Point2D depart ;
     /**
-     * l'arrivee n'est pas définie (null) si il s'agit d'une demi-droite.
+     * l'arrivee n'est pas définie (null) s'il s'agit d'une demi-droite.
      */
     private Point2D arrivee ;
     /**
-     * Vecteur direction de la demi-droite ou du segment.
+     * Vecteur directeur de la demi-droite ou du segment.
      * Si demi-droite : la norme de la direction est quelconque
      * Si segment : la norme de la direction est égal à la longueur du segment
      */

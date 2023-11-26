@@ -6,7 +6,6 @@ import de.lighti.clipper.Path;
 
 import javafx.beans.property.*;
 import javafx.collections.ListChangeListener;
-import javafx.geometry.BoundingBox;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.SpinnerValueFactory;
@@ -34,7 +33,8 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     public Source source_selectionnee = null ;
     protected SystemeOptiqueCentre soc_selectionne = null ;
 
-    protected BoiteLimiteGeometrique boite_limites ;
+    // Rectangle des limites géométriques de l'environnement, en unités de l'environnement
+    private BoiteLimiteGeometrique boite_limites ;
 
 
     // Récupération du logger
@@ -49,8 +49,16 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     private final VisiteurAffichageEnvironnement visiteur_affichage ;
 
     // Limites par défaut de la zone d'intérêt (zone visible)
-    protected static double xmin_par_defaut = -2.0 , xmax_par_defaut = 2.0 ;
-    protected static double ymin_par_defaut = -1.0, ymax_par_defaut = 2.0 ; // NB : ce ymax sera ignoré si preserver_ratio_xy = true (sa valeur sera calculée)
+
+    /**
+     * Abscisses minimales et maximales de la zone visible géométrique exprimées en unités de l'Environnement.
+     */
+    protected static double xmin_g_par_defaut = -2.0 , xmax_g_par_defaut = 2.0 ;
+
+    /** Ordonnée y du milieu de la zone visible. Sa hauteur sera calculée de manière à respecter le ratio d'aspect
+     *  graphique (largeur_graphique/hauteur_graphique)
+      */
+    protected static double ycentre_g_par_defaut = 0.0 ;
 
     protected static double largeur_graphique_par_defaut = 800 ;
     protected static double hauteur_graphique_par_defaut = 600 ;
@@ -86,6 +94,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     protected final MapProperty<SystemeOptiqueCentre,Boolean> montrer_plans_nodaux_de_soc ;
 
     protected ConvertisseurDoubleValidantAffichageDistance convertisseur_affichage_distance;
+    private boolean suspendre_rafraichir_decor = false ;
 
     public Color couleurNormales() { return couleur_normales.get() ; }
 
@@ -125,45 +134,70 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
     }
 
-    public CanvasAffichageEnvironnement(Environnement e, double larg_g, double haut_g, double xmin, double ymin, double xmax, double ymax,
+    /**
+     * Créée un Canvas graphique (javafx.scene.canvas) d'Affichage d'un Environnement e de dimensions graphiques
+     * larg_gc x haut_gc montrant l'environnement entre les abscisses géométriques xmin_g et xmax_g (exprimées en unités
+     * de l'environnement), de telle sorte que l'ordonnée géométrique ycentre_g soit au centre de la zone visible.
+     * @param e : Environnement à afficher
+     * @param larg_gc : Largeur graphique de la zone visible (en pixels)
+     * @param haut_gc : Hauteur graphique de la zone visible (en pixels)
+     * @param xmin_g : Abscisse géométrique minimale visible (en unités de l'Environnement e)
+     * @param xmax_g : Abscisse géométrique maximale visible (en unités de l'Environnement e)
+     * @param ycentre_g : Ordonnée géométrique du centre de la zone visible (en unités de l'Environnement e)
+     * @param normales_visibles : Indique si les normales doivent être affichées
+     * @param prolongements_avant_visibles : Indique si les prolongements des rayons vers l'avant doivent être affichés (en pointillés)
+     * @param prolongements_arriere_visibles : Indique si les prolongements des rayons vers l'arrière doivent être affichés (en pointillés)
+     * @param commentaire_visible : Indique si le commentaire (description textuelle) de l'Environnement doit être affiché
+     * @param couleur_normales : Couleur à utiliser pour afficher les normales
+     * @throws IllegalArgumentException
+     */
+    public CanvasAffichageEnvironnement(Environnement e, double larg_gc, double haut_gc, double xmin_g, double xmax_g, double ycentre_g,
                                         boolean normales_visibles,
                                         boolean prolongements_avant_visibles,
                                         boolean prolongements_arriere_visibles,
                                         boolean commentaire_visible,
                                         Color couleur_normales) throws IllegalArgumentException {
 
-        super(larg_g,haut_g) ;
+        super(larg_gc,haut_gc) ;
 
-        if (larg_g<=0.0 || haut_g<=0.0)
+        if (larg_gc<=0.0 || haut_gc<=0.0)
             throw new IllegalArgumentException("Hauteur et Largeur graphiques du canvas d'affichage de l'Environnement doivent être strictement positives.") ;
 
         resolution = new SimpleDoubleProperty() ;
 
-        definirDimensionsGraphiquesEtLimites(larg_g,haut_g,xmin,ymin,xmax,ymax);
-
+        // On définit l'environnement
         this.environnement = e ;
+
+        definirDimensionsGraphiquesEtLimites(larg_gc,haut_gc,xmin_g,xmax_g,ycentre_g);
+
+        this.environnement.uniteProperty().addListener( ( (observableValue, oldValue, newValue) -> {
+                    LOGGER.log(Level.FINER,"unite passe de {0} à {1}",new Object[] {oldValue,newValue});
+                    convertirDistances(oldValue.valeur/newValue.valeur);
+                } )
+        ) ;
 
         visiteur_affichage = new VisiteurAffichageEnvironnement(this) ;
 
         convertisseur_affichage_distance = new ConvertisseurDoubleValidantAffichageDistance(this) ;
 
-        resolution.addListener( ( (observableValue, oldValue, newValue) -> {
-                    LOGGER.log(Level.FINER,"resolution passe de {0} à {1}",new Object[] {oldValue,newValue});
-                    convertisseur_affichage_distance.caleSurResolution();
-                } )
-        );
+        // Inutile d'ajouter n listenr : le binding avec la résolution du canvas est faite dans le constructeur du convertisseur.
+//        resolution.addListener( ( (observableValue, oldValue, newValue) -> {
+//                    LOGGER.log(Level.FINER,"resolution passe de {0} à {1}",new Object[] {oldValue,newValue});
+//                    convertisseur_affichage_distance.caleSurResolution();
+//                } )
+//        );
 
         this.normales_visibles = new SimpleBooleanProperty(normales_visibles) ;
-        this.normales_visibles.addListener((observable, oldValue,newValue) -> this.rafraichirDecor());
+        this.normales_visibles.addListener((observable, oldValue,newValue) -> this.rafraichirAffichage());
 
         this.couleur_normales = new SimpleObjectProperty<Color>(couleur_normales) ;
-        this.couleur_normales.addListener((observable, oldValue,newValue) -> this.rafraichirDecor());
+        this.couleur_normales.addListener((observable, oldValue,newValue) -> this.rafraichirAffichage());
 
         this.prolongements_avant_visibles = new SimpleBooleanProperty(prolongements_avant_visibles) ;
-        this.prolongements_avant_visibles.addListener((observable, oldValue,newValue) -> this.rafraichirDecor());
+        this.prolongements_avant_visibles.addListener((observable, oldValue,newValue) -> this.rafraichirAffichage());
 
         this.prolongements_arriere_visibles = new SimpleBooleanProperty(prolongements_arriere_visibles) ;
-        this.prolongements_arriere_visibles.addListener((observable, oldValue,newValue) -> this.rafraichirDecor());
+        this.prolongements_arriere_visibles.addListener((observable, oldValue,newValue) -> this.rafraichirAffichage());
 
         this.commentaire_visible = new SimpleBooleanProperty(commentaire_visible) ;
         this.commentaire_visible.addListener((observable, oldValue,newValue) -> {
@@ -180,8 +214,8 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         this.montrer_plans_nodaux_de_soc = new SimpleMapProperty<SystemeOptiqueCentre, Boolean>() ;
     }
 
-    public CanvasAffichageEnvironnement(Environnement e, double larg_g, double haut_g, double xmin, double ymin, double xmax, double ymax) throws IllegalArgumentException {
-        this(e,larg_g,haut_g,xmin,ymin,xmax,ymax,
+    public CanvasAffichageEnvironnement(Environnement e, double larg_gc, double haut_gc, double xmin_g, double xmax_g, double ycentre_g) throws IllegalArgumentException {
+        this(e,larg_gc,haut_gc,xmin_g,xmax_g,ycentre_g,
                 normales_visibles_par_defaut,
                 prolongements_avant_visibles_par_defaut,
                 prolongements_arriere_visibles_par_defaut,
@@ -189,12 +223,12 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
                 couleur_normales_par_defaut) ;
     }
 
-    public CanvasAffichageEnvironnement(Environnement e, double larg_g, double haut_g) {
-        this(e,larg_g,haut_g,xmin_par_defaut,ymin_par_defaut,xmax_par_defaut,ymax_par_defaut) ;
+    public CanvasAffichageEnvironnement(Environnement e, double larg_gc, double haut_gc) {
+        this(e,larg_gc,haut_gc, xmin_g_par_defaut, xmax_g_par_defaut, ycentre_g_par_defaut) ;
     }
 
     public CanvasAffichageEnvironnement(Environnement e) {
-        this(e,largeur_graphique_par_defaut,hauteur_graphique_par_defaut,xmin_par_defaut,ymin_par_defaut,xmax_par_defaut,ymax_par_defaut) ;
+        this(e,largeur_graphique_par_defaut,hauteur_graphique_par_defaut, xmin_g_par_defaut, xmax_g_par_defaut, ycentre_g_par_defaut) ;
     }
 
     public void initialize() {
@@ -210,13 +244,13 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         });
 
         environnement.reflexionAvecRefractionProperty().addListener((observable, oldValue,newValue) -> {
-            this.rafraichirDecor();
+            this.rafraichirAffichage();
         });
 
         // Intégration des rappels sur les éventuelles sources déjà présentes dans l'environnement (peut arriver si on a chargé l'environnement)
         Iterator<Source> its = environnement.iterateur_sources() ;
         while (its.hasNext())
-            its.next().ajouterRappelSurChangementToutePropriete(this::rafraichirDecor);
+            its.next().ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 
         // Détection des sources ajoutées ou supprimées
         lcl_sources = (ListChangeListener<Source>) change -> {
@@ -228,7 +262,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     //                  for (Source remitem : change.getRemoved()) { }
 
                     LOGGER.log(Level.FINER,"Source supprimée");
-                    rafraichirDecor();
+                    rafraichirAffichage();
                 } else if (change.wasAdded()) {
                     for (Source additem : change.getAddedSubList()) {
 
@@ -236,9 +270,9 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
                         LOGGER.log(Level.FINER,"Création des liaisons pour la Source {0}",additem);
 
-                        additem.ajouterRappelSurChangementToutePropriete(this::rafraichirDecor);
+                        additem.ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 
-                        rafraichirDecor();
+                        rafraichirAffichage();
 
                     }
                 }
@@ -251,7 +285,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         // Intégration des rappels sur les éventuels obstacles déjà présents dans l'environnement (peut arriver si on a chargé l'environnement)
         Iterator<Obstacle> ito = environnement.iterateur_obstacles() ;
         while (ito.hasNext())
-            ito.next().ajouterRappelSurChangementToutePropriete(this::rafraichirDecor);
+            ito.next().ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 
         lcl_obstacles = (ListChangeListener<Obstacle>) change -> {
             while (change.next()) {
@@ -259,16 +293,16 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
                 if (change.wasRemoved()) {
                     //                  for (Source remitem : change.getRemoved()) { }
                     LOGGER.log(Level.FINER,"Obstacle supprimé");
-                    rafraichirDecor();
+                    rafraichirAffichage();
                 } else if (change.wasAdded()) {
 
                     for (Obstacle additem : change.getAddedSubList()) {
                         LOGGER.log(Level.FINER,"Obstacle ajouté : {0}" , additem);
 
-                        additem.ajouterRappelSurChangementToutePropriete(this::rafraichirDecor);
+                        additem.ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
                     }
 
-                    rafraichirDecor();
+                    rafraichirAffichage();
                 }
 
             }
@@ -280,7 +314,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         // Intégration des rappels sur les éventuels SOC déjà présents dans l'environnement (peut arriver si on a chargé l'environnement)
         Iterator<SystemeOptiqueCentre> itsoc = environnement.iterateur_systemesOptiquesCentres() ;
         while (itsoc.hasNext())
-            itsoc.next().ajouterRappelSurChangementToutePropriete(this::rafraichirDecor);
+            itsoc.next().ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 
 
         // Détection des socs ajoutés ou supprimés
@@ -293,7 +327,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
                     //                  for (Source remitem : change.getRemoved()) { }
 
                     LOGGER.log(Level.FINER,"SOC supprimé");
-                    rafraichirDecor();
+                    rafraichirAffichage();
                 } else if (change.wasAdded()) {
                     for (SystemeOptiqueCentre additem : change.getAddedSubList()) {
 
@@ -304,9 +338,9 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
                         // Il faut un rappel pour redessiner l'axe en cas de changement d'une propriété du SOC, y compris sa matrice de transfert
                         // NB : Si ce rappel se déclenche, il est dommage qu'il y en ait déjà un de déclenché par les obstacles du SOC eux-mêmes, quand on
                         // change ses propriétés : il faudrait s'en passer et ne garder que le rappel ci-dessous...
-                        additem.ajouterRappelSurChangementToutePropriete(this::rafraichirDecor);
+                        additem.ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 
-                        rafraichirDecor();
+                        rafraichirAffichage();
 
                     }
                 }
@@ -329,7 +363,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
             boite_limites = new BoiteLimiteGeometrique(xmin(),ymin(),largeur()+delta_largeur,hauteur()) ;
 //            LOGGER.log(Level.FINER,"["+ xmin_init +","+ (ymax_init -(ymax_init - ymin_init)*hauteurCourante/hauteurInitiale) +","+(xmin_init +(xmax_init - xmin_init)*newValue.doubleValue()/largeurInitiale)+","+ ymax_init +"]");
 
-            rafraichirDecor();
+            rafraichirAffichage();
         });
 
         heightProperty().addListener((observable, oldValue, newValue) -> {
@@ -346,7 +380,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
 //            LOGGER.log(Level.FINER,"["+ xmin_init +","+(ymax_init -(ymax_init - ymin_init)*newValue.doubleValue()/hauteurInitiale)+","+ xmin_init +(xmax_init - xmin_init)*largeurCourante/largeurInitiale +","+ ymax_init +"]");
 
-            rafraichirDecor();
+            rafraichirAffichage();
         });
 
         setOnScroll(this::traiterMoletteSourisCanvas);
@@ -367,6 +401,16 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     public double ymax() {
         return boite_limites.getMaxY() ;
     }
+
+    public double xcentre() {
+        return boite_limites.getCenterX() ;
+    }
+
+    public double ycentre() {
+        return boite_limites.getCenterY() ;
+    }
+
+
     public double facteurPasDistance() {
         double facteur_pas_distance = 10.0;
         return facteur_pas_distance; }
@@ -403,14 +447,14 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         deselectionneSystemeOptiqueCentre();
 
         if (o!=prec_obs)
-            rafraichirDecor();
+            rafraichirAffichage();
     }
     public void deselectionneObstacle() {
         if (obstacle_selectionne==null)
             return ;
 
         obstacle_selectionne = null;
-        rafraichirDecor();
+        rafraichirAffichage();
     }
 
     public Source sourceSelectionnee() { return source_selectionnee ; }
@@ -423,7 +467,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         deselectionneSystemeOptiqueCentre();
 
         if (s!=prec_s)
-            rafraichirDecor();
+            rafraichirAffichage();
     }
 
 
@@ -432,7 +476,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
             return ;
 
         source_selectionnee = null;
-        rafraichirDecor();
+        rafraichirAffichage();
     }
 
     public SystemeOptiqueCentre systemeOptiqueCentreSelectionne() { return soc_selectionne ;}
@@ -445,7 +489,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         deselectionneObstacle();
 
         if (s!=prec_soc)
-            rafraichirDecor();
+            rafraichirAffichage();
     }
 
     public void deselectionneSystemeOptiqueCentre() {
@@ -453,7 +497,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
             return ;
 
         soc_selectionne = null;
-        rafraichirDecor();
+        rafraichirAffichage();
     }
 
 
@@ -489,23 +533,21 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         double ycentre = (ymin() + ymax()) / 2;
 
         double nouveau_xmin = xcentre - nouveau_facteur*(xcentre - xmin()) ;
-        double nouveau_ymin = ycentre - nouveau_facteur*(ycentre - ymin()) ;
         double nouveau_xmax = xcentre + nouveau_facteur*(xmax() - xcentre) ;
-        double nouveau_ymax = ycentre + nouveau_facteur*(ymax() - ycentre) ;
 
         try {
-            definirLimites(nouveau_xmin, nouveau_ymin, nouveau_xmax, nouveau_ymax);
+            definirLimites(nouveau_xmin, nouveau_xmax, ycentre );
         }  catch (IllegalArgumentException e) {
             return ;
         }
 
-        rafraichirDecor();
+        rafraichirAffichage();
 
     }
 
 
     /**
-     * Définit les limites (en coordonnées géométriques de l'Environnement) de la zone à afficher dans le Canvas (zone visible).
+     * Définit les limites (en coordonnées géométriques et en unités de l'Environnement) de la zone à afficher dans le Canvas (zone visible).
      * Cette méthode définit la transformation affine du GraphicsContext du canvas de telle manière que les bords de ce
      * GraphicsContext (de taille largeur_graphique X hauteur_graphique) correspondent aux coordonnées des bords passés
      * en paramètres.
@@ -518,38 +560,35 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
      * Post-conditions : les résolutions (x et y) sont calculées, la matrice de transformation gc -> g et son inverse
      * g -> gc sont calculées, les nouvelles limites sont enregistrées (dans la propriété boite_limites)
      *
-     * @param xmin : x minimal visible en coordonnées géométriques de l'environnement
-     * @param ymin : x minimal visible en coordonnées géométriques de l'environnement
-     * @param xmax : y maximal visible en coordonnées géométriques de l'environnement
-     * @param ymax : y maximal visible en coordonnées géométriques de l'environnement
+     * @param xmin_g : x minimal visible en coordonnées géométriques et en unités de l'environnement
+     * @param xmax_g : y maximal visible en coordonnées géométriques et en unités de l'environnement
+     * @param ycentre_g : y du centre de la zone visible en coordonnées géométriques et en unités de l'environnement
      */
-    public void definirLimites(double xmin, double ymin, double xmax, double ymax) throws IllegalArgumentException {
+    public void definirLimites(double xmin_g, double xmax_g, double ycentre_g) throws IllegalArgumentException {
 
-        if ( (xmin>xmax) || (ymin>ymax) )
-            throw new IllegalArgumentException("xmax de la zone à afficher doit être plus grand que xmin. Idem pour ymax et ymin.") ;
+        if ( (xmin_g>xmax_g) )
+            throw new IllegalArgumentException("xmax de la zone à afficher doit être plus grand que xmin.") ;
 
         // Recalage de y_min et y_max pour préserver le ratio d'aspect tout en maintenant l'ordonnée (y_min+y_max)/2
         // pour le milieu de la vue
-        double nouv_ymin = ((ymax+ymin)-(xmax-xmin)* hauteur_graphique/largeur_graphique)*0.5d ;
-        double nouv_ymax = ((ymax+ymin)+(xmax-xmin)* hauteur_graphique/largeur_graphique)*0.5d ;
+        double nouv_ymin_g = ((2*ycentre_g)-(xmax_g-xmin_g)* hauteur_graphique/largeur_graphique)*0.5d ;
+        double nouv_ymax_g = ((2*ycentre_g)+(xmax_g-xmin_g)* hauteur_graphique/largeur_graphique)*0.5d ;
 
-        // Resolution = dimensions d'un pixel graphique en coordonnées géométriques de l'Environnement
-        double nouvelle_resolution_x = (xmax-xmin) / largeur_graphique ;
-        double nouvelle_resolution_y = (nouv_ymax-nouv_ymin) / hauteur_graphique ;
+        // Resolution = dimensions (en unités de l'environnement) d'un pixel graphique en coordonnées géométriques de l'Environnement
+        double nouvelle_resolution_x = (xmax_g-xmin_g) / largeur_graphique ;
+        double nouvelle_resolution_y = (nouv_ymax_g-nouv_ymin_g) / hauteur_graphique ;
         double nouvelle_resolution = Math.min(nouvelle_resolution_x,nouvelle_resolution_y) ;
 
-        double resolution_minimale_autorisee = 1E-4;
+        double resolution_minimale_autorisee = 1E-4; // Un dix-millième d'unité de l'environnement par pixel
         if (nouvelle_resolution< resolution_minimale_autorisee)
             throw new IllegalArgumentException("La zone à afficher est trop petite (précision max d'une coordonnée dans un javafx.scene.canvas.GraphicsContext est limitée à celle d'un float soit environ 1E-7)") ;
 
-        double resolution_maximale_autorisee = 1E2;
+        double resolution_maximale_autorisee = 1E2; // 100 unités d'environnement par pixel
         if (nouvelle_resolution> resolution_maximale_autorisee)
             throw new IllegalArgumentException("La zone à afficher est trop grande (exposant max d'une coordonnée dans un javafx.scene.canvas.GraphicsContext est limitée à celui d'un float soit environ 1E38)") ;
 
-
         // Tous les contrôles de paramètres ont été faits : on peut modifier les propriétés du Canvas
-        boite_limites = new BoiteLimiteGeometrique(xmin,nouv_ymin,xmax-xmin,nouv_ymax-nouv_ymin) ;
-//        boite_limites = new BoiteLimiteGeometrique(xmin,ymin,xmax-xmin,ymax-ymin) ;
+        boite_limites = new BoiteLimiteGeometrique(xmin_g,nouv_ymin_g,xmax_g-xmin_g,nouv_ymax_g-nouv_ymin_g) ;
 
         resolution_x = nouvelle_resolution_x ;
         resolution_y = nouvelle_resolution_y ;
@@ -558,14 +597,10 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
         LOGGER.log(Level.FINEST, "Nouvelle resolution (dimension d'un pixel dans l'espace géométrique): {0}",nouvelle_resolution) ;
 
-        // Définition de la transformation affine qui permet de passer des coordonnées géométriques aux coordonnées sur
-        // l'écran, en préservant le ratio largeur_graphique/hauteur_graphique
-        Affine nouvelle_transform = new Affine(largeur_graphique/(xmax-xmin)    ,0,-largeur_graphique*xmin/(xmax-xmin),
-                                               0,-hauteur_graphique/(nouv_ymax-nouv_ymin),hauteur_graphique*nouv_ymax/(nouv_ymax-nouv_ymin) ) ;
-//        nouvelle_transform.appendTranslation(-xmin * largeur_graphique / (xmax - xmin), hauteur_graphique + nouv_ymin * hauteur_graphique / (nouv_ymax - nouv_ymin)); ;
-//        nouvelle_transform.appendTranslation(-xmin * largeur_graphique / (xmax - xmin), hauteur_graphique + ymin * hauteur_graphique / (ymax - ymin)); ;
-//        nouvelle_transform.appendScale(largeur_graphique / (xmax - xmin), -hauteur_graphique / (nouv_ymax - nouv_ymin));
-//        nouvelle_transform.appendScale(largeur_graphique / (xmax - xmin), -hauteur_graphique / (ymax - ymin));
+        // Définition de la transformation affine qui permet de passer des coordonnées géométriques, exprimées en unités
+        // de l'environnement, aux coordonnées sur l'écran, en préservant le ratio largeur_graphique/hauteur_graphique
+        Affine nouvelle_transform = new Affine(largeur_graphique/(xmax_g-xmin_g)    ,0,-largeur_graphique*xmin_g/(xmax_g-xmin_g),
+                                               0,-hauteur_graphique/(nouv_ymax_g-nouv_ymin_g),hauteur_graphique*nouv_ymax_g/(nouv_ymax_g-nouv_ymin_g) ) ;
 
         gc.setTransform(nouvelle_transform);
 
@@ -598,18 +633,14 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         transformation_inverse.setTy(-(depl_y_g+gc.getTransform().getTy())/gc.getTransform().getMyy());
     }
 
-    public void definirLimites(BoundingBox b_limites) {
-        definirLimites(b_limites.getMinX(),b_limites.getMinY(),b_limites.getMaxX(),b_limites.getMaxY());
-    }
-
     public void definirDimensionsGraphiques(double larg_g, double haut_g) {
         largeur_graphique = larg_g;
         hauteur_graphique = haut_g;
     }
 
-    public void definirDimensionsGraphiquesEtLimites(double larg_g, double haut_g, double xmin, double ymin, double xmax, double ymax) {
+    public void definirDimensionsGraphiquesEtLimites(double larg_g, double haut_g, double xmin, double xmax, double ycentre) {
         definirDimensionsGraphiques(larg_g,haut_g);
-        definirLimites(xmin, ymin, xmax, ymax);
+        definirLimites(xmin, xmax, ycentre);
     }
 
     public GraphicsContext gc() { return gc; }
@@ -640,7 +671,11 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         return resolution ;
     }
 
-    public void rafraichirDecor() {
+    public void rafraichirAffichage() {
+
+        if (suspendre_rafraichir_decor || environnement.rafraichissementAffichagesSuspendu())
+            return ;
+
         // Effacer la zone visible (rend les pixels transparents : le fond prédéfini dans le parent remplit la zone visible)
         gc.clearRect(xmin(), ymin(),xmax() - xmin(), ymax()-ymin());
 
@@ -791,8 +826,6 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     }
 
     public void completerPathAvecContour(Contour c) {
-        double[] xpd = new double[c.nombrePoints()];
-        double[] ypd = new double[c.nombrePoints()];
 
         Iterator<Double> itx = c.iterateurX() ;
         Iterator<Double> ity = c.iterateurY() ;
@@ -1003,4 +1036,35 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     public void definirEnvironnement(Environnement nouvel_environnement) {
         environnement = nouvel_environnement ;
     }
+
+    /**
+     * Indique si le Canvas d'Affichage contient le point géométrique pt_g, dont les coordonnées sont exprimées en
+     * unités de l'environnement
+     * @param pt_g
+     * @return
+     */
+    public boolean contient(Point2D pt_g) {
+        return boite_limites.contains(pt_g) ;
+    }
+
+    public Point2D premiere_intersection(DemiDroiteOuSegment s) {
+        return boite_limites.premiere_intersection(s) ;
+    }
+
+    public Point2D derniere_intersection(DemiDroiteOuSegment s) {
+        return boite_limites.derniere_intersection(s) ;
+    }
+
+    /**
+     * Convertit les dimensions de la zone géométrique visible en les multipliant par le facteur de conversion transmis
+     * @param facteur_conversion
+     */
+    public void convertirDistances(double facteur_conversion) {
+        suspendre_rafraichir_decor = true ;
+        definirLimites(xmin()*facteur_conversion,xmax()*facteur_conversion,ycentre()*facteur_conversion);
+        suspendre_rafraichir_decor = false ;
+        rafraichirAffichage();
+    }
+
+
 }

@@ -652,4 +652,11 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
     public ObjectProperty<PositionEtOrientation> positionEtOrientationObjectProperty() {
         return position_orientation ;
     }
+
+    @Override
+    public void convertirDistances(double facteur_conversion) {
+        position_orientation.set(new PositionEtOrientation(centre().multiply(facteur_conversion),orientation()));
+        largeur_base.set(largeurBase()*facteur_conversion);
+    }
+
 }

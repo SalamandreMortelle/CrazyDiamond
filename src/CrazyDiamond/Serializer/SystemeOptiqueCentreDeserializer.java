@@ -36,11 +36,20 @@ public class SystemeOptiqueCentreDeserializer extends StdDeserializer<SystemeOpt
         final ObjectCodec mapper = jsonParser.getCodec();
         final JsonNode soc_node = mapper.readTree(jsonParser);
 
+        double facteur_conversion = 1d ;
+
+        Object facteur_conversion_obj = deserializationContext.getAttribute("facteur_conversion") ;
+
+        if (facteur_conversion_obj!=null)
+            facteur_conversion = (Double) facteur_conversion_obj ;
+
         Environnement env = (Environnement) deserializationContext.getAttribute("environnement") ;
 
         Imp_Nommable iei = mapper.treeToValue(soc_node, Imp_Nommable.class) ;
 
-        Point2D origine = new Point2D(soc_node.get("x_origine").asDouble(),soc_node.get("y_origine").asDouble()) ;
+        Point2D origine = new Point2D(
+                soc_node.get("x_origine").asDouble()*facteur_conversion,
+                soc_node.get("y_origine").asDouble()*facteur_conversion ) ;
 
         SystemeOptiqueCentre soc = new SystemeOptiqueCentre((Environnement) env,iei,origine,soc_node.get("orientation").asDouble()) ;
 

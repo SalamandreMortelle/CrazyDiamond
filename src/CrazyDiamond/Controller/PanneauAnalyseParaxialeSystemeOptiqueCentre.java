@@ -231,78 +231,14 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         z_pl_nodal_objet.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanNodal1Property()));
         z_pl_nodal_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanNodal2Property()));
 
-
-//        StringBinding affiche_z_pl_focal_objet = new StringBinding() {
-//            { super.bind(soc.ZPlanFocal1Property()) ;}
-//            @Override protected String computeValue() {
-//                return canvas.convertisseurAffichageDistance().toString(soc.ZPlanFocal1());
-//            }
-//        };
-//        z_pl_focal_objet.textProperty().bind(affiche_z_pl_focal_objet);
-
-//        StringBinding affiche_z_pl_focal_image = new StringBinding() {
-//            { super.bind(soc.ZPlanFocal2Property()) ;}
-//            @Override protected String computeValue() {
-//                return canvas.convertisseurAffichageDistance().toString(soc.ZPlanFocal2());
-//            }
-//        };
-//        z_pl_focal_image.textProperty().bind(affiche_z_pl_focal_image);
-
-//        StringBinding affiche_z_pl_principal_objet = new StringBinding() {
-//            { super.bind(soc.ZPlanPrincipal1Property()) ;}
-//            @Override protected String computeValue() {
-//                return canvas.convertisseurAffichageDistance().toString(soc.ZPlanPrincipal1());
-//            }
-//        };
-//        z_pl_principal_objet.textProperty().bind(affiche_z_pl_principal_objet);
-
-//        StringBinding affiche_z_pl_principal_image = new StringBinding() {
-//            { super.bind(soc.ZPlanPrincipal2Property()) ;}
-//            @Override protected String computeValue() {
-//                return canvas.convertisseurAffichageDistance().toString(soc.ZPlanPrincipal2());
-//            }
-//        };
-//        z_pl_principal_image.textProperty().bind(affiche_z_pl_principal_image);
-
-//        StringBinding affiche_z_pl_nodal_objet = new StringBinding() {
-//            { super.bind(soc.ZPlanNodal1Property()) ;}
-//            @Override protected String computeValue() {
-//                return canvas.convertisseurAffichageDistance().toString(soc.ZPlanNodal1());
-//            }
-//        };
-//        z_pl_nodal_objet.textProperty().bind(affiche_z_pl_nodal_objet);
-
-//        StringBinding affiche_z_pl_nodal_image = new StringBinding() {
-//            { super.bind(soc.ZPlanNodal2Property()) ;}
-//            @Override protected String computeValue() {
-//                return canvas.convertisseurAffichageDistance().toString(soc.ZPlanNodal2());
-//            }
-//        };
-//        z_pl_nodal_image.textProperty().bind(affiche_z_pl_nodal_image);
-
-
-//        z_pl_principal_objet.textProperty().bind(soc.ZPlanPrincipal1().asString());
-//        z_pl_principal_image.textProperty().bind(soc.ZPlanPrincipal2().asString());
-//
-//        z_pl_nodal_objet.textProperty().bind(soc.ZPlanNodal1().asString());
-//        z_pl_nodal_image.textProperty().bind(soc.ZPlanNodal2().asString());
-
-        // Position objet
-//        soc_xorigine_object_property = soc.XOrigineProperty().asObject() ;
-//        spinner_xorigine.getValueFactory().valueProperty().bindBidirectional(soc_xorigine_object_property);
-//
-//        spinner_xorigine.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_RIGHT_HORIZONTAL) ;
-
         z_objet_object_property = soc.ZObjetProperty() ;
         spinner_z_objet.getValueFactory().valueProperty().bindBidirectional(z_objet_object_property);
-
         spinner_z_objet.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_RIGHT_HORIZONTAL) ;
 
         canvas.ajustePasEtAffichageSpinnerValueFactoryDistance((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_z_objet.getValueFactory());
 
         h_objet_object_property = soc.HObjetProperty() ;
         spinner_h_objet.getValueFactory().valueProperty().bindBidirectional(h_objet_object_property);
-
         spinner_h_objet.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_LEFT_VERTICAL) ;
 
         canvas.ajustePasEtAffichageSpinnerValueFactoryDistance((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_h_objet.getValueFactory());
@@ -310,183 +246,11 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         z_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZImageProperty()));
         h_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.HImageProperty()));
 
-//        StringBinding affiche_z_image = new StringBinding() {
-//            { super.bind(soc.ZImageProperty()) ;}
-//            @Override protected String computeValue() {
-//                return canvas.convertisseurAffichageDistance().toString(soc.ZImage());
-//            }
-//        };
-//        z_image.textProperty().bind(affiche_z_image);
+        grandissement_transversal.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.GrandissementTransversalProperty()));
 
-//        StringBinding affiche_h_image = new StringBinding() {
-//            { super.bind(soc.HImageProperty()) ;}
-//            @Override protected String computeValue() {
-//                return canvas.convertisseurAffichageDistance().toString(soc.HImage());
-//            }
-//        };
-//        h_image.textProperty().bind(affiche_h_image);
+        grandissement_angulaire.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.GrandissementAngulaireProperty()));
 
-        ObjectBinding<Double> calcul_grandissement_transversal = new ObjectBinding<Double>() {
-            { super.bind(soc.MatriceTransfertESProperty(),soc.ZImageProperty(),soc.NSortieProperty()) ;}
-
-            @Override protected Double computeValue() {
-                if (soc.MatriceTransfertES()==null)
-                    return null ;
-
-                double a = soc.MatriceTransfertES().getMxx() ;
-                double b = soc.MatriceTransfertES().getMxy() ;
-                double c = soc.MatriceTransfertES().getMyx() ;
-                double d = soc.MatriceTransfertES().getMyy() ;
-
-                if (Environnement.quasiEgal(c,0d)) // Système afocal : Gt constant, ne dépend pas de la position de l'objet
-                    return a ;
-
-                if (soc.ZImage()==null)
-                    return null ;
-
-                return ( a+c*((soc.ZImage()-soc.zPlanSortie())/soc.NSortie()) );
-            }
-        };
-
-        grandissement_transversal.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(calcul_grandissement_transversal));
-        
-//        StringBinding affiche_grandissement_transversal = new StringBinding() {
-//            { super.bind(calcul_grandissement_transversal) ; }
-//
-//            @Override protected String computeValue() {
-//                return canvas.convertisseurAffichageDistance().toString(calcul_grandissement_transversal.getValue());
-//            }
-//
-//        } ;
-//        grandissement_transversal.textProperty().bind(affiche_grandissement_transversal) ;
-
-//        StringBinding calcul_grandissement_transversal = new StringBinding() {
-//            { super.bind(soc.MatriceTransfertESProperty(),soc.ZObjetProperty(),soc.NEntreeProperty()) ;}
-//            @Override protected String computeValue() {
-//                if (soc.MatriceTransfertES()==null)
-//                    return "" ;
-//
-//                double a = soc.MatriceTransfertES().getMxx() ;
-//                double b = soc.MatriceTransfertES().getMxy() ;
-//                double c = soc.MatriceTransfertES().getMyx() ;
-//                double d = soc.MatriceTransfertES().getMyy() ;
-//
-//                if (Environnement.quasiEgal(c,0d)) // Système afocal : Gt constant, ne dépend pas de la position de l'objet
-//                    return canvas.convertisseurAffichageDistance().toString(a) ;
-//
-//                if (soc.ZObjet()==null || soc.ZObjet()>soc.z_plan_entree)
-//                    return "" ;
-//
-//                return canvas.convertisseurAffichageDistance().toString((a+c*(a*soc.ZObjet()/soc.NEntree() - b) / (-c*soc.ZObjet()/soc.NEntree()+d)));
-//            }
-//        };
-//        grandissement_transversal.textProperty().bind(calcul_grandissement_transversal);
-
-//        StringBinding calcul_grandissement_transversal = new StringBinding() {
-//            { super.bind(soc.HObjetProperty(),soc.HImageProperty()) ;}
-//            @Override protected String computeValue() {
-//                if (soc.HObjet()==null || soc.HImage()==null || soc.HObjet()==0d)
-//                    return "" ;
-//
-//                return canvas.convertisseurAffichageDistance().toString(soc.HImage()/soc.HObjet());
-//            }
-//        };
-//        grandissement_transversal.textProperty().bind(calcul_grandissement_transversal);
-
-        ObjectBinding<Double> calcul_grandissement_angulaire = new ObjectBinding<Double>() {
-            { super.bind(soc.MatriceTransfertESProperty(),soc.SensPlusEnSortieProperty(),soc.NEntreeProperty(),soc.NSortieProperty(), soc.HObjetProperty(),soc.HImageProperty()) ;}
-            @Override protected Double computeValue() {
-
-                if (soc.MatriceTransfertES()==null)
-                    return null ;
-
-                double d = soc.MatriceTransfertES().getMyy() ;
-
-                // A-t-on un système afocal ?
-                if (Environnement.quasiEgal(soc.MatriceTransfertES().getMyx(),0))
-                    return d*soc.NEntree()/soc.NSortie() ;
-
-                if (soc.HObjet()==null || soc.HImage()==null || soc.HObjet()==0d)
-                    return null ;
-
-                return  (soc.SensPlusEnSortie()?1.0:-1.0) * (soc.NEntree()/soc.NSortie()) * (soc.HObjet()/soc.HImage()) ;
-            }
-        };
-
-        grandissement_angulaire.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(calcul_grandissement_angulaire));
-        
-////        StringBinding affiche_grandissement_angulaire = new StringBinding() {
-////            { super.bind(calcul_grandissement_angulaire) ; }
-////
-////            @Override protected String computeValue() {
-////                return canvas.convertisseurAffichageDistance().toString(calcul_grandissement_angulaire.getValue());
-////            }
-////
-////        } ;
-//
-//        grandissement_angulaire.textProperty().bind(affiche_grandissement_angulaire);
-
-        ObjectBinding<Double> calcul_grandissement_longitudinal = new ObjectBinding<Double>() {
-            {super.bind(calcul_grandissement_transversal,calcul_grandissement_angulaire) ;}
-            @Override protected Double computeValue() {
-                if (calcul_grandissement_transversal.get()==null || calcul_grandissement_angulaire.get()==null)
-                    return null ;
-
-                return calcul_grandissement_transversal.get()/calcul_grandissement_angulaire.get() ;
-            }
-        } ;
-
-        grandissement_longitudinal.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(calcul_grandissement_longitudinal));
-        
-//        StringBinding affiche_grandissement_longitudinal = new StringBinding() {
-//            { super.bind(calcul_grandissement_longitudinal) ; }
-//
-//            @Override protected String computeValue() {
-//                return canvas.convertisseurAffichageDistance().toString(calcul_grandissement_longitudinal.getValue());
-//            }
-//
-//        } ;
-
-//        grandissement_longitudinal.textProperty().bind(affiche_grandissement_longitudinal) ;
-
-//        StringBinding affiche_grandissement_angulaire = new StringBinding() {
-//            { super.bind(calcul_grandissement_angulaire) ; }
-//
-//            @Override protected String computeValue() {
-//                return canvas.convertisseurAffichageDistance().toString(calcul_grandissement_angulaire.getValue());
-//            }
-//
-//        } ;
-
-
-//        StringBinding calcul_grandissement_angulaire = new StringBinding() {
-//            { super.bind(soc.MatriceTransfertESProperty(),soc.SensPlusEnSortieProperty(),soc.NEntreeProperty(),soc.NSortieProperty(), soc.HObjetProperty(),soc.HImageProperty()) ;}
-//            @Override protected String computeValue() {
-//
-//                if (soc.MatriceTransfertES()==null)
-//                    return "" ;
-//
-//                double d = soc.MatriceTransfertES().getMyy() ;
-//
-//                // A-t-on un système afocal ?
-//                if (Environnement.quasiEgal(soc.MatriceTransfertES().getMyx(),0))
-//                    return canvas.convertisseurAffichageDistance().toString(d*soc.NEntree()/soc.NSortie()) ;
-//
-//                if (soc.HObjet()==null || soc.HImage()==null || soc.HObjet()==0d)
-//                    return "" ;
-//
-//                return canvas.convertisseurAffichageDistance().toString( (soc.SensPlusEnSortie()?1.0:-1.0) * (soc.NEntree()/soc.NSortie()) / (soc.HImage()/soc.HObjet()) ) ;
-//            }
-//        };
-//        grandissement_angulaire.textProperty().bind(calcul_grandissement_angulaire);
-
-
-//        soc_yorigine_object_property = soc.YOrigineProperty().asObject() ;
-//        spinner_yorigine.getValueFactory().valueProperty().bindBidirectional(soc_yorigine_object_property);
-
-//        canvas.ajustePasEtAffichageSpinnerValueFactoryDistance((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_h_objet.getValueFactory());
-
-//        checkbox_dioptres.selectedProperty().bindBidirectional(soc.montrer_dioptres);
+        grandissement_longitudinal.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.GrandissementLongitudinalProperty()));
 
         toggle_pl_focaux.selectedProperty().bindBidirectional(soc.MontrerPlansFocauxProperty());
         toggle_pl_principaux.selectedProperty().bindBidirectional(soc.MontrerPlansPrincipauxProperty());
@@ -497,26 +261,8 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
 
         toggle_montrer_dioptres.selectedProperty().bindBidirectional(soc.MontrerDioptresProperty());
 
-//        StringBinding affiche_n_entree = new StringBinding() {
-//            { super.bind(soc.NEntreeProperty()) ;}
-//            @Override protected String computeValue() {
-//                return canvas.convertisseurAffichageDistance().toString(soc.NEntree());
-//            }
-//        };
-//        label_n_entree.textProperty().bind(affiche_n_entree);
-
         label_n_entree.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.NEntreeProperty()));
-
-//        StringBinding affiche_n_sortie = new StringBinding() {
-//            { super.bind(soc.NSortieProperty()) ;}
-//            @Override protected String computeValue() {
-//                return canvas.convertisseurAffichageDistance().toString(soc.NSortie());
-//            }
-//        };
-//        label_n_sortie.textProperty().bind(affiche_n_sortie);
-
         label_n_sortie.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.NSortieProperty()));
-
 
         StringBinding affiche_a = new StringBinding() {
             { super.bind(soc.MatriceTransfertESProperty()) ;}
@@ -679,6 +425,5 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
          table_intersections.setEditable(true);
 
     }
-
 
 }

@@ -1173,4 +1173,13 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
 
     }
 
+    @Override
+    public void convertirDistances(double facteur_conversion) {
+
+        for (Obstacle o : elements)
+            o.convertirDistances(facteur_conversion);
+
+    }
+
+
 }

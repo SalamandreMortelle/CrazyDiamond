@@ -41,9 +41,14 @@ public class AffichageEnvironnementDeserializer extends StdDeserializer<CanvasAf
         final JsonNode pae_node = ae_node.get("parametres_affichage_environnement") ;
 
         double x_min = pae_node.get("x_min").asDouble() ;
-        double y_min = pae_node.get("y_min").asDouble() ;
         double x_max = pae_node.get("x_max").asDouble() ;
-        double y_max = pae_node.get("y_max").asDouble() ;
+
+        double y_centre = 0d ;
+
+        if (pae_node.has("y_centre"))
+            y_centre = pae_node.get("y_centre").asDouble() ;
+        else if (pae_node.has("y_min") && pae_node.has("y_max"))
+            y_centre = 0.5d*(pae_node.get("y_min").asDouble()+pae_node.get("y_max").asDouble()) ;
 
         boolean normales_visibles = pae_node.get("normales_visibles").asBoolean() ;
         String couleur_normales = pae_node.get("couleur_normales").asText() ;
@@ -52,7 +57,7 @@ public class AffichageEnvironnementDeserializer extends StdDeserializer<CanvasAf
         boolean prolongements_arriere_visibles = pae_node.get("prolongements_arriere_visibles").asBoolean() ;
         boolean commentaire_visible = pae_node.get("commentaire_visible").asBoolean() ;
 
-        return new CanvasAffichageEnvironnement(env, larg_g, haut_g, x_min,y_min,x_max,y_max,
+        return new CanvasAffichageEnvironnement(env, larg_g, haut_g, x_min,x_max,y_centre,
                 normales_visibles,
                 prolongements_avant_visibles,
                 prolongements_arriere_visibles,

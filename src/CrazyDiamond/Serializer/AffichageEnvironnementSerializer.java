@@ -29,9 +29,8 @@ public class AffichageEnvironnementSerializer extends StdSerializer<CanvasAffich
 
         // Propriétés du canvas d'affichage de l'environnement
         jsonGenerator.writeNumberField("x_min", cae.xmin());
-        jsonGenerator.writeNumberField("y_min", cae.ymin());
         jsonGenerator.writeNumberField("x_max", cae.xmax());
-        jsonGenerator.writeNumberField("y_max", cae.ymax());
+        jsonGenerator.writeNumberField("y_centre", cae.ycentre());
         jsonGenerator.writeBooleanField("normales_visibles", cae.normalesVisibles());
         jsonGenerator.writeStringField("couleur_normales", cae.couleurNormales().toString());
         jsonGenerator.writeBooleanField("prolongements_avant_visibles",cae.prolongementsAvantVisibles());

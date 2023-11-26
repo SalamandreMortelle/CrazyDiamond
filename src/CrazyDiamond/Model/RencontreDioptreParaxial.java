@@ -311,4 +311,27 @@ public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*
         return est_diaphragme_champ_total;
     }
 
+    public void convertirDistances(double facteur_conversion) {
+
+        // z_intersection, r_courbure et r_diaphragme n'ont pas à être converti s : ils pointent vers les attributs de
+        // la classe DioptreParaxial qui ont déjà été convertis
+//        z_intersection.set(z_intersection.get()*facteur_conversion);
+//        if (r_diaphragme.get()!=null) r_diaphragme.set(r_diaphragme.get()*facteur_conversion);
+
+        if (r_courbure.get()!=null) r_courbure.set(r_courbure.get()*facteur_conversion);
+
+        if (antecedent_diaphragme.get()!=null)
+            antecedent_diaphragme.set(
+                    new SystemeOptiqueCentre.PositionElement(
+                            antecedent_diaphragme.get().z()*facteur_conversion,
+                            antecedent_diaphragme.get().hauteur()*facteur_conversion)
+            );
+
+        if (h_limite_ouverture.get()!=null) h_limite_ouverture.set(h_limite_ouverture.get()*facteur_conversion);
+
+        if (h_limite_champ.get()!=null) h_limite_champ.set(h_limite_champ.get()*facteur_conversion);
+        if (h_limite_champ_pleine_lumiere.get()!=null) h_limite_champ_pleine_lumiere.set(h_limite_champ_pleine_lumiere.get()*facteur_conversion);
+        if (h_limite_champ_total.get()!=null) h_limite_champ_total.set(h_limite_champ_total.get()*facteur_conversion);
+
+    }
 }

@@ -32,7 +32,7 @@ public class ConvertisseurDoubleValidantAffichageDistance extends ConvertisseurD
     }
 
     public final void caleSurResolution() {
-        int nb_decimales =(int) Math.ceil(Math.log10(1 / cae.resolution())) ;
+        int nb_decimales =(int) Math.ceil(Math.log10(1 / (cae.resolution()*cae.environnement().unite().valeur))) ; // Passage de la résolution en mètres/pixel
 
         if (nb_decimales > 1) {
             StringBuilder sb = new StringBuilder("0.0");

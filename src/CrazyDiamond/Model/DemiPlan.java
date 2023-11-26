@@ -474,4 +474,10 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
         position_orientation.set(new PositionEtOrientation(nouvelle_origine,orientation()+angle_rot_deg));
     }
 
+    @Override
+    public void convertirDistances(double facteur_conversion) {
+        position_orientation.set(new PositionEtOrientation(origine().multiply(facteur_conversion),orientation()));
+    }
+
+
 }

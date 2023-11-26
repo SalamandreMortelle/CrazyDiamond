@@ -57,9 +57,12 @@ public class SystemeOptiqueCentre implements Nommable {
     /**
      * Liste de tous les dioptres réellement rencontrés par un rayon arrivant sur l'axe, dans le sens des Z croissants mais
      * qui peut ensuite subir des réflexions et progresser dans le sens opposé, auquel cas les signes des rayons de courbure
-     * et les indices avant/après la rencontre du dioptre sont adaptés en conséquence.
+     * et les indices avant/après la rencontre du dioptre sont adaptés en conséquence (indices avant/après permutés, et
+     * rayons de courbure multipliés par -1).
      */
     private final ListProperty<RencontreDioptreParaxial> dioptres_rencontres;
+
+    private boolean suspendre_repositionnement_obstacles = false;
 
     /**
      * Abscisse du plan de référence d'entrée du système optique, positionné sur le dioptre du système ayant la plus petite abscisse
@@ -100,6 +103,9 @@ public class SystemeOptiqueCentre implements Nommable {
     private final SimpleObjectProperty<Double> z_image ;
     private final SimpleObjectProperty<Double> h_image ;
 
+    private final SimpleObjectProperty<Double> grandissement_transversal ;
+    private final SimpleObjectProperty<Double> grandissement_angulaire ;
+    private final SimpleObjectProperty<Double> grandissement_longitudinal ;
     private final SimpleObjectProperty<Double> z_pupille_entree ;
     private final SimpleObjectProperty<Double> r_pupille_entree;
 
@@ -128,15 +134,25 @@ public class SystemeOptiqueCentre implements Nommable {
 
     private boolean suspendre_calcul_elements_cardinaux = false;
 
-    public void definirPosition(Point2D pos) { axe.set(new PositionEtOrientation(pos,orientation()));
-    }
+    // Flag et valeur de z_image précalculés lors d'une conversion d'unités, car le re-calcul correct de z_image et h_image
+    // n'est pas possible tant que l'unité de l'Environnement n'est pas mis à jour (elle ne l'est qu'après le changement
+    // d'unité du SOC ; cf. Environnement::changerUnite()
+    private boolean nouveau_z_image_apres_conversion_a_prendre_compte = false;
+    private Double nouveau_z_image_apres_conversion = null ;
 
-    public Double zPlanEntree() { return z_plan_entree; }
-    public Double zPlanSortie() { return z_plan_sortie; }
+    private boolean nouveau_g_t_a_prendre_compte_apres_conversion = false;
+    private Double nouveau_g_t_apres_conversion = null ;
 
 
-    public record PositionElement(double z, double hauteur) {
-    }
+    // Flag et valeur de h_image précalculés lors d'une conversion d'unités, car le re-calcul correct de z_image et h_image
+    // n'est pas possible tant que l'unité de l'Environnement n'est pas mis à jour (elle ne l'est qu'après le changement
+    // d'unité du SOC ; cf. Environnement::changerUnite()
+    private boolean nouveau_h_image_apres_conversion_a_prendre_compte = false;
+    private Double nouveau_h_image_apres_conversion = null ;
+
+    public void definirPosition(Point2D pos) { axe.set(new PositionEtOrientation(pos,orientation()));}
+
+    public record PositionElement(double z, double hauteur) { }
 
     /**
      * Classe utilitaire pour conserver les modalités de traversée de dioptre définies par l'utilisateur lorsque le
@@ -172,13 +188,14 @@ public class SystemeOptiqueCentre implements Nommable {
 
 
     /**
-     * Calcule la position (z_image + hauteur_image) de l'image d'un objet (z_objet + hauteur_objet) par une matrice de
-     * transfert ES grâce à la relation homographique et à la formule du grandissement transversal.
+     * Calcule la position (z_image + hauteur_image), en unités de l'environnement, de l'image d'un objet
+     * (z_objet + hauteur_objet) par une matrice de transfert ES grâce à la relation homographique et à la formule du
+     * grandissement transversal.
      * NB :
-     * z_objet doit être fourni par rapport à la face d'entrée du système (positif s'il est situé après la face
-     * d'entrée dans le sens de propagation de la lumière, négatif sinon)
-     * z_image est retourné par rapport à la face de sortie (positif s'il est après dans le sens de propagation de la
-     * lumière, négatif sinon)
+     * z_objet doit être fourni, en unités de l'environnement, comptées par rapport à la face d'entrée du système (positif
+     * s'il est situé après la face d'entrée dans le sens de propagation de la lumière, négatif sinon)
+     * z_image est retourné, en unités de l'environnement, comptées par rapport à la face de sortie (positif s'il est
+     * après dans le sens de propagation de la lumière, négatif sinon)
      * A charge pour l'appelant d'ajouter ou de soustraire le z_image obtenu à la position z de la face de sortie selon
      * le sens de propagation de la lumière
      *
@@ -188,19 +205,19 @@ public class SystemeOptiqueCentre implements Nommable {
      * @param n_image : indice du milieu image qui suit la face de sortie (dans le sens de propagation de la lumière)
      * @return
      */
-    private static PositionElement positionImage(Affine matrice_es,PositionElement position_obj, double n_objet, double n_image) {
+    private PositionElement positionImage(Affine matrice_es,PositionElement position_obj, double n_objet, double n_image) {
         double a = matrice_es.getMxx();
         double b = matrice_es.getMxy();
         double c = matrice_es.getMyx();
         double d = matrice_es.getMyy();
 
-        double z_obj_sur_n_obj = position_obj.z / n_objet ;
+        double z_obj_sur_n_obj = position_obj.z * environnement.unite().valeur / n_objet ; // En mètres
 
-        double z_image = n_image * ( a * z_obj_sur_n_obj -b ) / ( -c * z_obj_sur_n_obj + d ) ;
+        double z_image = n_image * ( a * z_obj_sur_n_obj -b ) / ( -c * z_obj_sur_n_obj + d ) ; // En mètres
 
         double g_transversal = a + c * z_image / n_image ;
 
-        return new PositionElement(z_image, position_obj.hauteur() * g_transversal ) ;
+        return new PositionElement(z_image / environnement.unite().valeur, position_obj.hauteur() * g_transversal ) ;
     } ;
 
     /**
@@ -208,10 +225,10 @@ public class SystemeOptiqueCentre implements Nommable {
      * une matrice de transfert ES grâce à la relation homographique "inverse" et à la formule du grandissement transversal.
      *
      * <br>NB :
-     * z_image doit être fourni par rapport à la face de sortie du système (positif s'il est situé après la face
-     * de sortie dans le sens de propagation de la lumière, négatif sinon)
-     * z_antecedent est retourné par rapport à la face d'entrée (positif s'il est après dans le sens de propagation de la
-     * lumière, négatif sinon)
+     * z_image doit être fourni en unités de l'environnement, comptéEs par rapport à la face de sortie du système (positif
+     * s'il est situé après la face de sortie dans le sens de propagation de la lumière, négatif sinon)
+     * z_antecedent est retourné en unités de l'environnement, comptées par rapport à la face d'entrée (positif s'il est
+     * après dans le sens de propagation de la lumière, négatif sinon)
      * A charge pour l'appelant d'ajouter ou de soustraire le z_antecedent obtenu à la position z de la face d'entrée selon
      * le sens de propagation de la lumière
      *
@@ -221,25 +238,25 @@ public class SystemeOptiqueCentre implements Nommable {
      * @param n_image : indice du milieu image qui suit la face de sortie (dans le sens de propagation de la lumière)
      * @return
      */
-    private static PositionElement positionAntecedent(Affine matrice_es,PositionElement position_img, double n_objet, double n_image) {
+    private PositionElement positionAntecedent(Affine matrice_es,PositionElement position_img, double n_objet, double n_image) {
         double a = matrice_es.getMxx();
         double b = matrice_es.getMxy();
         double c = matrice_es.getMyx();
         double d = matrice_es.getMyy();
 
-        double z_image_sur_n_image = position_img.z / n_image ;
+        double z_image_sur_n_image = position_img.z * environnement.unite().valeur / n_image ; // En mètres
 
-        double z_antecedent = n_objet * ( b + d * z_image_sur_n_image ) / ( a + c * z_image_sur_n_image) ;
+        double z_antecedent = n_objet * ( b + d * z_image_sur_n_image ) / ( a + c * z_image_sur_n_image) ; // En mètres
 
         double g_transversal_inverse = 1 / ( a + c * z_image_sur_n_image ) ;
 
-        return new PositionElement(z_antecedent, position_img.hauteur() * g_transversal_inverse ) ;
+        return new PositionElement(z_antecedent / environnement.unite().valeur , position_img.hauteur() * g_transversal_inverse ) ;
     } ;
 
 
     public void calculeElementsCardinaux() {
 
-        if (suspendre_calcul_elements_cardinaux)
+        if (suspendre_calcul_elements_cardinaux || environnement.calculsElementsCardinauxSocSuspendus() )
             return ;
 
         dioptres.clear(); ;
@@ -302,19 +319,20 @@ public class SystemeOptiqueCentre implements Nommable {
         }
 
         double vergence = -c ;
-        double focale_objet = -n_entree.get()/vergence ;
-        double focale_image = n_sortie.get()/vergence ;
+        double focale_objet = (-n_entree.get()/vergence) ; // En mètres
+        double focale_image = (n_sortie.get()/vergence) ;  // En mètres
 
-        z_plan_focal_1.set(z_plan_entree + focale_objet*d) ;
-        z_plan_focal_2.set(z_plan_sortie + (sens_plus_en_sortie.get()?1d:-1d)*focale_image*a) ;
+        // Les z des éléments cardinaux doivent être exprimés en unités de l'environnement : il faut donc faire des conversions
+        z_plan_focal_1.set( (z_plan_entree*environnement.unite().valeur + focale_objet*d) / environnement.unite().valeur ) ;
+        z_plan_focal_2.set( (z_plan_sortie*environnement.unite().valeur + (sens_plus_en_sortie.get()?1d:-1d)*focale_image*a) / environnement.unite().valeur ) ;
         LOGGER.log(Level.FINE,"X Plan Focal 1 : {0} , X Plan Focal 2 : {1}",new Object[] {z_plan_focal_1, z_plan_focal_2});
 
-        z_plan_principal_1.set(z_plan_entree + focale_objet*(d-1d)) ;
-        z_plan_principal_2.set(z_plan_sortie + (sens_plus_en_sortie.get()?1d:-1d)*focale_image*(a-1d)) ;
+        z_plan_principal_1.set( (z_plan_entree*environnement.unite().valeur + focale_objet*(d-1d)) / environnement.unite().valeur );
+        z_plan_principal_2.set( (z_plan_sortie*environnement.unite().valeur + (sens_plus_en_sortie.get()?1d:-1d)*focale_image*(a-1d)) / environnement.unite().valeur ) ;
         LOGGER.log(Level.FINE,"X Plan Principal 1 : {0} , X Plan Principal 2 : {1}",new Object[] {z_plan_principal_1, z_plan_principal_2});
 
-        z_plan_nodal_1.set(z_plan_entree + focale_objet*(d- n_sortie.get()/n_entree.get())) ;
-        z_plan_nodal_2.set(z_plan_sortie + (sens_plus_en_sortie.get()?1d:-1d)*focale_image*(a-n_entree.get()/n_sortie.get())) ;
+        z_plan_nodal_1.set( (z_plan_entree*environnement.unite().valeur + focale_objet*(d- n_sortie.get()/n_entree.get())) / environnement.unite().valeur ) ;
+        z_plan_nodal_2.set( (z_plan_sortie*environnement.unite().valeur + (sens_plus_en_sortie.get()?1d:-1d)*focale_image*(a-n_entree.get()/n_sortie.get())) / environnement.unite().valeur ) ;
         LOGGER.log(Level.FINE,"X Plan Nodal 1 : {0} , X Plan Nodal 2 : {1}",new Object[] {z_plan_nodal_1, z_plan_nodal_2});
 
         matrice_transfert_es.set(nouvelle_matrice_transfert);
@@ -355,6 +373,11 @@ public class SystemeOptiqueCentre implements Nommable {
     public Double ZImage() { return z_image.get();}
     public ObjectProperty<Double> HImageProperty() { return h_image;}
     public Double HImage() { return h_image.get();}
+
+    public ObjectProperty<Double> GrandissementTransversalProperty() { return grandissement_transversal;}
+    public ObjectProperty<Double> GrandissementAngulaireProperty() { return grandissement_angulaire;}
+    public ObjectProperty<Double> GrandissementLongitudinalProperty() { return grandissement_longitudinal;}
+
 
     public Double RChampMoyenObjet() { return r_champ_moyen_objet.get();}
     public Double RChampMoyenImage() { return r_champ_moyen_image.get();}
@@ -423,6 +446,11 @@ public class SystemeOptiqueCentre implements Nommable {
      * la lumière progresse toujours dans le sens des abscisses croissantes de l'axe optioque. L'axe optique "se retourne" si la
      * lumière rencontre une surface réfléchissante)</p><br>
      * <p>
+     *     Toutes les positions z sont exprimées en unité de l'environnement mais la matrice de transfert optique est
+     *     calculée pour des vecteurs colonnes ( z , n*alpha ) dans lesquels z est en mètres. Ainsi la vergence (coefficient c
+     *     de la matrice est toujours en dioptries)
+     * </p>
+     * <p>
      * Pré-condition :
      * tous les dioptres (dans le sens des z croissants, et des RC "croissants") en supposant les dioptres tous transparents
      * sont déjà calculées et classées dans l'attribut dioptres (via la méthode extraireDioptresParaxiaux() appelée dans
@@ -430,11 +458,11 @@ public class SystemeOptiqueCentre implements Nommable {
      * </p><br>
      * <p>
      * Post-conditions :
-     *  z_plan_entree est calculé
+     *  z_plan_entree est calculé (en unités de l'environnement)
      *  n_entree est calculé
-     *  z_plan_sortie est calculé
+     *  z_plan_sortie est calculé (en unités de l'environnement)
      *  n_sortie est calculé
-     *  sens_plue_en_sortie est calculé (true si la lumière progresse dans le sens de l'axe Z en sortie du système, false sinon)
+     *  sens_plus_en_sortie est calculé (true si la lumière progresse dans le sens de l'axe Z en sortie du système, false sinon)
      *  la liste (ordonnée dans l'ordre où elles ont lieu) des dioptres réellement rencontrés par un rayon paraxial colinéaire
      *  à l'axe du système, en tenant compte du caractère transparent ou réfléchissant des surfaces des dioptres, est calculée
      *  dans dioptres_rencontres avec pour chacun d'entre eux, le rayon de courbure algébrique, l'obstacle dont la surface
@@ -460,6 +488,7 @@ public class SystemeOptiqueCentre implements Nommable {
             for (RencontreDioptreParaxial its : dioptres_rencontres)
                 modalites_traversee_precedentes.add(new ModalitesTraverseeDioptre(its)) ;
         }
+        // Fin de la mémorisation
 
         dioptres_rencontres.clear();
 
@@ -522,7 +551,6 @@ public class SystemeOptiqueCentre implements Nommable {
 
             }
 
-
             if (dioptre_rencontre.rayonCourbure()!=null && dioptre_rencontre.rayonCourbure()==0)
                 throw new Exception("Rayon de courbure nul sur l'obstacle "+dioptre_rencontre.obstacleSurface()
                         +" : impossible de calculer une matrice de transfert (point anguleux sur l'axe)") ;
@@ -533,11 +561,12 @@ public class SystemeOptiqueCentre implements Nommable {
 
                 // Conventions de sens et de signe ; cf. Optique, fondements et applications J-Ph. Pérez, Chap 13 (pp. 144/145)
                 // L'axe optique change de sens après un miroir (le rayon progresse donc toujours dans le sens + de l'axe optique)
-                double intervalle = (pas>0?1d:-1d)*(dioptre_rencontre.ZIntersection() - precedent_dioptre_rencontre.ZIntersection())
+                double intervalle = (pas>0?1d:-1d)
+                        * (dioptre_rencontre.ZIntersection() - precedent_dioptre_rencontre.ZIntersection())
                         / dioptre_rencontre.indiceAvant() ;
 
                 if (intervalle!=0d)
-                    resultat.prepend(new Affine(1d, intervalle, 0d,
+                    resultat.prepend(new Affine(1d, intervalle* environnement.unite().valeur, 0d,
                             0d, 1d, 0d));
 
             }
@@ -560,29 +589,33 @@ public class SystemeOptiqueCentre implements Nommable {
                     Affine mat_transfert_depuis_objet = resultat.clone() ;
 
                     // Ajoutons la matrice de translation entre l'objet et le plan d'entrée
-                    mat_transfert_depuis_objet.append(new Affine(  1d, (z_plan_entree-ZObjet())/NEntree(), 0d,0d, 1d, 0d )) ;
+                    mat_transfert_depuis_objet.append(new Affine(  1d, (z_plan_entree-ZObjet())*environnement.unite().valeur/NEntree(), 0d,0d, 1d, 0d )) ;
                     // mat_transfert_depuis_objet.append(new Affine(  1d, (pas>0?1d:-1d)*(z_plan_entree-ZObjet())/NEntree(), 0d,0d, 1d, 0d )) ; // NON : sur le plan
                     // d'entree le rayon est toujours dans le sens de l'axe (et pas représente le sens du marche du rayon *au niveau du dioptre courant* et pas en entrée du SOC...)
 
-                    // Calcul du rayon émergent (hauteur + angle) d'un rayon qui part d'un point situé sur l'axe et sur le plan objet,
+                    // Calcul du rayon émergent (hauteur *en mètres* + angle) d'un rayon qui part d'un point situé sur l'axe et sur le plan objet,
                     // faisant un angle de 1° avec l'axe (l'indice avant la face d'entrée est supposé égal à 1 : on cherche le diaphragme
                     // d'ouverture du SOC "dans le vide")
                     Point2D r_emergent = mat_transfert_depuis_objet.transform(0,Math.toRadians(1d)) ;
+                    r_emergent = new Point2D(r_emergent.getX()/environnement.unite().valeur , r_emergent.getY() ) ;
 
                     double ratio_h_emergent = Double.MAX_VALUE ;
 
                     if (dioptre_rencontre.rayonDiaphragme()!=0d)
                         ratio_h_emergent = Math.abs(r_emergent.getX() / dioptre_rencontre.rayonDiaphragme()) ;
 
-                    // Enregistrement de la hauteur X de l'dioptre_rencontre avec le diaphragme
+                    // Enregistrement de la hauteur X (en mètres) du dioptre_rencontre avec le diaphragme
                     dioptre_rencontre.h_limite_ouverture.set(r_emergent.getX());
 
                     LOGGER.log(Level.FINE,"Ratio x/x_diaphragme du diaphragme {0} : {1}",
                             new Object[] {nb_dioptres_rencontres,ratio_h_emergent} ) ;
 
+                    // NB : Toutes ces positions sont en mètres
                     PositionElement antecedent_diaphragme_relatif_soc =
-                            positionAntecedent(resultat, new PositionElement(0d,dioptre_rencontre.rayonDiaphragme()),
-                                    NEntree(), dioptre_rencontre.indiceApres());
+                            positionAntecedent(resultat,
+                                    new PositionElement(0d, dioptre_rencontre.rayonDiaphragme()),
+                                    NEntree(),
+                                    dioptre_rencontre.indiceApres());
 
                     dioptre_rencontre.antecedent_diaphragme.set(
                             new PositionElement(z_plan_entree + antecedent_diaphragme_relatif_soc.z(),
@@ -605,9 +638,9 @@ public class SystemeOptiqueCentre implements Nommable {
                     // Méthode 2 pour trouver le DO : antecedent de diaphragme (par le système en amont de celui-ci) que l'on voit sous le
                     // plus petit angle par rapport à la position de l'objet. TODO : a supprimer à terme
                     double tan_angle_antecedent_depuis_z_objet = Math.abs(dioptre_rencontre.antecedentDiaphragme().hauteur())
-                            / Math.abs(dioptre_rencontre.antecedentDiaphragme().z() - ZObjet());
+                            / Math.abs(dioptre_rencontre.antecedentDiaphragme().z() - ZObjet()) ;
 
-                    LOGGER.log(Level.FINE,"Pupille entrée du diaphragme {0} : hauteur {1}, angle vu de objet : {2}°",
+                    LOGGER.log(Level.FINE,"Pupille entrée du diaphragme {0} : hauteur {1} m, angle vu de objet : {2}°",
                             new Object[] {nb_dioptres_rencontres, Double.valueOf(dioptre_rencontre.antecedentDiaphragme().hauteur()) ,
                                     Math.toDegrees(Math.atan(tan_angle_antecedent_depuis_z_objet))}) ;
 
@@ -658,7 +691,9 @@ public class SystemeOptiqueCentre implements Nommable {
                         } else {
                             // Miroir localement sphérique
                             resultat.prepend(new Affine(1d, 0d, 0d,
-                                    2d * dioptre_rencontre.indiceAvant() / dioptre_rencontre.rayonCourbure(), 1d, 0d));
+                                    2d * dioptre_rencontre.indiceAvant()
+                                            / (dioptre_rencontre.rayonCourbure()*environnement.unite().valeur) ,
+                                    1d, 0d));
                         }
 
                     } else { // La surface est majoritairement transparente
@@ -668,7 +703,8 @@ public class SystemeOptiqueCentre implements Nommable {
                                 // Coefficients a,b,c,d : cf. Optique, fondements et applications J-Ph. Pérez, Chap 4 (p. 45)
                                 // (déterminant de la matrice de transfert vaut 1)
                                 resultat.prepend(new Affine(1, 0, 0,
-                                        -(dioptre_rencontre.indiceApres() - dioptre_rencontre.indiceAvant()) / dioptre_rencontre.rayonCourbure(), 1, 0));
+                                        -(dioptre_rencontre.indiceApres() - dioptre_rencontre.indiceAvant())
+                                                / (dioptre_rencontre.rayonCourbure()*environnement.unite().valeur), 1, 0));
                             } else { // Dioptre plan (rayon de courbure infini)
                                 // Matrice a b c d = matrice identité. Rien à faire
                             }
@@ -686,12 +722,12 @@ public class SystemeOptiqueCentre implements Nommable {
         sens_plus_en_sortie.set(pas>0) ;
         n_sortie.set(dioptre_rencontre.indiceApres()) ;
 
-        // Mise à jour immédiate de la position de l'image : on en a besoin un peu plus loin dans cette méthode
+        // Mise à jour immédiate de la position de l'image (en mètres) : on en a besoin un peu plus loin dans cette méthode
 
-        PositionElement position_image = positionImage(resultat, new PositionElement(z_objet.get()-z_plan_entree, +0.1d),n_entree.get(),n_sortie.get()) ;
+        PositionElement position_image = positionImage(resultat,
+                new PositionElement(z_objet.get()-z_plan_entree, +0.1d),n_entree.get(),n_sortie.get()) ;
         double z_image_precalcule = (z_plan_sortie + (sens_plus_en_sortie.get()?1d:-1d) * position_image.z()) ;
         double h_image_precalcule = position_image.hauteur()  ;
-
 
         // Si on a trouvé un DO...
         if (index_diaphragme_ouverture>=0) {
@@ -744,7 +780,7 @@ public class SystemeOptiqueCentre implements Nommable {
                 Affine mat_transfert_depuis_pupille_entree = its.matriceTransfertPartielle().clone();
 
                 // Ajoutons la matrice de translation entre la pupille d'entrée et le plan d'entrée
-                mat_transfert_depuis_pupille_entree.append(new Affine(1d, (z_plan_entree - z_pupille_entree.get())/NEntree(), 0d, 0d, 1d, 0d));
+                mat_transfert_depuis_pupille_entree.append(new Affine(1d, (z_plan_entree - z_pupille_entree.get())*environnement.unite().valeur/NEntree(), 0d, 0d, 1d, 0d));
 
                 // Rayon émergent au niveau de ce dioptre (h_objet=0 au niveau de la pupille d'entrée, angle objet = 1°)
 
@@ -995,8 +1031,8 @@ public class SystemeOptiqueCentre implements Nommable {
                     // Calcul des h limite du champ de pleine lumiere et du champ total sur chaque dioptre
 
                     // Rayon émergent au niveau de ce dioptre
-                    Point2D r_emergent_cpl = its.matriceTransfertPartielle().transform(h_incidence_entree_cpl_provisoire, Math.toRadians(angle_champ_pleine_lumiere_objet.get()));
-                    Point2D r_emergent_ct = its.matriceTransfertPartielle().transform(h_incidence_entree_ct_provisoire, Math.toRadians(angle_champ_total_objet.get()));
+                    Point2D r_emergent_cpl = its.matriceTransfertPartielle().transform(h_incidence_entree_cpl_provisoire*environnement.unite().valeur, Math.toRadians(angle_champ_pleine_lumiere_objet.get()));
+                    Point2D r_emergent_ct = its.matriceTransfertPartielle().transform(h_incidence_entree_ct_provisoire*environnement.unite().valeur, Math.toRadians(angle_champ_total_objet.get()));
 
                     // Enregistrement de la hauteur X du dioptre_rencontre avec le diaphragme/dioptre
                     its.h_limite_champ_pleine_lumiere.set(r_emergent_cpl.getX());
@@ -1141,6 +1177,14 @@ public class SystemeOptiqueCentre implements Nommable {
 
         this.environnement = env ;
 
+        // Inutile : c'est l'Ebvironnement qui se charge de déclencher les conversions de dimensions dans les SOCs lorsque
+        // l'unité change.
+//        this.environnement.uniteProperty().addListener( ( (observableValue, oldValue, newValue) -> {
+//                    LOGGER.log(Level.FINER,"unite passe de {0} à {1}",new Object[] {oldValue,newValue});
+//                    calculeElementsCardinaux();
+//                } )
+//        ) ;
+
         ObservableList<Obstacle> ols = FXCollections.observableArrayList() ;
         obstacles_centres   = new SimpleListProperty<Obstacle>(ols);
 
@@ -1166,6 +1210,9 @@ public class SystemeOptiqueCentre implements Nommable {
         this.axe = new SimpleObjectProperty<PositionEtOrientation>(new PositionEtOrientation(origine,orientation_deg)) ;
 
         this.axe.addListener((observable, oldValue, newValue) -> {
+
+            if (suspendre_repositionnement_obstacles)
+                return ;
 
             Point2D delta_pos = newValue.position().subtract(oldValue.position()) ;
             double delta_angle_rot_deg = newValue.orientation_deg()- oldValue.orientation_deg() ;
@@ -1203,6 +1250,10 @@ public class SystemeOptiqueCentre implements Nommable {
         this.z_image = new SimpleObjectProperty<>(null) ;
         this.h_image = new SimpleObjectProperty<>(null) ;
 
+        this.grandissement_transversal  = new SimpleObjectProperty<>(null) ;
+        this.grandissement_angulaire    = new SimpleObjectProperty<>(null) ;
+        this.grandissement_longitudinal = new SimpleObjectProperty<>(null) ;
+
         this.z_pupille_entree = new SimpleObjectProperty<>(null) ;
         this.r_pupille_entree = new SimpleObjectProperty<>(null) ;
         this.z_pupille_sortie = new SimpleObjectProperty<>(null) ;
@@ -1231,12 +1282,20 @@ public class SystemeOptiqueCentre implements Nommable {
         
         
         // Calcul de la position de l'image grâce à la relation homographique, valable pour un système focal ou afocal
+
         ObjectBinding<Double> calcule_z_image = new ObjectBinding<Double>() {
 
             // On ne met pas la dépendance à n_entree/n_sortie car ils sont forcément modifiés en même temps que la matrice de transfert
             { super.bind(matrice_transfert_es,z_objet,n_entree,n_sortie) ;}
 
             @Override protected Double computeValue() {
+
+//                if (suspendre_calcul_image)
+//                    return null ; // Ne rien faire
+                if (nouveau_z_image_apres_conversion_a_prendre_compte) {
+                    nouveau_z_image_apres_conversion_a_prendre_compte = false ;
+                    return nouveau_z_image_apres_conversion ;
+                }
 
                 if (matrice_transfert_es.get() == null || z_objet.get() == null /*|| z_objet.get()>z_plan_entree*/ )
                     return null ;
@@ -1252,7 +1311,12 @@ public class SystemeOptiqueCentre implements Nommable {
                 double d = matrice_transfert_es.get().getMyy();
 
                 // Relation homographique (Optique : Fondements et applications, J-Ph. Perez, chapitre 6)
-                double resultat_bis = z_plan_sortie + (sens_plus_en_sortie.get()?1d:-1d)*n_sortie.get() * (a*(z_objet.get()-z_plan_entree)/n_entree.get() - b) / (-c*(z_objet.get()-z_plan_entree)/n_entree.get()+d);
+//                double resultat_bis = z_plan_sortie + (sens_plus_en_sortie.get()?1d:-1d)*n_sortie.get() * (a*(z_objet.get()-z_plan_entree)/n_entree.get() - b) / (-c*(z_objet.get()-z_plan_entree)/n_entree.get()+d);
+                double resultat_bis = ( z_plan_sortie*environnement.unite().valeur
+                                        + (sens_plus_en_sortie.get()?1d:-1d)*n_sortie.get()
+                                        * (a*(z_objet.get()-z_plan_entree)*environnement.unite().valeur/n_entree.get() - b)
+                                        / (-c*(z_objet.get()-z_plan_entree)*environnement.unite().valeur/n_entree.get() + d) )
+                                    / environnement.unite().valeur;
                 // ATTENTION : formule probablement fausse si sens_plus_en_sortie est false
 
                 if (!Environnement.quasiEgal(resultat,resultat_bis))
@@ -1267,9 +1331,17 @@ public class SystemeOptiqueCentre implements Nommable {
         z_image.bind(calcule_z_image);
 
         ObjectBinding<Double> calcule_h_image = new ObjectBinding<Double>() {
+
             // On ne met pas la dépendance à n_entree/n_sortie car ils sont forcément modifiés en même temps que la matrice de transfert
             { super.bind(matrice_transfert_es,z_objet,h_objet,n_entree,n_sortie) ;}
             @Override protected Double computeValue() {
+
+//                if (suspendre_calcul_image)
+//                    return null ; // Ne rien faire
+                if (nouveau_h_image_apres_conversion_a_prendre_compte) {
+                    nouveau_h_image_apres_conversion_a_prendre_compte = false ;
+                    return nouveau_h_image_apres_conversion ;
+                }
 
                 if (matrice_transfert_es.get() == null || z_objet.get() == null || h_objet.get() == null /*|| z_objet.get()>z_plan_entree*/)
                     return null ;
@@ -1287,7 +1359,9 @@ public class SystemeOptiqueCentre implements Nommable {
                 double c = matrice_transfert_es.get().getMyx();
                 double d = matrice_transfert_es.get().getMyy();
 
-                double resultat_bis =  h_objet.get()*(a+c*(a*(z_objet.get()-z_plan_entree)/n_entree.get() - b) / (-c*(z_objet.get()-z_plan_entree)/n_entree.get()+d)) ;
+                double resultat_bis =  h_objet.get()*(a+c*(a*(z_objet.get()-z_plan_entree)*environnement.unite().valeur/n_entree.get() - b)
+                        / (-c*(z_objet.get()-z_plan_entree)*environnement.unite().valeur/n_entree.get()+d)) ;
+//                double resultat_bis =  h_objet.get()*(a+c*(a*(z_objet.get()-z_plan_entree)/n_entree.get() - b) / (-c*(z_objet.get()-z_plan_entree)/n_entree.get()+d)) ;
 
                 if (!Environnement.quasiEgal(resultat,resultat_bis))
                     LOGGER.log(Level.SEVERE,"Les H image ne sont pas les mêmes selon la méthode de calcul !") ;
@@ -1299,6 +1373,70 @@ public class SystemeOptiqueCentre implements Nommable {
             }
         };
         h_image.bind(calcule_h_image);
+
+        ObjectBinding<Double> calcul_grandissement_transversal = new ObjectBinding<Double>() {
+            { super.bind(matrice_transfert_es,z_image,n_sortie) ;}
+
+            @Override protected Double computeValue() {
+
+                if (nouveau_g_t_a_prendre_compte_apres_conversion) {
+                    nouveau_g_t_a_prendre_compte_apres_conversion = false ;
+                    return nouveau_g_t_apres_conversion;
+                }
+
+                if (matrice_transfert_es.get()==null)
+                    return null ;
+
+                double a = matrice_transfert_es.get().getMxx();
+                double b = matrice_transfert_es.get().getMxy();
+                double c = matrice_transfert_es.get().getMyx();
+                double d = matrice_transfert_es.get().getMyy();
+
+
+                if (Environnement.quasiEgal(c,0d)) // Système afocal : Gt constant, ne dépend pas de la position de l'objet
+                    return a ;
+
+                if (z_image.get()==null)
+                    return null ;
+
+                return ( a+c*((z_image.get() - z_plan_sortie)*environnement.unite().valeur / n_sortie.get()) );
+            }
+        };
+        grandissement_transversal.bind(calcul_grandissement_transversal);
+
+        ObjectBinding<Double> calcul_grandissement_angulaire = new ObjectBinding<Double>() {
+            { super.bind(matrice_transfert_es,sens_plus_en_sortie,n_entree,n_sortie, h_objet,h_image) ;}
+            @Override protected Double computeValue() {
+
+                if (matrice_transfert_es.get()==null)
+                    return null ;
+
+                double d = matrice_transfert_es.get().getMyy() ;
+
+                // A-t-on un système afocal ?
+                if (Environnement.quasiEgal(matrice_transfert_es.get().getMyx(),0))
+                    return d*n_entree.get()/n_sortie.get() ;
+
+                if (h_objet.get()==null || h_image.get()==null || h_objet.get()==0d)
+                    return null ;
+
+                return  (sens_plus_en_sortie.get()?1.0:-1.0) * (n_entree.get()/n_sortie.get()) * (h_objet.get()/h_image.get()) ;
+            }
+        };
+
+        grandissement_angulaire.bind(calcul_grandissement_angulaire);
+
+        ObjectBinding<Double> calcul_grandissement_longitudinal = new ObjectBinding<Double>() {
+            {super.bind(calcul_grandissement_transversal,calcul_grandissement_angulaire) ;}
+            @Override protected Double computeValue() {
+                if (calcul_grandissement_transversal.get()==null || calcul_grandissement_angulaire.get()==null)
+                    return null ;
+
+                return calcul_grandissement_transversal.get()/calcul_grandissement_angulaire.get() ;
+            }
+        } ;
+
+        grandissement_longitudinal.bind(calcul_grandissement_longitudinal);
 
         ObservableList<DioptreParaxial> oli_int = FXCollections.observableArrayList() ;
         this.dioptres = new SimpleListProperty<DioptreParaxial>(oli_int);
@@ -1599,4 +1737,93 @@ public class SystemeOptiqueCentre implements Nommable {
 
         obstacles_centres.clear();
     }
+
+    public void convertirDistances(double facteur_conversion) {
+        // Lors d'une conversion des distances de l'environnement, c'est l'environnement qui se charge de repositionner
+        // les obstacles : inutile de le faire ici.
+        suspendre_repositionnement_obstacles = true ;
+        axe.set(new PositionEtOrientation(origine().multiply(facteur_conversion),orientation()));
+        suspendre_repositionnement_obstacles = false ;
+
+        z_plan_entree = z_plan_entree*facteur_conversion ;
+        z_plan_sortie = z_plan_sortie*facteur_conversion ;
+
+        convertirObjectDoubleProperty(z_plan_focal_1,facteur_conversion);
+        convertirObjectDoubleProperty(z_plan_focal_2,facteur_conversion);
+
+        convertirObjectDoubleProperty(z_plan_principal_1,facteur_conversion);
+        convertirObjectDoubleProperty(z_plan_principal_2,facteur_conversion);
+
+        convertirObjectDoubleProperty(z_plan_nodal_1,facteur_conversion);
+        convertirObjectDoubleProperty(z_plan_nodal_2,facteur_conversion);
+
+
+        for (DioptreParaxial d : dioptres)
+            d.convertirDistances(facteur_conversion) ;
+
+        for (RencontreDioptreParaxial rd : dioptres_rencontres)
+            rd.convertirDistances(facteur_conversion) ;
+
+
+
+        // Impossible de déclencher le recalcul de z_image, h_image car il ne pourrait être juste tant qu'on n'a pas encore
+        // défini la nouvelle unité de l'Environnement ce qui est fait après l'appel à cette méthode (cf. Environnement::changerUnite)
+//        suspendre_calcul_image = true ;
+
+//        z_image.unbind();
+//        h_image.unbind();
+
+        nouveau_z_image_apres_conversion_a_prendre_compte = true ;
+        nouveau_z_image_apres_conversion = (z_image.get() != null ? z_image.get()*facteur_conversion : null) ;
+        nouveau_h_image_apres_conversion = (h_image.get() != null ? h_image.get()*facteur_conversion : null) ;
+        nouveau_g_t_apres_conversion = (grandissement_transversal.get() != null ? grandissement_transversal.get() : null) ;
+
+        nouveau_h_image_apres_conversion_a_prendre_compte = true ;
+        nouveau_g_t_a_prendre_compte_apres_conversion = true ;
+
+        // Déclenche une màj de z_image et h_image (et le passage à false du flag nouveau_h_image), et un calcul du
+        // grandissement transversal, puisque z_image va être mis à jour du fait de la mise à jour de z_objet.
+        convertirObjectDoubleProperty(z_objet,facteur_conversion);
+
+        nouveau_h_image_apres_conversion_a_prendre_compte = true ; // On repasse le flag à true pour qu'il soit pris en compte
+
+        convertirObjectDoubleProperty(h_objet,facteur_conversion); // Déclenche une 2ème màj de h_image
+
+
+
+//        convertirObjectDoubleProperty(z_image,facteur_conversion);
+//        convertirObjectDoubleProperty(h_image,facteur_conversion);
+//        z_image.bind(calcule_z_image);
+//        h_image.bind(calcule_h_image);
+//        suspendre_calcul_image = false ;
+
+        convertirObjectDoubleProperty(r_champ_moyen_objet,facteur_conversion);
+        convertirObjectDoubleProperty(r_champ_moyen_image,facteur_conversion);
+        convertirObjectDoubleProperty(r_champ_pleine_lumiere_objet,facteur_conversion);
+        convertirObjectDoubleProperty(r_champ_pleine_lumiere_image,facteur_conversion);
+        convertirObjectDoubleProperty(r_champ_total_objet,facteur_conversion);
+        convertirObjectDoubleProperty(r_champ_total_image,facteur_conversion);
+
+        convertirObjectDoubleProperty(z_pupille_entree,facteur_conversion);
+        convertirObjectDoubleProperty(r_pupille_entree,facteur_conversion);
+
+        convertirObjectDoubleProperty(z_pupille_sortie,facteur_conversion);
+        convertirObjectDoubleProperty(r_pupille_sortie,facteur_conversion);
+
+        convertirObjectDoubleProperty(z_lucarne_entree,facteur_conversion);
+        convertirObjectDoubleProperty(r_lucarne_entree,facteur_conversion);
+
+        convertirObjectDoubleProperty(z_lucarne_sortie,facteur_conversion);
+        convertirObjectDoubleProperty(r_lucarne_sortie,facteur_conversion);
+
+    }
+
+    private void convertirDoubleProperty(DoubleProperty dp, double facteur_conversion) {
+        dp.set(dp.get()*facteur_conversion);
+    }
+    private void convertirObjectDoubleProperty(ObjectProperty<Double> opd, double facteur_conversion) {
+         if (opd.get()!=null) opd.set(opd.get()*facteur_conversion);
+    }
+
+
 }

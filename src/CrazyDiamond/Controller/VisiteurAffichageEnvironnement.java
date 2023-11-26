@@ -1165,7 +1165,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
                 // Il faut tracer jusqu'aux limites du canvas et pas au-delà, car le Canvas n'affiche pas correctement
                 // des lignes dont les extrémités sont bien au-delà des limites du Canvas (elles deviennent très fines,
                 // voire invisibles)
-                if (cae.boite_limites.contains(pt_deb) && !cae.boite_limites.contains(pt_arr)) {
+                if (cae.contient(pt_deb) && !cae.contient(pt_arr)) {
                     Point2D p_sortie_boite_limites = cae.derniere_intersection_avec_limites(r) ;
                     if (p_sortie_boite_limites!=null) {
                         gc.strokeLine(r.depart().getX(), r.depart().getY(), p_sortie_boite_limites.getX(), p_sortie_boite_limites.getY());
@@ -1173,11 +1173,11 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
                     }
 
                     if (r.phenomene_origine!= Rayon.PhenomeneOrigine.EMISSION_SOURCE && cae.prolongementsArriereVisibles()) {
-                        Point2D p_avant_depart = cae.boite_limites.premiere_intersection(r.supportGeometrique().prolongementAvantDepart());
+                        Point2D p_avant_depart = cae.premiere_intersection(r.supportGeometrique().prolongementAvantDepart());
                         if (p_avant_depart != null) cae.montrerProlongementArriere(r.depart(), p_avant_depart);
                     }
 
-                } else if (!cae.boite_limites.contains(pt_deb) && cae.boite_limites.contains(pt_arr)) {
+                } else if (!cae.contient(pt_deb) && cae.contient(pt_arr)) {
                     Point2D p_entree_boite_limites = cae.premiere_intersection_avec_limites(r) ;
                     if (p_entree_boite_limites!=null) {
                         gc.strokeLine(p_entree_boite_limites.getX(), p_entree_boite_limites.getY(), r.arrivee().getX(), r.arrivee().getY());
@@ -1185,11 +1185,11 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
                     }
 
                     if (cae.prolongementsAvantVisibles()) {
-                        Point2D p_apres_arrivee = cae.boite_limites.premiere_intersection(r.supportGeometrique().prolongementApresArrivee());
+                        Point2D p_apres_arrivee = cae.premiere_intersection(r.supportGeometrique().prolongementApresArrivee());
                         if (p_apres_arrivee != null) cae.montrerProlongementAvant(r.arrivee(), p_apres_arrivee);
                     }
 
-                } else if (!cae.boite_limites.contains(pt_deb) && !cae.boite_limites.contains(pt_arr)) {
+                } else if (!cae.contient(pt_deb) && !cae.contient(pt_arr)) {
                     Point2D p_entree_boite_limites = cae.premiere_intersection_avec_limites(r) ;
                     Point2D p_sortie_boite_limites = cae.derniere_intersection_avec_limites(r) ;
 
@@ -1199,18 +1199,18 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
                     }
                     else {
                         if (r.phenomene_origine != Rayon.PhenomeneOrigine.EMISSION_SOURCE && cae.prolongementsArriereVisibles()) {
-                            Point2D p_avant_depart = cae.boite_limites.premiere_intersection(r.supportGeometrique().prolongementAvantDepart());
+                            Point2D p_avant_depart = cae.premiere_intersection(r.supportGeometrique().prolongementAvantDepart());
                             if (p_avant_depart != null) {
-                                Point2D p_avant_depart_arr = cae.boite_limites.derniere_intersection(r.supportGeometrique().prolongementAvantDepart());
+                                Point2D p_avant_depart_arr = cae.derniere_intersection(r.supportGeometrique().prolongementAvantDepart());
                                 if (p_avant_depart_arr != null)
                                     cae.montrerProlongementArriere(p_avant_depart, p_avant_depart_arr);
                             }
                         }
 
                         if (cae.prolongementsAvantVisibles()) {
-                            Point2D p_apres_arrivee = cae.boite_limites.premiere_intersection(r.supportGeometrique().prolongementApresArrivee());
+                            Point2D p_apres_arrivee = cae.premiere_intersection(r.supportGeometrique().prolongementApresArrivee());
                             if (p_apres_arrivee != null) {
-                                Point2D p_apres_arrivee_arr = cae.boite_limites.derniere_intersection(r.supportGeometrique().prolongementApresArrivee());
+                                Point2D p_apres_arrivee_arr = cae.derniere_intersection(r.supportGeometrique().prolongementApresArrivee());
                                 if (p_apres_arrivee_arr != null)
                                     cae.montrerProlongementAvant(p_apres_arrivee, p_apres_arrivee_arr);
                             }
@@ -1222,12 +1222,12 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
                     gc.strokeLine(r.depart().getX(), r.depart().getY(), r.arrivee().getX(), r.arrivee().getY());
 
                     if (r.phenomene_origine!= Rayon.PhenomeneOrigine.EMISSION_SOURCE && cae.prolongementsArriereVisibles()) {
-                        Point2D p_avant_depart = cae.boite_limites.premiere_intersection(r.supportGeometrique().prolongementAvantDepart());
+                        Point2D p_avant_depart = cae.premiere_intersection(r.supportGeometrique().prolongementAvantDepart());
                         if (p_avant_depart != null) cae.montrerProlongementArriere(r.depart(), p_avant_depart);
                     }
 
                     if (cae.prolongementsAvantVisibles()) {
-                        Point2D p_apres_arrivee = cae.boite_limites.premiere_intersection(r.supportGeometrique().prolongementApresArrivee());
+                        Point2D p_apres_arrivee = cae.premiere_intersection(r.supportGeometrique().prolongementApresArrivee());
                         if (p_apres_arrivee != null) cae.montrerProlongementAvant(r.arrivee(), p_apres_arrivee);
                     }
 
@@ -1241,12 +1241,12 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
                 Point2D p_sortie_boite_limites = cae.derniere_intersection_avec_limites(r) ;
 
                 if (p_sortie_boite_limites != null) {
-                    if (cae.boite_limites.contains(r.depart())) {
+                    if (cae.contient(r.depart())) {
                         gc.strokeLine(r.depart().getX(), r.depart().getY(), p_sortie_boite_limites.getX(), p_sortie_boite_limites.getY());
                         LOGGER.log(Level.FINER, "Rayon infini {0} entre {1},{2} et {3},{4}", new Object[]{cpt, r.depart().getX(), r.depart().getY(), p_sortie_boite_limites.getX(), p_sortie_boite_limites.getY()});
 
                         if (r.phenomene_origine!= Rayon.PhenomeneOrigine.EMISSION_SOURCE && cae.prolongementsArriereVisibles()) {
-                            Point2D p_avant_depart = cae.boite_limites.premiere_intersection(r.supportGeometrique().prolongementAvantDepart());
+                            Point2D p_avant_depart = cae.premiere_intersection(r.supportGeometrique().prolongementAvantDepart());
                             if (p_avant_depart != null) cae.montrerProlongementArriere(r.depart(), p_avant_depart);
                         }
 
@@ -1256,9 +1256,9 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
                     }
                 } else { // Le rayon commence hors de la zone visible et ne la traverse pas
                     if (r.phenomene_origine!= Rayon.PhenomeneOrigine.EMISSION_SOURCE && cae.prolongementsArriereVisibles()) {
-                        Point2D p_avant_depart = cae.boite_limites.premiere_intersection(r.supportGeometrique().prolongementAvantDepart());
+                        Point2D p_avant_depart = cae.premiere_intersection(r.supportGeometrique().prolongementAvantDepart());
                         if (p_avant_depart != null) {
-                            Point2D p_avant_depart_arr = cae.boite_limites.derniere_intersection(r.supportGeometrique().prolongementAvantDepart());
+                            Point2D p_avant_depart_arr = cae.derniere_intersection(r.supportGeometrique().prolongementAvantDepart());
                             if (p_avant_depart_arr != null)
                                 cae.montrerProlongementArriere(p_avant_depart, p_avant_depart_arr);
                         }

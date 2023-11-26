@@ -730,4 +730,12 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
 
     }
 
+    @Override
+    public void convertirDistances(double facteur_conversion) {
+        position_orientation.set(new PositionEtOrientation(centre().multiply(facteur_conversion),orientation()));
+        largeur.set(largeur()*facteur_conversion);
+        hauteur.set(hauteur()*facteur_conversion);
+    }
+
+
 }

@@ -27,41 +27,33 @@
       <!--            </toggleGroup>-->
       <!--         </RadioButton>-->
       <Label text="Nature milieu" />
-
     <VBox spacing="5.0">
-        <children>
-            <RadioButton fx:id="choix_absorbant" mnemonicParsing="false" text="Absorbant">
+        <RadioButton fx:id="choix_absorbant" mnemonicParsing="false" text="Absorbant">
             <toggleGroup>
-                    <ToggleGroup fx:id="choix_nature_milieu" />
+                <ToggleGroup fx:id="choix_nature_milieu"/>
             </toggleGroup>
-            </RadioButton>
-
-            <HBox prefWidth="200.0" spacing="5.0">
-                <children>
-                <RadioButton fx:id="choix_transparent" mnemonicParsing="false" selected="true" text="Transparent : " toggleGroup="$choix_nature_milieu" />
-
-
-                    <VBox prefWidth="100.0">
-                        <children>
-                            <Label fx:id="label_indice" text="Indice refraction">
-                                <VBox.margin>
-                                    <Insets />
-                                </VBox.margin>
-                            </Label>
-                            <Spinner fx:id="spinner_indice_refraction" amountToStepBy="0.01" editable="true" initialValue="1.0" max="1.999" min="1.0">
-                                <VBox.margin>
-                                    <Insets top="2.0" />
-                                </VBox.margin>
-                            </Spinner>
-                        </children>
-                    </VBox>
-                </children>
-                <opaqueInsets>
-                    <Insets />
-                </opaqueInsets>
-            </HBox>
-      </children>
-   </VBox>
+        </RadioButton>
+        <HBox prefWidth="200.0" spacing="5.0">
+            <opaqueInsets>
+                <Insets/>
+            </opaqueInsets>
+            <RadioButton fx:id="choix_transparent" mnemonicParsing="false" selected="true" text="Transparent : "
+                         toggleGroup="$choix_nature_milieu"/>
+            <VBox prefWidth="100.0">
+                <Label fx:id="label_indice" text="Indice refraction">
+                    <VBox.margin>
+                        <Insets/>
+                    </VBox.margin>
+                </Label>
+                <Spinner fx:id="spinner_indice_refraction" amountToStepBy="0.01" editable="true"
+                         initialValue="1.0" max="1.999" min="1.0">
+                    <VBox.margin>
+                        <Insets top="2.0"/>
+                    </VBox.margin>
+                </Spinner>
+            </VBox>
+        </HBox>
+    </VBox>
 
 <Separator prefWidth="200.0" />
 <Label text="Position matière" />

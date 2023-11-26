@@ -339,4 +339,9 @@ public class DioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
         return resultat ;
     }
 
+    public void convertirDistances(double facteur_conversion) {
+        z_intersection.set(z_intersection.get()*facteur_conversion);
+        if (r_courbure.get()!=null) r_courbure.set(r_courbure.get()*facteur_conversion);
+        if (r_diaphragme.get()!=null) r_diaphragme.set(r_diaphragme.get()*facteur_conversion);
+    }
 }

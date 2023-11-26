@@ -17,16 +17,22 @@ public class Environnement {
 
     static double resolution = 0.00001 ;
 
+    // Valeurs par défaut de certains attributs
     private static double indice_refraction_par_defaut = 1.0 ;
 
+    private static Unite unite_par_defaut = Unite.M ;
     private static final Color couleur_fond_par_defaut = Color.BLACK ;
-
     private static final boolean reflexion_avec_refraction_par_defaut = false ;
 
     protected final BooleanProperty reflexion_avec_refraction ;
 
-    // Récupération du logger
-    private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
+    /**
+     * Unité utilisée pour l'affichage et la sérialisation (sauvegarde) des longueurs de l'Environnement.
+     * <br/> L'unité utilisée dans les calculs de l'application reste toujours le mètre, et ne dépend pas de l'unité choisie
+     * pour l'affichage.
+     */
+    protected final ObjectProperty<Unite> unite ;
+
 
 
     protected final ObjectProperty<Color> couleur_fond;
@@ -38,26 +44,33 @@ public class Environnement {
     private final ListProperty<Source> sources ;
     private final ListProperty<SystemeOptiqueCentre> systemes_optiques_centres ;
 
+    private boolean suspendre_illumination_sources = false ;
+    private boolean suspendre_rafraichissement_affichages = false ;
+    private boolean suspendre_calculs_elements_cardinaux_soc = false ;
+
+    // Récupération du logger
+    private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
+
     // TODO : une clip zone non rectangulaire (environnement circulaire, etc.)
 
-    // TODO : propriétés des limites de l'environnement : immaterielle (par défaut), réfléchissante, absorbante...
+    // TODO : propriétés des limites de l'environnement : immatérielle (par défaut), réfléchissante, absorbante...
     // NON : si on veut des limtes réflechissantes, il suffit de créer un obstacle Rectangle Convexe pour délimiter la zone
 
 
     public Environnement() {
-        this(couleur_fond_par_defaut,reflexion_avec_refraction_par_defaut) ;
+        this(unite_par_defaut, couleur_fond_par_defaut,reflexion_avec_refraction_par_defaut) ;
     }
 
-    public Environnement(Color c_fond,boolean refl_avec_refraction) {
+    public Environnement(Unite unite, Color c_fond,boolean refl_avec_refraction) {
+
+        this.unite = new SimpleObjectProperty<>(unite) ;
 
         this.indice_refraction = new SimpleDoubleProperty(indice_refraction_par_defaut) ;
 
         this.couleur_fond = new SimpleObjectProperty<Color>(c_fond) ;
 
         this.reflexion_avec_refraction = new SimpleBooleanProperty(refl_avec_refraction) ;
-        reflexion_avec_refraction.addListener((observable, oldValue,newValue) -> {
-            this.illuminerToutesSources();
-        });
+        reflexion_avec_refraction.addListener((observable, oldValue,newValue) -> this.illuminerToutesSources());
 
         this.commentaire = new SimpleStringProperty("") ;
 
@@ -112,7 +125,7 @@ public class Environnement {
                     LOGGER.log(Level.FINE,"Détection de l'ajout d'un obstacle") ;
 //                    for (Obstacle additem : change.getAddedSubList()) {
 //                        System.out.println("ENV : Obstacle ajouté : " + additem);
-//                        additem.ajouterRappelSurChangementToutePropriete(this::rafraichirDecor);
+//                        additem.ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 //                    }
                     illuminerToutesSources();
                 }
@@ -123,6 +136,9 @@ public class Environnement {
         obstacles.addListener(lcl_obstacles);
 
     }
+
+    public Unite unite() {return unite.get() ;}
+    public ObjectProperty<Unite> uniteProperty() {return unite ;}
 
     public double indiceRefraction() { return indice_refraction.get(); }
     public DoubleProperty indiceRefractionProperty() { return indice_refraction ; }
@@ -239,7 +255,7 @@ public class Environnement {
         if (this.sources.contains(s))
             return ;
 
-        // Il faut faire les liaisons avant d'ajouter la source à la liste car la liste est observable par des vues
+        // Il faut faire les liaisons avant d'ajouter la source à la liste, car la liste est observable par des vues
         // qui doivent être notifiées de l'ajout après que les chemins des rayons ont été recalculés (via appel
         // à Source::illuminer)
 
@@ -319,6 +335,10 @@ public class Environnement {
     }
 
     public void illuminerToutesSources() {
+
+        if (suspendre_illumination_sources)
+            return;
+
         Iterator<Source> its = iterateur_sources();
 
         while (its.hasNext())
@@ -589,5 +609,41 @@ public class Environnement {
     public String commentaire() {
         return commentaire.get() ;
     }
+
+    public void changerUnite(Unite originelle, Unite cible) {
+
+
+        suspendre_illumination_sources = true ;
+        suspendre_rafraichissement_affichages = true ;
+        suspendre_calculs_elements_cardinaux_soc = true ;
+        convertirDistances(originelle.valeur/cible.valeur) ;
+        suspendre_calculs_elements_cardinaux_soc = false ;
+        suspendre_rafraichissement_affichages = false ;
+        suspendre_illumination_sources = false ;
+
+        // Inutile de recalculer les éléments cardinaux (et la matrice de transfert) : ils sont inchangés ; il faut juste
+        // convertir leurs positions/dimensions dans la nouvelle unité au niveau de la méthode SystemeOptiqueCentre::convertirDistances
+//        for (SystemeOptiqueCentre soc : systemes_optiques_centres)
+//            soc.calculeElementsCardinaux();
+
+
+        illuminerToutesSources();
+
+        unite.set(cible); // Déclenche la redéfinition des x_min_g, xmax_g, y_centre_g de la zone visible du
+        // CanvasAffichageEnvironnement qui contient cet environnement
+
+    }
+    private void convertirDistances(double facteur_conversion) {
+        for (Obstacle o : obstacles)
+            o.convertirDistances(facteur_conversion);
+        for (Source s : sources)
+            s.convertirDistances(facteur_conversion);
+        for (SystemeOptiqueCentre soc : systemes_optiques_centres)
+            soc.convertirDistances(facteur_conversion);
+    }
+
+    public boolean rafraichissementAffichagesSuspendu() { return suspendre_rafraichissement_affichages ;}
+
+    public boolean calculsElementsCardinauxSocSuspendus() { return suspendre_calculs_elements_cardinaux_soc ; }
 }
 

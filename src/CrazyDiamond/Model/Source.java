@@ -752,4 +752,9 @@ public class Source implements Nommable {
         return position_orientation ;
     }
 
+    public void convertirDistances(double facteur_conversion) {
+        position_orientation.set(new PositionEtOrientation(position().multiply(facteur_conversion),orientation()));
+        largeur_projecteur.set(largeurProjecteur()*facteur_conversion);
+    }
+
 }

@@ -353,4 +353,12 @@ public class Parabole implements Obstacle, Identifiable, Nommable,ElementAvecCon
     public double a() {return a.get() ;}
     public double b() {return b.get() ;}
     public double c() {return c.get() ;}
+
+    @Override
+    public void convertirDistances(double facteur_conversion) {
+        a.set(a()*facteur_conversion);
+        b.set(b()*facteur_conversion);
+        c.set(c()*facteur_conversion);
+    }
+
 }

@@ -33,14 +33,23 @@ public class ConiqueDeserializer extends StdDeserializer<Conique> {
         final ObjectCodec mapper = jsonParser.getCodec();
         final JsonNode conique_node = mapper.readTree(jsonParser);
 
+        double facteur_conversion = 1d ;
+
+        Object facteur_conversion_obj = deserializationContext.getAttribute("facteur_conversion") ;
+
+        if (facteur_conversion_obj!=null)
+            facteur_conversion = (Double) facteur_conversion_obj ;
+
         Imp_Identifiable ii = mapper.treeToValue(conique_node, Imp_Identifiable.class) ;
         Imp_Nommable iei = mapper.treeToValue(conique_node, Imp_Nommable.class) ;
         Imp_ElementAvecContour iec = mapper.treeToValue(conique_node, Imp_ElementAvecContour.class) ;
         Imp_ElementAvecMatiere iem = mapper.treeToValue(conique_node, Imp_ElementAvecMatiere.class) ;
 
-        Conique conique = new Conique(ii,iei,iec,iem,conique_node.get("x_foyer").asDouble(),conique_node.get("y_foyer").asDouble(),
+        Conique conique = new Conique(ii,iei,iec,iem,
+                conique_node.get("x_foyer").asDouble()*facteur_conversion,
+                conique_node.get("y_foyer").asDouble()*facteur_conversion,
                 conique_node.get("orientation").asDouble(),
-                conique_node.get("parametre").asDouble(),
+                conique_node.get("parametre").asDouble()*facteur_conversion,
                 conique_node.get("excentricite").asDouble()) ;
 
         return conique;

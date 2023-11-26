@@ -1284,9 +1284,12 @@ public class PanneauPrincipal {
 //        String coord = String.format("(X : %.4f , Y : %.4f)",pos_souris.getX(),pos_souris.getY()) ;
 //        label_droit.setText(coord);
 
-        String sb = "(X : " + canvas_affichage_environnement.convertisseurAffichageDistance().toString(pos_souris.getX()) +
-                " , Y : " + canvas_affichage_environnement.convertisseurAffichageDistance().toString(pos_souris.getY()) +
-                ")";
+        String sb = "(X : "
+                + canvas_affichage_environnement.convertisseurAffichageDistance().toString(pos_souris.getX())
+                + " , Y : "
+                + canvas_affichage_environnement.convertisseurAffichageDistance().toString(pos_souris.getY())
+
+                + ") " + environnement.unite().symbole;
 
         label_droit.setText(sb);
 
@@ -1458,7 +1461,7 @@ public class PanneauPrincipal {
             canvas_affichage_environnement.translaterLimites(v_glisser_g.getX(),v_glisser_g.getY());
         }
 
-        canvas_affichage_environnement.rafraichirDecor();
+        canvas_affichage_environnement.rafraichirAffichage();
 
     }
 
@@ -1517,7 +1520,7 @@ public class PanneauPrincipal {
         } else
             canvas_affichage_environnement.translaterLimites(v_glisser_g.getX(),v_glisser_g.getY());
 
-        canvas_affichage_environnement.rafraichirDecor();
+        canvas_affichage_environnement.rafraichirAffichage();
     }
 
     public void traiterCreationComposition(ActionEvent actionEvent) {
@@ -1677,7 +1680,7 @@ public class PanneauPrincipal {
         if (nouvelle_racine==null)
             return ;
 
-        nouveau_canvas_affichage_environnement.rafraichirDecor();
+        nouveau_canvas_affichage_environnement.rafraichirAffichage();
 
         // Remplacement du PanneauPrincipal courant par le nouveau (racine vaut 'null' apres cette instruction)
         racine.getScene().setRoot(nouvelle_racine);

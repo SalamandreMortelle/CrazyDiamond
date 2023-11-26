@@ -1028,4 +1028,11 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
         position_orientation.set(new PositionEtOrientation(nouveau_foyer,orientation()+angle_rot_deg));
     }
+
+    @Override
+    public void convertirDistances(double facteur_conversion) {
+        position_orientation.set(new PositionEtOrientation(foyer().multiply(facteur_conversion),orientation()));
+        parametre.set(parametre()*facteur_conversion);
+    }
+
 }
