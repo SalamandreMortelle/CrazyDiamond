@@ -58,7 +58,7 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
               if (env_node.has("unite"))
                   unite_importee = Unite.fromValue(env_node.get("unite").asText()) ;
 
-              facteur_conversion = unite_importee.valeur / env_hote.unite().valeur  ;
+              facteur_conversion = (unite_importee != null ? unite_importee.valeur : 1d) / env_hote.unite().valeur  ;
 
               e = env_hote ;
           }

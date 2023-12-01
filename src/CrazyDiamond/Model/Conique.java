@@ -8,7 +8,6 @@ import javafx.scene.transform.Rotate;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Conique quelconque (ellipse, parabole ou hyperbole) dont l'axe foxal fait un angle arbitraire avec l'axe X.

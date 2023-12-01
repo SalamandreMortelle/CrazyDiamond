@@ -3,7 +3,6 @@ package CrazyDiamond.Serializer;
 import CrazyDiamond.Model.*;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,21 +20,13 @@ public class CompositionDeserializer extends StdDeserializer<Composition> {
         super(vc);
     }
 
-    /**
-     * @param jsonParser
-     * @param deserializationContext
-     * @return
-     * @throws IOException
-     * @throws JacksonException
-     */
     @Override
     public Composition deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JacksonException {
 
-//        final ObjectCodec mapper = jsonParser.getCodec();
         final ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
         final JsonNode composition_node = mapper.readTree(jsonParser);
 
-        Environnement env = (Environnement) deserializationContext.getAttribute("environnement") ;
+//        Environnement env = (Environnement) deserializationContext.getAttribute("environnement") ;
 
         Object facteur_conversion_obj = deserializationContext.getAttribute("facteur_conversion") ;
 

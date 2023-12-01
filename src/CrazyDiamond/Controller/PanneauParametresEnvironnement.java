@@ -1,14 +1,9 @@
 package CrazyDiamond.Controller;
 
 import CrazyDiamond.Model.*;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -120,24 +115,24 @@ public class PanneauParametresEnvironnement {
 
     }
 
-    public void traiterChangementCouleurFond(ActionEvent actionEvent) {
+    public void traiterChangementCouleurFond() {
         environnement.definirCouleurFond(colorpicker_fond.getValue());
     }
 
-    public void traiterChangementCouleurMatiereObstacles(ActionEvent actionEvent) {
+    public void traiterChangementCouleurMatiereObstacles() {
 //        ElementAvecMatiere.couleur_matiere_par_defaut = colorpicker_matiere_nouveaux_obstacles.getValue() ;
 //        ElementAvecMatiere.couleur_matiere_par_defaut.saturate() ;
 
 //        ElementAvecMatiere.couleur_matiere_par_defaut_property.setValue(colorpicker_matiere_nouveaux_obstacles.getValue());
     }
 
-    public void traiterChangementCouleurContourObstacles(ActionEvent actionEvent) {
+    public void traiterChangementCouleurContourObstacles() {
 //        ElementAvecContour.couleur_contour_par_defaut = colorpicker_contour_nouveaux_obstacles.getValue() ;
 
 //        ElementAvecContour.couleur_contour_par_defaut.saturate() ;
     }
 
-    public void traiterEditionCommentaire(ActionEvent actionEvent) {
+    public void traiterEditionCommentaire() {
 
         ButtonType okButtonType = new ButtonType(rb.getString("bouton.dialogue.edition_commentaire.ok"), ButtonBar.ButtonData.OK_DONE);
         ButtonType annulerButtonType = new ButtonType(rb.getString("bouton.dialogue.edition_commentaire.annuler"), ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -193,8 +188,6 @@ public class PanneauParametresEnvironnement {
 
             environnement.definirCommentaire(commentaire_saisi) ;
         }
-
-
 
     }
 }

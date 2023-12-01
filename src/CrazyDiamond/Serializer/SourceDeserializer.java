@@ -24,18 +24,10 @@ public class SourceDeserializer extends StdDeserializer<Source> {
         super(vc);
     }
 
-    /**
-     * @param jsonParser
-     * @param deserializationContext
-     * @return
-     * @throws IOException
-     * @throws JacksonException
-     */
     @Override
     public Source deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JacksonException {
 
         final ObjectCodec mapper =  jsonParser.getCodec();
-//        final ObjectReader mapper = (ObjectReader) jsonParser.getCodec();
         final JsonNode source_node = mapper.readTree(jsonParser);
 
 //        final TypeSurface t_s = TypeSurface.fromValue(cercle_node.get("type_surface").asText()) ;
@@ -72,8 +64,6 @@ public class SourceDeserializer extends StdDeserializer<Source> {
         boolean lumiere_polarisee = source_node.get("lumiere_polarisee").asBoolean() ;
         double angle_champ_electrique = source_node.get("angle_champ_electrique").asDouble() ;
 
-        Source source = new Source((Environnement) env,iei,position,angle,t_s,nb_rayons,ouverture_pinceau,largeur_projecteur, col,lumiere_polarisee,angle_champ_electrique,nb_max_obst_renc) ;
-
-        return source;
+        return new Source((Environnement) env,iei,position,angle,t_s,nb_rayons,ouverture_pinceau,largeur_projecteur, col,lumiere_polarisee,angle_champ_electrique,nb_max_obst_renc);
     }
 }

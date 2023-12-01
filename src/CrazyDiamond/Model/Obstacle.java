@@ -18,10 +18,10 @@ import java.util.logging.Logger;
 // à condition qu'ils soient infinis.
 public interface Obstacle {
 
-    enum ModeRecherche { PREMIERE, DERNIERE } ;
+    enum ModeRecherche { PREMIERE, DERNIERE }
 
     // Récupération du logger
-    static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
+    Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
 
     boolean aSurSaSurface(Point2D p) ;
 
@@ -66,7 +66,7 @@ public interface Obstacle {
 
     }
 
-    public void tournerAutourDe(Point2D centre_rot,double angle_rot_deg) ;
+    void tournerAutourDe(Point2D centre_rot,double angle_rot_deg) ;
 
     default void definirAppartenanceSystemeOptiqueCentre(boolean b) { }
     default boolean appartientASystemeOptiqueCentre() { return false; }
@@ -78,19 +78,19 @@ public interface Obstacle {
      * Pour un obstacle avec symétrie de révolution, calcule les positions et retourne les propriétés (courbures,
      * indices avant/apres, valeurs de diaphragmes...) de tous les dioptres de l'obstacle qui coupent l'axe fourni en
      * paramètre. L'axe est supposé être l'axe de symétrie de révolution de l'Obstacle.
-     *
+     * <p>
      * Le rayon de courbure ne peut pas être quasi égal à 0. Un dioptre avec ce rayon de courbure ne sera pas retourné.
-     *
+     * <p>
      * Les rayons de courbure sont positifs si la surface est convexe dans le sens de l'axe fourni, négatifs sinon.
-     *
+     * <p>
      * Les indices des milieux hors de l'obstacle sont mis à 0.0 par défaut. A charge pour l'appelant de les renseigner
      * ensuite correctement selon ce qu'il souhaite faire.
-     *
+     * <p>
      * Pré-condition : l'axe fourni en paramètre est l'axe de révolution (choisi selon les mêmes conventions que l'axe d'un SOC)
-     * @param axe
+     * @param axe : axe sur lequel on cherche la position des dioptres paraxiaux
      * @return la liste des dioptres sur l'axe de révolution fourni, classés par Z croissants, Rcourbure "croissants"
      */
-    default public List<DioptreParaxial> dioptresParaxiaux(PositionEtOrientation axe) {
+    default List<DioptreParaxial> dioptresParaxiaux(PositionEtOrientation axe) {
         LOGGER.log(Level.SEVERE,"dioptresParaxiaux() pas implémenté par l'obstacle (l'obstacle doit avoir une symétrie de révolution)",this);
         return null ;
     }
@@ -102,12 +102,12 @@ public interface Obstacle {
     default Property<Double> diaphragmeProperty() { return null ; }
     default Double rayonDiaphragmeParDefaut() { return null ; }
 
-    default public double rayonDiaphragmeMaximumConseille() { return Double.MAX_VALUE ; }
-    default public void forcerRayonDiaphragmeMaximumConseille(Double diaph_max_conseille) {
+    default double rayonDiaphragmeMaximumConseille() { return Double.MAX_VALUE ; }
+    default void forcerRayonDiaphragmeMaximumConseille(Double diaph_max_conseille) {
         // Par défaut, ne rien faire
     }
 
-    default public boolean estReflechissant() {
+    default boolean estReflechissant() {
         return (traitementSurface() == TraitementSurface.REFLECHISSANT
                 || ((traitementSurface() == TraitementSurface.PARTIELLEMENT_REFLECHISSANT) && (tauxReflexionSurface() > 0.5d))) ;
     }
@@ -116,7 +116,7 @@ public interface Obstacle {
      * Recherche la première ou la dernière intersection du rayon r avec l'obstacle.
      * À noter que si le point de départ du rayon est sur la surface de l'obstacle, il ne sera pas retourné.
      * S'il n'y a qu'une intersection, elle est retournée aussi bien en tant que première et en tant que dernière intersection.
-     * @param r
+     * @param r : rayon dont on cherche l'intersection
      * @param mode (PREMIERE ou DERNIERE)
      * @return le point d'intersection trouvé, ou 'null' s'il n'y en a pas
      */
@@ -126,7 +126,7 @@ public interface Obstacle {
      * Cherche toutes les intersections d'un rayon avec la surface de l'obstacle, et les retourne classées de la plus
      * proche à la plus éloignée, dans le sens de la marche du rayon r. Le point de départ du rayon peut être à
      * l'intérieur comme à l'extérieur de l'obstacle.
-     *
+     * <p>
      * L'implémentation par défaut ne convient que pour les obstacles qui ont au plus deux intersections avec tout
      * rayon incident. Si ce n'est pas le cas, une implémentation correcte doit impérativement être fournie.
      * Dans tous les cas, il est conseillé de fournir une implémentation spécifique à l'obstacle qui sera certainement
@@ -135,7 +135,7 @@ public interface Obstacle {
      * @param r : le rayon
      * @return la liste classée des intersections
      */
-    default public ArrayList<Point2D> cherche_toutes_intersections(Rayon r) {
+    default ArrayList<Point2D> cherche_toutes_intersections(Rayon r) {
 
         ArrayList<Point2D> resultats = new ArrayList<>(2) ;
 
@@ -165,9 +165,9 @@ public interface Obstacle {
     default TraitementSurface traitementSurface() { return null; }
     default double tauxReflexionSurface() { return 0.0; }
 
-    public void definirOrientationAxePolariseur(double angle_pol) ;
-    public double orientationAxePolariseur() ;
-    public DoubleProperty orientationAxePolariseurProperty();
+    void definirOrientationAxePolariseur(double angle_pol) ;
+    double orientationAxePolariseur() ;
+    DoubleProperty orientationAxePolariseurProperty();
 
 
     default double indiceRefraction()  {
@@ -185,14 +185,14 @@ public interface Obstacle {
         retaillerPourSourisEn(pclic);
     }
 
-    default public Contour positions_poignees() { return null ; };
+    default Contour positions_poignees() { return null ; }
 
     default void translater(Point2D vecteur) { }
     default boolean est_tres_proche_de(Point2D pt,double tolerance) { return false ; }
 
-    public void convertirDistances(double facteur_conversion) ;
+    void convertirDistances(double facteur_conversion) ;
 
-    public static Point2D normaleAuPointIncidence(Obstacle o,Rayon r) throws Exception {
+    static Point2D normaleAuPointIncidence(Obstacle o,Rayon r) throws Exception {
 
         Point2D inter = o.premiere_intersection(r) ;
 
@@ -210,7 +210,7 @@ public interface Obstacle {
      * @return le Rayon réfléchi
      * @throws Exception
      */
-     public static Rayon rayonReflechiTotal(Obstacle o, Rayon r) throws Exception {
+     static Rayon rayonReflechiTotal(Obstacle o, Rayon r) throws Exception {
 
          // Si l'obstacle o rencontré est concave, il est possible que le rayon parte de la SURFACE de ce dernier, et
          // soit réfléchi par cet osbtacle lui-même. Mais si le point de départ est dans la masse de l'obstacle, et
@@ -235,7 +235,7 @@ public interface Obstacle {
 
 
 
-         Double sens_rotation ;
+         double sens_rotation ;
 
          if (oppose_vecteur_incident.crossProduct(normale).getZ() > 0 )
              sens_rotation = +1.0 ;
@@ -270,11 +270,11 @@ public interface Obstacle {
 
     /**
      * Construit et initialise le rayon réfracté d'un rayon incident r par un obstacle transparent o.
-     * @param o
-     * @param r
-     * @param env
-     * @param calcul_transmittance
-     * @return
+     * @param o : obsacle qui réfracte le rayon
+     * @param r : rayon considéré
+     * @param env : environnement
+     * @param calcul_transmittance : indique si les facteurs de transmittance doivent être calculés
+     * @return le rayon réfracté
      * @throws Exception
      */
     public static Rayon rayonRefracte(Obstacle o, Rayon r, Environnement env,boolean calcul_transmittance) throws Exception {
@@ -539,7 +539,7 @@ public interface Obstacle {
 
                 // TODO : A mettre en assertion
                 if(Math.abs(normale.angle(rayons_res.rayon_reflechi.direction())-normale.angle(oppose_vecteur_incident))>0.000001) {
-                    LOGGER.log(Level.SEVERE,"ALERTE : L\'angle i1\' du rayon réfléchi est différent de l'angle i1\' du rayon incident. (i1 = {0} , i1' = {0})",new Object[] {i1,normale.angle(rayons_res.rayon_reflechi.direction())});
+                    LOGGER.log(Level.SEVERE, "ALERTE : L'angle i1' du rayon réfléchi est différent de l'angle i1' du rayon incident. (i1 = {0} , i1' = {0})",new Object[] {i1,normale.angle(rayons_res.rayon_reflechi.direction())});
 
 //                    throw new Exception("L'angle i2 du rayon réfléchi est différent de l'angle i1 du rayon incident. (i1 = "+i1+"° et i2 ="+normale.angle(rayons_res.rayon_reflechi.direction)+"°)") ;
 
@@ -602,7 +602,7 @@ public interface Obstacle {
 //        Rayon r_refracte = null ;
 
         // Prise en compte des effets éventuels d'une surface polarisante
-        boolean nouvelle_polarisation = (o.traitementSurface()==TraitementSurface.POLARISANT)?true:r.est_polarisee ;
+        boolean nouvelle_polarisation = o.traitementSurface() == TraitementSurface.POLARISANT || r.est_polarisee;
         double nouvel_angle_champ_electrique = (o.traitementSurface()==TraitementSurface.POLARISANT?o.orientationAxePolariseur():r.angle_champ_electrique) ;
 
         double coeff_dim_puissance_transmise_par_polariseur = 1.0 ;

@@ -1,7 +1,6 @@
 package CrazyDiamond.Model;
 
 import javafx.beans.property.*;
-import javafx.scene.transform.Affine;
 
 import java.util.Comparator;
 import java.util.List;
@@ -74,10 +73,7 @@ public class DioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
         if (rayonCourbure()!=null && d_autre.rayonCourbure()==null)
             return false ;
 
-        if (Environnement.quasiEgal(rayonCourbure(), d_autre.rayonCourbure()))
-            return true ;
-
-        return false ;
+        return Environnement.quasiEgal(rayonCourbure(), d_autre.rayonCourbure());
 
     }
 

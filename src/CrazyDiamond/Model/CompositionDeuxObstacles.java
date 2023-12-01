@@ -15,7 +15,7 @@ public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable
     private final Imp_ElementAvecContour imp_elementAvecContour;
     private final Imp_ElementAvecMatiere imp_elementAvecMatiere;
 
-    enum Operateur { UNION, INTERSECTION , DIFFERENCE, DIFFERENCE_SYMETRIQUE } ;
+    enum Operateur { UNION, INTERSECTION , DIFFERENCE, DIFFERENCE_SYMETRIQUE }
 
     // Vu qu'on déclare les obstacles 1 et 2 comme final, on n'a sans doute pas besoin d'en faire des ObjectProperty
     // ce sont les propriétés des obstacles sous-jacents qui sont observables

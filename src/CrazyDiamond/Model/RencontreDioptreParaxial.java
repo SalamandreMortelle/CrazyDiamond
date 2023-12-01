@@ -3,8 +3,6 @@ package CrazyDiamond.Model;
 import javafx.beans.property.*;
 import javafx.scene.transform.Affine;
 
-import java.util.Comparator;
-
 public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
 
     // Abscisse de l'intersection dans le référentiel du SOC

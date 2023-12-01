@@ -23,7 +23,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     // AnimationTimer utilisé pour animer les contours des obstacles sélectionnés, des rayons, etc.
     AnimationTimer anim_timer ;
 
-    private  Map<Obstacle, ContoursObstacle> contours_obstacles ;
+    private final Map<Obstacle, ContoursObstacle> contours_obstacles ;
 
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
 
@@ -90,13 +90,13 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     @Override
     public void visiteEnvironnement(Environnement e) {
 
-        // Ré-initialiser les contours déjà calculés, pour ne pas garer les contours d'objets qui ont été supprimés
+        // Réinitialiser les contours déjà calculés, pour ne pas garer les contours d'objets qui ont été supprimés
         // de l'Environnement
         contours_obstacles.clear();
 
         // NB : On pourrait envisager une optimisation en mémorisant les (morceaux de) contours précédemment calculés
         // de chaque obstacle, et en se contentant de calculer, si besoin, les nouveaux morceaux manquants lorsque le visiteur
-        // est appelé pour ré-afficher à nouveau l'obstacle.
+        // est appelé pour réafficher à nouveau l'obstacle.
         // Il faudrait alors que la map contienne des java.lang.ref.WeakReference de chaque Obstacle (au lieu de références simples),
         // afin que le GC puisse effacer ceux qui ont été supprimés de l'environnement et qui ne seront plus jamais affichés, si on veut
         // éviter une fuite mémoire.
@@ -219,8 +219,8 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         double pas = cae.resolutionX() ;
 
-        ArrayList<Double> xpoints = new ArrayList<Double>(0);
-        ArrayList<Double> ypoints = new ArrayList<Double>(0);
+        ArrayList<Double> xpoints = new ArrayList<>(0);
+        ArrayList<Double> ypoints = new ArrayList<>(0);
 
 
         do {
@@ -500,399 +500,8 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
     }
 
-    public void afficherContoursObstacle(ContoursObstacle co) {
-
-    }
-
-//    @Override
-//    public void visiteCercle(Cercle cercle) {
-//
-//        GraphicsContext gc = cae.gc() ;
-//
-//        Paint s = gc.getStroke() ;
-//        Paint pf = gc.getFill() ;
-//
-//        Paint couleur_masse = cercle.couleurMatiere() ;
-//        Paint couleur_bord = cercle.couleurContour() ;
-//
-//        gc.setStroke(couleur_bord);
-//        gc.setFill(couleur_masse);
-//
-//        double rayon = cercle.rayon() ;
-//
-//        double x_centre = cercle.Xcentre() ;
-//        double y_centre = cercle.Ycentre() ;
-//
-//
-//        if ( (x_centre+rayon < cae.xmin()) || (x_centre-rayon > cae.xmax())
-//                || (y_centre+rayon < cae.ymin()) || (y_centre-rayon > cae.ymax())
-//                || (x_centre< cae.xmin() && y_centre> cae.ymax() && (cercle.centre().subtract(cae.xmin(), cae.ymax()).magnitude()>rayon))
-//                || (x_centre> cae.xmax() && y_centre> cae.ymax() && (cercle.centre().subtract(cae.xmax(), cae.ymax()).magnitude()>rayon))
-//                || (x_centre> cae.xmax() && y_centre< cae.ymin() && (cercle.centre().subtract(cae.xmax(), cae.ymin()).magnitude()>rayon))
-//                || (x_centre< cae.xmin() && y_centre< cae.ymin() && (cercle.centre().subtract(cae.xmin(), cae.ymin()).magnitude()>rayon))
-//        ) { // Aucune partie du contour du cercle n'est visible
-//
-//            if (cercle.typeSurface() == Obstacle.TypeSurface.CONVEXE)
-//                return ;
-//            else  // Concave
-//                cae.gc.fillRect(cae.xmin(), cae.ymin(), cae.xmax() - cae.xmin(), cae.ymax()- cae.ymin());
-//
-//        }
-//
-//        double[][] i_droites = cercle.intersections_verticale(cae.xmax(), cae.ymin(), cae.ymax(),true) ;
-//        double[][] i_hautes  = cercle.intersections_horizontale(cae.ymax(), cae.xmin(), cae.xmax(),false) ;
-//        double[][] i_gauches = cercle.intersections_verticale(cae.xmin(), cae.ymin(), cae.ymax(),false) ;
-//        double[][] i_basses  = cercle.intersections_horizontale(cae.ymin(), cae.xmin(), cae.xmax(),true) ;
-//
-//        SelecteurCoins sc = new SelecteurCoins(cae.xmin(), cae.ymin(), cae.xmax(), cae.ymax());
-//
-////        System.out.println("Nombre d'intersections avec les bords : "+n_intersections);
-//
-//        // Tableau qui contiendra au plus 4 intervalles [theta min, theta max] où la courbe est visible
-//        // ordonnés dans le sens trigonométrique en partant dy coin BD de l'écran
-//        ArrayList<Double> valeurs_theta_intersection = new ArrayList<Double>(8) ;
-//
-//        ArrayList<Double> valeurs_x_intersection = new ArrayList<Double>(8) ;
-//        ArrayList<Double> valeurs_y_intersection = new ArrayList<Double>(8) ;
-//
-//        // DONE : remplacer les 40 lignes ci-dessous par une sous-fonction (utilisée par cette méthode et par traace_conique_methode2_simplifie)
-//
-//        int n_intersections = sc.ordonneIntersections(i_droites,i_hautes,i_gauches,i_basses,
-//                                valeurs_theta_intersection,valeurs_x_intersection,valeurs_y_intersection) ;
-//
-////        int n_intersections = i_hautes.length + i_gauches.length +i_basses.length + i_droites.length ;
-////
-////        for (int i = 0 ; i < i_droites.length ; i++) {
-////            valeurs_theta_intersection.add(i_droites[i][1]);
-////            valeurs_x_intersection.add(cae.xmax()) ;
-////            valeurs_y_intersection.add(i_droites[i][0]) ;
-////        }
-////        for (int i = 0 ; i < i_hautes.length ; i++) {
-////            valeurs_theta_intersection.add(i_hautes[i][1]);
-////            valeurs_x_intersection.add(i_hautes[i][0]) ;
-////            valeurs_y_intersection.add(cae.ymax()) ;
-////        }
-////        for (int i = 0 ; i < i_gauches.length ; i++) {
-////            valeurs_theta_intersection.add(i_gauches[i][1]);
-////            valeurs_x_intersection.add(cae.xmin()) ;
-////            valeurs_y_intersection.add(i_gauches[i][0]) ;
-////        }
-////        for (int i = 0 ; i < i_basses.length ; i++) {
-////            valeurs_theta_intersection.add(i_basses[i][1]);
-////            valeurs_x_intersection.add(i_basses[i][0]) ;
-////            valeurs_y_intersection.add(cae.ymin()) ;
-////        }
-////
-////        if (n_intersections!=valeurs_theta_intersection.size())
-////            System.err.println("On a un problème");
-//
-//        // Si aucune intersection, --ou si 1 seule intersection (TODO : tester le cas à 1 intersection)
-//        if (n_intersections<=1) {
-//
-//            // Cercle entièrement contenu dans la zone visible ?
-//            if (cae.boite_limites().contains(cercle.point_sur_cercle(0))) {
-//                ArrayList<Double> x_arc = cercle.xpoints_sur_cercle( 0, 2 * Math.PI, nombre_pas_angulaire_par_arc);
-//                ArrayList<Double> y_arc = cercle.ypoints_sur_cercle( 0, 2 * Math.PI, nombre_pas_angulaire_par_arc);
-//
-//                // Rappel : on est par défaut en FillRule NON_ZERO => pour faire une surface avec un trou, il suffit
-//                // de faire deux contours dans des sens contraires (trigo et antitrigo)
-//                cae.gc.beginPath();
-//
-//                // Tracé du contour, ou du trou (chemin fermé), dans le sens trigo
-//                cae.completerPathAvecContourFerme(x_arc, y_arc);
-//                // TODO : à remplacer par methode arcTo / plus propre qu'un polygone, et peut-être plus rapide...
-//
-//                // Tracé du contour (apparemment, cela ne termine pas le path, on peut continuer à lui ajouter des éléments
-//                cae.gc.stroke();
-//
-//                if (cercle.typeSurface() == Obstacle.TypeSurface.CONCAVE) {
-//                    // Tracé du rectangle de la zone visible, dans le sens antitrigo : le Path de l'ellipse sera un trou
-//                    // dans cette zone
-//                    cae.completerPathAvecContourZoneVisibleAntitrigo();
-//                }
-//
-//                // Le fill déclenche aussi l'appel closePath
-//                cae.gc.fill();
-//
-//            } else { // Aucun point de la surface n'est dans la zone visible
-//                if (cercle.contient(cae.boite_limites().centre())) {
-//
-//                    sc.selectionne_tous();
-//
-//                    // Toute la zone visible est dans la masse de l'objet conique
-//                    CanvasAffichageEnvironnement.remplirPolygone(cae, sc.xcoins_selectionne(true), sc.ycoins_selectionne(true));
-//                } else {
-//                    // Toute la zone visible est hors de la masse de la conique
-//                    // rien à faire
-//                }
-//            }
-//
-//            // C'est fini
-//            return;
-//        }
-//
-//        // Au moins 2 intersections, et jusqu'à 8...
-//
-//        ArrayList<Double> x_masse = new ArrayList<Double>(nombre_pas_angulaire_par_arc+4) ;
-//        ArrayList<Double> y_masse = new ArrayList<Double>(nombre_pas_angulaire_par_arc+4) ;
-//
-//        // Boucle sur les intersections, dans le sens trigo par rapport au centre de l'écran
-//        for (int i=0 ; i<valeurs_theta_intersection.size(); i++) {
-//            double theta_deb = valeurs_theta_intersection.get(i) ;
-//            if (theta_deb<0)
-//                theta_deb += 2*Math.PI ;
-//
-//            int i_suivant = (i + 1) % (valeurs_theta_intersection.size()) ;
-//            double theta_fin ;
-//
-//            if (i_suivant != i)
-//                theta_fin = valeurs_theta_intersection.get(i_suivant) ;
-//            else
-//                theta_fin=theta_deb + 2*Math.PI ;
-//            if (theta_fin<0)
-//                theta_fin += 2*Math.PI ;
-//
-//            double x_deb = valeurs_x_intersection.get(i) ;
-//            double y_deb = valeurs_y_intersection.get(i) ;
-//            Point2D pt_deb = new Point2D(x_deb,y_deb) ;
-//            double x_fin = valeurs_x_intersection.get(i_suivant) ;
-//            double y_fin = valeurs_y_intersection.get(i_suivant) ;
-//            Point2D pt_fin = new Point2D(x_fin,y_fin) ;
-//
-//            if (theta_fin<theta_deb)
-//                theta_fin += 2*Math.PI ;
-//
-//
-//            Point2D pt = cercle.point_sur_cercle((theta_deb+theta_fin)/2 ) ;
-//
-//            // Si cet arc est visible
-//            if (pt!=null && cae.boite_limites().contains(pt)) {
-//                ArrayList<Double> x_arc = new ArrayList<Double>(nombre_pas_angulaire_par_arc) ;
-//                ArrayList<Double> y_arc = new ArrayList<Double>(nombre_pas_angulaire_par_arc) ;
-//
-//
-//                // Ajouter le point exact de l'intersection pt_deb pour éviter les décrochages dûs au pas du tracé
-//                x_arc.add(x_deb) ;
-//                y_arc.add(y_deb) ;
-//
-//                x_arc.addAll(cercle.xpoints_sur_cercle(theta_deb,theta_fin,nombre_pas_angulaire_par_arc)) ;
-//                y_arc.addAll(cercle.ypoints_sur_cercle(theta_deb,theta_fin,nombre_pas_angulaire_par_arc)) ;
-//
-//                // Ajouter le point exact de l'intersection pt_fin pour éviter les décrochages dûs au pas du tracé
-//                x_arc.add(x_fin) ;
-//                y_arc.add(y_fin) ;
-//
-//                // On trace l'arc de ce contour visible
-//                cae.tracerPolyligne(x_arc,y_arc);
-//                // TODO : à remplacer par methode arcTo / plus propre qu'un polygone, et peut-être plus rapide...
-//
-//                x_masse.addAll(x_arc) ;
-//                y_masse.addAll(y_arc) ;
-//                // TODO : voir la masse comme un Path et la construire avec le methode arcTo / plus propre qu'un polygone, et peut-être plus rapide...
-//
-//                x_arc.clear();
-//                y_arc.clear();
-//
-//                // Si les 2 intersections sont sur un même bord et que leur milieu est dans la conique, il n'y a pas
-//                // d'autre arc de contour à tracer, on peut sortir tout de suite de la boucle sur les intersections
-//                if ( (x_deb==x_fin || y_deb==y_fin) && cercle.contient(pt_deb.midpoint(pt_fin)))
-//                    break ;
-//
-//                // Sinon, chercher les coins contigus (càd non séparés des extrémités par une intersection) et qui sont
-//                // dans l'interieur du contour, que la conique soit convexe ou concave
-//                SelecteurCoins sc_coins_interieurs = sc.sequence_coins_continus(false,pt_deb,pt_fin,valeurs_x_intersection,valeurs_y_intersection) ;
-//
-//                if(     ( cercle.typeSurface()== Obstacle.TypeSurface.CONVEXE
-//                        && cercle.contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
-//                        || ( cercle.typeSurface()== Obstacle.TypeSurface.CONCAVE
-//                        && !cercle.contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
-//                ) {
-//                    // Les ajouter au tracé du contour c
-//                    x_masse.addAll(sc_coins_interieurs.xcoins_selectionne_antitrigo(true));
-//                    y_masse.addAll(sc_coins_interieurs.ycoins_selectionne_antitrigo(true));
-//
-//                    break ;
-//                }
-//
-//            } else { // Arc non visible
-//
-//                // Ajouter la sequence des coins de cette portion (dans ordre trigo) si ils sont dans la conique (et si il y en a)
-//                SelecteurCoins sc_coins_interieurs = sc.sequence_coins_continus(true,pt_deb,pt_fin,valeurs_x_intersection,valeurs_y_intersection) ;
-//
-//                if(  ( cercle.typeSurface()== Obstacle.TypeSurface.CONVEXE
-//                        && cercle.contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
-//                        || ( cercle.typeSurface()== Obstacle.TypeSurface.CONCAVE
-//                        && !cercle.contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
-//                ) {
-//                    // Les ajouter au contour de masse
-//                    // TODO : voir la masse comme un Path constitué d'arc (arcTo et de points) : tracé sera plus efficace
-//                    // mais pour l'utilisation de Clipper, il faudra continuer à le voir comme un polygone...
-//                    x_masse.addAll(sc_coins_interieurs.xcoins_selectionne(true));
-//                    y_masse.addAll(sc_coins_interieurs.ycoins_selectionne(true));
-//                }
-//
-//            }
-//        } // Fin boucle sur intersections
-//
-//        cae.gc.beginPath();
-//
-//        if (cercle.typeSurface() == Obstacle.TypeSurface.CONCAVE) {
-//            // Tracé du rectangle de la zone visible, dans le sens antitrigo : le Path de l'ellipse sera un trou
-//            // dans cette zone
-//            cae.gc.moveTo(cae.xmax(), cae.ymin());
-//            cae.gc.lineTo(cae.xmin(), cae.ymin());
-//            cae.gc.lineTo(cae.xmin(), cae.ymax());
-//            cae.gc.lineTo(cae.xmax(), cae.ymax());
-//        }
-//        // Tracé du contour, ou du trou (chemin fermé), dans le sens trigo
-//        cae.completerPathAvecContourFerme(x_masse,y_masse);
-//
-//        cae.gc.fill();
-//
-//
-//
-//    }
-
-//      //  @Override
-//    public void visiteCercle_old(Cercle cercle) {
-//
-//        GraphicsContext gc = cae.gc() ;
-//
-//        Paint s = gc.getStroke() ;
-//        Paint pf = gc.getFill() ;
-//
-//        Paint couleur_masse = cercle.couleurMatiere() ;
-//        Paint couleur_bord = cercle.couleurContour() ;
-//
-//        gc.setStroke(couleur_bord);
-//        gc.setFill(couleur_masse);
-//
-//        double rayon = cercle.rayon() ;
-//
-//        double x_centre = cercle.Xcentre() ;
-//        double y_centre = cercle.Ycentre() ;
-//
-//
-//        if ( (x_centre+rayon < cae.xmin()) || (x_centre-rayon > cae.xmax())
-//          || (y_centre+rayon < cae.ymin()) || (y_centre-rayon > cae.ymax())
-//          || (x_centre< cae.xmin() && y_centre> cae.ymax() && (cercle.centre().subtract(cae.xmin(), cae.ymax()).magnitude()>rayon))
-//          || (x_centre> cae.xmax() && y_centre> cae.ymax() && (cercle.centre().subtract(cae.xmax(), cae.ymax()).magnitude()>rayon))
-//          || (x_centre> cae.xmax() && y_centre< cae.ymin() && (cercle.centre().subtract(cae.xmax(), cae.ymin()).magnitude()>rayon))
-//          || (x_centre< cae.xmin() && y_centre< cae.ymin() && (cercle.centre().subtract(cae.xmin(), cae.ymin()).magnitude()>rayon))
-//        ) { // Aucune partie du contour du cercle n'est visible
-//
-//            if (cercle.typeSurface() == Obstacle.TypeSurface.CONVEXE)
-//                return ;
-//            else  // Concave
-//                cae.gc.fillRect(cae.xmin(), cae.ymin(), cae.xmax() - cae.xmin(), cae.ymax()- cae.ymin());
-//
-//        }
-//
-//
-//
-//        if (cercle.typeSurface() == Obstacle.TypeSurface.CONVEXE)
-//            gc.fillOval(x_centre-rayon,y_centre-rayon,2*rayon,2*rayon);
-//        else { // Concave
-//
-//            double xg = Math.min(cae.xmin(),x_centre-rayon) ;
-//            double xd = Math.max(cae.xmax(),x_centre+rayon) ;
-//            double yb = Math.min(cae.ymin(),y_centre-rayon) ;
-//            double yh = Math.max(cae.ymax(),y_centre+rayon) ;
-//
-//            double pas = cae.resolutionX() ;
-//
-//            double x,y ;
-//
-//            // Trace partie haute
-//            ArrayList<Double> xpoints = new ArrayList<Double>(300);
-//            ArrayList<Double> ypoints = new ArrayList<Double>(300);
-//
-//            xpoints.add(xg) ;
-//            ypoints.add(y_centre) ;
-//
-//            x = x_centre-rayon ;
-//            y = y_centre ;
-//
-//            xpoints.add(x) ;
-//            ypoints.add(y) ;
-//
-//            do {
-//                x += pas ;
-//                y = y_centre + Math.sqrt( rayon*rayon - (x-x_centre)*(x-x_centre) )  ;
-//
-//                xpoints.add(x) ;
-//                ypoints.add(y) ;
-//            } while (x<x_centre+rayon) ;
-//
-//
-//            xpoints.add(x_centre+rayon) ;
-//            ypoints.add(y_centre) ;
-//
-//            xpoints.add(xd) ;
-//            ypoints.add(y_centre) ;
-//
-//            xpoints.add(xd) ;
-//            ypoints.add(yh) ;
-//
-//            xpoints.add(xg) ;
-//            ypoints.add(yh) ;
-//
-//            xpoints.add(xg) ;
-//            ypoints.add(y_centre) ;
-//
-//            CanvasAffichageEnvironnement.remplirPolygone(cae,xpoints,ypoints);
-//
-//            // Trace partie basse
-//            xpoints.clear();
-//            ypoints.clear();
-//
-//            xpoints.add(xg) ;
-//            ypoints.add(y_centre) ;
-//
-//            x = x_centre-rayon ;
-//            y = y_centre ;
-//
-//            xpoints.add(x) ;
-//            ypoints.add(y) ;
-//
-//            do {
-//                x += pas ;
-//                y = y_centre - Math.sqrt( rayon*rayon - (x-x_centre)*(x-x_centre) )  ;
-//
-//                xpoints.add(x) ;
-//                ypoints.add(y) ;
-//            } while (x<x_centre+rayon) ;
-//
-//            xpoints.add(x_centre+rayon) ;
-//            ypoints.add(y_centre) ;
-//
-//            xpoints.add(xd) ;
-//            ypoints.add(y_centre) ;
-//
-//            xpoints.add(xd) ;
-//            ypoints.add(yb) ;
-//
-//            xpoints.add(xg) ;
-//            ypoints.add(yb) ;
-//
-//            xpoints.add(xg) ;
-//            ypoints.add(y_centre) ;
-//
-//            CanvasAffichageEnvironnement.remplirPolygone(cae,xpoints,ypoints);
-//
-//        }
-//
-//        gc.strokeOval(x_centre-rayon,y_centre-rayon,2*rayon,2*rayon);
-//
-//        gc.setFill(pf);
-//
-//        gc.setStroke(s);
-//        // Note : on pourrait aussi utiliser gc.save() au début de la méthode puis gc.restore() à la fin
-//
-//    }
-
     /**
-     * visite un rectangle et l'affiche (contour+masse). Cette méthode ne réalise aucun tracé, ni remplissage hors de
+     * Visite un rectangle et l'affiche (contour+masse). Cette méthode ne réalise aucun tracé, ni remplissage hors de
      * la zone visible du CanvasAffichageEnvironnement (optimisation de la mémoire du Canvas qui n'est pas sollicitée
      * pour les éléments ou parties d'éléments qui sont invisibles.
      * @param rect : le rectangle à afficher
@@ -1123,12 +732,6 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         // Note : on pourrait aussi utiliser gc.save() au début de la méthode puis gc.restore() à la fin
     }
 
-    public void tracerCheminsDeSource(Source s) {
-
-
-
-    }
-
     private void tracerChemin(CheminLumiere c) {
 
         GraphicsContext gc = cae.gc();
@@ -1137,13 +740,11 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         gc.setStroke(c.couleur);
 
         double alpha = gc.getGlobalAlpha() ;
-//        gc.setLineWidth(2.0);
 
         LOGGER.log(Level.FINER,"Tracé du chemin {0}",c);
 
         int cpt = 0 ;
 
-//        for (Rayon r : c) {
         for (CheminLumiere ch : c) {
 
             Rayon r=ch.rayon() ;
@@ -1304,7 +905,6 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             // dans cette zone
             contours_resultat.ajouterContourMasse(cae.boite_limites().construireContourAntitrigo());
         }
-
 
         cae.afficherContoursObstacle(contours_resultat) ;
 

@@ -1,5 +1,4 @@
 module CrazyDiamond {
-    requires Clipper;
     requires javafx.base;
     requires javafx.graphics;
     requires javafx.controls;
@@ -7,6 +6,7 @@ module CrazyDiamond {
     requires javafx.fxml;
     requires com.fasterxml.jackson.core;
     requires com.fasterxml.jackson.databind;
+    requires clipper2;
     opens CrazyDiamond.Controller ;
     exports CrazyDiamond;
 }

@@ -72,7 +72,7 @@ public class SystemeOptiqueCentre implements Nommable {
     /**
      * Indice du milieu "avant" le SOC, abstraction faite des milieux des obstacles qui n'appartiennent pas au SOC
      */
-    private DoubleProperty n_entree ;
+    private final DoubleProperty n_entree ;
 
     /**
      * Abscisse du plan de référence de sortie du système optique, positionné sur le dernier dioptre rencontré par un rayon confondu
@@ -83,13 +83,13 @@ public class SystemeOptiqueCentre implements Nommable {
      * Indice du milieu "après" le SOC, dans le sens du rayon sortant du système, abstraction faite des milieux des
      * obstacles qui n'appartiennent pas au SOC
      */
-    private DoubleProperty n_sortie ;
+    private final DoubleProperty n_sortie ;
 
     /**
      *  Booléen indiquant si le rayon qui sort du système est orienté dans le sens des X croissants. Si le système comporte une
      * surface totalement réfléchissante ou réfléchissante à plus de 50%, ce rayon sera orienté dans le sens des X décroissants
      */
-    BooleanProperty sens_plus_en_sortie ;
+    final BooleanProperty sens_plus_en_sortie ;
 
     private final SimpleObjectProperty<Double> z_plan_principal_1;
     private final SimpleObjectProperty<Double> z_plan_principal_2;
@@ -158,7 +158,7 @@ public class SystemeOptiqueCentre implements Nommable {
      * Classe utilitaire pour conserver les modalités de traversée de dioptre définies par l'utilisateur lorsque le
      * SOC change.
      */
-    class ModalitesTraverseeDioptre {
+    static class ModalitesTraverseeDioptre {
 
         // Champs servant à l'identification du dioptre dans la liste des DioptreParaxial réelles
 
@@ -218,7 +218,7 @@ public class SystemeOptiqueCentre implements Nommable {
         double g_transversal = a + c * z_image / n_image ;
 
         return new PositionElement(z_image / environnement.unite().valeur, position_obj.hauteur() * g_transversal ) ;
-    } ;
+    }
 
     /**
      * Calcule la position (z_antecedent + hauteur_antecedent) de l'antécédent d'une image (z_image + hauteur_image) par
@@ -251,7 +251,7 @@ public class SystemeOptiqueCentre implements Nommable {
         double g_transversal_inverse = 1 / ( a + c * z_image_sur_n_image ) ;
 
         return new PositionElement(z_antecedent / environnement.unite().valeur , position_img.hauteur() * g_transversal_inverse ) ;
-    } ;
+    }
 
 
     public void calculeElementsCardinaux() {
@@ -641,7 +641,7 @@ public class SystemeOptiqueCentre implements Nommable {
                             / Math.abs(dioptre_rencontre.antecedentDiaphragme().z() - ZObjet()) ;
 
                     LOGGER.log(Level.FINE,"Pupille entrée du diaphragme {0} : hauteur {1} m, angle vu de objet : {2}°",
-                            new Object[] {nb_dioptres_rencontres, Double.valueOf(dioptre_rencontre.antecedentDiaphragme().hauteur()) ,
+                            new Object[] {nb_dioptres_rencontres, dioptre_rencontre.antecedentDiaphragme().hauteur(),
                                     Math.toDegrees(Math.atan(tan_angle_antecedent_depuis_z_objet))}) ;
 
                     if (tan_angle_antecedent_depuis_z_objet<tan_demi_ouverture) {
@@ -1024,15 +1024,13 @@ public class SystemeOptiqueCentre implements Nommable {
 //            angle_champ_total_image.set(angleDeVuDe(z_plan_sortie+image_objet_ct.z(),Math.abs(image_objet_ct.hauteur())+ r_pupille_sortie.get(),z_pupille_sortie.get())) ;
 
 
-                for (int l = 0; l < dioptres_rencontres.size(); l++) {
-
-                    RencontreDioptreParaxial its = dioptres_rencontres.get(l);
+                for (RencontreDioptreParaxial its : dioptres_rencontres) {
 
                     // Calcul des h limite du champ de pleine lumiere et du champ total sur chaque dioptre
 
                     // Rayon émergent au niveau de ce dioptre
-                    Point2D r_emergent_cpl = its.matriceTransfertPartielle().transform(h_incidence_entree_cpl_provisoire*environnement.unite().valeur, Math.toRadians(angle_champ_pleine_lumiere_objet.get()));
-                    Point2D r_emergent_ct = its.matriceTransfertPartielle().transform(h_incidence_entree_ct_provisoire*environnement.unite().valeur, Math.toRadians(angle_champ_total_objet.get()));
+                    Point2D r_emergent_cpl = its.matriceTransfertPartielle().transform(h_incidence_entree_cpl_provisoire * environnement.unite().valeur, Math.toRadians(angle_champ_pleine_lumiere_objet.get()));
+                    Point2D r_emergent_ct = its.matriceTransfertPartielle().transform(h_incidence_entree_ct_provisoire * environnement.unite().valeur, Math.toRadians(angle_champ_total_objet.get()));
 
                     // Enregistrement de la hauteur X du dioptre_rencontre avec le diaphragme/dioptre
                     its.h_limite_champ_pleine_lumiere.set(r_emergent_cpl.getX());
@@ -1062,7 +1060,7 @@ public class SystemeOptiqueCentre implements Nommable {
      * (réfléchissante ou transparente) de ces dioptres (qui sont donc ici supposés, en quelque sorte, tous transparents).
      * @return la liste triée des dioptres
      */
-    private ArrayList<DioptreParaxial> extraireDioptresParaxiaux() throws Exception {
+    private ArrayList<DioptreParaxial> extraireDioptresParaxiaux() {
 
         ArrayList<DioptreParaxial> resultat = new ArrayList<>(2*obstacles_centres.size()) ;
 
@@ -1080,41 +1078,38 @@ public class SystemeOptiqueCentre implements Nommable {
             Double rc_deb_recouv = -Double.MIN_VALUE ;
 
             List<DioptreParaxial> dioptres_oc = oc.dioptresParaxiaux(axe()) ;
-            Iterator <DioptreParaxial> itd  = dioptres_oc.iterator() ;
 
             // Itération sur les dioptres de l'obstacle qui sont classés par Z croissant, et Rc "croissants"
-            while (itd.hasNext()) {
+            for (DioptreParaxial d : dioptres_oc) {
 
-                DioptreParaxial d = itd.next() ;
-
-                if (d.indiceApres()==0 && d.indiceAvant()>0) { // On SORT de l'obstacle oc
+                if (d.indiceApres() == 0 && d.indiceAvant() > 0) { // On SORT de l'obstacle oc
 
                     // Création d'un dioptre virtuel dont la position marque la zone de début de recouvrement
-                    DioptreParaxial d_dep_recouv = new DioptreParaxial(z_deb_recouv,rc_deb_recouv) ;
+                    DioptreParaxial d_dep_recouv = new DioptreParaxial(z_deb_recouv, rc_deb_recouv);
 
-                    double indice_apres = DioptreParaxial.captureIndiceApres(resultat,d) ;
+                    double indice_apres = DioptreParaxial.captureIndiceApres(resultat, d);
 
-                    DioptreParaxial.supprimeDioptresEntre(resultat,d_dep_recouv,d);
+                    DioptreParaxial.supprimeDioptresEntre(resultat, d_dep_recouv, d);
 
                     d.indice_apres.set(indice_apres);
 
                     // On n'est plus en train de recouvrir des obstacles en arrière-plan
-                    z_deb_recouv = null ;
-                    rc_deb_recouv = null ;
+                    z_deb_recouv = null;
+                    rc_deb_recouv = null;
 
-                } else if (d.indiceAvant()==0 && d.indiceApres()>0) { // On RENTRE dans l'obstacle oc
+                } else if (d.indiceAvant() == 0 && d.indiceApres() > 0) { // On RENTRE dans l'obstacle oc
 
                     // On commence à recouvrir des obstacles en arrière-plan
-                    z_deb_recouv = d.z() ;
-                    rc_deb_recouv = d.rayonCourbure() ;
+                    z_deb_recouv = d.z();
+                    rc_deb_recouv = d.rayonCourbure();
 
-                    double indice_avant = DioptreParaxial.captureIndiceAvant(resultat,d);
+                    double indice_avant = DioptreParaxial.captureIndiceAvant(resultat, d);
 
                     d.indice_avant.set(indice_avant);
 
-                } else if (d.indiceAvant()==0 && d.indiceApres()==0) { // Obstacle de type segment (qui, pour rappel, ne peut faire partie d'une composition)
-                    d.indice_avant.set(DioptreParaxial.captureIndiceAvant(resultat,d));
-                    d.indice_apres.set(DioptreParaxial.captureIndiceApres(resultat,d));
+                } else if (d.indiceAvant() == 0 && d.indiceApres() == 0) { // Obstacle de type segment (qui, pour rappel, ne peut faire partie d'une composition)
+                    d.indice_avant.set(DioptreParaxial.captureIndiceAvant(resultat, d));
+                    d.indice_apres.set(DioptreParaxial.captureIndiceApres(resultat, d));
                 } else { // Indice avant et indice après sont égaux et non-nuls ("faux dioptre" fusionné qui ne sert qu'à porter un R diaphragme)
                 }
             }
@@ -1503,23 +1498,23 @@ public class SystemeOptiqueCentre implements Nommable {
     }
 
     public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        axe.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        couleur_axe.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        axe.addListener((observable, oldValue, newValue) -> rap.rappel());
+        couleur_axe.addListener((observable, oldValue, newValue) -> rap.rappel());
 
-        montrer_dioptres.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        montrer_dioptres.addListener((observable, oldValue, newValue) -> rap.rappel());
 
 
-        z_objet.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        h_objet.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        z_objet.addListener((observable, oldValue, newValue) -> rap.rappel());
+        h_objet.addListener((observable, oldValue, newValue) -> rap.rappel());
 
-        montrer_objet.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        montrer_image.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        montrer_objet.addListener((observable, oldValue, newValue) -> rap.rappel());
+        montrer_image.addListener((observable, oldValue, newValue) -> rap.rappel());
 
-        montrer_plans_focaux.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        montrer_plans_principaux.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        montrer_plans_nodaux.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        montrer_plans_focaux.addListener((observable, oldValue, newValue) -> rap.rappel());
+        montrer_plans_principaux.addListener((observable, oldValue, newValue) -> rap.rappel());
+        montrer_plans_nodaux.addListener((observable, oldValue, newValue) -> rap.rappel());
 
-        matrice_transfert_es.addListener((observable, oldValue, newValue) -> {rap.rappel();});
+        matrice_transfert_es.addListener((observable, oldValue, newValue) -> rap.rappel());
 
     }
 

@@ -6,7 +6,6 @@ import CrazyDiamond.Model.Environnement;
 import CrazyDiamond.Model.SystemeOptiqueCentre;
 import CrazyDiamond.Model.TraitementSurface;
 import javafx.beans.binding.DoubleExpression;
-import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.ObjectExpression;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;

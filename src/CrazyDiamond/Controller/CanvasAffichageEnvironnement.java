@@ -1,9 +1,9 @@
 package CrazyDiamond.Controller;
 
 import CrazyDiamond.Model.*;
-import de.lighti.clipper.Point.LongPoint;
-import de.lighti.clipper.Path;
 
+import clipper2.core.PathD;
+import clipper2.core.PointD;
 import javafx.beans.property.*;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Point2D;
@@ -975,17 +975,17 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         gc.lineTo(xmax(), ymax());
     }
 
-    public static void tracerEtRemplirContourDepuisPath(CanvasAffichageEnvironnement eg, Path p) {
+    public static void tracerEtRemplirContourDepuisPath(CanvasAffichageEnvironnement eg, PathD p) {
         double[] xpd = new double[p.size()];
         double[] ypd = new double[p.size()];
 
-        Iterator<LongPoint> itp = p.iterator() ;
+        Iterator<PointD> itp = p.iterator() ;
 
         int i = 0;
         while (itp.hasNext()) {
-            LongPoint lp = itp.next() ;
-            xpd[i] = lp.getX() ;
-            ypd[i] = lp.getY() ;
+            PointD lp = itp.next() ;
+            xpd[i] = lp.x ;
+            ypd[i] = lp.y ;
             i++ ;
         }
 
