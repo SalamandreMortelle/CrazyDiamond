@@ -18,9 +18,9 @@ public class Environnement {
     static double resolution = 0.00001 ;
 
     // Valeurs par défaut de certains attributs
-    private static double indice_refraction_par_defaut = 1.0 ;
+    private static final double indice_refraction_par_defaut = 1.0 ;
 
-    private static Unite unite_par_defaut = Unite.M ;
+    private static final Unite unite_par_defaut = Unite.M ;
     private static final Color couleur_fond_par_defaut = Color.BLACK ;
     private static final boolean reflexion_avec_refraction_par_defaut = false ;
 
@@ -32,7 +32,6 @@ public class Environnement {
      * pour l'affichage.
      */
     protected final ObjectProperty<Unite> unite ;
-
 
 
     protected final ObjectProperty<Color> couleur_fond;
@@ -67,7 +66,7 @@ public class Environnement {
 
         this.indice_refraction = new SimpleDoubleProperty(indice_refraction_par_defaut) ;
 
-        this.couleur_fond = new SimpleObjectProperty<Color>(c_fond) ;
+        this.couleur_fond = new SimpleObjectProperty<>(c_fond) ;
 
         this.reflexion_avec_refraction = new SimpleBooleanProperty(refl_avec_refraction) ;
         reflexion_avec_refraction.addListener((observable, oldValue,newValue) -> this.illuminerToutesSources());
@@ -75,13 +74,13 @@ public class Environnement {
         this.commentaire = new SimpleStringProperty("") ;
 
         ObservableList<Obstacle> olo = FXCollections.observableArrayList() ;
-        obstacles = new SimpleListProperty<Obstacle>(olo);
+        obstacles = new SimpleListProperty<>(olo);
 
         ObservableList<Source> ols = FXCollections.observableArrayList() ;
-        sources   = new SimpleListProperty<Source>(ols);
+        sources   = new SimpleListProperty<>(ols);
 
         ObservableList<SystemeOptiqueCentre> olsoc = FXCollections.observableArrayList() ;
-        systemes_optiques_centres   = new SimpleListProperty<SystemeOptiqueCentre>(olsoc) ;
+        systemes_optiques_centres   = new SimpleListProperty<>(olsoc) ;
 
         // NB : Les rayons étant dans les sources, l'environnement n'a pas besoin d'être à l'écoute des changements de
         // source : si une source est retirée, ses rayons (chemins) disparaissent avec elle
@@ -114,7 +113,7 @@ public class Environnement {
 //        };
 
         // Si des obstacles sont ajoutés ou supprimés, il faut recalculer les tracés des rayons des sources
-        ListChangeListener<Obstacle>  lcl_obstacles = (ListChangeListener<Obstacle>) change -> {
+        ListChangeListener<Obstacle>  lcl_obstacles = change -> {
             while (change.next()) {
 
                 if (change.wasRemoved()) {
@@ -131,7 +130,7 @@ public class Environnement {
                 }
 
             }
-        } ;
+        };
 
         obstacles.addListener(lcl_obstacles);
 
@@ -163,9 +162,8 @@ public class Environnement {
         Iterator<Source>   its = sources.iterator() ;
         Iterator<SystemeOptiqueCentre> itsoc = systemes_optiques_centres.iterator() ;
 
-
         // Parcours des obstacles
-        v.avantVisiteObstacles(); ;
+        v.avantVisiteObstacles();
 
         while (ito.hasNext())
             ito.next().accepte(v);
@@ -210,9 +208,9 @@ public class Environnement {
         systemes_optiques_centres.addListener(lcl_soc);
     }
 
-    public int nombreSources() { return sources.size(); } ;
-    public int nombreObstacles() { return obstacles.size(); } ;
-    public int nombreSystemesOptiquesCentres() { return systemes_optiques_centres.size(); } ;
+    public int nombreSources() { return sources.size(); }
+    public int nombreObstacles() { return obstacles.size(); }
+    public int nombreSystemesOptiquesCentres() { return systemes_optiques_centres.size(); }
 
 
     public Iterator<Obstacle> iterateur_obstacles() {
@@ -304,7 +302,7 @@ public class Environnement {
         if (this.obstacles.contains(o))
             return;
 
-        o.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources); ;
+        o.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources);
 
         this.obstacles.add(o);
 
@@ -540,45 +538,27 @@ public class Environnement {
     }
 
     public static boolean quasiEgal(double a, double b) {
-        if ( Math.abs(a-b)<=Environnement.resolution )
-            return true ;
-
-        return false ;
+        return Math.abs(a - b) <= Environnement.resolution;
     }
 
     public static boolean quasiInferieurOuEgal(double a, double b) {
-        if ( a<= (b+Environnement.resolution) )
-            return true ;
-
-        return false ;
+        return a <= (b + Environnement.resolution);
     }
 
     public static boolean quasiSuperieurOuEgal(double a, double b) {
-        if (  (a+Environnement.resolution) >= b )
-            return true ;
-
-        return false ;
+        return (a + Environnement.resolution) >= b;
     }
 
     public static boolean quasiEgal(double a, double b,double tolerance) {
-        if ( Math.abs(a-b)<=tolerance )
-            return true ;
-
-        return false ;
+        return Math.abs(a - b) <= tolerance;
     }
 
     public static boolean quasiInferieurOuEgal(double a, double b,double tolerance) {
-        if ( a<= (b+tolerance) )
-            return true ;
-
-        return false ;
+        return a <= (b + tolerance);
     }
 
     public static boolean quasiSuperieurOuEgal(double a, double b,double tolerance) {
-        if (  (a+tolerance) >= b )
-            return true ;
-
-        return false ;
+        return (a + tolerance) >= b;
     }
 
     public static boolean quasiConfondus(Point2D a, Point2D b) {

@@ -13,8 +13,8 @@ public class ContoursObstacle {
     }
 
     public ContoursObstacle(int nombre_contours_surface, int nombre_contours_masse) {
-        this.contours_surface = new ArrayList<Contour>(nombre_contours_surface);
-        this.contours_masse = new ArrayList<Contour>(nombre_contours_masse);
+        this.contours_surface = new ArrayList<>(nombre_contours_surface);
+        this.contours_masse = new ArrayList<>(nombre_contours_masse);
     }
 
     public void ajouterContourSurface(Contour c) {
@@ -40,7 +40,6 @@ public class ContoursObstacle {
         effacerContoursSurface();
         effacerContoursMasse();
     }
-
 
     // TODO : ajouter méthodes pour convertir les contours en Path, ou en instructions de traçage/remplissage dans le Canvas
 

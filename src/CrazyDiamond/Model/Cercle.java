@@ -17,13 +17,11 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
     private final Imp_ElementAvecMatiere imp_elementAvecMatiere ;
 
     private final ObjectProperty<Point2D> centre ;
-//    protected final DoubleProperty x_centre ;
-//    protected final DoubleProperty y_centre ;
 
     protected DoubleProperty rayon;
 
-    private BooleanProperty appartenance_composition ;
-    private BooleanProperty appartenance_systeme_optique_centre ;
+    private final BooleanProperty appartenance_composition ;
+    private final BooleanProperty appartenance_systeme_optique_centre ;
     private static int compteur_cercle = 0 ;
 
     public static void razCompteur() { compteur_cercle = 0 ; }
@@ -128,30 +126,19 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
     public void definirCentre(double xc,double yc) {
         centre.set(new Point2D(xc,yc)) ;
     }
-//    public void definirXCentre(double xc) {
-//        this.x_centre.set(xc);
-//    }
-//    public void definirYCentre(double yc) {
-//        this.y_centre.set(yc);
-//    }
+
     public void definirRayon(double r) {
         this.rayon.set(r);
     }
 
-    public double xCentre() { return centre().getX(); } ;
-    public double yCentre() { return centre().getY(); } ;
+    public double xCentre() { return centre().getX(); }
+    public double yCentre() { return centre().getY(); }
 
-//    public double xCentre() { return x_centre.get(); } ;
-//    public double yCentre() { return y_centre.get(); } ;
     public double rayon() { return rayon.get(); }
 
     @Override
     public void translater(Point2D vecteur) {
-
             definirCentre(centre().add(vecteur));
-//            x_centre.set(vecteur.getX() + x_centre.get());
-//            y_centre.set(vecteur.getY() + y_centre.get());
-
     }
 
     @Override
@@ -166,11 +153,7 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
         return c_poignees ;
     }
 
-//    public DoubleProperty xCentreProperty() { return x_centre ; } ;
-//    public DoubleProperty yCentreProperty() { return y_centre ; } ;
     public DoubleProperty rayonProperty() { return rayon ; }
-
-
 
     @Override
     public void accepte(VisiteurElementAvecMatiere v) {
@@ -195,8 +178,8 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
         imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
         imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
 
-        centre.addListener((observable, oldValue, newValue) -> {rap.rappel(); });
-        rayon.addListener((observable, oldValue, newValue) -> {rap.rappel(); });
+        centre.addListener((observable, oldValue, newValue) -> rap.rappel());
+        rayon.addListener((observable, oldValue, newValue) -> rap.rappel());
 
     }
 
@@ -206,8 +189,8 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
         imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
         imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
-        centre.addListener((observable, oldValue, newValue) -> { rap.rappel();  });
-        rayon.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        centre.addListener((observable, oldValue, newValue) -> rap.rappel());
+        rayon.addListener((observable, oldValue, newValue) -> rap.rappel());
     }
 
     @Override
@@ -227,15 +210,11 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
 
     @Override
     public boolean contient(Point2D p) {
-//        boolean dans_cercle = (p.subtract(centre()).magnitude() <= rayon.get()) || this.aSurSaSurface(p) ;
-//        boolean dans_cercle = (p.subtract(centre()).magnitude() <= rayon.get()) ;
 
         if (typeSurface()==TypeSurface.CONVEXE)
             return Environnement.quasiInferieurOuEgal(p.subtract(centre()).magnitude(),rayon.get()) ;
-//            return dans_cercle || this.aSurSaSurface(p) ;
         else
             return Environnement.quasiSuperieurOuEgal(p.subtract(centre()).magnitude(),rayon.get()) ;
-//            return (!dans_cercle) || this.aSurSaSurface(p) ;
     }
 
     @Override
@@ -416,7 +395,7 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
                     return null ;
             }
 
-            // Depart à l'intérieur de la zone délimitée par le cercle mais pas sur sa surface pour autant
+            // Depart à l'intérieur de la zone délimitée par le cercle, mais pas sur sa surface pour autant
             if ( ( typeSurface() == TypeSurface.CONCAVE && !this.contient(r.depart()) ) || (typeSurface() == TypeSurface.CONVEXE && this.contient(r.depart())) ) {
                 if (ydir > 0 && ydep < yhaut )
                     return new Point2D(xdep, yhaut);
@@ -426,12 +405,12 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
                     return null ;
             }
 
-            // Le point de départ est à l'exterieur du cercle
+            // Le point de départ est à l'extérieur du cercle
             if (ydir > 0 && ydep < ybas)
                 return (mode == ModeRecherche.PREMIERE) ? new Point2D(xdep, ybas) : new Point2D(xdep, yhaut);
 
             if (ydir < 0 && ydep > yhaut)
-                return (mode == ModeRecherche.PREMIERE) ? new Point2D(xdep,yhaut) : new Point2D(xdep, yhaut) ;
+                return (mode == ModeRecherche.PREMIERE) ? new Point2D(xdep,yhaut) : new Point2D(xdep, ybas) ;
 
             return null ;
         }
@@ -553,7 +532,7 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
             alpha = Math.acos((x_verticale-x_centre)/rayon) ; // alpha vaut entre 0 et PI
         } else if  (Math.abs( (x_verticale-x_centre)/rayon ) == 1.0 ) {
             if (y_centre> ymin && y_centre< ymax) {
-                double y_solutions[][] = new double[1][2];
+                double[][] y_solutions = new double[1][2];
                 alpha = ((x_verticale>x_centre)?0.0:Math.PI);
                 y_solutions[0][0] = y_centre;
                 y_solutions[0][1] = alpha;
@@ -585,7 +564,7 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
         }
 
         if ( ymin < y_sol1 && y_sol1 < ymax ) { // Seule l'intersection 1 est visible
-            double y_solutions[][] = new double[1][2];
+            double[][] y_solutions = new double[1][2];
             y_solutions[0][0] = y_sol1;
             y_solutions[0][1] = alpha;
             return y_solutions ;
@@ -624,7 +603,7 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
             alpha = Math.asin((y_horizontale-y_centre)/rayon) ; // alpha vaut entre -PI/2 et PI/2
         } else if  (Math.abs( (y_horizontale-y_centre)/rayon ) == 1.0 ) {
             if (x_centre>= xmin && x_centre <= xmax) {
-                double x_solutions[][] = new double[1][2];
+                double[][] x_solutions = new double[1][2];
                 alpha = ((y_horizontale>y_centre)?Math.PI/2:-Math.PI/2);
                 x_solutions[0][0] = x_centre;
                 x_solutions[0][1] = alpha;
@@ -657,7 +636,7 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
         }
 
         if ( xmin <= x_sol1 && x_sol1 <= xmax ) { // Seule l'intersection 1 est visible
-            double x_solutions[][] = new double[1][2];
+            double[][] x_solutions = new double[1][2];
             x_solutions[0][0] = x_sol1;
             x_solutions[0][1] = alpha;
             return x_solutions ;
@@ -676,10 +655,7 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
 
     protected Point2D point_sur_cercle(double theta) {
 
-        double x_centre = centre().getX() ;
-        double y_centre = centre().getY() ;
-
-        double rayon = rayon(); ;
+        double rayon = rayon();
 
         return centre().add(rayon*Math.cos(theta), rayon*Math.sin(theta) ) ;
 
@@ -713,7 +689,7 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
     }
 
     protected ArrayList<Double> xpoints_sur_cercle(double theta_debut,double theta_fin, int nombre_pas_angulaire_par_arc) {
-        ArrayList<Double> xpoints_cercle = new ArrayList<Double>() ;
+        ArrayList<Double> xpoints_cercle = new ArrayList<>() ;
 
         double pas = (theta_fin-theta_debut) / nombre_pas_angulaire_par_arc ;
 
@@ -738,7 +714,7 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
     }
 
     protected ArrayList<Double> ypoints_sur_cercle(double theta_debut,double theta_fin, int nombre_pas_angulaire_par_arc) {
-        ArrayList<Double> ypoints_cercle = new ArrayList<Double>() ;
+        ArrayList<Double> ypoints_cercle = new ArrayList<>() ;
 
         double pas = (theta_fin-theta_debut) / nombre_pas_angulaire_par_arc ;
 

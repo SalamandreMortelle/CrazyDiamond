@@ -178,9 +178,10 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
         visiteur_affichage = new VisiteurAffichageEnvironnement(this) ;
 
+
         convertisseur_affichage_distance = new ConvertisseurDoubleValidantAffichageDistance(this) ;
 
-        // Inutile d'ajouter n listenr : le binding avec la résolution du canvas est faite dans le constructeur du convertisseur.
+        // Inutile d'ajouter un listener : le binding avec la résolution du canvas est faite dans le constructeur du convertisseur.
 //        resolution.addListener( ( (observableValue, oldValue, newValue) -> {
 //                    LOGGER.log(Level.FINER,"resolution passe de {0} à {1}",new Object[] {oldValue,newValue});
 //                    convertisseur_affichage_distance.caleSurResolution();
@@ -190,7 +191,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         this.normales_visibles = new SimpleBooleanProperty(normales_visibles) ;
         this.normales_visibles.addListener((observable, oldValue,newValue) -> this.rafraichirAffichage());
 
-        this.couleur_normales = new SimpleObjectProperty<Color>(couleur_normales) ;
+        this.couleur_normales = new SimpleObjectProperty<>(couleur_normales) ;
         this.couleur_normales.addListener((observable, oldValue,newValue) -> this.rafraichirAffichage());
 
         this.prolongements_avant_visibles = new SimpleBooleanProperty(prolongements_avant_visibles) ;
@@ -209,9 +210,9 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         this.texte_commentaire.visibleProperty().bindBidirectional(this.commentaire_visible);
         this.texte_commentaire.textProperty().bind(environnement.commentaireProperty());
 
-        this.montrer_plans_focaux_de_soc = new SimpleMapProperty<SystemeOptiqueCentre, Boolean>() ;
-        this.montrer_plans_principaux_de_soc = new SimpleMapProperty<SystemeOptiqueCentre, Boolean>() ;
-        this.montrer_plans_nodaux_de_soc = new SimpleMapProperty<SystemeOptiqueCentre, Boolean>() ;
+        this.montrer_plans_focaux_de_soc = new SimpleMapProperty<>() ;
+        this.montrer_plans_principaux_de_soc = new SimpleMapProperty<>() ;
+        this.montrer_plans_nodaux_de_soc = new SimpleMapProperty<>() ;
     }
 
     public CanvasAffichageEnvironnement(Environnement e, double larg_gc, double haut_gc, double xmin_g, double xmax_g, double ycentre_g) throws IllegalArgumentException {
@@ -243,9 +244,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
         });
 
-        environnement.reflexionAvecRefractionProperty().addListener((observable, oldValue,newValue) -> {
-            this.rafraichirAffichage();
-        });
+        environnement.reflexionAvecRefractionProperty().addListener((observable, oldValue,newValue) -> this.rafraichirAffichage());
 
         // Intégration des rappels sur les éventuelles sources déjà présentes dans l'environnement (peut arriver si on a chargé l'environnement)
         Iterator<Source> its = environnement.iterateur_sources() ;
@@ -253,7 +252,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
             its.next().ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 
         // Détection des sources ajoutées ou supprimées
-        lcl_sources = (ListChangeListener<Source>) change -> {
+        lcl_sources = change -> {
             while (change.next()) {
     //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
     //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
@@ -287,7 +286,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         while (ito.hasNext())
             ito.next().ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 
-        lcl_obstacles = (ListChangeListener<Obstacle>) change -> {
+        lcl_obstacles = change -> {
             while (change.next()) {
 
                 if (change.wasRemoved()) {
@@ -306,7 +305,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
                 }
 
             }
-        } ;
+        };
 
         // Enregistrer listener des obstacles
         environnement.ajouterListenerListeObstacles(lcl_obstacles);
@@ -318,7 +317,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
 
         // Détection des socs ajoutés ou supprimés
-        lcl_socs = (ListChangeListener<SystemeOptiqueCentre>) change -> {
+        lcl_socs = change -> {
             while (change.next()) {
                 //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
                 //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
@@ -412,8 +411,8 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
 
     public double facteurPasDistance() {
-        double facteur_pas_distance = 10.0;
-        return facteur_pas_distance; }
+        return 10.0;
+    }
 
     public void ajustePasEtAffichageSpinnerValueFactoryDistance(SpinnerValueFactory.DoubleSpinnerValueFactory dsv) {
         dsv.amountToStepByProperty().bind(resolutionProperty().multiply(facteurPasDistance()));
@@ -446,28 +445,22 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         deselectionneSource();
         deselectionneSystemeOptiqueCentre();
 
-        if (o!=prec_obs)
-            rafraichirAffichage();
     }
     public void deselectionneObstacle() {
         if (obstacle_selectionne==null)
             return ;
 
         obstacle_selectionne = null;
-        rafraichirAffichage();
     }
 
     public Source sourceSelectionnee() { return source_selectionnee ; }
 
     public void selectionneSource(Source s) {
-        Source prec_s = source_selectionnee ;
         source_selectionnee = s ;
 
         deselectionneObstacle();
         deselectionneSystemeOptiqueCentre();
 
-        if (s!=prec_s)
-            rafraichirAffichage();
     }
 
 
@@ -476,20 +469,16 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
             return ;
 
         source_selectionnee = null;
-        rafraichirAffichage();
     }
 
     public SystemeOptiqueCentre systemeOptiqueCentreSelectionne() { return soc_selectionne ;}
 
     public void selectionneSystemeOptiqueCentre(SystemeOptiqueCentre s) {
-        SystemeOptiqueCentre prec_soc = soc_selectionne ;
         soc_selectionne = s ;
 
         deselectionneSource();
         deselectionneObstacle();
 
-        if (s!=prec_soc)
-            rafraichirAffichage();
     }
 
     public void deselectionneSystemeOptiqueCentre() {
@@ -497,7 +486,6 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
             return ;
 
         soc_selectionne = null;
-        rafraichirAffichage();
     }
 
 
@@ -545,7 +533,6 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
     }
 
-
     /**
      * Définit les limites (en coordonnées géométriques et en unités de l'Environnement) de la zone à afficher dans le Canvas (zone visible).
      * Cette méthode définit la transformation affine du GraphicsContext du canvas de telle manière que les bords de ce
@@ -557,13 +544,13 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
      * <p>
      * Pré-condition : largeur_graphique et hauteur-graphique sont définis
      * <p>
-     * Post-conditions : les résolutions (x et y) sont calculées, la matrice de transformation gc -> g et son inverse
-     * g -> gc sont calculées, les nouvelles limites sont enregistrées (dans la propriété boite_limites)
+     * Post-conditions : les résolutions (x et y) sont calculées, la matrice de transformation gc_affichage -> g et son inverse
+     * g -> gc_affichage sont calculées, les nouvelles limites sont enregistrées (dans la propriété boite_limites)
      *
      * @param xmin_g : x minimal visible en coordonnées géométriques et en unités de l'environnement
      * @param xmax_g : y maximal visible en coordonnées géométriques et en unités de l'environnement
      * @param ycentre_g : y du centre de la zone visible en coordonnées géométriques et en unités de l'environnement
-     */
+         */
     public void definirLimites(double xmin_g, double xmax_g, double ycentre_g) throws IllegalArgumentException {
 
         if ( (xmin_g>xmax_g) )
@@ -602,17 +589,21 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         Affine nouvelle_transform = new Affine(largeur_graphique/(xmax_g-xmin_g)    ,0,-largeur_graphique*xmin_g/(xmax_g-xmin_g),
                                                0,-hauteur_graphique/(nouv_ymax_g-nouv_ymin_g),hauteur_graphique*nouv_ymax_g/(nouv_ymax_g-nouv_ymin_g) ) ;
 
-        gc.setTransform(nouvelle_transform);
+        // On applique la transformation à gc_travail et gc_affichage, et au gc_selection
+        gc_affichage.setTransform(nouvelle_transform);
+        gc_selection.setTransform(nouvelle_transform);
 
         // Calcul de l'inverse (on sait que les coeff. xy et yx de la matrice de transfo sont nuls => calcul est simplifié,
         // inutile d'utiliser la méthode createInverse())
 
         transformation_inverse =
-                new Affine( 1/gc.getTransform().getMxx(),0,-gc.getTransform().getTx()/gc.getTransform().getMxx(),
-                            0,1/gc.getTransform().getMyy(),-gc.getTransform().getTy()/gc.getTransform().getMyy()) ;
+                new Affine( 1/ gc_affichage.getTransform().getMxx(),0,-gc_affichage.getTransform().getTx()/ gc_affichage.getTransform().getMxx(),
+                        0,1/ gc_affichage.getTransform().getMyy(),-gc_affichage.getTransform().getTy()/ gc_affichage.getTransform().getMyy()) ;
 
         // Il faut ramener l'épaisseur du trait en coordonnées géométriques
-        gc.setLineWidth(resolution.get());
+        // ...pour les deux gc
+        gc_affichage.setLineWidth(resolution.get());
+        gc_selection.setLineWidth(resolution.get());
 
     }
 
@@ -625,12 +616,15 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
         boite_limites = new BoiteLimiteGeometrique(xmin()-depl_x_g,ymin()-depl_y_g,xmax()-xmin(),ymax()-ymin()) ;
 
-        gc.translate(depl_x_g, depl_y_g);
+        // Translation des deux gc_affichage
+        gc_affichage.translate(depl_x_g, depl_y_g);
+        gc_selection.translate(depl_x_g, depl_y_g);
 
-        transformation_inverse.setMxx(1/gc.getTransform().getMxx());
-        transformation_inverse.setMyy(1/gc.getTransform().getMyy());
-        transformation_inverse.setTx(-(depl_x_g+gc.getTransform().getTx())/gc.getTransform().getMxx());
-        transformation_inverse.setTy(-(depl_y_g+gc.getTransform().getTy())/gc.getTransform().getMyy());
+        transformation_inverse.setMxx(1/ gc_affichage.getTransform().getMxx());
+        transformation_inverse.setMyy(1/ gc_affichage.getTransform().getMyy());
+        transformation_inverse.setTx(-(depl_x_g+ gc_affichage.getTransform().getTx())/ gc_affichage.getTransform().getMxx());
+        transformation_inverse.setTy(-(depl_y_g+ gc_affichage.getTransform().getTy())/ gc_affichage.getTransform().getMyy());
+
     }
 
     public void definirDimensionsGraphiques(double larg_g, double haut_g) {
@@ -643,7 +637,8 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         definirLimites(xmin, xmax, ycentre);
     }
 
-    public GraphicsContext gc() { return gc; }
+    public GraphicsContext gc_affichage() { return gc_affichage; }
+    public GraphicsContext gc_selection() { return gc_selection; }
 
     public ConvertisseurDoubleValidantAffichageDistance convertisseurAffichageDistance() { return convertisseur_affichage_distance; }
 
@@ -677,68 +672,72 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
             return ;
 
         // Effacer la zone visible (rend les pixels transparents : le fond prédéfini dans le parent remplit la zone visible)
-        gc.clearRect(xmin(), ymin(),xmax() - xmin(), ymax()-ymin());
+        gc_affichage.clearRect(xmin(), ymin(),xmax() - xmin(), ymax()-ymin());
 
+        // Mono thread :
+
+        // Dessiner l'environnement sur le gc_travail
         environnement.accepter(visiteur_affichage);
+
     }
 
     public void montrerPoint(Point2D pt) {
 
         double rayon = (xmax()-xmin())/20 ;
 
-        Paint s = gc.getStroke() ;
-        gc.setStroke(Color.GREEN);
+        Paint s = gc_affichage.getStroke() ;
+        gc_affichage.setStroke(Color.GREEN);
 
-        gc.strokeOval(pt.getX()-rayon,pt.getY()-rayon,2*rayon,2*rayon);
+        gc_affichage.strokeOval(pt.getX()-rayon,pt.getY()-rayon,2*rayon,2*rayon);
 
-        gc.setStroke(s);
+        gc_affichage.setStroke(s);
     }
 
     public void montrerNormale(Point2D dep, Point2D normale) {
-        Paint s = gc.getStroke() ;
-        gc.setStroke(couleurNormales());
+        Paint s = gc_affichage.getStroke() ;
+        gc_affichage.setStroke(couleurNormales());
 
         // La normale est déjà normalisée (a priori)
         normale = normale.multiply(30*resolution()) ;
 
         Point2D arr = dep.add(normale) ;
 
-        gc.strokeLine(dep.getX(),dep.getY(),arr.getX(),arr.getY());
+        gc_affichage.strokeLine(dep.getX(),dep.getY(),arr.getX(),arr.getY());
 
-        gc.setStroke(s);
+        gc_affichage.setStroke(s);
 
     }
     public void montrerProlongementAvant(Point2D dep, Point2D arr) {
-//        Paint s = gc.getStroke() ;
-//        gc.setStroke(couleurNormales());
-        gc().setLineWidth(1*resolution());
+//        Paint s = gc_affichage.getStroke() ;
+//        gc_affichage.setStroke(couleurNormales());
+        gc_affichage.setLineWidth(1*resolution());
 
-        gc.setLineDashes(2*resolution(),3*resolution());
+        gc_affichage.setLineDashes(2*resolution(),3*resolution());
 
-        gc.strokeLine(dep.getX(),dep.getY(),arr.getX(),arr.getY());
+        gc_affichage.strokeLine(dep.getX(),dep.getY(),arr.getX(),arr.getY());
 
-        gc.setLineDashes();
+        gc_affichage.setLineDashes();
 
-        gc().setLineWidth(2*resolution());
+        gc_affichage.setLineWidth(2*resolution());
 
-//        gc.setStroke(s);
+//        gc_affichage.setStroke(s);
 
     }
 
     public void montrerProlongementArriere(Point2D dep, Point2D arr) {
-//        Paint s = gc.getStroke() ;
-//        gc.setStroke(Color.RED);
-        gc().setLineWidth(1*resolution());
+//        Paint s = gc_affichage.getStroke() ;
+//        gc_affichage.setStroke(Color.RED);
+        gc_affichage.setLineWidth(1*resolution());
 
-        gc.setLineDashes(2*resolution(),5*resolution());
+        gc_affichage.setLineDashes(2*resolution(),5*resolution());
 
-        gc.strokeLine(dep.getX(),dep.getY(),arr.getX(),arr.getY());
+        gc_affichage.strokeLine(dep.getX(),dep.getY(),arr.getX(),arr.getY());
 
-        gc.setLineDashes();
+        gc_affichage.setLineDashes();
 
-        gc().setLineWidth(2*resolution());
+        gc_affichage.setLineWidth(2*resolution());
 
-//        gc.setStroke(s);
+//        gc_affichage.setStroke(s);
 
     }
 
@@ -763,7 +762,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         }
 
         // Remplissage de l'intérieur du polygone
-        eg.gc.fillPolygon( xpd,ypd,xpd.length);
+        eg.gc_affichage.fillPolygon( xpd,ypd,xpd.length);
 
     }
 
@@ -783,44 +782,44 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
         // Remplissage du contour (rappel : par défaut la FillRule du GraphicsContext est NON_ZERO : si les contours sont
         // tracés dans des sens contraires, le dernier tracé produit un trou dans le précédent)
-        gc.fillPolygon( xpd,ypd,xpd.length);
+        gc_affichage.fillPolygon( xpd,ypd,xpd.length);
 
     }
 
-    public void afficherContourSurfaceObstacle(ContoursObstacle co) {
+    public void afficherContourSurfaceObstacle(ContoursObstacle co,GraphicsContext gc) {
         gc.beginPath();
 
         for (Contour c_surface : co.contoursSurface()) {
-            tracerContour(c_surface);
+            tracerContour(c_surface,gc);
         }
     }
 
     // Affichage d'un obstacle (contours+masse remplie) à partir de son ContourObstacle préalablement calculé
     public void afficherContoursObstacle(ContoursObstacle co) {
 
-        gc.beginPath();
+        gc_affichage.beginPath();
 
         for (Contour c_masse : co.contoursMasse())
             completerPathAvecContour(c_masse);
 
-        gc.closePath(); // Appel pas nécessaire, semble-t-il
+        gc_affichage.closePath(); // Appel pas nécessaire, semble-t-il
 
-        gc.fill();
+        gc_affichage.fill();
 
         // On considère que le contour de masse (qui s'arrête aux limites de la zone visible) est aussi le contour visible
         // de l'obstacle => la couleur de contour sera appliquée aussi sur les bords de la zone visible
-//        gc.stroke();
+//        gc_affichage.stroke();
 
-        // En désactivant la ligne suivante, la couleur de contour ne sera pas appliquée sur les bords de la zone visible
-        // mais elle ne sera pas non plus appliquée
+        // En désactivant la ligne suivante, la couleur de contour ne sera pas appliquée sur les bords de la zone visible,
+        // mais elle ne sera pas non plus appliquée.
         for (Contour c_surface : co.contoursSurface()) {
-//            gc.beginPath();
+//            gc_affichage.beginPath();
 //            completerPathAvecContour(c_surface);
-//            gc.stroke();
+//            gc_affichage.stroke();
               tracerContour(c_surface);
         }
 
-       // gc.closePath();
+       // gc_affichage.closePath();
 
 
     }
@@ -835,18 +834,23 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         if (itx.hasNext()&&ity.hasNext()) {
             xdep = itx.next() ;
             ydep = ity.next() ;
-            gc.moveTo(xdep,ydep);
+            gc_affichage.moveTo(xdep,ydep);
 
             while (itx.hasNext() && ity.hasNext())
-                gc.lineTo(itx.next(),ity.next());
+                gc_affichage.lineTo(itx.next(),ity.next());
 
             // Fermeture du chemin
-            gc.lineTo(xdep,ydep);
+            gc_affichage.lineTo(xdep,ydep);
         }
 
     }
 
+
     public void tracerContour(Contour c) {
+        tracerContour(c,gc_affichage);
+    }
+
+    public void tracerContour(Contour c, GraphicsContext gc) {
 
         double[] xpd = new double[c.nombrePoints()];
         double[] ypd = new double[c.nombrePoints()];
@@ -865,7 +869,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         gc.strokePolyline( xpd,ypd,xpd.length);
     }
 
-    public void afficherPoignees(Contour c) {
+    public void afficherPoignees(Contour c,GraphicsContext gc) {
 
         if (c==null)
             return;
@@ -873,12 +877,10 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         Iterator<Double> itx = c.iterateurX() ;
         Iterator<Double> ity = c.iterateurY() ;
 
-        int i = 0 ;
         while (itx.hasNext() && ity.hasNext()) {
             double xpoignee = itx.next();
             double ypoignee = ity.next() ;
             gc.fillRect(xpoignee-tolerance_pointage()/2,ypoignee-tolerance_pointage()/2,tolerance_pointage(),tolerance_pointage());
-            i++ ;
         }
     }
 
@@ -924,15 +926,12 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         }
 
         // Tracé du contour du polygone
-        gc.strokePolyline( xpd,ypd,xpd.length);
+        gc_affichage.strokePolyline( xpd,ypd,xpd.length);
     }
 
     public void completerPathAvecContourFerme(Collection<Double> xpoints, Collection<Double> ypoints) {
 
-//        double[] xpd = new double[xpoints.size()];
-//        double[] ypd = new double[ypoints.size()];
-
-//        eg.gc.beginPath();
+//        eg.gc_affichage.beginPath();
 
         Iterator<Double> itx = xpoints.iterator() ;
         Iterator<Double> ity = ypoints.iterator() ;
@@ -942,37 +941,37 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         if (itx.hasNext()&&ity.hasNext()) {
             xdep = itx.next() ;
             ydep = ity.next() ;
-            gc.moveTo(xdep,ydep);
+            gc_affichage.moveTo(xdep,ydep);
 
             while (itx.hasNext() && ity.hasNext())
-                gc.lineTo(itx.next(),ity.next());
+                gc_affichage.lineTo(itx.next(),ity.next());
 
             // Fermeture du chemin
-            gc.lineTo(xdep,ydep);
+            gc_affichage.lineTo(xdep,ydep);
         }
 
-//        eg.gc.closePath();
+//        eg.gc_affichage.closePath();
 
     }
 
     public void completerPathAvecContourBoiteTrigo(BoiteLimiteGeometrique b) {
 
-        gc.moveTo(b.getMaxX(),b.getMaxY());
-        gc.lineTo(b.getMinX(),b.getMaxY());
-        gc.lineTo(b.getMinX(),b.getMinY());
-        gc.lineTo(b.getMaxX(),b.getMinY());
+        gc_affichage.moveTo(b.getMaxX(),b.getMaxY());
+        gc_affichage.lineTo(b.getMinX(),b.getMaxY());
+        gc_affichage.lineTo(b.getMinX(),b.getMinY());
+        gc_affichage.lineTo(b.getMaxX(),b.getMinY());
 
         // Fermeture du chemin
-        gc.lineTo(b.getMaxX(),b.getMaxY());
+        gc_affichage.lineTo(b.getMaxX(),b.getMaxY());
 
     }
 
 
     public void completerPathAvecContourZoneVisibleAntitrigo() {
-        gc.moveTo(xmax(), ymin());
-        gc.lineTo(xmin(), ymin());
-        gc.lineTo(xmin(), ymax());
-        gc.lineTo(xmax(), ymax());
+        gc_affichage.moveTo(xmax(), ymin());
+        gc_affichage.lineTo(xmin(), ymin());
+        gc_affichage.lineTo(xmin(), ymax());
+        gc_affichage.lineTo(xmax(), ymax());
     }
 
     public static void tracerEtRemplirContourDepuisPath(CanvasAffichageEnvironnement eg, PathD p) {
@@ -990,10 +989,10 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         }
 
         // Remplissage de l'intérieur du polygone
-        eg.gc.fillPolygon( xpd,ypd,xpd.length);
+        eg.gc_affichage.fillPolygon( xpd,ypd,xpd.length);
 
         // Tracé du contour du polygone
-        eg.gc.strokePolyline( xpd,ypd,xpd.length);
+        eg.gc_affichage.strokePolyline( xpd,ypd,xpd.length);
     }
 
     public BoiteLimiteGeometrique boite_limites() {
@@ -1066,5 +1065,8 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         rafraichirAffichage();
     }
 
+    public void effacerSelection() {
+        gc_selection.clearRect(xmin(), ymin(),xmax() - xmin(), ymax()-ymin());
+    }
 
 }

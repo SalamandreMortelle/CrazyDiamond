@@ -39,6 +39,8 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     private final double marge_label_y = -5d;
     private final int facteur_zoom_label = 2;
 
+    // Intervalle clignotement en nanosecondes ;
+    long intervalle_clignotement = 1000000000/4 ;
 
     public VisiteurAffichageEnvironnement(CanvasAffichageEnvironnement cae) {
 
@@ -51,7 +53,9 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         anim_timer = new AnimationTimer() {
 
-            long dernierNanoTime = 0 ;
+//            private long last_now_clignotement;
+
+//            long dernierNanoTime = 0 ;
 
             @Override
             public void handle(long now) {
@@ -63,23 +67,34 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 //
 //                dernierNanoTime = now ;
 //
+
+//                if (((now - last_now_clignotement)<intervalle_clignotement))
+//                    return ;
+//
+//                last_now_clignotement = now ;
+
                 Obstacle os = cae.obstacleSelectionne() ;
                 Source ss = cae.sourceSelectionnee() ;
                 SystemeOptiqueCentre soc = cae.systemeOptiqueCentreSelectionne() ;
 
                 if (ss!=null) {
+                    cae.effacerSelection();
                     afficheSelectionSource(ss, now) ;
                 } else if (os != null) {
+                    cae.effacerSelection();
                     afficheSelectionObstacle(os, now) ;
                 } else if (soc != null) {
+                    cae.effacerSelection();
                     afficheSelectionSystemeOptiqueCentre(soc, now) ;
+                } else { // Rien n'est sélectionné
+                    cae.effacerSelection();
                 }
-
 
             }
 
         } ;
 
+        // Le timer tourne en permanence : inutile d'appeler rafraichirAffichage quand on sélectionne/déselectionne un élément
         anim_timer.start();
 
     }
@@ -109,26 +124,26 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     public void avantVisiteSources() {
         VisiteurEnvironnement.super.avantVisiteSources();
 
-        cae.gc().setGlobalAlpha(0.6);
+        cae.gc_affichage().setGlobalAlpha(0.6);
 
-        cae.gc().setGlobalBlendMode(BlendMode.HARD_LIGHT);
+        cae.gc_affichage().setGlobalBlendMode(BlendMode.HARD_LIGHT);
 
-        cae.gc().setLineJoin(StrokeLineJoin.ROUND);
+        cae.gc_affichage().setLineJoin(StrokeLineJoin.ROUND);
 
-        cae.gc().setLineWidth(2*cae.resolution());
+        cae.gc_affichage().setLineWidth(2*cae.resolution());
     }
 
     @Override
     public void apresVisiteSources() {
         VisiteurEnvironnement.super.apresVisiteSources();
 
-        cae.gc().setLineWidth(cae.resolution());
+        cae.gc_affichage().setLineWidth(cae.resolution());
 
-        cae.gc().setGlobalBlendMode(BlendMode.SRC_OVER);
+        cae.gc_affichage().setGlobalBlendMode(BlendMode.SRC_OVER);
 
-        cae.gc().setLineJoin(StrokeLineJoin.MITER);
+        cae.gc_affichage().setLineJoin(StrokeLineJoin.MITER);
 
-        cae.gc().setGlobalAlpha(1.0);
+        cae.gc_affichage().setGlobalAlpha(1.0);
     }
 
     // Affiche tous les chemins lumiere émis par la Source s. Les chemins doivent avoir été préalablement calculés
@@ -148,15 +163,15 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
     @Override
     public void visiteSegment(Segment seg) {
-        GraphicsContext gc = cae.gc();
+        GraphicsContext gc = cae.gc_affichage();
 
         Paint s = gc.getStroke();
         gc.setStroke(seg.couleurContour());
 
         // TODO : A optimiser pour ne tracer que dans la zone visible (rechercher les intersections du segment avec les bords)
 
-//        double lw = gc.getLineWidth() ;
-//        gc.setLineWidth(2*eg.resolution);
+//        double lw = gc_affichage.getLineWidth() ;
+//        gc_affichage.setLineWidth(2*eg.resolution);
 
         if (seg.rayonDiaphragmeProperty().get()==0d) {
             gc.strokeLine(seg.x1(), seg.y1(), seg.x2(), seg.y2());
@@ -193,14 +208,13 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         }
 
-//        gc.setLineWidth(lw);
         gc.setStroke(s);
 
     }
 
     @Override
     public void visiteParabole(Parabole para) {
-        GraphicsContext gc = cae.gc() ;
+        GraphicsContext gc = cae.gc_affichage() ;
 
         Paint s = gc.getStroke() ;
         gc.setStroke(para.couleurContour());
@@ -221,7 +235,6 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         ArrayList<Double> xpoints = new ArrayList<>(0);
         ArrayList<Double> ypoints = new ArrayList<>(0);
-
 
         do {
             x += pas ;
@@ -274,7 +287,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         gc.stroke();
 
         gc.setStroke(s);
-        // Note : on pourrait aussi utiliser gc.save() au début de la méthode puis gc.restore() à la fin
+        // Note : on pourrait aussi utiliser gc_affichage.save() au début de la méthode puis gc_affichage.restore() à la fin
 
     }
 
@@ -290,7 +303,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     @Override
     public void visiteCercle(Cercle cercle) {
 
-        GraphicsContext gc = cae.gc() ;
+        GraphicsContext gc = cae.gc_affichage() ;
 
         Paint s = gc.getStroke() ;
         Paint pf = gc.getFill() ;
@@ -307,7 +320,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         cae.afficherContoursObstacle(co) ;
 
-        // TODO : on pourrait aussi utiliser un gc.restore() (précédé d'un gc.save() en début de méthode)
+        // TODO : on pourrait aussi utiliser un gc_affichage.restore() (précédé d'un gc_affichage.save() en début de méthode)
         gc.setFill(pf);
         gc.setStroke(s);
 
@@ -317,24 +330,23 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         ContoursObstacle co = contours_obstacles.get(o) ;
 
-        // Si les contours de l'obstacle ne sont pas déjà calculés, ne rien faire
+        // Si les contours de l'obstacle ne sont pas encore calculés, ne rien faire
         if (co == null)
             return ;
 
-        GraphicsContext gc = cae.gc() ;
+        // On affiche le clignotement de sélection directement dans le gc_selection
+        GraphicsContext gc = cae.gc_selection() ;
+
         Paint pf = gc.getFill() ;
 
 //        Paint couleur_masse = o.couleurMatiere() ;
-//        gc.setFill(couleur_masse);
+//        gc_affichage.setFill(couleur_masse);
 
         Paint s = gc.getStroke() ;
         double lw = gc.getLineWidth() ;
         double pas = cae.resolution() ;
         gc.setLineWidth(2*pas);
 
-        // Intervalle clignotement en nanosecondes ;
-        long intervalle_clignotement = 1000000000/4 ;
-
         gc.setLineDashes(5*pas,10*pas);
 
         if ((temps/intervalle_clignotement)%2==0) {
@@ -348,33 +360,30 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         }
 
-//        double[] dashes = gc.getLineDashes()  ;
+//        double[] dashes = gc_affichage.getLineDashes()  ;
 
-        cae.afficherContourSurfaceObstacle(co) ;
+        cae.afficherContourSurfaceObstacle(co,gc) ;
 
         gc.setLineDashes(null);
         gc.setLineWidth(lw);
 
-        cae.afficherPoignees(o.positions_poignees());
+        cae.afficherPoignees(o.positions_poignees(),gc);
 
         gc.setFill(pf);
         gc.setStroke(s);
     }
 
     private void afficheSelectionSource(Source src, long temps) {
-        GraphicsContext gc = cae.gc() ;
+        GraphicsContext gc = cae.gc_selection() ;
         Paint pf = gc.getFill() ;
 
 //        Paint couleur_masse = o.couleurMatiere() ;
-//        gc.setFill(couleur_masse);
+//        gc_affichage.setFill(couleur_masse);
 
         Paint s = gc.getStroke() ;
         double lw = gc.getLineWidth() ;
         double pas = cae.resolution() ;
         gc.setLineWidth(1*pas);
-
-        // Intervalle clignotement en nanosecondes ;
-        long intervalle_clignotement = 1000000000/4 ;
 
         gc.setLineDashes(5*pas,10*pas);
 
@@ -389,7 +398,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         }
 
-//        double[] dashes = gc.getLineDashes()  ;
+//        double[] dashes = gc_affichage.getLineDashes()  ;
 
         if (src.type()== Source.TypeSource.PROJECTEUR) {
 //            cae.afficherContourSurfaceObstacle(co);
@@ -403,7 +412,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 //            double y2 = src.yPosition()+0.5* src.largeurProjecteur()*vect_perp.getY() ;
             Point2D p2 = src.position().add(vect_perp.multiply(0.5d*src.largeurProjecteur())) ;
 
-//            gc.strokeLine(x1,y1,x2,y2);
+//            gc_affichage.strokeLine(x1,y1,x2,y2);
             gc.strokeLine(p1.getX(),p1.getY(),p2.getX(),p2.getY());
 
         }
@@ -411,7 +420,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         gc.setLineDashes(null);
         gc.setLineWidth(lw);
 
-        cae.afficherPoignees(src.positions_poignees());
+        cae.afficherPoignees(src.positions_poignees(),gc);
 
         gc.setFill(pf);
         gc.setStroke(s);
@@ -419,19 +428,15 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     }
 
     private void afficheSelectionSystemeOptiqueCentre(SystemeOptiqueCentre soc, long temps) {
-        GraphicsContext gc = cae.gc() ;
+        GraphicsContext gc = cae.gc_selection() ;
         Paint pf = gc.getFill() ;
-
 
         Paint s = gc.getStroke() ;
         double lw = gc.getLineWidth() ;
         double pas = cae.resolution() ;
         gc.setLineWidth(1*pas);
 
-        // Intervalle clignotement en nanosecondes ;
-        long intervalle_clignotement = 1000000000/4 ;
-
-//        gc.setLineDashes(5*pas,10*pas);
+//        gc_affichage.setLineDashes(5*pas,10*pas);
 
         if ((temps/intervalle_clignotement)%2==0) {
             gc.setStroke(Color.WHITE);
@@ -458,26 +463,25 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
             gc.setLineDashes(12 * res, 6 * res, 4 * res, 6 * res);
 
-            cae.tracerContour(c);
+            cae.tracerContour(c,gc);
 
             gc.setLineDashes();
         }
 
 
-//        gc.setLineDashes();
+//        gc_affichage.setLineDashes();
         gc.setLineWidth(lw);
 
-        cae.afficherPoignees(soc.positions_poignees());
+        cae.afficherPoignees(soc.positions_poignees(),gc);
 
         gc.setFill(pf);
         gc.setStroke(s);
 
     }
 
-
     @Override
     public void visiteDemiPlan(DemiPlan dp) {
-        GraphicsContext gc = cae.gc() ;
+        GraphicsContext gc = cae.gc_affichage() ;
 
         Paint s = gc.getStroke() ;
         Paint pf = gc.getFill() ;
@@ -494,7 +498,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         cae.afficherContoursObstacle(co) ;
 
-        // TODO : on pourrait aussi utiliser un gc.restore() (précédé d'un gc.save() en début de méthode)
+        // TODO : on pourrait aussi utiliser un gc_affichage.restore() (précédé d'un gc_affichage.save() en début de méthode)
         gc.setFill(pf);
         gc.setStroke(s);
 
@@ -508,7 +512,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
      */
     @Override
     public void visiteRectangle(Rectangle rect) {
-        GraphicsContext gc = cae.gc() ;
+        GraphicsContext gc = cae.gc_affichage() ;
 
         Paint s = gc.getStroke() ;
         Paint pf = gc.getFill() ;
@@ -525,14 +529,14 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         cae.afficherContoursObstacle(co) ;
 
-        // TODO : on pourrait aussi utiliser un gc.restore() (précédé d'un gc.save() en début de méthode)
+        // TODO : on pourrait aussi utiliser un gc_affichage.restore() (précédé d'un gc_affichage.save() en début de méthode)
         gc.setFill(pf);
         gc.setStroke(s);
     }
 
     @Override
     public void visitePrisme(Prisme prisme) {
-        GraphicsContext gc = cae.gc() ;
+        GraphicsContext gc = cae.gc_affichage() ;
 
         Paint s = gc.getStroke() ;
         Paint pf = gc.getFill() ;
@@ -549,164 +553,14 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         cae.afficherContoursObstacle(co) ;
 
-        // TODO : on pourrait aussi utiliser un gc.restore() (précédé d'un gc.save() en début de méthode)
+        // TODO : on pourrait aussi utiliser un gc_affichage.restore() (précédé d'un gc_affichage.save() en début de méthode)
         gc.setFill(pf);
         gc.setStroke(s);
     }
 
-//    @Override
-//    public void visiteRectangle(Rectangle rect) {
-//        GraphicsContext gc = cae.gc() ;
-//
-//        Paint s = gc.getStroke() ;
-//        Paint pf = gc.getFill() ;
-//
-//        Paint couleur_masse = rect.couleurMatiere() ;
-//        Paint couleur_bord = rect.couleurContour() ;
-//
-//        gc.setStroke(couleur_bord);
-//        gc.setFill(couleur_masse);
-//
-//        BoiteLimites boite = rect.boite() ;
-//
-//        // Boite totalement hors zone visible (et n'englobe pas la zone visible)
-//        if (  boite.getMinY() > cae.ymax() || boite.getMaxY() < cae.ymin()
-//                || boite.getMinX() > cae.xmax() || boite.getMaxX() < cae.xmin() ) {
-//
-//            if (rect.typeSurface() == Obstacle.TypeSurface.CONCAVE)
-//                gc.fillRect(cae.xmin(),cae.ymin(),cae.xmax()-cae.xmin(),cae.ymax()-cae.ymin());
-//
-//            gc.setFill(pf);
-//            gc.setStroke(s);
-//
-//            return ; // Rien à faire si le rectangle est convexe et hors zone
-//
-//        }
-//
-//        // Boite englobe totalement la zone visible
-//        if ( ( boite.getMinY() < cae.ymin() && boite.getMaxY() > cae.ymax() )
-//                && ( boite.getMinX() < cae.xmin() &&  boite.getMaxX() > cae.xmax() ) ) {
-//
-//            if (rect.typeSurface() == Obstacle.TypeSurface.CONVEXE)
-//                gc.fillRect(cae.xmin(),cae.ymin(),cae.xmax()-cae.xmin(),cae.ymax()-cae.ymin());
-//
-//            gc.setFill(pf);
-//            gc.setStroke(s);
-//
-//            return ; // Rien à faire si le rectangle est concave et englobe la zone visible
-//        }
-//
-//
-//
-//        // Construction du contour visible du rectangle, dans le sens trigo
-//        Contour c = new Contour(4) ;
-//
-//        // Coin HD est-il visible
-//        if (cae.boite_limites().contains(boite.getMaxX(),boite.getMaxY()))
-//            c.ajoutePoint(boite.getMaxX(), boite.getMaxY());
-//        else { // Coin HD hors zone
-//            // Coin HD trop à droite mais pas trop haut (morceau de l'horizontale droite visible)
-//            if ( boite.getMaxX()>cae.xmax() && boite.getMaxY()<=cae.ymax())
-//                c.ajoutePoint(cae.xmax(),boite.getMaxY());
-//            // Sinon reste le cas trop haut mais rien à faire dans ce cas
-//        }
-//
-//        // Coin HG est-il visible
-//        if (cae.boite_limites().contains(boite.getMinX(),boite.getMaxY()))
-//            c.ajoutePoint(boite.getMinX(), boite.getMaxY());
-//        else { // Coin HG hors zone
-//            // Coin HG trop à gauche mais pas trop haut (morceau horizontale haute visible)
-//            if (boite.getMinX() < cae.xmin() && boite.getMaxY() <= cae.ymax()) {
-//                c.ajoutePoint(cae.xmin(), boite.getMaxY()); // Point de sortie
-//                if (c.taille() > 1)
-//                    cae.tracerPolyligne(c.xpoints, c.ypoints);
-//                c.raz();
-//            } else if (boite.getMinX()>=cae.xmin() && boite.getMaxY() > cae.ymax() ) { // Point HG trop haut mais pas trop à gauche (morceau verticale gauche visible)
-//                c.ajoutePoint(boite.getMinX(),cae.ymax());
-//            } // Sinon reste le cas trop haut ET trop à gauche mais rien à faire dans ce cas
-//        }
-//
-//        // Coin BG est-il visible
-//        if (cae.boite_limites().contains(boite.getMinX(),boite.getMinY()))
-//            c.ajoutePoint(boite.getMinX(), boite.getMinY());
-//        else { // Coin BG hors zone
-//            // Coin BG trop bas mais pas trop à gauche (morceau verticale gauche visible)
-//            if ( boite.getMinX()>=cae.xmin() && boite.getMinY() < cae.ymin() ) {
-//                c.ajoutePoint(boite.getMinX(), cae.ymin()); // Point de sortie
-//                if (c.taille() > 1)
-//                    cae.tracerPolyligne(c.xpoints, c.ypoints);
-//                c.raz();
-//            } else if (boite.getMinY()>=cae.ymin() && boite.getMinX()<cae.xmin() ) { // Point BG trop à gauche mais pas trop bas (morceau horizontale basse visible)
-//                c.ajoutePoint(cae.xmin(), boite.getMinY()); // Nouveau pt de départ (entrée dans zone)
-//            } // Sinon reste le cas trop bas ET trop à gauche mais rien à faire dans ce cas
-//
-//        }
-//
-//        // Coin BD est-il visible
-//        if (cae.boite_limites().contains(boite.getMaxX(),boite.getMinY()))
-//            c.ajoutePoint(boite.getMaxX(), boite.getMinY());
-//        else { // Coin BD hors zone
-//            // Coin BD pas trop bas mais trop à droite (morceau horizontale basse visible)
-//            if ( boite.getMinY()>=cae.ymin() && boite.getMaxX() > cae.xmax()) {
-//                c.ajoutePoint(cae.xmax(), boite.getMinY());
-//                if (c.taille() > 1)
-//                    cae.tracerPolyligne(c.xpoints, c.ypoints);
-//                c.raz();
-//            } else if (boite.getMaxX()<=cae.xmax() && boite.getMinY()<cae.ymin()) {// Coin BD trop bas mais pas trop à droite (morceau verticale droite visible)
-//                c.ajoutePoint(boite.getMaxX(),cae.ymin()); // Nouveau point de départ (entrée dans zone)
-//            }
-//        }
-//
-//        // Retour sur HD pour bouclage éventuel du circuit :
-//        // Coin HD est-il visible
-//        if (cae.boite_limites().contains(boite.getMaxX(),boite.getMaxY()))
-//            c.ajoutePoint(boite.getMaxX(), boite.getMaxY());
-//        else { // Coin HD hors zone
-//            // Coin HD trop haut mais pas trop à droite (morceau verticale droite visible)
-//            if ( boite.getMaxY()>cae.ymax() && boite.getMaxX()<=cae.xmax() )
-//                c.ajoutePoint(boite.getMaxX(),cae.ymax());
-//            // Sinon reste le cas trop à droite mais  rien à faire dans ce cas
-//        }
-//
-//        if (c.taille() > 1)
-//            cae.tracerPolyligne(c.xpoints, c.ypoints);
-//
-//        BoiteLimites partie_visible = boite.couper(cae.boite_limites()) ;
-//
-//        if (partie_visible==null) // Ne doit pas arriver : ce cas est déjà écarté (cf. returns en debut de fonction)
-//            throw new IllegalStateException("Problème dans le tracé du rectangle "+rect) ;
-//
-//        if (rect.typeSurface()== Obstacle.TypeSurface.CONVEXE)
-//            gc.fillRect(partie_visible.getMinX(),partie_visible.getMinY(),partie_visible.getWidth(),partie_visible.getHeight()) ;
-//        else { //CONCAVE
-//            cae.gc.beginPath();
-//            cae.completerPathAvecContourZoneVisibleAntitrigo();
-//            cae.completerPathAvecContourBoiteTrigo(partie_visible);
-//            cae.gc.fill(); // Declenche aussi la cloture du chemin
-//        }
-//
-//
-////        if (rect.typeSurface()== Obstacle.TypeSurface.CONVEXE)
-////            gc.fillRect(boite.getMinX(),boite.getMinY(),boite.getWidth(),boite.getHeight()) ;
-////        else { // CONCAVE
-////            gc.fillRect(cae.xmin(), cae.ymin(),boite.getMinX()- cae.xmin(), cae.ymax()- cae.ymin()); // Partie gauche
-////            gc.fillRect(boite.getMaxX(), cae.ymin(), cae.xmax()-boite.getMaxX(), cae.ymax()- cae.ymin()); // Partie droite
-////            gc.fillRect(boite.getMinX(), cae.ymin(),boite.getWidth(),boite.getMinY()- cae.ymin()) ; // Partie centrale basse
-////            gc.fillRect(boite.getMinX(),boite.getMaxY(),boite.getWidth(), cae.ymax()-boite.getHeight()-boite.getMinY()); // Partie centrale haute
-////        }
-//
-////        gc.strokeRect(boite.getMinX(),boite.getMinY(),boite.getWidth(),boite.getHeight());
-//
-//        gc.setFill(pf);
-//        gc.setStroke(s);
-//        // Note : on pourrait aussi utiliser gc.save() au début de la méthode puis gc.restore() à la fin
-//
-//    }
-
-
     @Override
     public void visiteConique(Conique conique) {
-        GraphicsContext gc = cae.gc() ;
+        GraphicsContext gc = cae.gc_affichage() ;
 
         Paint s  = gc.getStroke() ;
         Paint pf = gc.getFill() ;
@@ -729,12 +583,12 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         gc.setFill(pf);
         gc.setStroke(s);
-        // Note : on pourrait aussi utiliser gc.save() au début de la méthode puis gc.restore() à la fin
+        // Note : on pourrait aussi utiliser gc_affichage.save() au début de la méthode puis gc_affichage.restore() à la fin
     }
 
     private void tracerChemin(CheminLumiere c) {
 
-        GraphicsContext gc = cae.gc();
+        GraphicsContext gc = cae.gc_affichage();
 
         Paint s = gc.getStroke() ;
         gc.setStroke(c.couleur);
@@ -837,7 +691,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             }
             else {  // r est infini
 //                if (c.point_sortie_environnement!=null)
-//                    gc.strokeLine(r.depart.getX(), r.depart.getY(), c.point_sortie_environnement.getX(), c.point_sortie_environnement.getY());
+//                    gc_affichage.strokeLine(r.depart.getX(), r.depart.getY(), c.point_sortie_environnement.getX(), c.point_sortie_environnement.getY());
 
                 Point2D p_sortie_boite_limites = cae.derniere_intersection_avec_limites(r) ;
 
@@ -880,7 +734,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         if (c.elements().size()==0)
             return ;
 
-        GraphicsContext gc = cae.gc() ;
+        GraphicsContext gc = cae.gc_affichage() ;
 
         Paint s = gc.getStroke() ;
         Paint pf = gc.getFill() ;
@@ -896,19 +750,13 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         // Le VisiteurCollecteContours va construire le résultat (la "solution" de la composition)
         c.accepte(vcc);
 
-        ContoursObstacle contours_resultat = vcc.contours() ;
+        ContoursObstacle contours_resultat = vcc.contours(c.typeSurface()) ;
 
         contours_obstacles.put(c,contours_resultat) ;
 
-        if (c.typeSurface() == TypeSurface.CONCAVE) {
-            // Tracé du rectangle de la zone visible, dans le sens antitrigo : le Path de la composition sera un trou
-            // dans cette zone
-            contours_resultat.ajouterContourMasse(cae.boite_limites().construireContourAntitrigo());
-        }
-
         cae.afficherContoursObstacle(contours_resultat) ;
 
-        // TODO : on pourrait aussi utiliser un gc.restore() (précédé d'un gc.save() en début de méthode)
+        // TODO : on pourrait aussi utiliser un gc_affichage.restore() (précédé d'un gc_affichage.save() en début de méthode)
         gc.setFill(pf);
         gc.setStroke(s);
 
@@ -922,7 +770,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     @Override
     public void visiteSystemeOptiqueCentre(SystemeOptiqueCentre soc)  {
 
-        GraphicsContext gc = cae.gc() ;
+        GraphicsContext gc = cae.gc_affichage() ;
 
         Paint s = gc.getStroke() ;
 
@@ -939,12 +787,12 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
 
 
-            Point2D origine = soc.origine();
-            Point2D perp = soc.perpendiculaireDirection();
+//            Point2D origine = soc.origine();
+//            Point2D perp = soc.perpendiculaireDirection();
 
 
 //            // Marquage de l'origine du repère
-//            gc.strokeLine(origine.getX() + 10 * res * perp.getX(), origine.getY() + 10 * res * perp.getY(),
+//            gc_affichage.strokeLine(origine.getX() + 10 * res * perp.getX(), origine.getY() + 10 * res * perp.getY(),
 //                    origine.getX() - 10 * res * perp.getX(), origine.getY() - 10 * res * perp.getY());
 
             // Tracé de l'axe
@@ -976,13 +824,13 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
 //                        Point2D pt = origine.add(soc.direction().multiply(intersection.x_intersection)) ;
 //
-//                        gc.setStroke(Color.RED);
+//                        gc_affichage.setStroke(Color.RED);
 //
 //                        if (cae.boite_limites().contains(pt))
-//                            gc.strokeLine(pt.getX() + 10 * res * perp.getX(), pt.getY() + 10 * res * perp.getY(),
+//                            gc_affichage.strokeLine(pt.getX() + 10 * res * perp.getX(), pt.getY() + 10 * res * perp.getY(),
 //                                    pt.getX() - 10 * res * perp.getX(), pt.getY() - 10 * res * perp.getY());
 //
-//                        gc.setStroke(couleur_axe);
+//                        gc_affichage.setStroke(couleur_axe);
 //
 //                    }
 //                } catch (Exception e) {
@@ -1026,7 +874,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             afficheFlechePerpendiculaireAxeSOC(soc,soc.ZImage(),Color.GREEN ,soc.HImage());
 
 
-        // TODO : on pourrait aussi utiliser un gc.restore() (précédé d'un gc.save() en début de méthode)
+        // TODO : on pourrait aussi utiliser un gc_affichage.restore() (précédé d'un gc_affichage.save() en début de méthode)
         gc.setStroke(s);
 
 
@@ -1038,7 +886,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         if (soc.dioptresRencontres()==null)
             return ;
 
-        GraphicsContext gc = cae.gc() ;
+        GraphicsContext gc = cae.gc_affichage() ;
         double res = cae.resolution() ;
 
         Color c_rm = Color.BLUE ;
@@ -1050,9 +898,9 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         Point2D pobjet = origine.add(soc.direction().multiply(soc.ZObjet())) ;
         Point2D pimage = (soc.ZImage()!=null?origine.add(soc.direction().multiply(soc.ZImage())):null) ;
 
-//        gc.beginPath();
+//        gc_affichage.beginPath();
 //
-//        gc.moveTo(pobjet.getX(),pobjet.getY());
+//        gc_affichage.moveTo(pobjet.getX(),pobjet.getY());
 
         Point2D pt_prec_haut = pobjet ;
         Point2D pt_prec_bas = pobjet ;
@@ -1094,7 +942,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         gc.setLineDashes(); // Arrêt des pointillés (s'il y en avait)
 
-        //        gc.stroke();
+        //        gc_affichage.stroke();
 
         gc.setStroke(s);
 
@@ -1105,7 +953,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         if (it_avec_diaph.rayonDiaphragme()==null)
             return ;
 
-        GraphicsContext gc = cae.gc() ;
+        GraphicsContext gc = cae.gc_affichage() ;
         double res = cae.resolution() ;
 
 
@@ -1155,7 +1003,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         double z_d = pos_diaph.z(), h_d = pos_diaph.hauteur();
 
-        GraphicsContext gc = cae.gc() ;
+        GraphicsContext gc = cae.gc_affichage() ;
         double res = cae.resolution() ;
 
         Point2D origine = soc.origine() ;
@@ -1192,7 +1040,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         Color c_rpl = Color.WHITE ;
         Color c_rct = Color.DARKGREY ;
 
-        GraphicsContext gc = cae.gc() ;
+        GraphicsContext gc = cae.gc_affichage() ;
         double res = cae.resolution() ;
 
         Point2D origine = soc.origine() ;
@@ -1218,7 +1066,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             pt_objet_ct_bas = pobjet.add(perp.multiply(-soc.RChampTotalObjet()));
         }
 
-//        gc.beginPath();
+//        gc_affichage.beginPath();
         
         Paint s = gc.getStroke() ;
         
@@ -1247,7 +1095,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
                 gc.setStroke(c_rm);
 
                 gc.strokeLine(pt_prec_cm_haut.getX(), pt_prec_cm_haut.getY(), pt_cm_haut.getX(), pt_cm_haut.getY());
-//                gc.strokeLine(pt_prec_cm_bas.getX(), pt_prec_cm_bas.getY(), pt_cm_bas.getX(), pt_cm_bas.getY());
+//                gc_affichage.strokeLine(pt_prec_cm_bas.getX(), pt_prec_cm_bas.getY(), pt_cm_bas.getX(), pt_cm_bas.getY());
 
                 pt_prec_cm_haut = pt_cm_haut ;
                 pt_prec_cm_bas  = pt_cm_bas ;
@@ -1260,7 +1108,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
                 gc.setStroke(c_rpl);
 
                 gc.strokeLine(pt_prec_cpl_haut.getX(), pt_prec_cpl_haut.getY(), pt_cpl_haut.getX(), pt_cpl_haut.getY());
-//                gc.strokeLine(pt_prec_cpl_bas.getX(), pt_prec_cpl_bas.getY(), pt_cpl_bas.getX(), pt_cpl_bas.getY());
+//                gc_affichage.strokeLine(pt_prec_cpl_bas.getX(), pt_prec_cpl_bas.getY(), pt_cpl_bas.getX(), pt_cpl_bas.getY());
 
                 pt_prec_cpl_haut = pt_cpl_haut ;
                 pt_prec_cpl_bas  = pt_cpl_bas ;
@@ -1273,13 +1121,13 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
                 gc.setStroke(c_rct);
 
                 gc.strokeLine(pt_prec_ct_haut.getX(), pt_prec_ct_haut.getY(), pt_ct_haut.getX(), pt_ct_haut.getY());
-//                gc.strokeLine(pt_prec_ct_bas.getX(), pt_prec_ct_bas.getY(), pt_ct_bas.getX(), pt_ct_bas.getY());
+//                gc_affichage.strokeLine(pt_prec_ct_bas.getX(), pt_prec_ct_bas.getY(), pt_ct_bas.getX(), pt_ct_bas.getY());
 
                 pt_prec_ct_haut = pt_ct_haut ;
                 pt_prec_ct_bas  = pt_ct_bas ;
             }
 
-//            gc.setStroke(s) ; // Restauration de la couleur de départ
+//            gc_affichage.setStroke(s) ; // Restauration de la couleur de départ
             gc.setLineDashes(); // Arrêt des pointillés (s'il y en avait)
 
         }
@@ -1301,28 +1149,28 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             Point2D pt_image_cm_bas = pimage.add(perp.multiply(-soc.RChampMoyenImage()));
             gc.setStroke(c_rm);
             gc.strokeLine(pt_prec_cm_haut.getX(),pt_prec_cm_haut.getY(),pt_image_cm_haut.getX(),pt_image_cm_haut.getY());
-//            gc.strokeLine(pt_prec_cm_bas.getX(),pt_prec_cm_bas.getY(),pt_image_cm_bas.getX(),pt_image_cm_bas.getY());
+//            gc_affichage.strokeLine(pt_prec_cm_bas.getX(),pt_prec_cm_bas.getY(),pt_image_cm_bas.getX(),pt_image_cm_bas.getY());
         }
         if (champ_pleine_lumiere && soc.RChampPleineLumiereImage()!=null) {
             Point2D pt_image_cpl_haut = pimage.add(perp.multiply(soc.RChampPleineLumiereImage()));
             Point2D pt_image_cpl_bas = pimage.add(perp.multiply(-soc.RChampPleineLumiereImage()));
             gc.setStroke(c_rpl);
             gc.strokeLine(pt_prec_cpl_haut.getX(),pt_prec_cpl_haut.getY(),pt_image_cpl_haut.getX(),pt_image_cpl_haut.getY());
-//            gc.strokeLine(pt_prec_cpl_bas.getX(),pt_prec_cpl_bas.getY(),pt_image_cpl_bas.getX(),pt_image_cpl_bas.getY());
+//            gc_affichage.strokeLine(pt_prec_cpl_bas.getX(),pt_prec_cpl_bas.getY(),pt_image_cpl_bas.getX(),pt_image_cpl_bas.getY());
         }
         if (champ_total && soc.RChampTotalImage()!=null) {
             Point2D pt_image_ct_haut = pimage.add(perp.multiply(soc.RChampTotalImage()));
             Point2D pt_image_ct_bas = pimage.add(perp.multiply(-soc.RChampTotalImage()));
             gc.setStroke(c_rct);
             gc.strokeLine(pt_prec_ct_haut.getX(),pt_prec_ct_haut.getY(),pt_image_ct_haut.getX(),pt_image_ct_haut.getY());
-//            gc.strokeLine(pt_prec_ct_bas.getX(),pt_prec_ct_bas.getY(),pt_image_ct_bas.getX(),pt_image_ct_bas.getY());
+//            gc_affichage.strokeLine(pt_prec_ct_bas.getX(),pt_prec_ct_bas.getY(),pt_image_ct_bas.getX(),pt_image_ct_bas.getY());
         }
 
         gc.setStroke(s);
         gc.setLineDashes(); // Arrêt des pointillés (s'il y en avait)
 
 
-//        gc.stroke();
+//        gc_affichage.stroke();
 
     }
 
@@ -1346,17 +1194,14 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         double demi_hauteur =0.5*hauteur ;
 
-        GraphicsContext gc = cae.gc() ;
+        GraphicsContext gc = cae.gc_affichage() ;
         double res = cae.resolution() ;
 
         Point2D origine = soc.origine();
         Point2D perp = soc.perpendiculaireDirection();
 
 
-        Point2D pt = origine.add(soc.direction().multiply(z_sur_axe.doubleValue())) ;
-
-//        Paint s = gc.getStroke() ;
-//        Paint f = gc.getFill() ;
+        Point2D pt = origine.add(soc.direction().multiply(z_sur_axe)) ;
 
         gc.save();
 
@@ -1368,9 +1213,6 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         if (label != null) {
 
             gc.setFill(c);
-
-//            // On met provisoirement de côté la transformation actuelle
-//            Affine aff = gc.getTransform();
 
             // Position du texte à afficher en coordonnées du GC du Canvas
             Point2D pos_texte_gc = gc.getTransform().transform(pt.getX(), pt.getY()).add(marge_label_x, marge_label_y);
@@ -1385,14 +1227,8 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
             gc.fillText(label, pos_texte_gc.getX(), pos_texte_gc.getY());
 
-//            // Restauration de la transformation
-//            gc.setTransform(aff);
-//
-//            // Restauration de la couleur de remplissage
-//            gc.setFill(f);
         }
 
-//        gc.setStroke(s) ;
         gc.restore();
 
     }
@@ -1407,13 +1243,13 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         if (z_sur_axe==null || hauteur_fleche==null)
             return;
 
-        GraphicsContext gc = cae.gc() ;
+        GraphicsContext gc = cae.gc_affichage() ;
 
         Point2D origine = soc.origine();
         Point2D perp = soc.perpendiculaireDirection();
 
 
-        Point2D pt = origine.add(soc.direction().multiply(z_sur_axe.doubleValue())) ;
+        Point2D pt = origine.add(soc.direction().multiply(z_sur_axe)) ;
 
         //if (cae.boite_limites().contains(pt)) {
 
@@ -1428,685 +1264,5 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         //}
 
     }
-
-
-//    @Override
-//    public void visiteDemiPlan_old(DemiPlan dp) {
-//
-//        Rayon r = new Rayon(dp.origine(),dp.direction()) ;
-//        Point2D p_inter1 = cae.boite_limites().premiere_intersection(r) ;
-//        Point2D p_inter2 = cae.boite_limites().derniere_intersection(r) ;
-//
-//        if (p_inter1 != null && p_inter1.equals(p_inter2))
-//            p_inter2 = null ;
-//
-//        Rayon r_opp = new Rayon(dp.origine(),dp.direction().multiply(-1.0)) ;
-//        Point2D p_inter_opp1 = cae.boite_limites().premiere_intersection(r_opp) ;
-//        Point2D p_inter_opp2 = cae.boite_limites().derniere_intersection(r_opp) ;
-//
-//        if (p_inter_opp1 != null && p_inter_opp1.equals(p_inter_opp2))
-//            p_inter_opp2 = null ;
-//
-//        ArrayList<Point2D> its = new ArrayList<Point2D>(2) ;
-//
-//        if (cae.boite_limites.aSurSaSurface(dp.origine()))
-//            its.add(dp.origine()) ;
-//
-//        if (p_inter1!=null)
-//            its.add(p_inter1) ;
-//        if (p_inter2!=null)
-//            its.add(p_inter2) ;
-//        if (p_inter_opp1!=null)
-//            its.add(p_inter_opp1) ;
-//        if (p_inter_opp2!=null)
-//            its.add(p_inter_opp2) ;
-//
-//
-//        if(its.size()>2) {
-//            throw new IllegalStateException("Une ligne ne peut pas avoir plus de 2 points d'intersection avec la boite limite de l'environnement.") ;
-//        }
-//
-//
-//        GraphicsContext gc = cae.gc() ;
-//
-//        Paint s = gc.getStroke() ;
-//        Paint pf = gc.getFill() ;
-//
-//        Paint couleur_masse = dp.couleurMatiere() ;
-//        Paint couleur_bord = dp.couleurContour() ;
-//
-//        gc.setStroke(couleur_bord);
-//        gc.setFill(couleur_masse);
-//
-//        BoiteLimites boite = cae.boite_limites() ;
-//
-//        // Pas d'intersection ou 1 seul intersection (avec un coin)
-//        if (its.size()<2) {
-//            if (dp.contient(boite.centre()))
-//                gc.fillRect(boite.getMinX(), boite.getMinY(), boite.getWidth(), boite.getHeight());
-//            else
-//                return;
-//        }
-//
-//        ArrayList<Double> x_noeuds = new ArrayList<Double>(4) ;
-//        ArrayList<Double> y_noeuds = new ArrayList<Double>(4) ;
-//
-//        // On tourne dans le sens trigo, en partant du haut droit
-//        if (dp.contient(boite.hautDroit())) {
-//            x_noeuds.add(boite.hautDroit().getX());
-//            y_noeuds.add(boite.hautDroit().getY());
-//        }
-//
-//        if (Environnement.quasiEgalite(its.get(0).getY(), cae.ymax())) {
-//            x_noeuds.add(its.get(0).getX()) ;
-//            y_noeuds.add(its.get(0).getY()) ;
-//        } else if (Environnement.quasiEgalite(its.get(1).getY(), cae.ymax())) {
-//            x_noeuds.add(its.get(1).getX()) ;
-//            y_noeuds.add(its.get(1).getY()) ;
-//        }
-//
-//        if (dp.contient(boite.hautGauche())) {
-//            x_noeuds.add(boite.hautGauche().getX());
-//            y_noeuds.add(boite.hautGauche().getY());
-//        }
-//
-//        if (Environnement.quasiEgalite(its.get(0).getX(), cae.xmin())) {
-//            x_noeuds.add(its.get(0).getX()) ;
-//            y_noeuds.add(its.get(0).getY()) ;
-//        } else if (Environnement.quasiEgalite(its.get(1).getX(), cae.xmin())) {
-//            x_noeuds.add(its.get(1).getX()) ;
-//            y_noeuds.add(its.get(1).getY()) ;
-//        }
-//
-//        if (dp.contient(boite.basGauche())) {
-//            x_noeuds.add(boite.basGauche().getX());
-//            y_noeuds.add(boite.basGauche().getY());
-//        }
-//
-//        if (Environnement.quasiEgalite(its.get(0).getY(), cae.ymin())) {
-//            x_noeuds.add(its.get(0).getX()) ;
-//            y_noeuds.add(its.get(0).getY()) ;
-//        } else if (Environnement.quasiEgalite(its.get(1).getY(), cae.ymin())) {
-//            x_noeuds.add(its.get(1).getX()) ;
-//            y_noeuds.add(its.get(1).getY()) ;
-//        }
-//
-//        if (dp.contient(boite.basDroit())) {
-//            x_noeuds.add(boite.basDroit().getX());
-//            y_noeuds.add(boite.basDroit().getY());
-//        }
-//
-//        if (Environnement.quasiEgalite(its.get(0).getX(), cae.xmax())) {
-//            x_noeuds.add(its.get(0).getX()) ;
-//            y_noeuds.add(its.get(0).getY()) ;
-//        } else if (Environnement.quasiEgalite(its.get(1).getX(), cae.xmax())) {
-//            x_noeuds.add(its.get(1).getX()) ;
-//            y_noeuds.add(its.get(1).getY()) ;
-//        }
-//
-//        /////
-//
-//        CanvasAffichageEnvironnement.remplirPolygone(cae,x_noeuds,y_noeuds);
-//
-////        CanvasAffichageEnvironnement.tracerPolyligne(eg,x_noeuds,y_noeuds);
-//
-//        gc.strokeLine(its.get(0).getX(),its.get(0).getY(),its.get(1).getX(),its.get(1).getY());
-//
-//        gc.setFill(pf);
-//
-//        gc.setStroke(s);
-//        // Note : on pourrait aussi utiliser gc.save() au début de la méthode puis gc.restore() à la fin
-//
-//    }
-
-//    private void trace_conique_methode2(Conique conique) {
-//        double e = conique.excentricite.get() ;
-//
-//        double[][] i_droites = conique.intersections_verticale(cae.xmax(), cae.ymin(), cae.ymax(),true) ;
-//        double[][] i_hautes  = conique.intersections_horizontale(cae.ymax(), cae.xmin(), cae.xmax(),false) ;
-//        double[][] i_gauches = conique.intersections_verticale(cae.xmin(), cae.ymin(), cae.ymax(),false) ;
-//        double[][] i_basses  = conique.intersections_horizontale(cae.ymin(), cae.xmin(), cae.xmax(),true) ;
-//
-//        int n_intersections = i_hautes.length + i_gauches.length +i_basses.length + i_droites.length ;
-//
-//        SelecteurCoins sc = new SelecteurCoins(cae.xmin(), cae.ymin(), cae.xmax(), cae.ymax());
-//
-////        System.out.println("Nombre d'intersections avec les bords : "+n_intersections);
-//
-//        // Tableau qui contiendra au plus 4 intervalles [theta min, theta max] où la courbe est visible
-//        // ordonnés dans le sens trigonométrique en partant de de l'axe X par rapport au centre de l'écran
-//        ArrayList<Double> valeurs_theta_intersection = new ArrayList<Double>(8) ;
-//
-//        ArrayList<Double> valeurs_x_intersection = new ArrayList<Double>(8) ;
-//        ArrayList<Double> valeurs_y_intersection = new ArrayList<Double>(8) ;
-//
-//        for (int i = 0 ; i < i_droites.length ; i++) {
-//            valeurs_theta_intersection.add(i_droites[i][1]);
-//            valeurs_x_intersection.add(cae.xmax()) ;
-//            valeurs_y_intersection.add(i_droites[i][0]) ;
-//        }
-//        for (int i = 0 ; i < i_hautes.length ; i++) {
-//            valeurs_theta_intersection.add(i_hautes[i][1]);
-//            valeurs_x_intersection.add(i_hautes[i][0]) ;
-//            valeurs_y_intersection.add(cae.ymax()) ;
-//        }
-//        for (int i = 0 ; i < i_gauches.length ; i++) {
-//            valeurs_theta_intersection.add(i_gauches[i][1]);
-//            valeurs_x_intersection.add(cae.xmin()) ;
-//            valeurs_y_intersection.add(i_gauches[i][0]) ;
-//        }
-//        for (int i = 0 ; i < i_basses.length ; i++) {
-//            valeurs_theta_intersection.add(i_basses[i][1]);
-//            valeurs_x_intersection.add(i_basses[i][0]) ;
-//            valeurs_y_intersection.add(cae.ymin()) ;
-//        }
-//
-//        if (n_intersections!=valeurs_theta_intersection.size())
-//            System.err.println("On a un problème");
-//
-//        // Si aucune intersection, --ou si 1 seule intersection (TODO : tester le cas à 1 intersection avec une ellipse)
-//        if (n_intersections<=1) {
-//
-//            // Ellipse entièrement contenue dans la zone visible ?
-//            if (e<1.0 && cae.boite_limites().contains(conique.point_sur_conique(0))) {
-//                ArrayList<Double> x_arc = conique.xpoints_sur_conique(0,2*Math.PI, nombre_pas_angulaire_par_arc) ;
-//                ArrayList<Double> y_arc = conique.ypoints_sur_conique(0,2*Math.PI, nombre_pas_angulaire_par_arc) ;
-//                cae.tracerPolyligne(x_arc,y_arc);
-//
-//                if (conique.typeSurface() == Obstacle.TypeSurface.CONVEXE)
-//                    CanvasAffichageEnvironnement.remplirPolygone(cae,x_arc,y_arc);
-//                else { // CONCAVE
-//                    x_arc.add(cae.xmax()) ;
-//                    y_arc.add(conique.point_sur_conique(2*Math.PI).getY()) ;
-//                    sc.selectionne_tous();
-//                    sc.coin_depart = SelecteurCoins.Coin.BD ;
-//                    x_arc.addAll(sc.xcoins_selectionne_antitrigo(true));
-//                    y_arc.addAll(sc.ycoins_selectionne_antitrigo(true));
-//                    x_arc.add(cae.xmax()) ;
-//                    y_arc.add(conique.point_sur_conique(0.0).getY()) ;
-//
-//                    CanvasAffichageEnvironnement.remplirPolygone(cae, x_arc, y_arc);
-//                }
-//            }
-//            else { // Aucun point du dioptre n'est dans la zone visible
-//                if (conique.contient(cae.boite_limites().centre())) {
-//
-//                    sc.selectionne_tous();
-//
-//                    // Toute la zone visible est dans la masse de l'objet conique
-//                    CanvasAffichageEnvironnement.remplirPolygone(cae, sc.xcoins_selectionne(true), sc.ycoins_selectionne(true));
-//                } else {
-//                    // Toute la zone visible est hors de la masse de la conique
-//                    // rien à faire
-//                }
-//            }
-//
-//            // C'est fini
-//            return ;
-//        }
-//
-//        // Au moins 2 intersections, et jusqu'à 8...
-//
-//        ArrayList<Double> x_masse = new ArrayList<Double>(nombre_pas_angulaire_par_arc+4) ;
-//        ArrayList<Double> y_masse = new ArrayList<Double>(nombre_pas_angulaire_par_arc+4) ;
-//
-//        // Boucle sur les intersections, dans le sens trigo par rapport au centre de l'écran
-//        for (int i=0 ; i<valeurs_theta_intersection.size(); i++) {
-//            double theta_deb = valeurs_theta_intersection.get(i) ;
-//            if (theta_deb<0)
-//                theta_deb += 2*Math.PI ;
-//
-//            int i_suivant = (i + 1) % (valeurs_theta_intersection.size()) ;
-//            double theta_fin ;
-//
-//            if (i_suivant != i)
-//                theta_fin = valeurs_theta_intersection.get(i_suivant) ;
-//            else
-//                theta_fin=theta_deb + 2*Math.PI ;
-//            if (theta_fin<0)
-//                theta_fin += 2*Math.PI ;
-//
-//            double x_deb = valeurs_x_intersection.get(i) ;
-//            double y_deb = valeurs_y_intersection.get(i) ;
-//            Point2D pt_deb = new Point2D(x_deb,y_deb) ;
-//            double x_fin = valeurs_x_intersection.get(i_suivant) ;
-//            double y_fin = valeurs_y_intersection.get(i_suivant) ;
-//            Point2D pt_fin = new Point2D(x_fin,y_fin) ;
-//
-//            if (theta_fin<theta_deb)
-//                theta_fin += 2*Math.PI ;
-//
-//
-//            Point2D pt = conique.point_sur_conique((theta_deb+theta_fin)/2 ) ;
-//
-//            // Si cet arc est visible
-//            if (pt!=null && cae.boite_limites().contains(pt)) {
-//                ArrayList<Double> x_arc = new ArrayList<Double>(nombre_pas_angulaire_par_arc) ;
-//                ArrayList<Double> y_arc = new ArrayList<Double>(nombre_pas_angulaire_par_arc) ;
-//
-//                // Ajouter le point exact de l'intersection pt_deb pour éviter les décrochages dûs au pas du tracé
-//                x_arc.add(x_deb) ;
-//                y_arc.add(y_deb) ;
-//
-//                x_arc.addAll(conique.xpoints_sur_conique(theta_deb,theta_fin, nombre_pas_angulaire_par_arc)) ;
-//                y_arc.addAll(conique.ypoints_sur_conique(theta_deb,theta_fin, nombre_pas_angulaire_par_arc)) ;
-//
-//                // Ajouter le point exact de l'intersection pt_fin pour éviter les décrochages dûs au pas du tracé
-//                x_arc.add(x_fin) ;
-//                y_arc.add(y_fin) ;
-//
-//                // On trace l'arc
-//                cae.tracerPolyligne(x_arc,y_arc);
-//
-//                // On ajoute ces mêmes points au contour de masse
-//                x_masse.add(x_deb) ;
-//                y_masse.add(y_deb) ;
-//                x_masse.addAll(conique.xpoints_sur_conique(theta_deb,theta_fin, nombre_pas_angulaire_par_arc)) ;
-//                y_masse.addAll(conique.ypoints_sur_conique(theta_deb,theta_fin, nombre_pas_angulaire_par_arc)) ;
-//                x_masse.add(x_fin) ;
-//                y_masse.add(y_fin) ;
-//
-//                // Si les 2 intersections sont sur un même bord et que leur milieu est dans la conique, remplir le contour
-//                // et le re-initialiser
-//                if ( (x_deb==x_fin || y_deb==y_fin) && conique.contient(pt_deb.midpoint(pt_fin))) {
-//                    CanvasAffichageEnvironnement.remplirPolygone(cae,x_arc,y_arc);
-//                    x_arc.clear();
-//                    y_arc.clear();
-//                    // Passer à l'intersection suivante
-//                    continue;
-//                }
-//
-//                // Chercher les coins contigus (càd non séparés des extrémités par une intersection) et qui sont dans la
-//                // conique dans le sens anti-trigonométrique
-//                SelecteurCoins sc_masse = sc.sequence_coins_continus(false,pt_deb,pt_fin,valeurs_x_intersection,valeurs_y_intersection) ;
-//
-//                if( sc_masse.est_selectionne(sc_masse.coin_depart) && conique.contient(sc_masse.coin(sc_masse.coin_depart)) ) {
-//                    // Les ajouter au contour de masse
-//                    x_masse.addAll(sc_masse.xcoins_selectionne_antitrigo(true));
-//                    y_masse.addAll(sc_masse.ycoins_selectionne_antitrigo(true));
-//
-//                    // Le tracer
-//                    CanvasAffichageEnvironnement.remplirPolygone(cae, x_masse, y_masse);
-//
-//                    // Le reinitialiser pour la suite
-//                    x_masse.clear();
-//                    y_masse.clear();
-//
-//                }
-//
-//            } else { // Arc non visible
-//
-//                // Ajouter la sequence des coins de cette portion (dans ordre trigo) si ils sont dans la conique
-//                SelecteurCoins sc_masse = sc.sequence_coins_continus(true,pt_deb,pt_fin,valeurs_x_intersection,valeurs_y_intersection) ;
-//                if( sc_masse.est_selectionne(sc_masse.coin_depart) && conique.contient(sc_masse.coin(sc_masse.coin_depart)) ) {
-//                    // Les ajouter au contour de masse
-//                    x_masse.addAll(sc_masse.xcoins_selectionne(true));
-//                    y_masse.addAll(sc_masse.ycoins_selectionne(true));
-//                }
-//
-//            }
-//        } // Fin boucle sur intersections
-//
-//        if (!x_masse.isEmpty())
-//            CanvasAffichageEnvironnement.remplirPolygone(cae, x_masse, y_masse);
-//
-//    }
-
-//    private void trace_conique_methode2_simplifie(Conique conique) {
-//        double e = conique.excentricite.get() ;
-//
-//        double[][] i_droites = conique.intersections_verticale(cae.xmax(), cae.ymin(), cae.ymax(),true) ;
-//        double[][] i_hautes  = conique.intersections_horizontale(cae.ymax(), cae.xmin(), cae.xmax(),false) ;
-//        double[][] i_gauches = conique.intersections_verticale(cae.xmin(), cae.ymin(), cae.ymax(),false) ;
-//        double[][] i_basses  = conique.intersections_horizontale(cae.ymin(), cae.xmin(), cae.xmax(),true) ;
-//
-////        int n_intersections = i_hautes.length + i_gauches.length +i_basses.length + i_droites.length ;
-//
-//        SelecteurCoins sc = new SelecteurCoins(cae.xmin(), cae.ymin(), cae.xmax(), cae.ymax());
-//
-////        System.out.println("Nombre d'intersections avec les bords : "+n_intersections);
-//
-//        // Tableau qui contiendra au plus 4 intervalles [theta min, theta max] où la courbe est visible
-//        // ordonnés dans le sens trigonométrique en partant de de l'axe X par rapport au centre de l'écran
-//        ArrayList<Double> valeurs_theta_intersection = new ArrayList<Double>(8) ;
-//
-//        ArrayList<Double> valeurs_x_intersection = new ArrayList<Double>(8) ;
-//        ArrayList<Double> valeurs_y_intersection = new ArrayList<Double>(8) ;
-//
-//        int n_intersections = sc.ordonneIntersections(i_droites, i_hautes, i_gauches, i_basses,
-//                valeurs_theta_intersection, valeurs_x_intersection, valeurs_y_intersection);
-//
-//
-////        for (int i = 0 ; i < i_droites.length ; i++) {
-////            valeurs_theta_intersection.add(i_droites[i][1]);
-////            valeurs_x_intersection.add(cae.xmax()) ;
-////            valeurs_y_intersection.add(i_droites[i][0]) ;
-////        }
-////        for (int i = 0 ; i < i_hautes.length ; i++) {
-////            valeurs_theta_intersection.add(i_hautes[i][1]);
-////            valeurs_x_intersection.add(i_hautes[i][0]) ;
-////            valeurs_y_intersection.add(cae.ymax()) ;
-////        }
-////        for (int i = 0 ; i < i_gauches.length ; i++) {
-////            valeurs_theta_intersection.add(i_gauches[i][1]);
-////            valeurs_x_intersection.add(cae.xmin()) ;
-////            valeurs_y_intersection.add(i_gauches[i][0]) ;
-////        }
-////        for (int i = 0 ; i < i_basses.length ; i++) {
-////            valeurs_theta_intersection.add(i_basses[i][1]);
-////            valeurs_x_intersection.add(i_basses[i][0]) ;
-////            valeurs_y_intersection.add(cae.ymin()) ;
-////        }
-////
-////        if (n_intersections!=valeurs_theta_intersection.size())
-////            System.err.println("On a un problème");
-//
-//        // Si aucune intersection, --ou si 1 seule intersection (TODO : tester le cas à 1 intersection avec une ellipse)
-//        if (n_intersections<=1) {
-//
-//            // Ellipse entièrement contenue dans la zone visible ?
-//            if (e<1.0 && cae.boite_limites().contains(conique.point_sur_conique(0))) {
-//                ArrayList<Double> x_arc = conique.xpoints_sur_conique(0,2*Math.PI, nombre_pas_angulaire_par_arc) ;
-//                ArrayList<Double> y_arc = conique.ypoints_sur_conique(0,2*Math.PI, nombre_pas_angulaire_par_arc) ;
-//
-//                // Rappel : on est par défaut en FillRule NON_ZERO => pour faire une surface avec un trou, il suffit
-//                // de faire deux contours dans des sens contraires (trigo et antitrigo)
-//                cae.gc.beginPath();
-//
-//                // Tracé du contour, ou du trou (chemin fermé), dans le sens trigo
-//                cae.completerPathAvecContourFerme(x_arc,y_arc);
-//
-//                // Tracé du contour (apparemment, cela ne termine pas le path, on peut continuer à lui ajouter des éléments
-//                cae.gc.stroke();
-//
-//                if (conique.typeSurface() == Obstacle.TypeSurface.CONCAVE) {
-//                    // Tracé du rectangle de la zone visible, dans le sens antitrigo : le Path de l'ellipse sera un trou
-//                    // dans cette zone
-//                    cae.completerPathAvecContourZoneVisibleAntitrigo();
-//                }
-//
-//                // Le fill déclenche aussi l'appel closePath
-//                cae.gc.fill();
-//
-//            }
-//            else { // Aucun point du dioptre n'est dans la zone visible
-//                if (conique.contient(cae.boite_limites().centre())) {
-//
-//                    sc.selectionne_tous();
-//
-//                    // Toute la zone visible est dans la masse de l'objet conique
-//                    CanvasAffichageEnvironnement.remplirPolygone(cae, sc.xcoins_selectionne(true), sc.ycoins_selectionne(true));
-//                } else {
-//                    // Toute la zone visible est hors de la masse de la conique
-//                    // rien à faire
-//                }
-//            }
-//
-//            // C'est fini
-//            return ;
-//        }
-//
-//        // Au moins 2 intersections, et jusqu'à 8...
-//
-//        ArrayList<Double> x_masse = new ArrayList<Double>(nombre_pas_angulaire_par_arc+4) ;
-//        ArrayList<Double> y_masse = new ArrayList<Double>(nombre_pas_angulaire_par_arc+4) ;
-//
-//        // Boucle sur les intersections, dans le sens trigo par rapport au centre de l'écran
-//        for (int i=0 ; i<valeurs_theta_intersection.size(); i++) {
-//            double theta_deb = valeurs_theta_intersection.get(i) ;
-//            if (theta_deb<0)
-//                theta_deb += 2*Math.PI ;
-//
-//            int i_suivant = (i + 1) % (valeurs_theta_intersection.size()) ;
-//            double theta_fin ;
-//
-//            if (i_suivant != i)
-//                theta_fin = valeurs_theta_intersection.get(i_suivant) ;
-//            else
-//                theta_fin=theta_deb + 2*Math.PI ;
-//            if (theta_fin<0)
-//                theta_fin += 2*Math.PI ;
-//
-//            double x_deb = valeurs_x_intersection.get(i) ;
-//            double y_deb = valeurs_y_intersection.get(i) ;
-//            Point2D pt_deb = new Point2D(x_deb,y_deb) ;
-//            double x_fin = valeurs_x_intersection.get(i_suivant) ;
-//            double y_fin = valeurs_y_intersection.get(i_suivant) ;
-//            Point2D pt_fin = new Point2D(x_fin,y_fin) ;
-//
-//            if (theta_fin<theta_deb)
-//                theta_fin += 2*Math.PI ;
-//
-//
-//            Point2D pt = conique.point_sur_conique((theta_deb+theta_fin)/2 ) ;
-//
-//            // Si cet arc est visible
-//            if (pt!=null && cae.boite_limites().contains(pt)) {
-//                ArrayList<Double> x_arc = new ArrayList<Double>(nombre_pas_angulaire_par_arc) ;
-//                ArrayList<Double> y_arc = new ArrayList<Double>(nombre_pas_angulaire_par_arc) ;
-//
-//                // Ajouter le point exact de l'intersection pt_deb pour éviter les décrochages dûs au pas du tracé
-//                x_arc.add(x_deb) ;
-//                y_arc.add(y_deb) ;
-//
-//                x_arc.addAll(conique.xpoints_sur_conique(theta_deb,theta_fin, nombre_pas_angulaire_par_arc)) ;
-//                y_arc.addAll(conique.ypoints_sur_conique(theta_deb,theta_fin, nombre_pas_angulaire_par_arc)) ;
-//
-//                // Ajouter le point exact de l'intersection pt_fin pour éviter les décrochages dûs au pas du tracé
-//                x_arc.add(x_fin) ;
-//                y_arc.add(y_fin) ;
-//
-//                // On trace l'arc de ce contour visible
-//                cae.tracerPolyligne(x_arc,y_arc);
-//
-//                x_masse.addAll(x_arc) ;
-//                y_masse.addAll(y_arc) ;
-//
-//                x_arc.clear();
-//                y_arc.clear();
-//
-//                // Si les 2 intersections sont sur un même bord et que leur milieu est dans la conique, il n'y a pas
-//                // d'autre arc de contour à tracer, on peut sortir tout de suite de la boucle sur les intersections
-//                if ( (x_deb==x_fin || y_deb==y_fin) && conique.contient(pt_deb.midpoint(pt_fin)))
-//                    break ;
-//
-//                // Sinon, chercher les coins contigus (càd non séparés des extrémités par une intersection) et qui sont
-//                // dans l'interieur du contour, que la conique soit convexe ou concave
-//                SelecteurCoins sc_coins_interieurs = sc.sequence_coins_continus(false,pt_deb,pt_fin,valeurs_x_intersection,valeurs_y_intersection) ;
-//
-//                if(     ( conique.typeSurface()== Obstacle.TypeSurface.CONVEXE
-//                          && conique.contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
-//                      || ( conique.typeSurface()== Obstacle.TypeSurface.CONCAVE
-//                        && !conique.contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
-//                   ) {
-//                    // Les ajouter au tracé du contour c
-//                    x_masse.addAll(sc_coins_interieurs.xcoins_selectionne_antitrigo(true));
-//                    y_masse.addAll(sc_coins_interieurs.ycoins_selectionne_antitrigo(true));
-//
-//                    break ;
-//                }
-//
-//            } else { // Arc non visible
-//
-//                // Ajouter la sequence des coins de cette portion (dans ordre trigo) si ils sont dans la conique (et si il y en a)
-//                SelecteurCoins sc_coins_interieurs = sc.sequence_coins_continus(true,pt_deb,pt_fin,valeurs_x_intersection,valeurs_y_intersection) ;
-//                if(  ( conique.typeSurface()== Obstacle.TypeSurface.CONVEXE
-//                        && conique.contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
-//                        || ( conique.typeSurface()== Obstacle.TypeSurface.CONCAVE
-//                        && !conique.contient(sc_coins_interieurs.coin(sc_coins_interieurs.coin_depart)) )
-//                ) {
-//                    // Les ajouter au contour de masse
-//                    x_masse.addAll(sc_coins_interieurs.xcoins_selectionne(true));
-//                    y_masse.addAll(sc_coins_interieurs.ycoins_selectionne(true));
-//                }
-//
-//            }
-//        } // Fin boucle sur intersections
-//
-//        cae.gc.beginPath();
-//
-//        if (conique.typeSurface() == Obstacle.TypeSurface.CONCAVE) {
-//            // Tracé du rectangle de la zone visible, dans le sens antitrigo : le Path de l'ellipse sera un trou
-//            // dans cette zone
-//            cae.gc.moveTo(cae.xmax(), cae.ymin());
-//            cae.gc.lineTo(cae.xmin(), cae.ymin());
-//            cae.gc.lineTo(cae.xmin(), cae.ymax());
-//            cae.gc.lineTo(cae.xmax(), cae.ymax());
-//        }
-//        // Tracé du contour, ou du trou (chemin fermé), dans le sens trigo
-//        cae.completerPathAvecContourFerme(x_masse,y_masse);
-//
-//        cae.gc.fill();
-//
-//    }
-
-
-
-
-//    // Retourne la sequence des coins reliés continument à un point de départ pt_deb sur un (autre) bord dans le sens
-//    // trigo ou antitrigo (en partant de pt_fin jusqu'à pt_deb), jusqu'au bord où se trouve un point final pt_fin
-//    private SelecteurCoins sequence_coins_continus(boolean sens_trigo, Point2D pt_deb, Point2D pt_fin, Collection<Double> x_inter, Collection<Double>  y_inter) {
-//
-//        SelecteurCoins sc = new SelecteurCoins(cae.xmin(), cae.ymin(), cae.xmax(), cae.ymax());
-//
-//        ArrayList<SelecteurCoins.Coin> res = new ArrayList<SelecteurCoins.Coin>(4) ;
-//
-//        SelecteurCoins.Coin c_courant = SelecteurCoins.Coin.HD;
-//
-//        if (sens_trigo) {
-//            if (pt_deb.getX() == cae.xmin())
-//                c_courant = SelecteurCoins.Coin.BG;
-//            if (pt_deb.getX() == cae.xmax())
-//                c_courant = SelecteurCoins.Coin.HD;
-//            if (pt_deb.getY() == cae.ymin())
-//                c_courant = SelecteurCoins.Coin.BD;
-//            if (pt_deb.getY() == cae.ymax())
-//                c_courant = SelecteurCoins.Coin.HG;
-//        } else { // Sens antitrigo
-//            if (pt_fin.getX() == cae.xmin())
-//                c_courant = SelecteurCoins.Coin.HG;
-//            if (pt_fin.getX() == cae.xmax())
-//                c_courant = SelecteurCoins.Coin.BD;
-//            if (pt_fin.getY() == cae.ymin())
-//                c_courant = SelecteurCoins.Coin.BG;
-//            if (pt_fin.getY() == cae.ymax())
-//                c_courant = SelecteurCoins.Coin.HD;
-//        }
-//
-//        sc.coin_depart = c_courant ;
-//
-//        Point2D pt_courant = pt_deb ;
-//
-//        if (!sens_trigo)
-//            pt_courant = pt_fin ;
-//
-//        while ( !intersection_bord_entre(pt_courant,sc.coin(c_courant),x_inter,y_inter) ) {
-//            sc.selectionne(c_courant);
-//            pt_courant = sc.coin(c_courant) ;
-//
-//            if (sens_trigo)
-//                c_courant = sc.coin_suivant(c_courant) ;
-//            else
-//                c_courant = sc.coin_precedent(c_courant) ;
-//        }
-//
-//        return sc ;
-//
-//    }
-//
-//    // Recherche une intersection entre deux points d'un même bord
-//    private boolean intersection_bord_entre(Point2D pt_deb,Point2D pt_fin, Collection<Double> x_inter, Collection<Double>  y_inter) {
-//
-//        Iterator<Double> itx = x_inter.iterator() ;
-//        Iterator<Double> ity = y_inter.iterator() ;
-//
-//        double x,y ;
-//
-//        while (itx.hasNext() && ity.hasNext()) {
-//            x = itx.next();
-//            y = ity.next() ;
-//            if (pt_deb.getX()==pt_fin.getX()) { // On cherche sur un bord vertical
-//                if (x == pt_deb.getX()) {
-//                    if (pt_deb.getY()< y && y < pt_fin.getY())
-//                        return true ;
-//                    if (pt_fin.getY()< y && y < pt_deb.getY())
-//                        return true ;
-//                }
-//            } else if (pt_deb.getY()==pt_fin.getY()) { // On cherche sur un bord horizontal
-//                if (y == pt_deb.getY()) {
-//                    if (pt_deb.getX()< x && x < pt_fin.getX())
-//                        return true ;
-//                    if (pt_fin.getX()< x && x < pt_deb.getX())
-//                        return true ;
-//                }
-//            } else
-//                System.err.println("Je ne devrais pas être ici");
-//        }
-//        return false;
-//    }
-
-
-//
-//    protected Point2D point_sur_cercle(Cercle cercle,double theta) {
-//
-//        double x_centre = cercle.Xcentre() ;
-//        double y_centre = cercle.Ycentre() ;
-//        double rayon = cercle.rayon(); ;
-//
-//        return new Point2D(x_centre + rayon*Math.cos(theta), y_centre+rayon*Math.sin(theta)) ;
-//
-//    }
-//
-//    protected ArrayList<Double> xpoints_sur_cercle(Cercle cercle, double theta_debut,double theta_fin) {
-//        ArrayList<Double> xpoints_cercle = new ArrayList<Double>() ;
-//
-//        double pas = (theta_fin-theta_debut) / nombre_pas_angulaire_par_arc ;
-//
-//        double theta = theta_debut ;
-//
-//        Point2D pt;
-//        do {
-//            pt = point_sur_cercle(cercle,theta);
-//
-//            if (pt != null)
-//                xpoints_cercle.add(pt.getX());
-//
-//            theta += pas;
-//        } while (theta <= theta_fin);
-//
-//        // Point final pour theta_fin, pour rattraper les erreurs d'arrondi
-//        pt = point_sur_cercle(cercle,theta_fin);
-//        if (pt != null)
-//            xpoints_cercle.add(pt.getX());
-//
-//        return xpoints_cercle ;
-//    }
-//
-//    protected ArrayList<Double> ypoints_sur_cercle(Cercle cercle,double theta_debut,double theta_fin) {
-//        ArrayList<Double> ypoints_cercle = new ArrayList<Double>() ;
-//
-//        double pas = (theta_fin-theta_debut) / nombre_pas_angulaire_par_arc ;
-//
-//        double theta = theta_debut ;
-//
-//        Point2D pt;
-//        do {
-//            pt = point_sur_cercle(cercle,theta);
-//
-//            if (pt != null)
-//                ypoints_cercle.add(pt.getY());
-//
-//            theta += pas;
-//        } while (theta <= theta_fin);
-//
-//        // Point final pour theta_fin, pour rattraper les erreurs d'arrondi
-//        pt = point_sur_cercle(cercle,theta_fin);
-//        if (pt != null)
-//            ypoints_cercle.add(pt.getY());
-//
-//        return ypoints_cercle ;
-//    }
-
-
 
 }

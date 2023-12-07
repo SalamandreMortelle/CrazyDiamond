@@ -5,6 +5,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.StringProperty;
 import javafx.geometry.Point2D;
+import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 
 import java.util.ArrayList;
@@ -160,6 +161,8 @@ public interface Obstacle {
     String nom() ;
 
 
+    default Color couleurContour() {return null ;}
+    default Color couleurMatiere() {return null ;}
     default NatureMilieu natureMilieu() { return null ; }
 
     default TraitementSurface traitementSurface() { return null; }
@@ -277,7 +280,7 @@ public interface Obstacle {
      * @return le rayon réfracté
      * @throws Exception
      */
-    public static Rayon rayonRefracte(Obstacle o, Rayon r, Environnement env,boolean calcul_transmittance) throws Exception {
+    static Rayon rayonRefracte(Obstacle o, Rayon r, Environnement env,boolean calcul_transmittance) throws Exception {
         Point2D inter = (r.arrivee() !=null)? r.arrivee() :o.premiere_intersection(r) ;
 
         Point2D oppose_vecteur_incident = r.direction().multiply(-1.0) ;
@@ -309,7 +312,7 @@ public interface Obstacle {
 
 
 
-        Double sens_rotation ;
+        double sens_rotation ;
 
         if (oppose_vecteur_incident.crossProduct(normale).getZ() > 0 )
             sens_rotation = -1.0 ;
@@ -417,7 +420,7 @@ public interface Obstacle {
      * @return Les rayons réfractés et réfléchis (l'un ou l'autre peuvent être à 'null' s'ils n'existent pas)
      * @throws Exception
      */
-    public static RayonsRefracteEtReflechi rayonsRefracteEtReflechi(Obstacle o, Rayon r, Environnement env) throws Exception {
+    static RayonsRefracteEtReflechi rayonsRefracteEtReflechi(Obstacle o, Rayon r, Environnement env) throws Exception {
 
         RayonsRefracteEtReflechi rayons_res = new RayonsRefracteEtReflechi() ;
         // NB : rayon_reflechi et rayon_refracte sont maintenant initialisés à 'null' par défaut

@@ -24,7 +24,7 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
 
     private static int compteur_rectangle ;
 
-    private BooleanProperty appartenance_composition;
+    private final BooleanProperty appartenance_composition;
     private final BooleanProperty appartenance_systeme_optique_centre;
 
     public Rectangle(TypeSurface type_surface, double  x_centre, double y_centre, double largeur, double hauteur, double orientation_deg) throws IllegalArgumentException {
@@ -46,7 +46,7 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
         imp_elementAvecContour = iec;
         imp_elementAvecMatiere = iem;
 
-        this.position_orientation = new SimpleObjectProperty<PositionEtOrientation>(new PositionEtOrientation(new Point2D(x_centre,y_centre),orientation_deg)) ;
+        this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(new Point2D(x_centre,y_centre),orientation_deg)) ;
 
         this.largeur = new SimpleDoubleProperty(largeur);
         this.hauteur = new SimpleDoubleProperty(hauteur);
@@ -216,7 +216,7 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
                 c_masse.ajoutePoint(intersections_avec_bords[0].getValue());
 
                 // Initialiser un nouveau c_surface si nécessaire
-                if (trace_surface==true) {
+                if (trace_surface) {
                     c_surface.ajoutePoint(intersections_avec_bords[0].getValue());
                     trace_surface = false ;
                 }
@@ -266,7 +266,7 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
 
         }
 
-        // A partir d'ici, on sait que c_masse n'est pas vide : une partie du contour du Rectangle est visible
+        // À partir d'ici, on sait que c_masse n'est pas vide : une partie du contour du Rectangle est visible.
 
         // Si le Rectangle est CONCAVE, c_masse est un "trou" dans la zone visible
         if (typeSurface() == TypeSurface.CONCAVE && c_masse.nombrePoints()>0)
@@ -286,10 +286,10 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
         imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
         imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
 
-        position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
 
-        largeur.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        hauteur.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        largeur.addListener((observable, oldValue, newValue) -> rap.rappel());
+        hauteur.addListener((observable, oldValue, newValue) -> rap.rappel());
     }
 
     @Override
@@ -297,22 +297,19 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
         imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
         imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
-        position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
 
-        largeur.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        hauteur.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        largeur.addListener((observable, oldValue, newValue) -> rap.rappel());
+        hauteur.addListener((observable, oldValue, newValue) -> rap.rappel());
     }
 
     public void retaillerPourSourisEn(Point2D pos_souris) {
         // Si on est sur le point de départ, ne rien faire
-//        if (pos_souris.getX()==x_centre.get() && pos_souris.getY()==y_centre.get())
-//            return ;
         if (pos_souris.equals(centre()))
             return ;
 
-            largeur.set(2d * Math.abs(pos_souris.getX() - xCentre()));
-            hauteur.set(2d * Math.abs(pos_souris.getY() - yCentre()));
-
+        largeur.set(2d * Math.abs(pos_souris.getX() - xCentre()));
+        hauteur.set(2d * Math.abs(pos_souris.getY() - yCentre()));
     }
 
     @Override
@@ -320,8 +317,6 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
         // Si on est sur le point de départ, ne rien faire
         if (pos_souris.equals(centre()))
             return ;
-//        if (pos_souris.getX()==x_centre.get() && pos_souris.getY()==y_centre.get())
-//            return ;
 
         if (!appartientASystemeOptiqueCentre()) {
             // Calculer l'écart angulaire entre le Coin HD où se trouve la poignée et la position de la souris, par rapport
@@ -411,7 +406,7 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
         double cos_theta = Math.cos(theta) ;
         double sin_theta = Math.sin(theta) ;
 
-        Point2D coins[] = new Point2D[4] ;
+        Point2D[] coins = new Point2D[4] ;
 
         // On part du coin Haut Droit, abstraction faite de l'orientation du rectangle, et on tourne dans le sens trigo
 
@@ -466,11 +461,8 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
             && (-haut/2d<=y_or && y_or<= haut/2d) )
                 return true ;
 
-        if ( ( Environnement.quasiEgal(-haut/2d,y_or)||Environnement.quasiEgal(haut/2d,y_or) )
-            &&  (-larg/2d<=x_or && x_or<= larg/2d) )
-                return true ;
-
-        return false ;
+        return (Environnement.quasiEgal(-haut / 2d, y_or) || Environnement.quasiEgal(haut / 2d, y_or))
+                && (-larg / 2d <= x_or && x_or <= larg / 2d);
     }
 
     private Point2D point_dans_ref_oriente(Point2D p) {
@@ -569,7 +561,7 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
 
         Point2D[] intersections  ;
 
-        Point2D coins[] = coins() ;
+        Point2D[] coins = coins() ;
 
         Point2D p_inter = null ;
         Point2D p1 = null  ;

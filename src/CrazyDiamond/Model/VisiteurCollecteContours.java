@@ -38,7 +38,7 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
     public PathsD paths() { return paths; }
 
     // Cette méthode n'est appelée que pour les compositions
-    public ContoursObstacle contours() {
+    public ContoursObstacle contours(TypeSurface typeSurface) {
 
         ContoursObstacle co = new ContoursObstacle() ;
 
@@ -52,6 +52,12 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
                 // Pour les compositions, il faut toujours fermer le contour de surface car tous les obstacles de la
                 // composition ont été préalablement "coupés" (clippés) par la zone visible
                 co.ajouterContourSurface(construireContourDepuisPathClipper(p,true));
+        }
+
+        if (typeSurface == TypeSurface.CONCAVE) {
+            // Tracé du rectangle de la zone visible, dans le sens antitrigo : le Path de la composition sera un trou
+            // dans cette zone
+            co.ajouterContourMasse(cae.boite_limites().construireContourAntitrigo());
         }
 
 
@@ -253,7 +259,7 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
             }
 
             // Si une partie au moins des paths sujets et clips est visible (sinon clp.execute() renvoie une erreur)
-            if (paths_subject.size()>0 || autres_paths.size()>0) {
+            if ( (paths_subject !=null && paths_subject.size()>0) || (autres_paths!=null && autres_paths.size()>0) ) {
                 // Construire la composition des obstacles, le résultat se mettra directement dans l'attribut paths
                 if (!clp.Execute(clipType, fillRule,paths))
                     LOGGER.log(Level.SEVERE,"Échec du clipping de la composition");
@@ -281,7 +287,7 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
                     if (obs!=o_courant) {
                         LOGGER.log(Level.FINE,"Autre obstacle à unir : {0}",obs);
 
-                        if (union_autres_paths.size() == 0)
+                        if (union_autres_paths != null && union_autres_paths.size() == 0)
                             union_autres_paths = construirePathsObstacle(obs) ;
                         else
                             union_autres_paths = construireClipPaths(union_autres_paths, construirePathsObstacle(obs), ClipType.Union);
@@ -290,7 +296,7 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
 
                 PathsD difference = null ;
 
-                if (union_autres_paths.size()==0)
+                if (union_autres_paths!=null && union_autres_paths.size()==0)
                     difference = construirePathsObstacle(o_courant) ;
                 else
                     // Construire la différence entre l'obstacle courant et tous les autres

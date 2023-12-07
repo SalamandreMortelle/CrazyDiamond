@@ -1517,13 +1517,14 @@ public class PanneauPrincipal {
         } else if (modeCourant() == selection && canvas_affichage_environnement.systemeOptiqueCentreSelectionne() != null) {
             canvas_affichage_environnement.systemeOptiqueCentreSelectionne().translater(v_glisser_g);
         // Sinon, aucun élément n'était sélectionné : on était en train de déplacer la zone visible
-        } else
-            canvas_affichage_environnement.translaterLimites(v_glisser_g.getX(),v_glisser_g.getY());
+        } else {
+            canvas_affichage_environnement.translaterLimites(v_glisser_g.getX(), v_glisser_g.getY());
 
-        canvas_affichage_environnement.rafraichirAffichage();
+            canvas_affichage_environnement.rafraichirAffichage();
+        }
     }
 
-    public void traiterCreationComposition(ActionEvent actionEvent) {
+    public void traiterCreationComposition() {
 
         ButtonType okButtonType = new ButtonType(rb.getString("bouton.dialogue.composition.ok"), ButtonBar.ButtonData.OK_DONE);
         ButtonType annulerButtonType = new ButtonType(rb.getString("bouton.dialogue.composition.annuler"), ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -1587,20 +1588,20 @@ public class PanneauPrincipal {
 
     }
 
-    public void traiterDefinitionParametresEnvironnement(ActionEvent actionEvent) {
+    public void traiterDefinitionParametresEnvironnement() {
 
         scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
 
     }
 
-    public void traiterDefinitionParametresAffichage(ActionEvent actionEvent) {
+    public void traiterDefinitionParametresAffichage() {
 
         scrollpane_droit_element_courant.setContent(panneau_parametres_affichage_environnement);
 
     }
 
 
-    public void traiterNouvelEnvironnement(ActionEvent actionEvent) {
+    public void traiterNouvelEnvironnement() {
 
         nouveau_canvas_affichage_environnement = new CanvasAffichageEnvironnement(new Environnement()) ;
 //        nouvel_environnement = new Environnement() ;
@@ -1628,7 +1629,7 @@ public class PanneauPrincipal {
 
 
     }
-    public void traiterChargerEnvironnement(ActionEvent actionEvent) {
+    public void traiterChargerEnvironnement() {
 
         // Ouverture d'un FileChooser modal sur la fenêtre principale (un paramètre 'null' l'aurait rendu amodal)
         File fichier_a_charger = fileChooser.showOpenDialog(canvas_affichage_environnement.getScene().getWindow());
@@ -1691,7 +1692,7 @@ public class PanneauPrincipal {
 
 
     }
-    public void traiterSauvegarderEnvironnement(ActionEvent actionEvent) {
+    public void traiterSauvegarderEnvironnement() {
 
         Window window = racine.getScene().getWindow() ;
 
@@ -1711,7 +1712,7 @@ public class PanneauPrincipal {
 
     }
 
-    public void traiterSauvegarderEnvironnementSous(ActionEvent actionEvent) {
+    public void traiterSauvegarderEnvironnementSous() {
 
         Window window = racine.getScene().getWindow() ;
 
