@@ -40,7 +40,8 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     private final int facteur_zoom_label = 2;
 
     // Intervalle clignotement en nanosecondes ;
-    long intervalle_clignotement = 1000000000/4 ;
+    long periode_clignotement = 1000000000/4 ;
+    long dernier_instant_clignotement = 0;
 
     public VisiteurAffichageEnvironnement(CanvasAffichageEnvironnement cae) {
 
@@ -53,42 +54,19 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         anim_timer = new AnimationTimer() {
 
-//            private long last_now_clignotement;
-
-//            long dernierNanoTime = 0 ;
-
             @Override
             public void handle(long now) {
 
-//                float secondesDepuisDerniereFrame =0f ;
-//
-//                if (dernierNanoTime != 0)
-//                    secondesDepuisDerniereFrame =  ((now - dernierNanoTime)/1e9) ;
-//
-//                dernierNanoTime = now ;
-//
+                // Inutile d'afficher à nouveau si une période de clignotement ne s'est pas écoulée. Si jamais l'environnement
+                // est modifié au cours de la période, la nouvelle position de la sélection sera affichée immédiatement
+                // (cf. méthode apresVisiteEnvironnement()). Sans cette garde, la méthode afficheSelections serait appelée à
+                // haute fréquence (60 fps si possible), ce qui entraine une charge CPU de 3 à 5% en permanence. Quel gâchis !
+                if (((now - dernier_instant_clignotement)< periode_clignotement))
+                    return ;
 
-//                if (((now - last_now_clignotement)<intervalle_clignotement))
-//                    return ;
-//
-//                last_now_clignotement = now ;
+                dernier_instant_clignotement = now ;
 
-                Obstacle os = cae.obstacleSelectionne() ;
-                Source ss = cae.sourceSelectionnee() ;
-                SystemeOptiqueCentre soc = cae.systemeOptiqueCentreSelectionne() ;
-
-                if (ss!=null) {
-                    cae.effacerSelection();
-                    afficheSelectionSource(ss, now) ;
-                } else if (os != null) {
-                    cae.effacerSelection();
-                    afficheSelectionObstacle(os, now) ;
-                } else if (soc != null) {
-                    cae.effacerSelection();
-                    afficheSelectionSystemeOptiqueCentre(soc, now) ;
-                } else { // Rien n'est sélectionné
-                    cae.effacerSelection();
-                }
+                afficheSelections(now);
 
             }
 
@@ -99,11 +77,28 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
     }
 
+    private void afficheSelections(long now) {
+        Obstacle os = cae.obstacleSelectionne() ;
+        Source ss = cae.sourceSelectionnee() ;
+        SystemeOptiqueCentre soc = cae.systemeOptiqueCentreSelectionne() ;
 
+        if (ss!=null) {
+            cae.effacerSelection();
+            afficheSelectionSource(ss, now) ;
+        } else if (os != null) {
+            cae.effacerSelection();
+            afficheSelectionObstacle(os, now) ;
+        } else if (soc != null) {
+            cae.effacerSelection();
+            afficheSelectionSystemeOptiqueCentre(soc, now) ;
+        } else { // Rien n'est sélectionné
+            cae.effacerSelection();
+        }
+    }
 
 
     @Override
-    public void visiteEnvironnement(Environnement e) {
+    public void avantVisiteEnvironnement(Environnement e) {
 
         // Réinitialiser les contours déjà calculés, pour ne pas garer les contours d'objets qui ont été supprimés
         // de l'Environnement
@@ -118,9 +113,16 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
     }
 
-
-
     @Override
+    public void apresVisiteEnvironnement(Environnement e) {
+
+        // Actualisation de l'affichage des sélections (en dehors du timer d'animation : now = 0)
+        afficheSelections(dernier_instant_clignotement);
+
+    }
+
+
+        @Override
     public void avantVisiteSources() {
         VisiteurEnvironnement.super.avantVisiteSources();
 
@@ -349,7 +351,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         gc.setLineDashes(5*pas,10*pas);
 
-        if ((temps/intervalle_clignotement)%2==0) {
+        if ((temps/ periode_clignotement)%2==0) {
             gc.setStroke(Color.WHITE);
             gc.setFill(Color.BLACK);
 
@@ -387,7 +389,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         gc.setLineDashes(5*pas,10*pas);
 
-        if ((temps/intervalle_clignotement)%2==0) {
+        if ((temps/ periode_clignotement)%2==0) {
             gc.setStroke(Color.WHITE);
             gc.setFill(Color.BLACK);
 
@@ -438,7 +440,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
 //        gc_affichage.setLineDashes(5*pas,10*pas);
 
-        if ((temps/intervalle_clignotement)%2==0) {
+        if ((temps/ periode_clignotement)%2==0) {
             gc.setStroke(Color.WHITE);
             gc.setFill(Color.BLACK);
 

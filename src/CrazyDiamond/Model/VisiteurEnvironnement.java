@@ -2,7 +2,8 @@ package CrazyDiamond.Model;
 
 public interface VisiteurEnvironnement {
 
-    void visiteEnvironnement(Environnement e) ;
+    void avantVisiteEnvironnement(Environnement e) ;
+    void apresVisiteEnvironnement(Environnement e) ;
 
     void visiteSource(Source s) ;
 

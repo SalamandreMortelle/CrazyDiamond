@@ -156,7 +156,7 @@ public class Environnement {
 
     public void accepter(VisiteurEnvironnement v) {
 
-        v.visiteEnvironnement(this);
+        v.avantVisiteEnvironnement(this);
 
         Iterator<Obstacle> ito = obstacles.iterator() ;
         Iterator<Source>   its = sources.iterator() ;
@@ -185,6 +185,8 @@ public class Environnement {
             itsoc.next().accepte(v);
 
         v.apresVisiteSystemesOptiquesCentres();
+
+        v.apresVisiteEnvironnement(this);
     }
 
     public void ajouterListenerListeSources(ListChangeListener<Source> lcl_s) {
