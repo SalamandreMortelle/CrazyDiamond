@@ -96,7 +96,7 @@ public class PanneauSystemeOptiqueCentre {
         baseElementIdentifieController.initialize(soc);
 
         // Position
-        soc.axeObjectProperty().addListener(new ChangeListenerAvecGarde<PositionEtOrientation>(this::prendreEnComptePositionEtOrientation));
+        soc.axeObjectProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnComptePositionEtOrientation));
 //        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_xorigine,soc.origine().getX());
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_xorigine, soc.XOrigine(), this::definirXOrigineSOC);
 //        soc_xorigine_object_property = soc.XOrigineProperty().asObject() ;
@@ -123,7 +123,7 @@ public class PanneauSystemeOptiqueCentre {
 
 //        slider_orientation.valueProperty().bindBidirectional(soc.orientationProperty());
         slider_orientation.valueProperty().addListener(new ChangeListener<>() {
-            private boolean changement_en_cours = false ; ;
+            private boolean changement_en_cours = false ;
 
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number old_value, Number new_value) {
@@ -144,6 +144,13 @@ public class PanneauSystemeOptiqueCentre {
 
         // Liste des obstacles centrés
         listview_obstacles_centres.setItems(soc.obstacles_centres());
+
+        for (Obstacle o : soc.obstacles_centres()) {
+            // Rafraichissement automatique de la liste des obstacles du SOC quand le nom d'un obstacle change
+            ChangeListener<String> listenerNom = (obs, oldName, newName) -> listview_obstacles_centres.refresh();
+            o.nomProperty().addListener(listenerNom);
+        }
+
 
 //        if (listview_obstacles_centres.getContextMenu()==null)
         listview_obstacles_centres.setContextMenu(menuContextuelObstacleCentre);
@@ -175,7 +182,7 @@ public class PanneauSystemeOptiqueCentre {
                 obstacles_a_proposer.add( o ) ;
         }
 
-        ListView<Obstacle> lo = new ListView<Obstacle>(obstacles_a_proposer) ;
+        ListView<Obstacle> lo = new ListView<>(obstacles_a_proposer) ;
 
         // TODO Limiter la composition à deux objets : proposer deux listview en sélection SINGLE côte à côte (mais
         // interdire de choisir le même objet dans les deux listes... : retirer de la 2ème l'objet sélectionné dans
@@ -191,7 +198,7 @@ public class PanneauSystemeOptiqueCentre {
 
         boite_dialogue.setResultConverter( buttonType -> {
             if (buttonType == okButtonType)
-                return new ArrayList<Obstacle>(lo.getSelectionModel().getSelectedItems()) ;
+                return new ArrayList<>(lo.getSelectionModel().getSelectedItems()) ;
 
             return null ;
         });
@@ -210,6 +217,11 @@ public class PanneauSystemeOptiqueCentre {
 //                o.integrerDansSystemeOptiqueCentre(soc);
 //                integrerObstacle(o);
                     soc.ajouterObstacle(o) ;
+
+                    // Rafraichissement automatique de la liste des obstacles du SOC quand le nom de l'obstacle ajouté change
+                    ChangeListener<String> listenerNom = (obs, oldName, newName) -> listview_obstacles_centres.refresh();
+                    o.nomProperty().addListener(listenerNom);
+
 //                environnement.retirerObstacle(o);
 //                compo.ajouterObstacle(o);
             }
