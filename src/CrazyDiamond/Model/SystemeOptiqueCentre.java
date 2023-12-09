@@ -171,8 +171,8 @@ public class SystemeOptiqueCentre implements Nommable {
         boolean ignorer;
 
         /**
-         * Construit les Modalités de traversée d'un dioptre par copie de certains attributs d'une intersection
-         * @param renc_dioptre_paraxial
+         * Construit les Modalités de traversée d'un dioptre par copie de certains attributs d'une Rencontre d'un dioptre paraxial
+         * @param renc_dioptre_paraxial : la rencontre d'un dioptre paraxial dont on va garder les modalités
          */
         public ModalitesTraverseeDioptre(RencontreDioptreParaxial renc_dioptre_paraxial) {
 
@@ -199,11 +199,11 @@ public class SystemeOptiqueCentre implements Nommable {
      * A charge pour l'appelant d'ajouter ou de soustraire le z_image obtenu à la position z de la face de sortie selon
      * le sens de propagation de la lumière
      *
-     * @param matrice_es
-     * @param position_obj
+     * @param matrice_es : Matrice de transfert optique Entrée (1er dioptre rencontré) et la Sortie (dernier dioptre)  du système
+     * @param position_obj : Position de l'objet (z sur l'axe, et hauteur)
      * @param n_objet : indice du milieu objet qui précède la face d'entrée (dans le sens de propagation de la lumière)
      * @param n_image : indice du milieu image qui suit la face de sortie (dans le sens de propagation de la lumière)
-     * @return
+     * @return la position de l'image (z et hauteur)
      */
     private PositionElement positionImage(Affine matrice_es,PositionElement position_obj, double n_objet, double n_image) {
         double a = matrice_es.getMxx();
@@ -232,11 +232,11 @@ public class SystemeOptiqueCentre implements Nommable {
      * A charge pour l'appelant d'ajouter ou de soustraire le z_antecedent obtenu à la position z de la face d'entrée selon
      * le sens de propagation de la lumière
      *
-     * @param matrice_es
-     * @param position_img
+     * @param matrice_es : Matrice de transfert optique Entrée (1er dioptre rencontré) et la Sortie (dernier dioptre)  du système
+     * @param position_img : Position (z et hauteur) de l'image dont on cherche l'antécédent
      * @param n_objet : indice du milieu objet qui précède la face d'entrée (dans le sens de propagation de la lumière)
      * @param n_image : indice du milieu image qui suit la face de sortie (dans le sens de propagation de la lumière)
-     * @return
+     * @return la position de l'antécédent (z et hauteur)
      */
     private PositionElement positionAntecedent(Affine matrice_es,PositionElement position_img, double n_objet, double n_image) {
         double a = matrice_es.getMxx();
@@ -259,7 +259,8 @@ public class SystemeOptiqueCentre implements Nommable {
         if (suspendre_calcul_elements_cardinaux || environnement.calculsElementsCardinauxSocSuspendus() )
             return ;
 
-        dioptres.clear(); ;
+        dioptres.clear();
+
         Affine nouvelle_matrice_transfert = null ;
 
         try {
@@ -469,7 +470,7 @@ public class SystemeOptiqueCentre implements Nommable {
      *  a été rencontrée, les indices des milieux avant/après.
      *  </p>
      * @return la matrice de transfert optique du système Mt(ES)
-     * @throws Exception
+     * @throws Exception si le calcul de la matrice de transfert échoue
      */
     private Affine calculeMatriceTransfertOptique() throws Exception {
 
@@ -504,7 +505,7 @@ public class SystemeOptiqueCentre implements Nommable {
         double tan_demi_ouverture = Double.MAX_VALUE ;
         int index_diaphragme_ouverture = -1 ; // Position du diaphragme d'ouverture dans la liste des intersections réelles du SOC
 
-        double ratio_h_emergent_max_depuis_objet = 0d ;
+        double ratio_h_emergent_max_depuis_objet = -1d ;
         int index_diaphragme_ouverture_bis = -1 ; // Position du diaphragme d'ouverture dans la liste des intersections réelles du SOC
         // Fin
 
@@ -516,8 +517,8 @@ public class SystemeOptiqueCentre implements Nommable {
         boolean ignorer_dioptre_courant;
 
         // NB : la condition sur nb_reflexions<3 est utile pour éviter une suite infinie d'allers-retours du rayon entre
-        // deux surfaces réfléchissantes (situation qui peut se produire si la première surface "laisse entrer"  le rayon
-        // dans la cavité optique, lorsqu'elle est semi réflechissante)
+        // deux surfaces réfléchissantes (situation qui peut se produire si la première surface "laisse entrer" le rayon
+        // dans la cavité optique parce qu'elle est semi-réfléchissante)
         while (nb_reflexions<3 && i< dioptres.size() && i>=0) {
 
             // Instancions une rencontre de dioptre à partir du dioptre courant, en tenant compte du sens de propagation
@@ -578,17 +579,26 @@ public class SystemeOptiqueCentre implements Nommable {
             // Recherche du diaphragme d'ouverture et de l'angle d'ouverture
             if (/*!ignorer_dioptre_courant &&*/ dioptre_rencontre.rayonDiaphragme()!=null) {
 
+                // Si il y a un rayon diaphragme défini sur le dioptre rencontré, et que c'est le premier dans ce cas,
+                // il constitue un premier diaphragme d'ouverture par défaut
+                if (index_diaphragme_ouverture == -1)
+                    index_diaphragme_ouverture = i ;
+                if (index_diaphragme_ouverture_bis == -1)
+                    index_diaphragme_ouverture_bis = i ;
+
                 if (ZObjet()!=null /* && (z_antecedent_diaphragme-ZObjet())>0 */) {
                     // La recherche du DO dépend de la position de l'objet z_objet, ce n'est pas une propriété intrinsèque du SOC
 
                     // Methode 1 pour trouver le DO : ratio hauteur d'émergence sur dioptre i / rayon diaphragme i maximal pour un rayon
-                    // issu de l'dioptre_rencontre du plan objet et de l'axe, avec un angle non nul par rapport à l'axe (ici 1°)
+                    // issu du dioptre_rencontre du plan objet et de l'axe, avec un angle non nul par rapport à l'axe (ici 1°)
                     // Cette méthode permet aussi de trouver les hauteurs limites du "cone d'ouverture" sur chaque dioptre
                     // et d'en faire une jolie, et parlante représentation graphique
 
                     Affine mat_transfert_depuis_objet = resultat.clone() ;
 
-                    // Ajoutons la matrice de translation entre l'objet et le plan d'entrée
+                    // Ajoutons la matrice de translation entre l'objet et le plan d'entrée (rappel : on multiplie les
+                    // matrices en partant de la fin vers le début ; c'est donc bien un append, et non un prepend qu'il
+                    // faut faire ici)
                     mat_transfert_depuis_objet.append(new Affine(  1d, (z_plan_entree-ZObjet())*environnement.unite().valeur/NEntree(), 0d,0d, 1d, 0d )) ;
                     // mat_transfert_depuis_objet.append(new Affine(  1d, (pas>0?1d:-1d)*(z_plan_entree-ZObjet())/NEntree(), 0d,0d, 1d, 0d )) ; // NON : sur le plan
                     // d'entree le rayon est toujours dans le sens de l'axe (et pas représente le sens du marche du rayon *au niveau du dioptre courant* et pas en entrée du SOC...)
@@ -635,23 +645,37 @@ public class SystemeOptiqueCentre implements Nommable {
 //                        h_pupille_entree_potentielle = dioptre_rencontre.antecedentDiaphragme().hauteur() ;
                     }
 
-                    // Méthode 2 pour trouver le DO : antecedent de diaphragme (par le système en amont de celui-ci) que l'on voit sous le
-                    // plus petit angle par rapport à la position de l'objet. TODO : a supprimer à terme
-                    double tan_angle_antecedent_depuis_z_objet = Math.abs(dioptre_rencontre.antecedentDiaphragme().hauteur())
-                            / Math.abs(dioptre_rencontre.antecedentDiaphragme().z() - ZObjet()) ;
+                    // Méthode 2 pour trouver le DO : antecedent de diaphragme (par la partie du système en amont de
+                    // celui-ci) que l'on voit sous le plus petit angle par rapport à la position de l'objet.
+                    // TODO : a supprimer à terme
+                    double denom = Math.abs(dioptre_rencontre.antecedentDiaphragme().z() - ZObjet()) ;
 
-                    LOGGER.log(Level.FINE,"Pupille entrée du diaphragme {0} : hauteur {1} m, angle vu de objet : {2}°",
-                            new Object[] {nb_dioptres_rencontres, dioptre_rencontre.antecedentDiaphragme().hauteur(),
-                                    Math.toDegrees(Math.atan(tan_angle_antecedent_depuis_z_objet))}) ;
+                    Double tan_angle_antecedent_depuis_z_objet = Environnement.quasiEgal(denom,0d) ?
+                            null : Math.abs(dioptre_rencontre.antecedentDiaphragme().hauteur()) / denom ;
 
-                    if (tan_angle_antecedent_depuis_z_objet<tan_demi_ouverture) {
-                        tan_demi_ouverture = tan_angle_antecedent_depuis_z_objet ;
-                        index_diaphragme_ouverture = nb_dioptres_rencontres ;
+                    if (tan_angle_antecedent_depuis_z_objet != null) {
+                        LOGGER.log(Level.FINE, "Pupille entrée du diaphragme {0} : hauteur {1} m, angle vu de objet : {2}°",
+                                new Object[]{nb_dioptres_rencontres, dioptre_rencontre.antecedentDiaphragme().hauteur(),
+                                        Math.toDegrees(Math.atan(tan_angle_antecedent_depuis_z_objet))});
+
+                        if (tan_angle_antecedent_depuis_z_objet < tan_demi_ouverture) {
+                            tan_demi_ouverture = tan_angle_antecedent_depuis_z_objet;
+                            index_diaphragme_ouverture = nb_dioptres_rencontres;
+                        }
                     }
 
                     // Contrôle
-                    if (index_diaphragme_ouverture!=index_diaphragme_ouverture_bis)
-                        LOGGER.log(Level.SEVERE,"DO n'est pas le même selon la méthode...");
+                    if (index_diaphragme_ouverture!=index_diaphragme_ouverture_bis) {
+
+                        RencontreDioptreParaxial d_ouv     = dioptres_rencontres.get(index_diaphragme_ouverture) ;
+                        RencontreDioptreParaxial d_ouv_bis = dioptres_rencontres.get(index_diaphragme_ouverture_bis) ;
+                        // Il peut arriver que les index trouvés ne soient pas les mêmes, mais qu'ils correspondent tous
+                        // deux à des diaphragmes identiques, c'est à dire de même position et de même rayon suite à
+                        // des erreurs d'arrondi. Dans ce cas pas d'alerte.
+                        if (!Environnement.quasiEgal(d_ouv.z(),d_ouv_bis.z())
+                                || !Environnement.quasiEgal(d_ouv.rayonDiaphragme(),d_ouv_bis.rayonDiaphragme()))
+                            LOGGER.log(Level.SEVERE, "DO n'est pas le même selon la méthode...");
+                    }
 
                 }
             } // Fin du bloc de recherche du DO
@@ -716,7 +740,7 @@ public class SystemeOptiqueCentre implements Nommable {
             ++nb_dioptres_rencontres ;
 
             i += pas ;
-        }
+        }  // Fin de la construction de la liste des dioptres rencontrés et de la matrice de transfert
 
         z_plan_sortie = dioptre_rencontre.ZIntersection()  ;
         sens_plus_en_sortie.set(pas>0) ;
@@ -895,7 +919,8 @@ public class SystemeOptiqueCentre implements Nommable {
                 double z_luc = its.antecedentDiaphragme().z() ;
                 double r_luc = Math.abs(its.antecedentDiaphragme().hauteur()) ;
 
-                if (z_luc!=z_pupille_entree.get()) {
+                if (!Environnement.quasiEgal(z_luc,z_pupille_entree.get())) {
+//                if (z_luc!=z_pupille_entree.get()) {
 
                     double coeff_dir_1 = (r_luc - r_pupille_entree.get()) / (z_luc - z_pupille_entree.get());
                     double r_extr_1 = (z_luc - z_objet.get()) * (-coeff_dir_1) + r_luc;
@@ -1222,7 +1247,7 @@ public class SystemeOptiqueCentre implements Nommable {
 
         });
 
-        this.couleur_axe = new SimpleObjectProperty<Color>(couleur_axe_par_defaut) ;
+        this.couleur_axe = new SimpleObjectProperty<>(couleur_axe_par_defaut) ;
 
         this.matrice_transfert_es = new SimpleObjectProperty<>(null) ;
 
@@ -1261,41 +1286,44 @@ public class SystemeOptiqueCentre implements Nommable {
 
         this.angle_ouverture = new SimpleObjectProperty<>(null) ;
 
-        this.r_champ_moyen_objet = new SimpleObjectProperty<Double>(null) ;
-        this.r_champ_pleine_lumiere_objet = new SimpleObjectProperty<Double>(null) ;
-        this.r_champ_total_objet = new SimpleObjectProperty<Double>(null) ;
-        this.r_champ_moyen_image = new SimpleObjectProperty<Double>(null) ;
-        this.r_champ_pleine_lumiere_image = new SimpleObjectProperty<Double>(null) ;
-        this.r_champ_total_image = new SimpleObjectProperty<Double>(null) ;
+        this.r_champ_moyen_objet = new SimpleObjectProperty<>(null) ;
+        this.r_champ_pleine_lumiere_objet = new SimpleObjectProperty<>(null) ;
+        this.r_champ_total_objet = new SimpleObjectProperty<>(null) ;
+        this.r_champ_moyen_image = new SimpleObjectProperty<>(null) ;
+        this.r_champ_pleine_lumiere_image = new SimpleObjectProperty<>(null) ;
+        this.r_champ_total_image = new SimpleObjectProperty<>(null) ;
         
-        this.angle_champ_moyen_objet = new SimpleObjectProperty<Double>(null) ;
-        this.angle_champ_pleine_lumiere_objet = new SimpleObjectProperty<Double>(null) ;
-        this.angle_champ_total_objet = new SimpleObjectProperty<Double>(null) ;
-        this.angle_champ_moyen_image = new SimpleObjectProperty<Double>(null) ;
-        this.angle_champ_pleine_lumiere_image = new SimpleObjectProperty<Double>(null) ;
-        this.angle_champ_total_image = new SimpleObjectProperty<Double>(null) ;
+        this.angle_champ_moyen_objet = new SimpleObjectProperty<>(null) ;
+        this.angle_champ_pleine_lumiere_objet = new SimpleObjectProperty<>(null) ;
+        this.angle_champ_total_objet = new SimpleObjectProperty<>(null) ;
+        this.angle_champ_moyen_image = new SimpleObjectProperty<>(null) ;
+        this.angle_champ_pleine_lumiere_image = new SimpleObjectProperty<>(null) ;
+        this.angle_champ_total_image = new SimpleObjectProperty<>(null) ;
         
         
         // Calcul de la position de l'image grâce à la relation homographique, valable pour un système focal ou afocal
 
-        ObjectBinding<Double> calcule_z_image = new ObjectBinding<Double>() {
+        ObjectBinding<Double> calcule_z_image = new ObjectBinding<>() {
 
             // On ne met pas la dépendance à n_entree/n_sortie car ils sont forcément modifiés en même temps que la matrice de transfert
-            { super.bind(matrice_transfert_es,z_objet,n_entree,n_sortie) ;}
+            {
+                super.bind(matrice_transfert_es, z_objet, n_entree, n_sortie);
+            }
 
-            @Override protected Double computeValue() {
+            @Override
+            protected Double computeValue() {
 
 //                if (suspendre_calcul_image)
 //                    return null ; // Ne rien faire
                 if (nouveau_z_image_apres_conversion_a_prendre_compte) {
-                    nouveau_z_image_apres_conversion_a_prendre_compte = false ;
-                    return nouveau_z_image_apres_conversion ;
+                    nouveau_z_image_apres_conversion_a_prendre_compte = false;
+                    return nouveau_z_image_apres_conversion;
                 }
 
-                if (matrice_transfert_es.get() == null || z_objet.get() == null /*|| z_objet.get()>z_plan_entree*/ )
-                    return null ;
+                if (matrice_transfert_es.get() == null || z_objet.get() == null /*|| z_objet.get()>z_plan_entree*/)
+                    return null;
 
-                double resultat = z_plan_sortie + (sens_plus_en_sortie.get()?1d:-1d) * positionImage(matrice_transfert_es.get(), new PositionElement(z_objet.get()-z_plan_entree, 0d),n_entree.get(),n_sortie.get()).z() ;
+                double resultat = z_plan_sortie + (sens_plus_en_sortie.get() ? 1d : -1d) * positionImage(matrice_transfert_es.get(), new PositionElement(z_objet.get() - z_plan_entree, 0d), n_entree.get(), n_sortie.get()).z();
 
                 // Code ci-dessous laissé provisoirement pour contrôle : TODO : à supprimer ;
 
@@ -1307,19 +1335,19 @@ public class SystemeOptiqueCentre implements Nommable {
 
                 // Relation homographique (Optique : Fondements et applications, J-Ph. Perez, chapitre 6)
 //                double resultat_bis = z_plan_sortie + (sens_plus_en_sortie.get()?1d:-1d)*n_sortie.get() * (a*(z_objet.get()-z_plan_entree)/n_entree.get() - b) / (-c*(z_objet.get()-z_plan_entree)/n_entree.get()+d);
-                double resultat_bis = ( z_plan_sortie*environnement.unite().valeur
-                                        + (sens_plus_en_sortie.get()?1d:-1d)*n_sortie.get()
-                                        * (a*(z_objet.get()-z_plan_entree)*environnement.unite().valeur/n_entree.get() - b)
-                                        / (-c*(z_objet.get()-z_plan_entree)*environnement.unite().valeur/n_entree.get() + d) )
-                                    / environnement.unite().valeur;
+                double resultat_bis = (z_plan_sortie * environnement.unite().valeur
+                        + (sens_plus_en_sortie.get() ? 1d : -1d) * n_sortie.get()
+                        * (a * (z_objet.get() - z_plan_entree) * environnement.unite().valeur / n_entree.get() - b)
+                        / (-c * (z_objet.get() - z_plan_entree) * environnement.unite().valeur / n_entree.get() + d))
+                        / environnement.unite().valeur;
                 // ATTENTION : formule probablement fausse si sens_plus_en_sortie est false
 
-                if (!Environnement.quasiEgal(resultat,resultat_bis))
-                    LOGGER.log(Level.SEVERE,"Les z image ne sont pas les mêmes selon la méthode de calcul !") ;
+                if (!Environnement.quasiEgal(resultat, resultat_bis))
+                    LOGGER.log(Level.SEVERE, "Les z image ne sont pas les mêmes selon la méthode de calcul !");
 
                 // Fin code de contrôle
 
-                return resultat ;
+                return resultat;
 
             }
         };
