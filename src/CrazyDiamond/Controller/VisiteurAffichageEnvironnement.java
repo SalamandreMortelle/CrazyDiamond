@@ -37,11 +37,12 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
     // Marge des labels sur l'axe Y
     private final double marge_label_y = -5d;
-    private final int facteur_zoom_label = 2;
+    private final double facteur_zoom_grand_label = 2d ;
+    private final double facteur_zoom_petit_label = 1.3d ;
 
     // Intervalle clignotement en nanosecondes ;
-    long periode_clignotement = 1000000000/4 ;
-    long dernier_instant_clignotement = 0;
+    long periode_clignotement = 1000000000/4 ; // 0.25s en nanosecondes
+    private long dernier_instant_clignotement = 0;
 
     public VisiteurAffichageEnvironnement(CanvasAffichageEnvironnement cae) {
 
@@ -855,25 +856,32 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         afficheRayonsLimiteChamps(soc,true,true,true);
 
         if (soc.MontrerPlansFocaux()) {
-            marquePositionSurAxeSOC(soc,soc.ZPlanFocal1(),Color.LIGHTBLUE,300,"F");
-            marquePositionSurAxeSOC(soc,soc.ZPlanFocal2(),Color.LIGHTBLUE,300,"F'");
+            marquePositionSurAxeSOC(soc,soc.ZPlanFocal1(),Color.LIGHTBLUE,300,"Fo");
+            marquePositionSurAxeSOC(soc,soc.ZPlanFocal2(),Color.LIGHTBLUE,300,"Fi");
         }
 
         if (soc.MontrerPlansPrincipaux()) {
-            marquePositionSurAxeSOC(soc,soc.ZPlanPrincipal1(),Color.LIGHTYELLOW,300,"H");
-            marquePositionSurAxeSOC(soc,soc.ZPlanPrincipal2(),Color.LIGHTYELLOW,300,"H'");
+            marquePositionSurAxeSOC(soc,soc.ZPlanPrincipal1(),Color.LIGHTYELLOW,300,"Ho");
+            marquePositionSurAxeSOC(soc,soc.ZPlanPrincipal2(),Color.LIGHTYELLOW,300,"Hi");
         }
 
         if (soc.MontrerPlansNodaux()) {
-            marquePositionSurAxeSOC(soc,soc.ZPlanNodal1(),Color.PALEVIOLETRED,300,"N");
-            marquePositionSurAxeSOC(soc,soc.ZPlanNodal2(),Color.PALEVIOLETRED,300,"N'");
+            marquePositionSurAxeSOC(soc,soc.ZPlanNodal1(),Color.PALEVIOLETRED,300,"No");
+            marquePositionSurAxeSOC(soc,soc.ZPlanNodal2(),Color.PALEVIOLETRED,300,"Ni");
         }
 
-        if (soc.MontrerObjet())
-            afficheFlechePerpendiculaireAxeSOC(soc,soc.ZObjet(),Color.GREEN ,soc.HObjet());
+        if (soc.MontrerObjet()) {
+            afficheFlechePerpendiculaireAxeSOC(soc, soc.ZObjet(), Color.GREEN, soc.HObjet());
+            afficheLabelSOC(soc, soc.ZObjet(), 0d, Color.GREEN,"Ao");
+            afficheLabelSOC(soc, soc.ZObjet(), soc.HObjet(), Color.GREEN,"Bo");
 
-        if (soc.MontrerImage())
-            afficheFlechePerpendiculaireAxeSOC(soc,soc.ZImage(),Color.GREEN ,soc.HImage());
+        }
+
+        if (soc.MontrerImage()) {
+            afficheFlechePerpendiculaireAxeSOC(soc, soc.ZImage(), Color.GREEN, soc.HImage());
+            afficheLabelSOC(soc, soc.ZImage(), 0d, Color.GREEN,"Ai");
+            afficheLabelSOC(soc, soc.ZImage(), soc.HImage(), Color.GREEN,"Bi");
+        }
 
 
         // TODO : on pourrait aussi utiliser un gc_affichage.restore() (précédé d'un gc_affichage.save() en début de méthode)
@@ -1183,9 +1191,9 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
     /**
      * Marque une position d'abscisse donnée sur l'axe optique d'un SOC, avec une hauteur et une couleur de marque paramétrables
-     * @param soc
-     * @param z_sur_axe
-     * @param c
+     * @param soc SOC sur lequel on fait le marquage
+     * @param z_sur_axe position de la marque sur l'axe de révolution Z du SOC
+     * @param c couleur de la marque
      * @param hauteur : hauteur en nombre de resolutions de l'environnement
      * @param label : texte à positionner sur la marque
      */
@@ -1219,9 +1227,9 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             // Position du texte à afficher en coordonnées du GC du Canvas
             Point2D pos_texte_gc = gc.getTransform().transform(pt.getX(), pt.getY()).add(marge_label_x, marge_label_y);
 
-            // Nouvelle transformation à appliquer : simple homothétie centré sur le point d'affichage du texte
+            // Nouvelle transformation à appliquer : simple homothétie centrée sur le point d'affichage du texte
             Affine zoom_texte = new Affine();
-            zoom_texte.appendScale(facteur_zoom_label, facteur_zoom_label, pos_texte_gc.getX(), pos_texte_gc.getY());
+            zoom_texte.appendScale(facteur_zoom_grand_label, facteur_zoom_grand_label, pos_texte_gc.getX(), pos_texte_gc.getY());
             gc.setTransform(zoom_texte);
 
             // Ecriture de l'étiquette
@@ -1235,15 +1243,51 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
     }
 
-    /**
-     * @param soc
-     * @param z_sur_axe
-     * @param c
-     * @param hauteur_fleche : hauteur de la flèche (qui peut être négative, si la flèche est sous l'axe)
-     */
+    private void afficheLabelSOC(SystemeOptiqueCentre soc, Double z_sur_axe,double hauteur_sur_axe , Color c, String label) {
+
+        if (z_sur_axe==null)
+            return;
+
+        GraphicsContext gc = cae.gc_affichage() ;
+        double res = cae.resolution() ;
+
+        Point2D origine = soc.origine();
+        Point2D perp = soc.perpendiculaireDirection();
+
+        Point2D pt = origine.add(soc.direction().multiply(z_sur_axe)).add(perp.multiply(hauteur_sur_axe)) ;
+
+        gc.save();
+
+        gc.setStroke(c);
+
+        if (label != null) {
+
+            gc.setFill(c);
+
+            // Position du texte à afficher en coordonnées du GC du Canvas
+            Point2D pos_texte_gc = gc.getTransform().transform(pt.getX(), pt.getY()).add(marge_label_x, marge_label_y);
+
+            // Nouvelle transformation à appliquer : simple homothétie centrée sur le point d'affichage du texte
+            Affine zoom_texte = new Affine();
+            zoom_texte.appendScale(facteur_zoom_petit_label, facteur_zoom_petit_label, pos_texte_gc.getX(), pos_texte_gc.getY());
+            gc.setTransform(zoom_texte);
+
+            // Écriture de l'étiquette
+            gc.setFont(fonte_labels);
+
+            gc.fillText(label, pos_texte_gc.getX(), pos_texte_gc.getY());
+
+        }
+
+        gc.restore();
+
+    }
+
     private void afficheFlechePerpendiculaireAxeSOC(SystemeOptiqueCentre soc, Double z_sur_axe, Color c,Double hauteur_fleche) {
         if (z_sur_axe==null || hauteur_fleche==null)
             return;
+
+        double res = cae.resolution() ;
 
         GraphicsContext gc = cae.gc_affichage() ;
 
@@ -1251,7 +1295,19 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         Point2D perp = soc.perpendiculaireDirection();
 
 
-        Point2D pt = origine.add(soc.direction().multiply(z_sur_axe)) ;
+        Point2D pt_depart = origine.add(soc.direction().multiply(z_sur_axe)) ;
+        Point2D pt_extremite = pt_depart.add(perp.multiply(hauteur_fleche)) ;
+
+        Point2D pt_depart_pointe_gauche ;
+        Point2D pt_depart_pointe_droite ;
+
+        if (hauteur_fleche>=0) {
+            pt_depart_pointe_gauche = pt_extremite.add(soc.direction().multiply(-4 * res)).add(perp.multiply(-8 * res));
+            pt_depart_pointe_droite = pt_extremite.add(soc.direction().multiply(+4 * res)).add(perp.multiply(-8 * res));
+        } else { // Renversement du sens de la pointe de la flèche si hauteur_fleche < 0
+            pt_depart_pointe_gauche = pt_extremite.add(soc.direction().multiply(-4 * res)).add(perp.multiply(8 * res));
+            pt_depart_pointe_droite = pt_extremite.add(soc.direction().multiply(+4 * res)).add(perp.multiply(8 * res));
+        }
 
         //if (cae.boite_limites().contains(pt)) {
 
@@ -1259,8 +1315,12 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
             gc.setStroke(c);
 
-            gc.strokeLine(pt.getX() , pt.getY() ,
-                    pt.getX() + hauteur_fleche * perp.getX(), pt.getY() + hauteur_fleche * perp.getY());
+
+            gc.strokeLine(pt_depart.getX() , pt_depart.getY() ,
+                    pt_depart.getX() + hauteur_fleche * perp.getX(), pt_depart.getY() + hauteur_fleche * perp.getY());
+
+            gc.strokeLine(pt_depart_pointe_gauche.getX(),pt_depart_pointe_gauche.getY(),pt_extremite.getX(),pt_extremite.getY());
+            gc.strokeLine(pt_depart_pointe_droite.getX(),pt_depart_pointe_droite.getY(),pt_extremite.getX(),pt_extremite.getY());
 
             gc.setStroke(s) ;
         //}
