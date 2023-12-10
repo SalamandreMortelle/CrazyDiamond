@@ -57,10 +57,7 @@ public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*
         if (rayonCourbure()!=null && d_autre.rayonCourbure()==null)
             return false ;
 
-        if (Environnement.quasiEgal(rayonCourbure(), d_autre.rayonCourbure()))
-            return true ;
-
-        return false ;
+        return Environnement.quasiEgal(rayonCourbure(), d_autre.rayonCourbure());
 
     }
 
@@ -107,9 +104,9 @@ public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*
         this.indice_avant = new SimpleDoubleProperty(sens_plus?dioptre.indiceAvant():dioptre.indiceApres());
         this.indice_apres = new SimpleDoubleProperty(sens_plus?dioptre.indiceApres():dioptre.indiceAvant());
         if (dioptre.rayonCourbure()!=null)
-            this.r_courbure = new SimpleObjectProperty<Double>((sens_plus?1d:-1d)*dioptre.rayonCourbure());
+            this.r_courbure = new SimpleObjectProperty<>((sens_plus?1d:-1d)*dioptre.rayonCourbure());
         else
-            this.r_courbure = new SimpleObjectProperty<Double>(null);
+            this.r_courbure = new SimpleObjectProperty<>(null);
 
         this.ignorer = new SimpleBooleanProperty(false);
         this.sens = new SimpleStringProperty("⟶");
@@ -119,12 +116,12 @@ public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*
         this.est_diaphragme_champ_pleine_lumiere = new SimpleStringProperty("");
         this.est_diaphragme_champ_total = new SimpleStringProperty("");
 
-        this.h_limite_ouverture = new SimpleObjectProperty<Double>(null);
-        this.h_limite_champ = new SimpleObjectProperty<Double>(null);
-        this.h_limite_champ_pleine_lumiere = new SimpleObjectProperty<Double>(null);
-        this.h_limite_champ_total = new SimpleObjectProperty<Double>(null);
+        this.h_limite_ouverture = new SimpleObjectProperty<>(null);
+        this.h_limite_champ = new SimpleObjectProperty<>(null);
+        this.h_limite_champ_pleine_lumiere = new SimpleObjectProperty<>(null);
+        this.h_limite_champ_total = new SimpleObjectProperty<>(null);
 
-        this.antecedent_diaphragme = new SimpleObjectProperty<SystemeOptiqueCentre.PositionElement>(null);
+        this.antecedent_diaphragme = new SimpleObjectProperty<>(null);
 
         this.matrice_transfert_partielle = null;
 
@@ -142,10 +139,7 @@ public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*
     }
 
     public boolean modalitesTraverseeDioptrePrecedentesApplicables(SystemeOptiqueCentre.ModalitesTraverseeDioptre modalites_prec) {
-        if (modalites_prec != null && modalites_prec.obs_surface == this.obstacleSurface())
-            return true;
-
-        return false;
+        return modalites_prec != null && modalites_prec.obs_surface == this.obstacleSurface();
     }
 
     public void permuterIndicesAvantApres() {
@@ -248,17 +242,13 @@ public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*
 
     public void activerDeclenchementCalculElementsCardinauxSiChangementModalitesTraversee(SystemeOptiqueCentre soc) {
 
-        this.ignorer.addListener((observable, oldValue, newValue) -> {
-            soc.calculeElementsCardinaux();
-        });
+        this.ignorer.addListener((observable, oldValue, newValue) -> soc.calculeElementsCardinaux());
 
         // Si l'obstacle a "nativement" une propriété diaphragme, inutile de déclencher un calcul des éléments
         // cardinaux en cas de changement de cette dernière : c'est déjà pris en charge par le rappel sur changement
         // de toute propriété lorsque l'obstacle a été ajouté au SOC (cf. SystemeOptiqueCentre::ajouterObstacle)
         if (!obstacleSurface().aUneProprieteDiaphragme()) {
-            this.r_diaphragme.addListener((observable, oldValue, newValue) -> {
-                soc.calculeElementsCardinaux();
-            });
+            this.r_diaphragme.addListener((observable, oldValue, newValue) -> soc.calculeElementsCardinaux());
         }
     }
 
@@ -332,4 +322,8 @@ public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*
         if (h_limite_champ_total.get()!=null) h_limite_champ_total.set(h_limite_champ_total.get()*facteur_conversion);
 
     }
+
+    public void definirRayonDiaphragme(double r_d) {r_diaphragme.set(r_d);}
+    public void definirIgnorer(boolean ig) {ignorer.set(ig);}
+
 }

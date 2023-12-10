@@ -1,6 +1,7 @@
 package CrazyDiamond.Serializer;
 
 import CrazyDiamond.Model.Obstacle;
+import CrazyDiamond.Model.RencontreDioptreParaxial;
 import CrazyDiamond.Model.SystemeOptiqueCentre;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -14,12 +15,6 @@ public class SystemeOptiqueCentreSerializer extends StdSerializer<SystemeOptique
         super(SystemeOptiqueCentre.class);
     }
 
-    /**
-     * @param soc
-     * @param jsonGenerator
-     * @param serializerProvider
-     * @throws IOException
-     */
     @Override
     public void serialize(SystemeOptiqueCentre soc, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
 
@@ -33,12 +28,36 @@ public class SystemeOptiqueCentreSerializer extends StdSerializer<SystemeOptique
         jsonGenerator.writeNumberField("y_origine",soc.YOrigine());
         jsonGenerator.writeNumberField("orientation",soc.orientation());
 
+        jsonGenerator.writeNumberField("z_objet",soc.ZObjet());
+        jsonGenerator.writeNumberField("h_objet",soc.HObjet());
+
+        jsonGenerator.writeBooleanField("montrer_objet",soc.MontrerObjet());
+        jsonGenerator.writeBooleanField("montrer_image",soc.MontrerImage());
+
+        jsonGenerator.writeBooleanField("montrer_plans_focaux",soc.MontrerPlansFocaux());
+        jsonGenerator.writeBooleanField("montrer_plans_principaux",soc.MontrerPlansPrincipaux());
+        jsonGenerator.writeBooleanField("montrer_plans_nodaux",soc.MontrerPlansNodaux());
+
+        jsonGenerator.writeBooleanField("montrer_dioptres",soc.MontrerDioptres());
+
         jsonGenerator.writeArrayFieldStart("obstacles");
 
         for (Obstacle o : soc.obstacles_centres())
             jsonGenerator.writeString(o.id());
 
         jsonGenerator.writeEndArray();
+
+        jsonGenerator.writeArrayFieldStart("modalites_traversee_dioptres");
+
+        for (RencontreDioptreParaxial renc : soc.dioptresRencontres()) {
+            jsonGenerator.writeStartObject();
+            jsonGenerator.writeNumberField("r_diaphragme",renc.rayonDiaphragme());
+            jsonGenerator.writeBooleanField("ignorer",renc.ignorer());
+            jsonGenerator.writeEndObject();
+        }
+
+        jsonGenerator.writeEndArray();
+
 
         jsonGenerator.writeEndObject();
 

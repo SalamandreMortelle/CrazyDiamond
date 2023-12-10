@@ -23,15 +23,8 @@ public class SystemeOptiqueCentreDeserializer extends StdDeserializer<SystemeOpt
         super(vc);
     }
 
-    /**
-     * @param jsonParser
-     * @param deserializationContext
-     * @return
-     * @throws IOException
-     * @throws JacksonException
-     */
     @Override
-    public SystemeOptiqueCentre deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JacksonException {
+    public SystemeOptiqueCentre deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
 
         final ObjectCodec mapper = jsonParser.getCodec();
         final JsonNode soc_node = mapper.readTree(jsonParser);
@@ -51,7 +44,19 @@ public class SystemeOptiqueCentreDeserializer extends StdDeserializer<SystemeOpt
                 soc_node.get("x_origine").asDouble()*facteur_conversion,
                 soc_node.get("y_origine").asDouble()*facteur_conversion ) ;
 
-        SystemeOptiqueCentre soc = new SystemeOptiqueCentre((Environnement) env,iei,origine,soc_node.get("orientation").asDouble()) ;
+        SystemeOptiqueCentre soc = new SystemeOptiqueCentre(env,iei,origine,soc_node.get("orientation").asDouble()) ;
+
+        if (soc_node.has("z_objet")) soc.definirZObjet(soc_node.get("z_objet").asDouble()*facteur_conversion) ;
+        if (soc_node.has("h_objet")) soc.definirHObjet(soc_node.get("h_objet").asDouble()*facteur_conversion) ;
+
+        if (soc_node.has("montrer_objet")) soc.definirMontrerObjet(soc_node.get("montrer_objet").asBoolean()) ;
+        if (soc_node.has("montrer_image")) soc.definirMontrerImage(soc_node.get("montrer_image").asBoolean()) ;
+        if (soc_node.has("montrer_plans_focaux")) soc.definirMontrerPlansFocaux(soc_node.get("montrer_plans_focaux").asBoolean()) ;
+        if (soc_node.has("montrer_plans_principaux")) soc.definirMontrerPlansPrincipaux(soc_node.get("montrer_plans_principaux").asBoolean()) ;
+        if (soc_node.has("montrer_plans_nodaux")) soc.definirMontrerPlansNodaux(soc_node.get("montrer_plans_nodaux").asBoolean()) ;
+
+        if (soc_node.has("montrer_dioptres")) soc.definirMontrerDioptres(soc_node.get("montrer_dioptres").asBoolean()) ;
+
 
         if (soc_node.has("obstacles")) {
 
@@ -65,6 +70,23 @@ public class SystemeOptiqueCentreDeserializer extends StdDeserializer<SystemeOpt
             }
 
         }
+
+        if (soc_node.has("modalites_traversee_dioptres")) {
+
+            int nb_modalites = soc_node.get("modalites_traversee_dioptres").size();
+
+            for (int i = 0; i < nb_modalites; i++) {
+                JsonNode mod = soc_node.get("modalites_traversee_dioptres").get(i);
+
+                if (mod.has("r_diaphragme"))
+                    soc.dioptresRencontres().get(i).definirRayonDiaphragme(mod.get("r_diaphragme").asDouble()) ;
+                if (mod.has("ignorer"))
+                    soc.dioptresRencontres().get(i).definirIgnorer(mod.get("ignorer").asBoolean()) ;
+
+            }
+
+        }
+
 
         return soc;
     }

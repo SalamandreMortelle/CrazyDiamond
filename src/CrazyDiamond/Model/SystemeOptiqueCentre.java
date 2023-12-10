@@ -152,6 +152,22 @@ public class SystemeOptiqueCentre implements Nommable {
 
     public void definirPosition(Point2D pos) { axe.set(new PositionEtOrientation(pos,orientation()));}
 
+    public void definirZObjet(double z) { z_objet.set(z) ; }
+    public void definirHObjet(double h) { h_objet.set(h) ; }
+
+    public void definirMontrerObjet(boolean mo) {montrer_objet.set(mo);}
+
+    public void definirMontrerImage(boolean mi) {montrer_image.set(mi);}
+
+    public void definirMontrerPlansFocaux(boolean mpf) { montrer_plans_focaux.set(mpf);}
+
+    public void definirMontrerPlansPrincipaux(boolean mpp) { montrer_plans_principaux.set(mpp); }
+
+    public void definirMontrerPlansNodaux(boolean mpn) { montrer_plans_nodaux.set(mpn); }
+
+    public void definirMontrerDioptres(boolean md) { montrer_dioptres.set(md); }
+
+
     public record PositionElement(double z, double hauteur) { }
 
     /**
@@ -1206,7 +1222,7 @@ public class SystemeOptiqueCentre implements Nommable {
 //        ) ;
 
         ObservableList<Obstacle> ols = FXCollections.observableArrayList() ;
-        obstacles_centres   = new SimpleListProperty<Obstacle>(ols);
+        obstacles_centres   = new SimpleListProperty<>(ols);
 
         // A sa création, le SOC ne contient pas d'éléments : ses milieux d'entrée et de sortie sont donc identiques, et
         // sont le milieu de l'environnement général (qui peut changer, donc nécessité d'un binding)
@@ -1227,7 +1243,7 @@ public class SystemeOptiqueCentre implements Nommable {
 //        this.n_entree.bind(env.indiceRefractionProperty());
 //        this.n_sortie.bind(env.indiceRefractionProperty());
 
-        this.axe = new SimpleObjectProperty<PositionEtOrientation>(new PositionEtOrientation(origine,orientation_deg)) ;
+        this.axe = new SimpleObjectProperty<>(new PositionEtOrientation(origine,orientation_deg)) ;
 
         this.axe.addListener((observable, oldValue, newValue) -> {
 
@@ -1353,7 +1369,7 @@ public class SystemeOptiqueCentre implements Nommable {
         };
         z_image.bind(calcule_z_image);
 
-        ObjectBinding<Double> calcule_h_image = new ObjectBinding<Double>() {
+        ObjectBinding<Double> calcule_h_image = new ObjectBinding<>() {
 
             // On ne met pas la dépendance à n_entree/n_sortie car ils sont forcément modifiés en même temps que la matrice de transfert
             { super.bind(matrice_transfert_es,z_objet,h_objet,n_entree,n_sortie) ;}
@@ -1397,7 +1413,7 @@ public class SystemeOptiqueCentre implements Nommable {
         };
         h_image.bind(calcule_h_image);
 
-        ObjectBinding<Double> calcul_grandissement_transversal = new ObjectBinding<Double>() {
+        ObjectBinding<Double> calcul_grandissement_transversal = new ObjectBinding<>() {
             { super.bind(matrice_transfert_es,z_image,n_sortie) ;}
 
             @Override protected Double computeValue() {
@@ -1427,7 +1443,7 @@ public class SystemeOptiqueCentre implements Nommable {
         };
         grandissement_transversal.bind(calcul_grandissement_transversal);
 
-        ObjectBinding<Double> calcul_grandissement_angulaire = new ObjectBinding<Double>() {
+        ObjectBinding<Double> calcul_grandissement_angulaire = new ObjectBinding<>() {
             { super.bind(matrice_transfert_es,sens_plus_en_sortie,n_entree,n_sortie, h_objet,h_image) ;}
             @Override protected Double computeValue() {
 
@@ -1449,7 +1465,7 @@ public class SystemeOptiqueCentre implements Nommable {
 
         grandissement_angulaire.bind(calcul_grandissement_angulaire);
 
-        ObjectBinding<Double> calcul_grandissement_longitudinal = new ObjectBinding<Double>() {
+        ObjectBinding<Double> calcul_grandissement_longitudinal = new ObjectBinding<>() {
             {super.bind(calcul_grandissement_transversal,calcul_grandissement_angulaire) ;}
             @Override protected Double computeValue() {
                 if (calcul_grandissement_transversal.get()==null || calcul_grandissement_angulaire.get()==null)
@@ -1462,10 +1478,10 @@ public class SystemeOptiqueCentre implements Nommable {
         grandissement_longitudinal.bind(calcul_grandissement_longitudinal);
 
         ObservableList<DioptreParaxial> oli_int = FXCollections.observableArrayList() ;
-        this.dioptres = new SimpleListProperty<DioptreParaxial>(oli_int);
+        this.dioptres = new SimpleListProperty<>(oli_int);
 
         ObservableList<RencontreDioptreParaxial> oli_int_r = FXCollections.observableArrayList() ;
-        this.dioptres_rencontres = new SimpleListProperty<RencontreDioptreParaxial>(oli_int_r);
+        this.dioptres_rencontres = new SimpleListProperty<>(oli_int_r);
 
     }
 
@@ -1565,8 +1581,8 @@ public class SystemeOptiqueCentre implements Nommable {
     }
     public void definirDirection(Point2D direction) {
 
-        if (direction != null && direction.magnitude()==0.0) {
-            throw new IllegalArgumentException("La direction du SOC ne peut pas être un vecteur nul.") ;
+        if (direction==null || direction.magnitude()==0d) {
+            throw new IllegalArgumentException("La direction du SOC doit être définie et ne peut pas être un vecteur nul.") ;
         }
 
         double angle_deg = direction.angle(new Point2D(1,0)) ;
@@ -1584,7 +1600,7 @@ public class SystemeOptiqueCentre implements Nommable {
             return ;
 
         // On oriente la direction du SOC sur la position courante de la souris
-        definirDirection(pos_souris.subtract(origine())); ;
+        definirDirection(pos_souris.subtract(origine()));
 
     }
 
@@ -1621,11 +1637,6 @@ public class SystemeOptiqueCentre implements Nommable {
 
         Contour contour = null ;
 
-        double xmin = boite.getMinX() ;
-        double xmax = boite.getMaxX() ;
-        double ymin = boite.getMinY() ;
-        double ymax = boite.getMaxY() ;
-
         DemiDroiteOuSegment s = new DemiDroiteOuSegment(origine(),direction()) ;
 
         Point2D p_inter1 = boite.premiere_intersection(s) ;
@@ -1642,7 +1653,7 @@ public class SystemeOptiqueCentre implements Nommable {
         if (p_inter_opp1 != null && p_inter_opp1.equals(p_inter_opp2))
             p_inter_opp2 = null ;
 
-        ArrayList<Point2D> its = new ArrayList<Point2D>(2) ;
+        ArrayList<Point2D> its = new ArrayList<>(2) ;
 
         if (p_inter1!=null)
             its.add(p_inter1) ;
