@@ -348,6 +348,7 @@ public class PanneauPrincipal {
                     key_event.consume();
                 }
                 case LEFT -> {
+
                     Point2D tr = new Point2D(-canvas_affichage_environnement.resolution(),0.0) ;
 
                     if (canvas_affichage_environnement.obstacleSelectionne() != null) {
@@ -364,6 +365,8 @@ public class PanneauPrincipal {
                         canvas_affichage_environnement.sourceSelectionnee().translater(tr);
                     else if (canvas_affichage_environnement.systemeOptiqueCentreSelectionne() != null)
                         canvas_affichage_environnement.systemeOptiqueCentreSelectionne().translater(tr);
+                    else
+                        break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
 
                     key_event.consume();
@@ -385,6 +388,8 @@ public class PanneauPrincipal {
                         canvas_affichage_environnement.sourceSelectionnee().translater(tr);
                     else if (canvas_affichage_environnement.systemeOptiqueCentreSelectionne() != null)
                         canvas_affichage_environnement.systemeOptiqueCentreSelectionne().translater(tr);
+                    else
+                        break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
                     key_event.consume();
                 }
@@ -405,6 +410,8 @@ public class PanneauPrincipal {
                         canvas_affichage_environnement.sourceSelectionnee().translater(tr);
                     else if (canvas_affichage_environnement.systemeOptiqueCentreSelectionne() != null)
                         canvas_affichage_environnement.systemeOptiqueCentreSelectionne().translater(tr);
+                    else
+                        break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
                     key_event.consume();
                 }
@@ -425,6 +432,8 @@ public class PanneauPrincipal {
                         canvas_affichage_environnement.sourceSelectionnee().translater(tr);
                     else if (canvas_affichage_environnement.systemeOptiqueCentreSelectionne() != null)
                         canvas_affichage_environnement.systemeOptiqueCentreSelectionne().translater(tr);
+                    else
+                        break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
                     key_event.consume();
                 }
@@ -1589,15 +1598,20 @@ public class PanneauPrincipal {
     }
 
     public void traiterDefinitionParametresEnvironnement() {
+        listview_sources.getSelectionModel().clearSelection();
+        treeview_obstacles.getSelectionModel().clearSelection();
+        listview_socs.getSelectionModel().clearSelection();
 
         scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
 
     }
 
     public void traiterDefinitionParametresAffichage() {
+        listview_sources.getSelectionModel().clearSelection();
+        treeview_obstacles.getSelectionModel().clearSelection();
+        listview_socs.getSelectionModel().clearSelection();
 
         scrollpane_droit_element_courant.setContent(panneau_parametres_affichage_environnement);
-
     }
 
 
@@ -1784,7 +1798,7 @@ public class PanneauPrincipal {
 
     }
 
-    public void traiterImporter(ActionEvent actionEvent) {
+    public void traiterImporter() {
         // Ouverture d'un FileChooser modal sur la fenêtre principale (un paramètre 'null' l'aurait rendu amodal)
         File fichier_a_charger = fileChooser.showOpenDialog(canvas_affichage_environnement.getScene().getWindow());
 

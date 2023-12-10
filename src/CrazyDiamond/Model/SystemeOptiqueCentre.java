@@ -1823,14 +1823,6 @@ public class SystemeOptiqueCentre implements Nommable {
 
         convertirObjectDoubleProperty(h_objet,facteur_conversion); // Déclenche une 2ème màj de h_image
 
-
-
-//        convertirObjectDoubleProperty(z_image,facteur_conversion);
-//        convertirObjectDoubleProperty(h_image,facteur_conversion);
-//        z_image.bind(calcule_z_image);
-//        h_image.bind(calcule_h_image);
-//        suspendre_calcul_image = false ;
-
         convertirObjectDoubleProperty(r_champ_moyen_objet,facteur_conversion);
         convertirObjectDoubleProperty(r_champ_moyen_image,facteur_conversion);
         convertirObjectDoubleProperty(r_champ_pleine_lumiere_objet,facteur_conversion);

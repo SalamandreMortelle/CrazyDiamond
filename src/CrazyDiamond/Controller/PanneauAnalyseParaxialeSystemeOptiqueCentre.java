@@ -1,10 +1,6 @@
 package CrazyDiamond.Controller;
 
-//import CrazyDiamond.Model.DioptreParaxial;
-import CrazyDiamond.Model.RencontreDioptreParaxial;
-import CrazyDiamond.Model.Environnement;
-import CrazyDiamond.Model.SystemeOptiqueCentre;
-import CrazyDiamond.Model.TraitementSurface;
+import CrazyDiamond.Model.*;
 import javafx.beans.binding.DoubleExpression;
 import javafx.beans.binding.ObjectExpression;
 import javafx.beans.binding.StringBinding;
@@ -17,6 +13,7 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.converter.DoubleStringConverter;
 
+import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,6 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
+
 
     // Modèle
     SystemeOptiqueCentre soc ;
@@ -34,7 +32,7 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
     private static final ResourceBundle rb = ResourceBundle.getBundle("CrazyDiamond") ;
 
-    class DoubleStringConverterSansException extends DoubleStringConverter {
+    static class DoubleStringConverterSansException extends DoubleStringConverter {
 
         private static final String regExp = "[\\x00-\\x20]*[+-]?(((((\\p{Digit}+)(\\.)?((\\p{Digit}+)?)([eE][+-]?(\\p{Digit}+))?)|(\\.((\\p{Digit}+))([eE][+-]?(\\p{Digit}+))?)|(((0[xX](\\p{XDigit}+)(\\.)?)|(0[xX](\\p{XDigit}+)?(\\.)(\\p{XDigit}+)))[pP][+-]?(\\p{Digit}+)))[fFdD]?))[\\x00-\\x20]*";
 
@@ -44,10 +42,6 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
             return m.matches();
         }
 
-        /**
-         * @param s
-         * @return
-         */
         @Override
         public Double fromString(String s) {
 
@@ -77,10 +71,13 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
     @FXML private Label label_vergence;
     @FXML private Label label_interstice;
 
+    @FXML public Label label_z_objet;
     @FXML private Spinner<Double> spinner_z_objet;
-    private ObjectProperty<Double> z_objet_object_property;
+
+
+    @FXML public Label label_h_objet;
     @FXML private Spinner<Double> spinner_h_objet;
-    private ObjectProperty<Double> h_objet_object_property;
+
     @FXML private Label z_image;
     @FXML private Label h_image;
 
@@ -122,24 +119,40 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         private final ObjectExpression<Double> obj_expr_double;
         private final DoubleExpression double_expr ;
 
+        private final boolean est_une_distance ;
+
         public FormatageNombreAvecPrecisionAdaptee(ObjectExpression<Double> nb) {
+            this(nb,false) ;
+        }
+
+        public FormatageNombreAvecPrecisionAdaptee(ObjectExpression<Double> nb, boolean est_une_distance) {
             super.bind(nb);
             this.obj_expr_double = nb ;
             this.double_expr = null ;
+            this.est_une_distance = est_une_distance ;
         }
 
         public FormatageNombreAvecPrecisionAdaptee(DoubleExpression dp) {
+            this(dp,false) ;
+        }
+        public FormatageNombreAvecPrecisionAdaptee(DoubleExpression dp,boolean est_une_distance) {
             super.bind(dp);
             this.obj_expr_double = null ;
             this.double_expr = dp ;
+            this.est_une_distance = est_une_distance ;
         }
 
         @Override protected String computeValue() {
-            return obj_expr_double!=null?canvas.convertisseurAffichageDistance().toString(obj_expr_double.get())
+            String valeur_resultat = obj_expr_double!=null?canvas.convertisseurAffichageDistance().toString(obj_expr_double.get())
                         :canvas.convertisseurAffichageDistance().toString(double_expr.get());
+
+            if (est_une_distance)
+                valeur_resultat = valeur_resultat + canvas.environnement().suffixeUnite() ;
+
+            return valeur_resultat ;
         }
 
-    } ;
+    }
 
 
     public PanneauAnalyseParaxialeSystemeOptiqueCentre(SystemeOptiqueCentre soc, CanvasAffichageEnvironnement cnv) {
@@ -160,7 +173,7 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
             { super.bind(soc.ZPlanFocal2Property(),soc.ZPlanPrincipal2Property(),soc.IntersectionsSurAxeProperty(),soc.MatriceTransfertESProperty()) ;}
             @Override protected String computeValue() {
 
-                StringBuffer sb = new StringBuffer() ;
+                StringBuilder sb = new StringBuilder() ;
                 sb.append("Système ") ;
 
                 if (soc.MatriceTransfertES()!=null && Environnement.quasiEgal(soc.MatriceTransfertES().getMyx(),0d)) {
@@ -168,8 +181,8 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
                     return sb.toString() ;
                 }
 
-                if (soc.ZPlanFocal2()==null || soc.ZPlanPrincipal2()==null|| soc.NSortie()==0d
-                        ||soc.ZPlanFocal2()==soc.ZPlanPrincipal2()||soc.InterSectionsSurAxe()==null)
+                if (soc.ZPlanFocal2()==null || soc.ZPlanPrincipal2()==null || soc.NSortie()==0d
+                        ||Objects.equals(soc.ZPlanFocal2(),soc.ZPlanPrincipal2()) || soc.InterSectionsSurAxe()==null)
                     return "-" ;
 
 
@@ -205,7 +218,8 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
                 if (soc.ZPlanFocal1()==null || soc.ZPlanPrincipal1()==null)
                     return "" ;
 
-                return canvas.convertisseurAffichageDistance().toString(soc.ZPlanFocal1() - soc.ZPlanPrincipal1()) ;
+                return canvas.convertisseurAffichageDistance().toString(soc.ZPlanFocal1() - soc.ZPlanPrincipal1())
+                        + canvas.environnement().suffixeUnite() ;
             }
         };
         focale_objet.textProperty().bind(calcul_focale_objet);
@@ -216,34 +230,60 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
                 if (soc.ZPlanFocal2()==null || soc.ZPlanPrincipal2()==null)
                     return "" ;
 
-                return canvas.convertisseurAffichageDistance().toString(soc.ZPlanFocal2() - soc.ZPlanPrincipal2());
+                return canvas.convertisseurAffichageDistance().toString(soc.ZPlanFocal2() - soc.ZPlanPrincipal2())
+                        + canvas.environnement().suffixeUnite() ;
             }
         };
         focale_image.textProperty().bind(calcul_focale_image);
 
-        z_pl_focal_objet.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanFocal1Property()));
-        z_pl_focal_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanFocal2Property()));
+        z_pl_focal_objet.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanFocal1Property(),true));
+        z_pl_focal_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanFocal2Property(),true));
 
-        z_pl_principal_objet.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanPrincipal1Property()));
-        z_pl_principal_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanPrincipal2Property()));
+        z_pl_principal_objet.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanPrincipal1Property(),true));
+        z_pl_principal_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanPrincipal2Property(),true));
 
-        z_pl_nodal_objet.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanNodal1Property()));
-        z_pl_nodal_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanNodal2Property()));
+        z_pl_nodal_objet.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanNodal1Property(),true));
+        z_pl_nodal_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanNodal2Property(),true));
 
-        z_objet_object_property = soc.ZObjetProperty() ;
-        spinner_z_objet.getValueFactory().valueProperty().bindBidirectional(z_objet_object_property);
+
+        StringBinding affiche_label_z_objet = new StringBinding() {
+            { super.bind(canvas.environnement().uniteProperty()) ;}
+            @Override protected String computeValue() {return "Z ("+canvas.environnement().unite().symbole+") :";}
+        };
+        label_z_objet.textProperty().bind(affiche_label_z_objet);
+
+
+        ObjectProperty<Double> z_objet_object_property = soc.ZObjetProperty();
+        // Mise à jour de la valeur du spinner quand la valeur de la propriété change
+        z_objet_object_property.addListener(new ChangeListenerAvecGarde<>(spinner_z_objet.getValueFactory().valueProperty()::set));
+        // Mise à jour de la propriété ZObjet du SOC quand la valeur du spinner change
+        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_z_objet, z_objet_object_property.get(), soc::definirZObjet);
+
+        // Mise à jour de la valeur du spinner quand la valeur de la propriété change
+//        spinner_z_objet.getValueFactory().valueProperty().bindBidirectional(z_objet_object_property);
+
         spinner_z_objet.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_RIGHT_HORIZONTAL) ;
-
         canvas.ajustePasEtAffichageSpinnerValueFactoryDistance((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_z_objet.getValueFactory());
 
-        h_objet_object_property = soc.HObjetProperty() ;
-        spinner_h_objet.getValueFactory().valueProperty().bindBidirectional(h_objet_object_property);
+        StringBinding affiche_label_h_objet = new StringBinding() {
+            { super.bind(canvas.environnement().uniteProperty()) ;}
+            @Override protected String computeValue() {return "h ("+canvas.environnement().unite().symbole+") :";}
+        };
+        label_h_objet.textProperty().bind(affiche_label_h_objet);
+
+
+        ObjectProperty<Double> h_objet_object_property = soc.HObjetProperty();
+        // Mise à jour de la valeur du spinner quand la valeur de la propriété change
+        h_objet_object_property.addListener(new ChangeListenerAvecGarde<>(spinner_h_objet.getValueFactory().valueProperty()::set));
+        // Mise à jour de la propriété HObjet du SOC quand la valeur du spinner change
+        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_h_objet, h_objet_object_property.get(), soc::definirHObjet);
+//        spinner_h_objet.getValueFactory().valueProperty().bindBidirectional(h_objet_object_property);
         spinner_h_objet.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_LEFT_VERTICAL) ;
 
         canvas.ajustePasEtAffichageSpinnerValueFactoryDistance((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_h_objet.getValueFactory());
 
-        z_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZImageProperty()));
-        h_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.HImageProperty()));
+        z_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZImageProperty(),true));
+        h_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.HImageProperty(),true));
 
         grandissement_transversal.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.GrandissementTransversalProperty()));
 
@@ -324,10 +364,11 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         StringBinding calcul_et_formatage_interstice = new StringBinding() {
             { super.bind(soc.ZPlanPrincipal1Property(),soc.ZPlanPrincipal2Property()) ;}
             @Override protected String computeValue() {
-                if (soc.ZPlanPrincipal1()==null || soc.ZPlanPrincipal2()==null||soc.ZPlanPrincipal1()==soc.ZPlanPrincipal2())
+                if (soc.ZPlanPrincipal1()==null || soc.ZPlanPrincipal2()==null|| Objects.equals(soc.ZPlanPrincipal1(), soc.ZPlanPrincipal2()))
                     return "" ;
 
-                return canvas.convertisseurAffichageDistance().toString(soc.ZPlanPrincipal2()-soc.ZPlanPrincipal1());
+                return canvas.convertisseurAffichageDistance().toString(soc.ZPlanPrincipal2()-soc.ZPlanPrincipal1())
+                        + suffixeUniteAUtiliser() ;
             }
         };
         label_interstice.textProperty().bind(calcul_et_formatage_interstice);
@@ -337,7 +378,12 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
 
         col_numero.setCellValueFactory(column-> new ReadOnlyObjectWrapper<Number>(table_intersections.getItems().indexOf(column.getValue())+1)) ;
 
-//        col_z.setCellValueFactory(p -> p.getValue().z_intersection.asObject());
+        StringBinding affiche_label_z_dioptre = new StringBinding() {
+            { super.bind(canvas.environnement().uniteProperty()) ;}
+            @Override protected String computeValue() {return "Z ("+canvas.environnement().unite().symbole+")";}
+        };
+        col_z.textProperty().bind(affiche_label_z_dioptre);
+
         col_z.setCellValueFactory(p -> p.getValue().zProperty().asObject());
         col_z.setCellFactory(TextFieldTableCell.forTableColumn(new DoubleStringConverterSansException()));
 
@@ -357,8 +403,19 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
 //        col_z.setStyle(".table-cell:filled {-fx-background-color: red}");
         col_z.setStyle("-fx-text-fill: blue;");
 
+        StringBinding affiche_label_r_courbure = new StringBinding() {
+            { super.bind(canvas.environnement().uniteProperty()) ;}
+            @Override protected String computeValue() {return "R. Courbure ("+canvas.environnement().unite().symbole+")";}
+        };
+        col_r_courbure.textProperty().bind(affiche_label_r_courbure);
 
         col_r_courbure.setCellValueFactory(p -> p.getValue().rayonCourbureProperty());
+
+        StringBinding affiche_label_r_diaphragme = new StringBinding() {
+            { super.bind(canvas.environnement().uniteProperty()) ;}
+            @Override protected String computeValue() {return "R. Diaphragme ("+canvas.environnement().unite().symbole+")";}
+        };
+        col_r_diaphragme.textProperty().bind(affiche_label_r_diaphragme);
 
         col_r_diaphragme.setCellValueFactory(p -> p.getValue().rayonDiaphragmeProperty());
         col_r_diaphragme.setCellFactory(TextFieldTableCell.forTableColumn(new DoubleStringConverterSansException()));
@@ -425,4 +482,12 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
 
     }
 
+    private String suffixeUniteAUtiliser() {
+
+        return " "+canvas.environnement().unite().symbole ;
+
+    }
+
+    private void definirZObjetSOC(Double z_o) {soc.definirZObjet(z_o);}
+    private void definirHObjetSOC(Double h_o) {soc.definirHObjet(h_o);}
 }

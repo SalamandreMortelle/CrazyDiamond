@@ -33,7 +33,6 @@ public class Environnement {
      */
     protected final ObjectProperty<Unite> unite ;
 
-
     protected final ObjectProperty<Color> couleur_fond;
 
     protected final StringProperty commentaire ;
@@ -49,6 +48,7 @@ public class Environnement {
 
     // Récupération du logger
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
+    private Unite prochaine_unite = null ;
 
     // TODO : une clip zone non rectangulaire (environnement circulaire, etc.)
 
@@ -136,7 +136,8 @@ public class Environnement {
 
     }
 
-    public Unite unite() {return unite.get() ;}
+    public Unite unite() { return (prochaine_unite==null?unite.get():prochaine_unite) ;}
+
     public ObjectProperty<Unite> uniteProperty() {return unite ;}
 
     public double indiceRefraction() { return indice_refraction.get(); }
@@ -594,6 +595,7 @@ public class Environnement {
 
     public void changerUnite(Unite originelle, Unite cible) {
 
+        prochaine_unite = cible ;
 
         suspendre_illumination_sources = true ;
         suspendre_rafraichissement_affichages = true ;
@@ -604,7 +606,7 @@ public class Environnement {
         suspendre_illumination_sources = false ;
 
         // Inutile de recalculer les éléments cardinaux (et la matrice de transfert) : ils sont inchangés ; il faut juste
-        // convertir leurs positions/dimensions dans la nouvelle unité au niveau de la méthode SystemeOptiqueCentre::convertirDistances
+        // convertir leurs positions/dimensions dans la nouvelle unité au niveau de la méthode SystemeOptiqueCentre::convertirDistancesEtRafraichirAffichage
 //        for (SystemeOptiqueCentre soc : systemes_optiques_centres)
 //            soc.calculeElementsCardinaux();
 
@@ -613,6 +615,8 @@ public class Environnement {
 
         unite.set(cible); // Déclenche la redéfinition des x_min_g, xmax_g, y_centre_g de la zone visible du
         // CanvasAffichageEnvironnement qui contient cet environnement
+
+        prochaine_unite = null ;
 
     }
     private void convertirDistances(double facteur_conversion) {
@@ -627,5 +631,8 @@ public class Environnement {
     public boolean rafraichissementAffichagesSuspendu() { return suspendre_rafraichissement_affichages ;}
 
     public boolean calculsElementsCardinauxSocSuspendus() { return suspendre_calculs_elements_cardinaux_soc ; }
+
+    public String suffixeUnite() { return " "+unite().symbole ; }
+
 }
 

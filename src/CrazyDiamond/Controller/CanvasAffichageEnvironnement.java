@@ -40,12 +40,6 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     // Récupération du logger
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
 
-    private ListChangeListener<Source> lcl_sources ;
-
-    private ListChangeListener<Obstacle> lcl_obstacles ;
-
-    private ListChangeListener<SystemeOptiqueCentre> lcl_socs ;
-
     private final VisiteurAffichageEnvironnement visiteur_affichage ;
 
     // Limites par défaut de la zone d'intérêt (zone visible)
@@ -149,7 +143,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
      * @param prolongements_arriere_visibles : Indique si les prolongements des rayons vers l'arrière doivent être affichés (en pointillés)
      * @param commentaire_visible : Indique si le commentaire (description textuelle) de l'Environnement doit être affiché
      * @param couleur_normales : Couleur à utiliser pour afficher les normales
-     * @throws IllegalArgumentException
+     * @throws IllegalArgumentException si hauteur ou largeur fournies sont négatives
      */
     public CanvasAffichageEnvironnement(Environnement e, double larg_gc, double haut_gc, double xmin_g, double xmax_g, double ycentre_g,
                                         boolean normales_visibles,
@@ -172,13 +166,14 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
         this.environnement.uniteProperty().addListener( ( (observableValue, oldValue, newValue) -> {
                     LOGGER.log(Level.FINER,"unite passe de {0} à {1}",new Object[] {oldValue,newValue});
-                    convertirDistances(oldValue.valeur/newValue.valeur);
+                    convertirDistancesEtRafraichirAffichage(oldValue.valeur/newValue.valeur);
                 } )
         ) ;
 
         visiteur_affichage = new VisiteurAffichageEnvironnement(this) ;
 
-
+        // Convertisseur d'affichage des distances qui ajustera automatiquement le nombre de décimales à afficher en
+        // fonction de la résolution de la résolution du Canvas, et qui fait de la virgule le séparateur des décimales.
         convertisseur_affichage_distance = new ConvertisseurDoubleValidantAffichageDistance(this) ;
 
         // Inutile d'ajouter un listener : le binding avec la résolution du canvas est faite dans le constructeur du convertisseur.
@@ -252,22 +247,26 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
             its.next().ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 
         // Détection des sources ajoutées ou supprimées
-        lcl_sources = change -> {
+        //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
+        //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
+        //                else
+        //                  for (Source remitem : change.getRemoved()) { }
+        ListChangeListener<Source> lcl_sources = change -> {
             while (change.next()) {
-    //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
-    //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
-    //                else
+                //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
+                //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
+                //                else
                 if (change.wasRemoved()) {
-    //                  for (Source remitem : change.getRemoved()) { }
+                    //                  for (Source remitem : change.getRemoved()) { }
 
-                    LOGGER.log(Level.FINER,"Source supprimée");
+                    LOGGER.log(Level.FINER, "Source supprimée");
                     rafraichirAffichage();
                 } else if (change.wasAdded()) {
                     for (Source additem : change.getAddedSubList()) {
 
-                        LOGGER.log(Level.FINER,"Source ajoutée : {0}",additem);
+                        LOGGER.log(Level.FINER, "Source ajoutée : {0}", additem);
 
-                        LOGGER.log(Level.FINER,"Création des liaisons pour la Source {0}",additem);
+                        LOGGER.log(Level.FINER, "Création des liaisons pour la Source {0}", additem);
 
                         additem.ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 
@@ -286,17 +285,18 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         while (ito.hasNext())
             ito.next().ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 
-        lcl_obstacles = change -> {
+        //                  for (Source remitem : change.getRemoved()) { }
+        ListChangeListener<Obstacle> lcl_obstacles = change -> {
             while (change.next()) {
 
                 if (change.wasRemoved()) {
                     //                  for (Source remitem : change.getRemoved()) { }
-                    LOGGER.log(Level.FINER,"Obstacle supprimé");
+                    LOGGER.log(Level.FINER, "Obstacle supprimé");
                     rafraichirAffichage();
                 } else if (change.wasAdded()) {
 
                     for (Obstacle additem : change.getAddedSubList()) {
-                        LOGGER.log(Level.FINER,"Obstacle ajouté : {0}" , additem);
+                        LOGGER.log(Level.FINER, "Obstacle ajouté : {0}", additem);
 
                         additem.ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
                     }
@@ -317,7 +317,14 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
 
         // Détection des socs ajoutés ou supprimés
-        lcl_socs = change -> {
+        //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
+        //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
+        //                else
+        //                  for (Source remitem : change.getRemoved()) { }
+        // Il faut un rappel pour redessiner l'axe en cas de changement d'une propriété du SOC, y compris sa matrice de transfert
+        // NB : Si ce rappel se déclenche, il est dommage qu'il y en ait déjà un de déclenché par les obstacles du SOC eux-mêmes, quand on
+        // change ses propriétés : il faudrait s'en passer et ne garder que le rappel ci-dessous...
+        ListChangeListener<SystemeOptiqueCentre> lcl_socs = change -> {
             while (change.next()) {
                 //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
                 //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
@@ -325,14 +332,14 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
                 if (change.wasRemoved()) {
                     //                  for (Source remitem : change.getRemoved()) { }
 
-                    LOGGER.log(Level.FINER,"SOC supprimé");
+                    LOGGER.log(Level.FINER, "SOC supprimé");
                     rafraichirAffichage();
                 } else if (change.wasAdded()) {
                     for (SystemeOptiqueCentre additem : change.getAddedSubList()) {
 
-                        LOGGER.log(Level.FINER,"SOC ajouté : {0}",additem);
+                        LOGGER.log(Level.FINER, "SOC ajouté : {0}", additem);
 
-                        LOGGER.log(Level.FINER,"Création des liaisons pour le SOC {0}",additem);
+                        LOGGER.log(Level.FINER, "Création des liaisons pour le SOC {0}", additem);
 
                         // Il faut un rappel pour redessiner l'axe en cas de changement d'une propriété du SOC, y compris sa matrice de transfert
                         // NB : Si ce rappel se déclenche, il est dommage qu'il y en ait déjà un de déclenché par les obstacles du SOC eux-mêmes, quand on
@@ -1056,9 +1063,9 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
     /**
      * Convertit les dimensions de la zone géométrique visible en les multipliant par le facteur de conversion transmis
-     * @param facteur_conversion
+     * @param facteur_conversion facteur de conversion de l'ancienne vers la nouvelle unité
      */
-    public void convertirDistances(double facteur_conversion) {
+    public void convertirDistancesEtRafraichirAffichage(double facteur_conversion) {
         suspendre_rafraichir_decor = true ;
         definirLimites(xmin()*facteur_conversion,xmax()*facteur_conversion,ycentre()*facteur_conversion);
         suspendre_rafraichir_decor = false ;

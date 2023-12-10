@@ -53,8 +53,6 @@ public class PanneauParametresEnvironnement {
 
         this.environnement = environnement ;
 
-//        colorpicker_fond.valueProperty().bind( environnement.couleurFondProperty() );
-
         colorpicker_fond.setValue(environnement.couleurFond());
 
         colorpicker_contour_nouveaux_obstacles.valueProperty().bindBidirectional(ElementAvecContour.couleur_contour_par_defaut_property);
@@ -62,17 +60,6 @@ public class PanneauParametresEnvironnement {
         colorpicker_couleur_nouveaux_rayons.valueProperty().bindBidirectional(Source.couleurParDefautProperty());
 
         checkbox_fresnel.selectedProperty().bindBidirectional(environnement.reflexionAvecRefractionProperty());
-
-
-
-//        colorpicker_contour_nouveaux_obstacles.setValue(ElementAvecContour.couleur_contour_par_defaut_property.getValue());
-//        colorpicker_matiere_nouveaux_obstacles.setValue(ElementAvecMatiere.couleur_matiere_par_defaut_property.getValue());
-
-//        colorpicker_fond.setOnAction(new EventHandler() {
-//            public void handle(Event t) {
-//                text.setFill(colorPicker.getValue());
-//            }
-//        });
 
         if (environnement.unite() == Unite.M)
             choix_unite_m.setSelected(true);

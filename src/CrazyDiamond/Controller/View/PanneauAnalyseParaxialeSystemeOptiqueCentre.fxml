@@ -122,14 +122,14 @@
             </HBox>
             <HBox>
                <children>
-                  <Label maxWidth="1.7976931348623157E308" text="Z : " textOverrun="CLIP" />
+                  <Label fx:id="label_z_objet" maxWidth="1.7976931348623157E308" text="Z : " textOverrun="CLIP" />
 <!--                  <Spinner fx:id="spinner_z_objet" editable="true" amountToStepBy="0.1" initialValue="0.0" min="%spinner_distance_min"  max="%spinner_distance_max" />-->
                   <Spinner fx:id="spinner_z_objet" amountToStepBy="0.1" editable="true" initialValue="0.0" max="1E100d" min="-1E100d" />
                </children>
             </HBox>
             <HBox layoutX="10.0" layoutY="42.0">
                <children>
-                  <Label maxWidth="1.7976931348623157E308" text="h : " textOverrun="CLIP" />
+                  <Label fx:id="label_h_objet" maxWidth="1.7976931348623157E308" text="h : " textOverrun="CLIP" />
 <!--                  <Spinner fx:id="spinner_h_objet" editable="true" amountToStepBy="0.1" initialValue="0.0" min="%spinner_distance_min"  max="%spinner_distance_max"  />-->
                   <Spinner fx:id="spinner_h_objet" amountToStepBy="0.1" editable="true" initialValue="0.0" max="1E100d" min="-1E100d" />
                </children>
