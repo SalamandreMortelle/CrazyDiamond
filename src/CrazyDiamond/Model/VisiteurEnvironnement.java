@@ -11,7 +11,6 @@ public interface VisiteurEnvironnement {
     void visiteCercle(Cercle c) ;
     void visiteRectangle(Rectangle r) ;
     void visiteConique(Conique c) ;
-    void visiteParabole(Parabole p) ;
     void visiteDemiPlan(DemiPlan dp) ;
     void visitePrisme(Prisme prisme);
 
@@ -20,8 +19,8 @@ public interface VisiteurEnvironnement {
 
     void visiteSystemeOptiqueCentre(SystemeOptiqueCentre soc) ;
 
-    default void avantVisiteSystemesOptiquesCentres() { } ;
-    default void apresVisiteSystemesOptiquesCentres() { } ;
+    default void avantVisiteSystemesOptiquesCentres() { }
+    default void apresVisiteSystemesOptiquesCentres() { }
 
     default void avantVisiteObstacles() { }
     default void apresVisiteObstacles() { }

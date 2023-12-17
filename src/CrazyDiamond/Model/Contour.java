@@ -1,5 +1,7 @@
 package CrazyDiamond.Model;
 
+import clipper2.core.PathD;
+import clipper2.core.PointD;
 import javafx.geometry.Point2D;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -14,13 +16,13 @@ public class Contour {
     }
 
     public Contour(int nombre) {
-        xpoints = new ArrayList<Double>(nombre) ;
-        ypoints = new ArrayList<Double>(nombre) ;
+        xpoints = new ArrayList<>(nombre) ;
+        ypoints = new ArrayList<>(nombre) ;
     }
 
     public Contour(Contour c) {
-        xpoints = new ArrayList<Double>(c.xpoints) ;
-        ypoints = new ArrayList<Double>(c.ypoints) ;
+        xpoints = new ArrayList<>(c.xpoints) ;
+        ypoints = new ArrayList<>(c.ypoints) ;
 
     }
 
@@ -69,15 +71,12 @@ public class Contour {
         Iterator<Double> itx = xpoints.iterator() ;
         Iterator<Double> ity = ypoints.iterator() ;
 
-        int i = 0 ;
         while (itx.hasNext() && ity.hasNext()) {
             double xpoignee = itx.next();
             double ypoignee = ity.next() ;
 
             if (Math.abs(pclic.getX()-xpoignee)<=tolerance_pointage && Math.abs(pclic.getY()-ypoignee)<=tolerance_pointage)
                 return true ;
-
-            i++ ;
         }
 
         return false ;
@@ -86,4 +85,55 @@ public class Contour {
 
     public Iterator<Double> iterateurX() {return xpoints.iterator() ; }
     public Iterator<Double> iterateurY() {return ypoints.iterator() ; }
+
+    public PathD convertirEnPathClipperFerme() {
+
+        PathD path = new PathD(xpoints.size());
+
+        Iterator<Double> itx = iterateurX();
+        Iterator<Double> ity = iterateurY();
+
+        double xdep, ydep;
+
+        if (itx.hasNext() && ity.hasNext()) {
+            xdep = itx.next();
+            ydep = ity.next();
+
+            path.add(new PointD(xdep, ydep));
+
+            while (itx.hasNext() && ity.hasNext())
+                path.add(new PointD(itx.next(), ity.next()));
+
+            // Fermeture du contour
+            if ( (path.get(path.size()-1).x != xdep) || (path.get(path.size()-1).y != ydep) )
+                path.add(new PointD(xdep,ydep));
+        }
+
+        return path;
+    }
+
+    public PathD convertirEnPathClipperOuvert() {
+
+        PathD path = new PathD(xpoints.size());
+
+        Iterator<Double> itx = iterateurX();
+        Iterator<Double> ity = iterateurY();
+
+        double xdep, ydep;
+
+        if (itx.hasNext() && ity.hasNext()) {
+            xdep = itx.next();
+            ydep = ity.next();
+
+            path.add(new PointD(xdep, ydep));
+
+            while (itx.hasNext() && ity.hasNext())
+                path.add(new PointD(itx.next(), ity.next()));
+
+        }
+
+        return path;
+    }
+
+
 }

@@ -2,9 +2,15 @@ package CrazyDiamond.Model;
 
 import java.util.ArrayList;
 import java.util.List;
+import clipper2.core.PathsD;
+import clipper2.Clipper;
+import clipper2.core.RectD;
 
 public class ContoursObstacle {
 
+
+    // Même précision que la classe VisiteurCollecteContours
+    private final int precision = 7 ;
     protected ArrayList<Contour> contours_surface ;
     protected ArrayList<Contour> contours_masse ;
 
@@ -41,6 +47,48 @@ public class ContoursObstacle {
         effacerContoursMasse();
     }
 
-    // TODO : ajouter méthodes pour convertir les contours en Path, ou en instructions de traçage/remplissage dans le Canvas
+    public boolean intersecte(BoiteLimiteGeometrique boite_limites) {
+
+        RectD boite = new RectD(boite_limites.getMinX(), boite_limites.getMaxY(),boite_limites.getMaxX(),boite_limites.getMinY()) ;
+
+        PathsD subjects_masse = convertirContoursMasseEnPathsClipperFerme() ;
+
+        PathsD res = Clipper.ExecuteRectClip(boite,subjects_masse,precision,false);
+
+        if (res.size()>0)
+            return true ;
+
+        PathsD subjects_surface = convertirContoursSurfacesSansMatiereEnPathsClipperOuvert();
+
+        res = Clipper.ExecuteRectClipLines(boite, subjects_surface,precision) ;
+
+        return (res.size()>0) ;
+
+    }
+
+    private PathsD convertirContoursMasseEnPathsClipperFerme() {
+
+        PathsD resultat = new PathsD(contours_masse.size()) ;
+
+        for (Contour c_m : contours_masse)
+            resultat.add(c_m.convertirEnPathClipperFerme()) ;
+
+        return resultat ;
+
+    }
+
+    private PathsD convertirContoursSurfacesSansMatiereEnPathsClipperOuvert() {
+
+        PathsD resultat = new PathsD(contours_surface.size()) ;
+
+        for (Contour c_s : contours_surface) {
+            if (c_s.nombrePoints()==2) // Les surfaces sans matiere sont formées de segments entre deux points
+                resultat.add(c_s.convertirEnPathClipperOuvert());
+        }
+
+        return resultat ;
+
+    }
+
 
 }

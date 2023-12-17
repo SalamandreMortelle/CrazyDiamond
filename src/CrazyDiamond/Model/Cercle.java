@@ -512,8 +512,8 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
      * @param ymax : valeur maximale du y solution
      * @param y_sol_croissant : true si les solutions sont attendues par ordre x croissant, false si c'est l'ordre
      *                        décroissant qui est attendu.
-     * @return tableau contenant 0, 1 ou 2 solution composée(s) du y et du theta de la solution, ordonnées par y croissant
-     * NB : si une intersection se trouve à l'une des extrémités de la verticale elle n'est pas retournée car on la trouvera
+     * @return tableau contenant 0, 1 ou 2 solutions composée(s) du y et du theta de la solution, ordonnées par y croissant
+     * NB : si une intersection se trouve à l'une des extrémités de la verticale elle n'est pas retournée, car on la trouvera
      *      comme intersection sur l'horizontale
      *
      */
@@ -542,7 +542,7 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
             return new double[0][0];
         }
 
-        // Jusqu'à deux intersections possible
+        // Jusqu'à deux intersections possibles
         double y_sol1 = y_centre+rayon*Math.sin(alpha) ;
         double y_sol2 = y_centre-rayon*Math.sin(alpha) ;
 
@@ -661,7 +661,31 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
 
     }
 
-    protected Contour arc_de_cercle(double theta_debut,double theta_fin, int nombre_pas_angulaire_par_arc) {
+//    @Override
+//    public boolean estCouvertPar(BoiteLimiteGeometrique zone_rect) {
+//
+//        // Source: https://prograide.com/pregunta/10454/detection-des-collisions-entre-cercle-et-rectangle-intersection
+//
+//        double distance_centres_x = Math.abs(xCentre() - zone_rect.getCenterX());
+//        double distance_centres_y = Math.abs(yCentre() - zone_rect.getCenterY());
+//
+//        if (distance_centres_x > (zone_rect.getWidth()/2 + rayon()))
+//            return false;
+//        if (distance_centres_y > (zone_rect.getHeight()/2 + rayon()))
+//            return false;
+//        if (distance_centres_x <= (zone_rect.getWidth()/2))
+//            return true;
+//        if (distance_centres_y <= (zone_rect.getHeight()/2))
+//            return true;
+//
+//        double distance_coin_x = distance_centres_x - zone_rect.getWidth()/2 ;
+//        double distance_coin_y = distance_centres_y - zone_rect.getHeight()/2 ;
+//
+//        return distance_coin_x*distance_coin_x + distance_coin_y*distance_coin_y <= rayon()*rayon() ;
+//
+//    }
+
+    protected Contour arc_de_cercle(double theta_debut, double theta_fin, int nombre_pas_angulaire_par_arc) {
 
         Contour c = new Contour(nombre_pas_angulaire_par_arc) ;
 

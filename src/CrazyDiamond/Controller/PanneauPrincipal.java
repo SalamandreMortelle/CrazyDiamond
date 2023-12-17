@@ -11,7 +11,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
@@ -742,75 +741,6 @@ public class PanneauPrincipal {
 
         environnement.ajouterListenerListeSystemesOptiquesCentres(lcl_socs);
 
-
-
-
-
-
-
-//        new ParaboleGraphique(eg, Obstacle.TypeSurface.CONCAVE, 1,0.0,0.0) ;
-//        new ParaboleGraphique(eg, Obstacle.TypeSurface.CONCAVE ,-1,0.0,2.5) ;
-//
-//        new RectangleGraphique(eg, Obstacle.TypeSurface.CONVEXE,0.4,0.45,0.6,0.55) ;
-
-//        new RectangleGraphique(eg, Obstacle.TypeSurface.CONCAVE,-0.9,0.1,0.9,0.9) ;
-//        new ParaboleGraphique(eg, Obstacle.TypeSurface.CONVEXE ,-1,0.0,0.5) ;
-
-//        new CercleGraphique(eg, Obstacle.TypeSurface.CONCAVE,0,1.5,1) ;
-//        new RectangleGraphique(eg, Obstacle.TypeSurface.CONVEXE,0.1,0.6,0.2,0.8) ;
-//        new SegmentGraphique(eg,0,0,0,1) ;
-//        new SegmentGraphique(eg,-0.5,0.4,0.5,0.5) ;
-
-        // Conique : Ellipse avec axe foxal tourné de -45°
-//        new ConiqueGraphique(eg, Obstacle.TypeSurface.CONVEXE, Math.sqrt(3.0/4.0),0,1.0,-1.0,0.25,Math.sqrt(3.0/4.0)) ;
-//        new ConiqueGraphique(eg, Obstacle.TypeSurface.CONVEXE, Math.sqrt(3.0/4.0),0,1.0,0.0,0.25,1.5) ;
-
-        // Ellipse
-//        new ConiqueGraphique(eg, Obstacle.TypeSurface.CONCAVE, Math.sqrt(3.0/4.0)+0.4,0,0.1,0.05,1.2,0.7) ;
-//        new ConiqueGraphique(eg, Obstacle.TypeSurface.CONCAVE, Math.sqrt(3.0/4.0),0.0,0,2,0.7) ;
-
- //       environnement.ajouterObstacle(new Conique(Obstacle.TypeSurface.CONCAVE, Math.sqrt(3.0/4.0),0.0,0,2,0.7)) ;
-
-        // Parabole
-//        new ConiqueGraphique(eg, Obstacle.TypeSurface.CONCAVE, Math.sqrt(3.0/4.0),0,0.5,0.3,0.25,1.0) ;
-
-        // Hyperbole
-//        new ConiqueGraphique(eg, Obstacle.TypeSurface.CONCAVE, Math.sqrt(3.0/4.0),0,0.6,-0.5,0.25,1.5) ;
-
-        // Petit cercle centré sur le foyer
-//        new CercleGraphique(eg, Obstacle.TypeSurface.CONVEXE,Math.sqrt(3.0/4.0),0,0.05) ;
-//        Cercle cerc1 = new Cercle(TypeSurface.CONVEXE,0,0,1.0) ;
-//        cerc1.definirIndiceRefraction(1.4d);
-//        environnement.ajouterObstacle(cerc1) ;
-//        Cercle cerc2 = new Cercle(TypeSurface.CONVEXE,1,0,0.8) ;
-//        cerc2.definirIndiceRefraction(1.8d);
-//        environnement.ajouterObstacle(cerc2) ;
-//
-//        SystemeOptiqueCentre soc = new SystemeOptiqueCentre(environnement, new Point2D(0d,0d),0d) ;
-//        soc.ajouterObstacle(cerc1);
-//        soc.ajouterObstacle(cerc2);
-//        environnement.ajouterSystemeOptiqueCentre(soc);
-
-
-//        cerc.definirXcentre(cerc.Xcentre()-0.1);
-
-//        Cercle cerc1 = new Cercle(Obstacle.TypeSurface.CONVEXE,0.6,0,0.9) ;
-//        Cercle cerc2 = new Cercle(Obstacle.TypeSurface.CONVEXE,-0.3,0,0.4) ;
-//       Composition compo = new Composition(cerc1, Composition.Operateur.DIFFERENCE, cerc2) ;
-
-
-//        Composition compo = new Composition(co1, Composition.Operateur.DIFFERENCE, co2) ;
-//        Composition compo = new Composition(co1, Composition.Operateur.DIFFERENCE_SYMETRIQUE, co2) ;
-
-//        CompositionDeuxObstacles compo = new CompositionDeuxObstacles(co1, Composition.Operateur.INTERSECTION, co2) ;
-
-//        Conique co1 = new Conique( TypeSurface.CONVEXE, 0.0,0.0,300.0,0.53,0.6) ;
-//        Conique co2 = new Conique( TypeSurface.CONVEXE, 0.0,0.0,341.0,0.31,0.7) ;
-//        Composition compo = new Composition(Composition.Operateur.UNION) ;
-//        compo.ajouterObstacle(co1);
-//        compo.ajouterObstacle(co2);
-//        environnement.ajouterObstacle(compo) ;
-
     }
 
     private void setUpDependecyInjector() {
@@ -1380,7 +1310,7 @@ public class PanneauPrincipal {
 
         glisser_juste_termine = false ;
 
-        // C'est peut-être le début d'un glisser de souris : enregistrer la position de début de glisser
+        // C'est peut-être le début d'un glisser de souris : enregistrons la position de début de glisser
         p_debut_glisser = new Point2D(mouseEvent.getX(),mouseEvent.getY());
 
         if (modeCourant()==selection) {
@@ -1460,8 +1390,6 @@ public class PanneauPrincipal {
                 ob_select.translater(vec_dir.multiply(vec_dir.dotProduct(v_glisser_g)));
             }
 
-//            canvas_affichage_environnement.obstacleSelectionne().translater(v_glisser_g);
-//            canvas_affichage_environnement.deselectionneObstacle();
         } else if (modeCourant() == selection && canvas_affichage_environnement.sourceSelectionnee() != null) {
             canvas_affichage_environnement.sourceSelectionnee().translater(v_glisser_g);
         } else if (modeCourant() == selection && canvas_affichage_environnement.systemeOptiqueCentreSelectionne() != null) {
@@ -1531,6 +1459,7 @@ public class PanneauPrincipal {
 
             canvas_affichage_environnement.rafraichirAffichage();
         }
+
     }
 
     public void traiterCreationComposition() {
@@ -1618,7 +1547,6 @@ public class PanneauPrincipal {
     public void traiterNouvelEnvironnement() {
 
         nouveau_canvas_affichage_environnement = new CanvasAffichageEnvironnement(new Environnement()) ;
-//        nouvel_environnement = new Environnement() ;
 
         Parent nouvelle_racine = null ;
 
@@ -1738,9 +1666,6 @@ public class PanneauPrincipal {
 
         window.setUserData(fileChooser.showSaveDialog(racine.getScene().getWindow()));
 
-        // oldTODO : il doit y avoir un moyen plus direct de retrouver la Fenêtre principale...
-//        fichier_sauvegarde = fileChooser.showSaveDialog(canvas_affichage_environnement.getScene().getWindow());
-
         if (window.getUserData() == null)
             return;
 
@@ -1751,7 +1676,6 @@ public class PanneauPrincipal {
         String json = null ;
 
         try {
-//            json.append(jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(environnement));
             json = jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(canvas_affichage_environnement);
         } catch (JsonProcessingException e) {
             LOGGER.log(Level.SEVERE,"Exception lors de la sérialisation en JSON de l'Environnement ou des propriétés d'afffichage associées : ",e);
@@ -1762,8 +1686,6 @@ public class PanneauPrincipal {
             alert.showAndWait();
             return ;
         }
-
-//        System.out.println(json);
 
         Window window = racine.getScene().getWindow() ;
 
@@ -1806,13 +1728,9 @@ public class PanneauPrincipal {
             return ;
 
         try {
-
             ContextAttributes ca = ContextAttributes.getEmpty() ;
             // Passage d'un environnement hote dans lequel l'ObjectReader va ajouter les éléments importables du fichier
             ca = ca.withSharedAttribute("environnement_hote", environnement) ;
-
-//            ObjectReader or = jsonMapper.readerFor(CanvasAffichageEnvironnement.class).with(ca) ;
-//            or.readValue(fichier_a_charger,CanvasAffichageEnvironnement.class) ;
 
             ObjectReader or = jsonMapper.readerFor(Environnement.class).with(ca) ;
             or.readValue(fichier_a_charger,Environnement.class) ;

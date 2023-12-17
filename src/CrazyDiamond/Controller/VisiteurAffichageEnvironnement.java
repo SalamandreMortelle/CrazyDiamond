@@ -23,7 +23,11 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     // AnimationTimer utilisé pour animer les contours des obstacles sélectionnés, des rayons, etc.
     AnimationTimer anim_timer ;
 
-    private final Map<Obstacle, ContoursObstacle> contours_obstacles ;
+    /** Map contenant les contours, visibles dans les limites du canvas, de chacun des obstacles de l'.
+     * Ces contours sont constitués des contours des surfaces d'une part et des contours de la masse d'autre part (si
+     * l'obstacle est "avec matière").
+     */
+    private final Map<Obstacle, ContoursObstacle> contours_visibles_obstacles;
 
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
 
@@ -51,7 +55,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         this.cae = cae;
 
-        contours_obstacles = new HashMap<>() ;
+        contours_visibles_obstacles = new HashMap<>() ;
 
         anim_timer = new AnimationTimer() {
 
@@ -103,7 +107,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         // Réinitialiser les contours déjà calculés, pour ne pas garer les contours d'objets qui ont été supprimés
         // de l'Environnement
-        contours_obstacles.clear();
+        contours_visibles_obstacles.clear();
 
         // NB : On pourrait envisager une optimisation en mémorisant les (morceaux de) contours précédemment calculés
         // de chaque obstacle, et en se contentant de calculer, si besoin, les nouveaux morceaux manquants lorsque le visiteur
@@ -186,7 +190,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             c_surf.ajoutePoint(seg.x2(), seg.y2());
             co.ajouterContourSurface(c_surf);
 
-            contours_obstacles.put(seg, co);
+            contours_visibles_obstacles.put(seg, co);
         } else { // Présence d'une pupille dans le segment
             Point2D dep = seg.depart() ;
             Point2D dep_pup = seg.departPupille() ;
@@ -207,7 +211,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             c_surf.ajoutePoint(arr);
             co.ajouterContourSurface(c_surf);
 
-            contours_obstacles.put(seg, co);
+            contours_visibles_obstacles.put(seg, co);
 
         }
 
@@ -215,84 +219,6 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
     }
 
-    @Override
-    public void visiteParabole(Parabole para) {
-        GraphicsContext gc = cae.gc_affichage() ;
-
-        Paint s = gc.getStroke() ;
-        gc.setStroke(para.couleurContour());
-
-        double a = para.a() ;
-        double b = para.b() ;
-        double c = para.c() ;
-        TypeSurface type = para.typeSurface() ;
-
-        double x = cae.xmin() ;
-        double y = a*x*x + b*x + c ;
-
-        gc.beginPath() ;
-
-        gc.moveTo(x,y);
-
-        double pas = cae.resolutionX() ;
-
-        ArrayList<Double> xpoints = new ArrayList<>(0);
-        ArrayList<Double> ypoints = new ArrayList<>(0);
-
-        do {
-            x += pas ;
-            y = a*x*x + b*x + c ;
-
-            gc.lineTo(x,y);
-
-            xpoints.add(x) ;
-            ypoints.add(y) ;
-        } while (x< cae.xmax()) ;
-
-        if ( ( (a>0) && type == TypeSurface.CONCAVE ) || ( (a<0) && type == TypeSurface.CONVEXE ) ) {
-            // On remplit en dessous
-
-            xpoints.add(cae.xmax()) ;
-            ypoints.add(a* cae.xmax()* cae.xmax()+b* cae.xmax()+c) ;
-
-            xpoints.add(cae.xmax()) ;
-            ypoints.add(cae.ymin()) ;
-
-            xpoints.add(cae.xmin());
-            ypoints.add(cae.ymin());
-
-            xpoints.add(cae.xmin()) ;
-            ypoints.add(a* cae.xmin()* cae.xmin()+b* cae.xmin()+c) ;
-        } else {
-            // On remplit au-dessus
-            xpoints.add(cae.xmax()) ;
-            ypoints.add(a* cae.xmax()* cae.xmax()+b* cae.xmax()+c) ;
-
-            xpoints.add(cae.xmax()) ;
-            ypoints.add(cae.ymax()) ;
-
-            xpoints.add(cae.xmin());
-            ypoints.add(cae.ymax());
-
-            xpoints.add(cae.xmin()) ;
-            ypoints.add(a* cae.xmin()* cae.xmin()+b* cae.xmin()+c) ;
-        }
-
-        Paint pf = gc.getFill() ;
-
-        gc.setFill(para.couleurMatiere());
-
-        CanvasAffichageEnvironnement.remplirPolygone(cae,xpoints,ypoints);
-
-        gc.setFill(pf);
-
-        // Dessin du contour de la parabole
-        gc.stroke();
-
-        gc.setStroke(s);
-        // Note : on pourrait aussi utiliser gc_affichage.save() au début de la méthode puis gc_affichage.restore() à la fin
-
-    }
 
 
     //    public ReflexionParabolique.VisiteurAffichageEnvironnement.Contour extraire_sommets_cercle(Cercle c) {
@@ -319,7 +245,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         ContoursObstacle co = cercle.couper(cae.boite_limites(), nombre_pas_angulaire_par_arc) ;
 
-        contours_obstacles.put(cercle,co) ;
+        contours_visibles_obstacles.put(cercle,co) ;
 
         cae.afficherContoursObstacle(co) ;
 
@@ -331,7 +257,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
     public void afficheSelectionObstacle(Obstacle o, long temps) {
 
-        ContoursObstacle co = contours_obstacles.get(o) ;
+        ContoursObstacle co = contours_visibles_obstacles.get(o) ;
 
         // Si les contours de l'obstacle ne sont pas encore calculés, ne rien faire
         if (co == null)
@@ -497,7 +423,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         ContoursObstacle co = dp.couper(cae.boite_limites()) ;
 
-        contours_obstacles.put(dp,co) ;
+        contours_visibles_obstacles.put(dp,co) ;
 
         cae.afficherContoursObstacle(co) ;
 
@@ -528,7 +454,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         ContoursObstacle co = rect.couper(cae.boite_limites()) ;
 
-        contours_obstacles.put(rect,co) ;
+        contours_visibles_obstacles.put(rect,co) ;
 
         cae.afficherContoursObstacle(co) ;
 
@@ -552,7 +478,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         ContoursObstacle co = prisme.couper(cae.boite_limites()) ;
 
-        contours_obstacles.put(prisme,co) ;
+        contours_visibles_obstacles.put(prisme,co) ;
 
         cae.afficherContoursObstacle(co) ;
 
@@ -580,7 +506,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         ContoursObstacle co = conique.couper(cae.boite_limites(), nombre_pas_angulaire_par_arc) ;
 
-        contours_obstacles.put(conique,co) ;
+        contours_visibles_obstacles.put(conique,co) ;
 
         cae.afficherContoursObstacle(co) ;
 
@@ -748,14 +674,14 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         gc.setStroke(couleur_bord);
         gc.setFill(couleur_masse);
 
-        VisiteurCollecteContours vcc = new VisiteurCollecteContours(cae) ;
+        VisiteurCollecteContours vcc = new VisiteurCollecteContours(cae.boite_limites()) ;
 
         // Le VisiteurCollecteContours va construire le résultat (la "solution" de la composition)
         c.accepte(vcc);
 
         ContoursObstacle contours_resultat = vcc.contours(c.typeSurface()) ;
 
-        contours_obstacles.put(c,contours_resultat) ;
+        contours_visibles_obstacles.put(c,contours_resultat) ;
 
         cae.afficherContoursObstacle(contours_resultat) ;
 
@@ -1325,6 +1251,10 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             gc.setStroke(s) ;
         //}
 
+    }
+
+    public ContoursObstacle contoursVisiblesObstacle(Obstacle o) {
+        return contours_visibles_obstacles.get(o) ;
     }
 
 }

@@ -150,6 +150,8 @@ public interface Obstacle {
 
     }
 
+//    boolean estCouvertPar(BoiteLimiteGeometrique zone_rect) ;
+
     // TODO : Implémenter cette méthode pour implémenter les Compositions de Compositions les plus générales
    // ArrayList<Point2D> cherche_toutes_intersections(Rayon r) ;
 

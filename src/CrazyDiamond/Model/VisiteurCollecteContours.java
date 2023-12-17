@@ -1,22 +1,21 @@
 package CrazyDiamond.Model;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import CrazyDiamond.Controller.CanvasAffichageEnvironnement;
-
-import clipper2.core.*;
+import clipper2.core.PointD;
+import clipper2.core.PathD;
+import clipper2.core.PathsD;
+import clipper2.core.FillRule;
+import clipper2.core.ClipType;
 import clipper2.engine.ClipperD;
 
 import static CrazyDiamond.Model.Composition.Operateur.DIFFERENCE_SYMETRIQUE;
 
 public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
 
-    final CanvasAffichageEnvironnement cae;
+    final BoiteLimiteGeometrique boite_limites;
     private PathsD paths;
 
     // Récupération du logger
@@ -30,14 +29,14 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
 
     int nombre_pas_angulaire_par_arc = 800;
 
-    public VisiteurCollecteContours(CanvasAffichageEnvironnement cae) {
-        this.cae = cae;
+    public VisiteurCollecteContours(BoiteLimiteGeometrique boite_limites) {
+        this.boite_limites = boite_limites;
         this.paths = new PathsD(1);
     }
 
     public PathsD paths() { return paths; }
 
-    // Cette méthode n'est appelée que pour les compositions
+    // Cette méthode n'est appelée que pour les compositions (c'est pourquoi elle ne travaille que sur les contours de masse)
     public ContoursObstacle contours(TypeSurface typeSurface) {
 
         ContoursObstacle co = new ContoursObstacle() ;
@@ -57,7 +56,7 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
         if (typeSurface == TypeSurface.CONCAVE) {
             // Tracé du rectangle de la zone visible, dans le sens antitrigo : le Path de la composition sera un trou
             // dans cette zone
-            co.ajouterContourMasse(cae.boite_limites().construireContourAntitrigo());
+            co.ajouterContourMasse(boite_limites.construireContourAntitrigo());
         }
 
 
@@ -81,7 +80,8 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
     protected void construirePathsClipperDepuisContourObstacle(ContoursObstacle co) {
 
         for (Contour c_masse : co.contours_masse)
-            paths.add(construirePathClipperFermeDepuisContour(c_masse));
+            paths.add(c_masse.convertirEnPathClipperFerme());
+
 
 //        for (Contour c_surface : co.contours_surface)
 //            tracerContour(c_surface);
@@ -91,7 +91,7 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
     @Override
     public void visiteCercle(Cercle cercle) {
 
-        ContoursObstacle co = cercle.couper(cae.boite_limites(), nombre_pas_angulaire_par_arc,false) ;
+        ContoursObstacle co = cercle.couper(boite_limites, nombre_pas_angulaire_par_arc,false) ;
 
         construirePathsClipperDepuisContourObstacle(co);
 
@@ -100,7 +100,7 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
     @Override
     public void visiteRectangle(Rectangle rect) {
 
-        ContoursObstacle co = rect.couper(cae.boite_limites(), false) ;
+        ContoursObstacle co = rect.couper(boite_limites, false) ;
 
         construirePathsClipperDepuisContourObstacle(co);
 
@@ -109,7 +109,7 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
     @Override
     public void visitePrisme(Prisme prisme) {
 
-        ContoursObstacle co = prisme.couper(cae.boite_limites(), false) ;
+        ContoursObstacle co = prisme.couper(boite_limites, false) ;
 
         construirePathsClipperDepuisContourObstacle(co);
 
@@ -118,7 +118,7 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
     @Override
     public void visiteConique(Conique conique) {
 
-        ContoursObstacle co = conique.couper(cae.boite_limites(), nombre_pas_angulaire_par_arc,false) ;
+        ContoursObstacle co = conique.couper(boite_limites, nombre_pas_angulaire_par_arc,false) ;
 
         construirePathsClipperDepuisContourObstacle(co);
 
@@ -126,78 +126,9 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
 
     @Override
     public void visiteDemiPlan(DemiPlan dp) {
-        ContoursObstacle co = dp.couper(cae.boite_limites(), false) ;
+        ContoursObstacle co = dp.couper(boite_limites, false) ;
 
         construirePathsClipperDepuisContourObstacle(co);
-
-    }
-
-    @Override
-    public void visiteParabole(Parabole para) {
-
-        double a = para.a.get() ;
-        double b = para.b.get() ;
-        double c = para.c.get() ;
-        TypeSurface type = para.typeSurface() ;
-
-        double xmin = cae.xmin();
-        double xmax = cae.xmax();
-        double ymin = cae.ymin();
-        double ymax = cae.ymax();
-
-        double x = xmin ;
-        double y ;
-
-        double pas = cae.resolutionX() ;
-
-        int nb_points = (int) Math.round((xmax-xmin)/pas)+1 ;
-
-        ArrayList<Double> xpoints = new ArrayList<>(nb_points+4);
-        ArrayList<Double> ypoints = new ArrayList<>(nb_points+4);
-
-        do {
-            x += pas ;
-            y = a*x*x + b*x + c ;
-
-            xpoints.add(x) ;
-            ypoints.add(y) ;
-        } while (x< xmax) ;
-
-        if ( ( (a>0) && type == TypeSurface.CONCAVE ) || ( (a<0) && type == TypeSurface.CONVEXE ) ) {
-            // On remplit en dessous
-
-            xpoints.add(xmax) ;
-            ypoints.add(a* xmax* xmax+b* xmax+c) ;
-
-            xpoints.add(xmax) ;
-            ypoints.add(ymin) ;
-
-            xpoints.add(xmin);
-            ypoints.add(ymin);
-
-            xpoints.add(xmin) ;
-            ypoints.add(a* xmin* xmin+b* xmin+c) ;
-
-            // Remettre dans le sens trigo (peut-être pas strictement nécessaire)
-            Collections.reverse(xpoints);
-            Collections.reverse(ypoints);
-
-        } else {
-            // On remplit au-dessus
-            xpoints.add(xmax) ;
-            ypoints.add(a* xmax* xmax+b* xmax+c) ;
-
-            xpoints.add(xmax) ;
-            ypoints.add(ymax) ;
-
-            xpoints.add(xmin);
-            ypoints.add(ymax);
-
-            xpoints.add(xmin) ;
-            ypoints.add(a* xmin* xmin+b* xmin+c) ;
-        }
-
-        paths.add(construirePathClipperFermeDepuisCoordonneesContour(xpoints,ypoints)) ;
 
     }
 
@@ -319,10 +250,12 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
 
     private PathsD construirePathsObstacle(Obstacle obs) {
 
+        // Méthode appelée uniquement dans visisteComposition. Donc, comme les éléments sans matière (segments) ne peuvent
+        // apparaître dans une composition, on n'a pas à les gérer
         if ( ! (obs instanceof ElementAvecMatiere) )
             return null ;
 
-        VisiteurCollecteContours vcc = new VisiteurCollecteContours(cae) ;
+        VisiteurCollecteContours vcc = new VisiteurCollecteContours(boite_limites) ;
 
         obs.accepte(vcc);
 
@@ -346,42 +279,10 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
         LOGGER.log(Level.SEVERE,"Erreur lors de l'exécution du clip() pour l'opération : {0}",operation);
 
         return null ;
-
     }
 
     @Override
     public void visiteCompositionDeuxObstacles(CompositionDeuxObstacles c) {
-
-    }
-
-    public PathD construirePathClipperFermeDepuisContour(Contour c) {
-       return construirePathClipperFermeDepuisCoordonneesContour(c.xpoints,c.ypoints) ;
-    }
-
-    public PathD construirePathClipperFermeDepuisCoordonneesContour(Collection<Double> xpoints, Collection<Double> ypoints) {
-
-        PathD contour = new PathD(xpoints.size());
-
-        Iterator<Double> itx = xpoints.iterator();
-        Iterator<Double> ity = ypoints.iterator();
-
-        double xdep, ydep;
-
-        if (itx.hasNext() && ity.hasNext()) {
-            xdep = itx.next();
-            ydep = ity.next();
-
-            contour.add(new PointD(xdep, ydep));
-
-            while (itx.hasNext() && ity.hasNext())
-                contour.add(new PointD(itx.next(), ity.next()));
-
-            // Fermeture du contour
-            if ( (contour.get(contour.size()-1).x != xdep) || (contour.get(contour.size()-1).y != ydep) )
-                contour.add(new PointD(xdep,ydep));
-        }
-
-        return contour;
     }
 
 }

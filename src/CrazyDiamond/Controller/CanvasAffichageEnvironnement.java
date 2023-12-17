@@ -400,9 +400,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         return boite_limites.getMaxX() ;
     }
 
-    public double ymin() {
-        return boite_limites.getMinY() ;
-    }
+    public double ymin() {return boite_limites.getMinY() ;}
 
     public double ymax() {
         return boite_limites.getMaxY() ;
@@ -1046,8 +1044,8 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     /**
      * Indique si le Canvas d'Affichage contient le point géométrique pt_g, dont les coordonnées sont exprimées en
      * unités de l'environnement
-     * @param pt_g
-     * @return
+     * @param pt_g point
+     * @return true si le Vanvas contient le point, false sinon
      */
     public boolean contient(Point2D pt_g) {
         return boite_limites.contains(pt_g) ;
