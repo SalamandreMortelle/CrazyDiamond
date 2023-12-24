@@ -110,7 +110,7 @@ public class PanneauPrincipal {
 
     private CanvasAffichageEnvironnement nouveau_canvas_affichage_environnement = null;
 
-    CanvasAffichageEnvironnement canvas_affichage_environnement;
+    CanvasAffichageEnvironnement canvas_environnement;
 
 
     // Récupération du logger
@@ -192,12 +192,11 @@ public class PanneauPrincipal {
     @FXML
     // AnchorPane du panneau bas
     public AnchorPane anchorpane_bas_element_courant;
-//    public ScrollPane scrollpane_bas_element_courant;
 
     @FXML
     private ListView<Source> listview_sources;
 
-    // Menu contexteuel avec l'entrée "Supprimer" (pour la liste des sources)
+    // Menu contextuel avec l'entrée "Supprimer" (pour la liste des sources)
     private final ContextMenu menuContextuelSources ;
 
     // Liste observable des sources selectionnees
@@ -208,7 +207,7 @@ public class PanneauPrincipal {
 
     private final ContextMenu menuContextuelObstacles ;
 
-    // Liste observable des obstacles selectionnés dans l'arborescence
+    // Liste observable des obstacles sélectionnés dans l'arborescence
     ObservableList<TreeItem<Obstacle>> obstacles_selectionnes_dans_arborescence;
 
     // Liste des Systèmes Optiques Centrés
@@ -218,7 +217,7 @@ public class PanneauPrincipal {
     // Menu contextuel avec l'entrée "Supprimer" (pour la liste des sources)
     private final ContextMenu menuContextuelSoc ;
 
-    // Liste observable des SOC selectionnées
+    // Liste observable des SOC sélectionnées
     ObservableList<SystemeOptiqueCentre> socs_selectionnes;
 
 
@@ -240,6 +239,8 @@ public class PanneauPrincipal {
     private boolean obstacle_en_attente_de_panneau_dans_composition;
 
     private boolean retaillage_selection_en_cours = false ;
+    private boolean selection_rectangulaire_en_cours;
+    private Point2D p_debut_glisser_selection;
 
 
     public PanneauPrincipal(CanvasAffichageEnvironnement cae) {
@@ -249,7 +250,7 @@ public class PanneauPrincipal {
         if (cae==null)
             throw new IllegalArgumentException("L'objet affichage environnement attaché au PanneauPrincipal ne peut pas être 'null'") ;
 
-        canvas_affichage_environnement = cae ;
+        canvas_environnement = cae ;
         environnement = cae.environnement() ;
 
         menuContextuelSources = new ContextMenu() ;
@@ -274,9 +275,6 @@ public class PanneauPrincipal {
 
         setUpDependecyInjector();
 
-//        if (nouvel_environnement == null)
-//            canvas_affichage_environnement = new CanvasAffichageEnvironnement(environnement) ;
-
         try {
             panneau_parametres_affichage_environnement = DependencyInjection.load("View/PanneauParametresAffichageEnvironnement.fxml");
 
@@ -288,31 +286,27 @@ public class PanneauPrincipal {
             System.exit(1);
         }
 
-        // Initialiser le controleur du panneau des paramètres de l'environnement
+        // Initialiser le contrôleur du panneau des paramètres de l'environnement
         panneauParametresEnvironnementController.initialize(environnement) ;
 
         // Le panneau des paramètres d'environnement est affiché par défaut dans le panneau de droite : récupérons sa référence
-        // pour pouvoir le ré-afficher plus tard
+        // pour pouvoir le ré-afficher plus tard.
         panneau_parametres_environnement = scrollpane_droit_element_courant.getContent() ;
 
         // TODO : voir si interet à creer une vue séparée (fichier .fxml avec classe Custom) pour le CanvasAffichageEnvironnement
         // L'appel au initialize() se ferait automatiquement par le loaderFXML. Les handlers pour tous les évènements souris
         // pourraient y être définis aussi.
-        canvas_affichage_environnement.initialize();
+        canvas_environnement.initialize();
 
-        StackPane stack_racine = new StackPane(canvas_affichage_environnement, canvas_affichage_environnement.texte_commentaire) ;
+        StackPane stack_racine = new StackPane(canvas_environnement, canvas_environnement.texte_commentaire) ;
         stack_racine.setMinWidth(0);  // Permet au StackPane de se réduire autant que possible, ce qui évite que ce soit
         stack_racine.setMinHeight(0); //  les panneaux latéraux qui rétrecissent quand on réduit la largeur de la fenêtre.
 
-        canvas_affichage_environnement.texte_commentaire.wrappingWidthProperty().bind(canvas_affichage_environnement.widthProperty());
+        canvas_environnement.texte_commentaire.wrappingWidthProperty().bind(canvas_environnement.widthProperty());
 
-        StackPane.setAlignment(canvas_affichage_environnement.texte_commentaire, Pos.BOTTOM_CENTER);
-//        StackPane stack_racine = new StackPane( canvas_affichage_environnement.texte_commentaire) ;
-//
+        StackPane.setAlignment(canvas_environnement.texte_commentaire, Pos.BOTTOM_CENTER);
+
         racine.setCenter(stack_racine);
-//        racine.setCenter(canvas_affichage_environnement);
-
-
 
         racine.addEventFilter(KeyEvent.KEY_PRESSED,key_event -> {
                 switch (key_event.getCode()) {
@@ -322,139 +316,69 @@ public class PanneauPrincipal {
                         environnement.retirerSource(source_en_cours_ajout);
                         source_en_cours_ajout = null;
                     }
-                    if (obstacle_en_cours_ajout != null) {
+                    else if (obstacle_en_cours_ajout != null) {
                         // On retire la source courante, ce qui va rafraichir les chemins et le décor
                         environnement.retirerObstacle(obstacle_en_cours_ajout);
                         obstacle_en_cours_ajout = null;
                     }
-                    if (soc_en_cours_ajout!= null) {
+                    else if (soc_en_cours_ajout!= null) {
                         // On retire le soc courant, [ce qui va rafraichir les chemins et le décor ?]
                         environnement.retirerSystemeOptiqueCentre(soc_en_cours_ajout);
                         soc_en_cours_ajout = null;
                     }
-                    if (canvas_affichage_environnement.obstacleSelectionne() != null) {
-                        canvas_affichage_environnement.deselectionneObstacle();
-                    }
-                    if (canvas_affichage_environnement.sourceSelectionnee() != null) {
-                        canvas_affichage_environnement.deselectionneSource();
-                    }
-                    if (canvas_affichage_environnement.systemeOptiqueCentreSelectionne() != null) {
-                        canvas_affichage_environnement.deselectionneSystemeOptiqueCentre();
-                    }
-                    if (retaillage_selection_en_cours)
+                    else if (canvas_environnement.selection().nombreElements()>0)
+                        canvas_environnement.selection().vider();
+                    else if (retaillage_selection_en_cours)
                         retaillage_selection_en_cours = false ;
+                    else
+                        break;
 
                     key_event.consume();
                 }
                 case LEFT -> {
 
-                    Point2D tr = new Point2D(-canvas_affichage_environnement.resolution(),0.0) ;
+                    if (canvas_environnement.selection().nombreElements()==0)
+                        break; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
-                    if (canvas_affichage_environnement.obstacleSelectionne() != null) {
-                        Obstacle o = canvas_affichage_environnement.obstacleSelectionne() ;
-                        if (!o.appartientASystemeOptiqueCentre())
-                            o.translater(tr);
-                        else {
-                            SystemeOptiqueCentre soc = environnement.systemeOptiqueCentreContenant(o);
-                            Point2D tr_sur_axe = soc.vecteurDirecteurAxe().multiply(soc.vecteurDirecteurAxe().dotProduct(tr)) ;
-                            o.translater(tr_sur_axe);
-                        }
-                    }
-                    else if (canvas_affichage_environnement.sourceSelectionnee() != null)
-                        canvas_affichage_environnement.sourceSelectionnee().translater(tr);
-                    else if (canvas_affichage_environnement.systemeOptiqueCentreSelectionne() != null)
-                        canvas_affichage_environnement.systemeOptiqueCentreSelectionne().translater(tr);
-                    else
-                        break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
-
-
+                    canvas_environnement.translaterSelection(new Point2D(-canvas_environnement.resolution(), 0.0)) ;
                     key_event.consume();
                 }
                 case RIGHT ->  {
-                    Point2D tr = new Point2D(canvas_affichage_environnement.resolution(),0.0) ;
 
-                    if (canvas_affichage_environnement.obstacleSelectionne() != null) {
-                        Obstacle o = canvas_affichage_environnement.obstacleSelectionne() ;
-                        if (!o.appartientASystemeOptiqueCentre())
-                            o.translater(tr);
-                        else {
-                            SystemeOptiqueCentre soc = environnement.systemeOptiqueCentreContenant(o);
-                            Point2D tr_sur_axe = soc.vecteurDirecteurAxe().multiply(soc.vecteurDirecteurAxe().dotProduct(tr)) ;
-                            o.translater(tr_sur_axe);
-                        }
-                    }
-                    else if (canvas_affichage_environnement.sourceSelectionnee() != null)
-                        canvas_affichage_environnement.sourceSelectionnee().translater(tr);
-                    else if (canvas_affichage_environnement.systemeOptiqueCentreSelectionne() != null)
-                        canvas_affichage_environnement.systemeOptiqueCentreSelectionne().translater(tr);
-                    else
-                        break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
+                    if (canvas_environnement.selection().nombreElements()==0)
+                        break; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
+                    canvas_environnement.translaterSelection(new Point2D(canvas_environnement.resolution(),0.0)) ;
                     key_event.consume();
                 }
                 case UP -> {
-                    Point2D tr = new Point2D(0.0,canvas_affichage_environnement.resolution()) ;
 
-                    if (canvas_affichage_environnement.obstacleSelectionne() != null) {
-                        Obstacle o = canvas_affichage_environnement.obstacleSelectionne() ;
-                        if (!o.appartientASystemeOptiqueCentre())
-                            o.translater(tr);
-                        else {
-                            SystemeOptiqueCentre soc = environnement.systemeOptiqueCentreContenant(o);
-                            Point2D tr_sur_axe = soc.vecteurDirecteurAxe().multiply(soc.vecteurDirecteurAxe().dotProduct(tr)) ;
-                            o.translater(tr_sur_axe);
-                        }
-                    }
-                    else if (canvas_affichage_environnement.sourceSelectionnee() != null)
-                        canvas_affichage_environnement.sourceSelectionnee().translater(tr);
-                    else if (canvas_affichage_environnement.systemeOptiqueCentreSelectionne() != null)
-                        canvas_affichage_environnement.systemeOptiqueCentreSelectionne().translater(tr);
-                    else
-                        break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
+                    if (canvas_environnement.selection().nombreElements()==0)
+                        break; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
+                    canvas_environnement.translaterSelection(new Point2D(0.0, canvas_environnement.resolution())) ;
                     key_event.consume();
                 }
                 case DOWN ->  {
-                    Point2D tr = new Point2D(0.0,-canvas_affichage_environnement.resolution()) ;
+                    if (canvas_environnement.selection().nombreElements()==0)
+                        break; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
-                    if (canvas_affichage_environnement.obstacleSelectionne() != null) {
-                        Obstacle o = canvas_affichage_environnement.obstacleSelectionne() ;
-                        if (!o.appartientASystemeOptiqueCentre())
-                            o.translater(tr);
-                        else {
-                            SystemeOptiqueCentre soc = environnement.systemeOptiqueCentreContenant(o);
-                            Point2D tr_sur_axe = soc.vecteurDirecteurAxe().multiply(soc.vecteurDirecteurAxe().dotProduct(tr)) ;
-                            o.translater(tr_sur_axe);
-                        }
-                    }
-                    else if (canvas_affichage_environnement.sourceSelectionnee() != null)
-                        canvas_affichage_environnement.sourceSelectionnee().translater(tr);
-                    else if (canvas_affichage_environnement.systemeOptiqueCentreSelectionne() != null)
-                        canvas_affichage_environnement.systemeOptiqueCentreSelectionne().translater(tr);
-                    else
-                        break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
-
+                    canvas_environnement.translaterSelection(new Point2D(0.0,-canvas_environnement.resolution())) ;
                     key_event.consume();
                 }
 
             } } );
 
-        canvas_affichage_environnement.setOnMouseClicked(this::traiterClicSourisCanvas);
-//        canvas_affichage_environnement.texte_commentaire.addEventHandler(MouseEvent.MOUSE_CLICKED,canvas_affichage_environnement::fireEvent);
-        canvas_affichage_environnement.texte_commentaire.setOnMouseClicked(canvas_affichage_environnement::fireEvent);
-        canvas_affichage_environnement.setOnMouseMoved(this::traiterDeplacementSourisCanvas);
-        canvas_affichage_environnement.texte_commentaire.setOnMouseMoved(canvas_affichage_environnement::fireEvent);
-//        canvas_affichage_environnement.texte_commentaire.addEventHandler(MouseEvent.MOUSE_MOVED,canvas_affichage_environnement::fireEvent);
-//        canvas_affichage_environnement.texte_commentaire.addEventHandler(MouseEvent.MOUSE_MOVED, mouseEvent -> {
-//            canvas_affichage_environnement.fireEvent(mouseEvent);
-//        } );
-
-        canvas_affichage_environnement.setOnMousePressed(this::traiterBoutonSourisPresse);
-        canvas_affichage_environnement.texte_commentaire.setOnMousePressed(canvas_affichage_environnement::fireEvent);
-        canvas_affichage_environnement.setOnMouseDragged(this::traiterGlisserSourisCanvas);
-        canvas_affichage_environnement.texte_commentaire.setOnMouseDragged(canvas_affichage_environnement::fireEvent);
-        canvas_affichage_environnement.setOnMouseReleased(this::traiterBoutonSourisRelache);
-        canvas_affichage_environnement.texte_commentaire.setOnMouseReleased(canvas_affichage_environnement::fireEvent);
+        canvas_environnement.setOnMouseClicked(this::traiterClicSourisCanvas);
+        canvas_environnement.texte_commentaire.setOnMouseClicked(canvas_environnement::fireEvent);
+        canvas_environnement.setOnMouseMoved(this::traiterDeplacementSourisCanvas);
+        canvas_environnement.texte_commentaire.setOnMouseMoved(canvas_environnement::fireEvent);
+        canvas_environnement.setOnMousePressed(this::traiterBoutonSourisPresse);
+        canvas_environnement.texte_commentaire.setOnMousePressed(canvas_environnement::fireEvent);
+        canvas_environnement.setOnMouseDragged(this::traiterGlisserSourisCanvas);
+        canvas_environnement.texte_commentaire.setOnMouseDragged(canvas_environnement::fireEvent);
+        canvas_environnement.setOnMouseReleased(this::traiterBoutonSourisRelache);
+        canvas_environnement.texte_commentaire.setOnMouseReleased(canvas_environnement::fireEvent);
 
         map_element_panneau_droit = new HashMap<>(8) ;
         map_element_panneau_bas = new HashMap<>(4) ;
@@ -484,13 +408,10 @@ public class PanneauPrincipal {
                     // Afficher le panneau correspondant à la dernière source ajoutée
                     scrollpane_droit_element_courant.setContent(map_element_panneau_droit.get(s_ajoutees.get(s_ajoutees.size()-1)));
 
-                    Source derniere_source_de_selection = s_ajoutees.get(s_ajoutees.size()-1) ;
-
-                    // Si on est en mode sélection, sélectionner l'objet dans le canvas
                     if (modeCourant()==selection) {
-                        canvas_affichage_environnement.selectionneSource(derniere_source_de_selection);
+                        canvas_environnement.selection().vider();
+                        s_ajoutees.forEach(s -> canvas_environnement.selection().ajoute(s));
                     }
-
 
                     if (listview_sources.getContextMenu()==null)
                         listview_sources.setContextMenu(menuContextuelSources);
@@ -498,8 +419,6 @@ public class PanneauPrincipal {
                 }
                 else if (c.wasRemoved())  {
                     scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
-
-//                    listview_sources.getSelectionModel().clearSelection();
 
                     if (sources_selectionnees.isEmpty())
                         listview_sources.setContextMenu(null);
@@ -542,17 +461,17 @@ public class PanneauPrincipal {
                     // Afficher le panneau correspondant au dernier obstacle ajouté
                     scrollpane_droit_element_courant.setContent(map_element_panneau_droit.get(dernier_obstacle_de_selection));
 
-                    // Si on est en mode sélection, sélectionner l'objet dans le canvas
-                    if (modeCourant()==selection)
-                        canvas_affichage_environnement.selectionneObstacle(dernier_obstacle_de_selection);
+                    // Si on est en mode sélection, sélectionner les obstacles dans le canvas
+                    if (modeCourant()==selection) {
+                        canvas_environnement.selection().vider();
+                        o_ajoutes.forEach(tio -> canvas_environnement.selection().ajoute(tio.getValue())) ;
+                    }
 
                     if (treeview_obstacles.getContextMenu()==null)
                         treeview_obstacles.setContextMenu(menuContextuelObstacles);
                 }
                 else if (c.wasRemoved()) {
                     scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
-
-//                    treeview_obstacles.getSelectionModel().clearSelection();
 
                     if (obstacles_selectionnes_dans_arborescence.isEmpty())
                         treeview_obstacles.setContextMenu(null);
@@ -597,15 +516,12 @@ public class PanneauPrincipal {
 
                         anchorpane_bas_element_courant.getChildren().clear();
                         anchorpane_bas_element_courant.getChildren().add(panneau_a_ajouter);
-
-//                    scrollpane_bas_element_courant.setContent(map_element_panneau_bas.get(soc_ajoutes.get(soc_ajoutes.size()-1)));
                     }
-
-                    SystemeOptiqueCentre dernier_soc_de_selection = soc_ajoutes.get(soc_ajoutes.size()-1) ;
 
                     // Si on est en mode sélection, sélectionner l'objet dans le canvas
                     if (modeCourant()==selection) {
-                        canvas_affichage_environnement.selectionneSystemeOptiqueCentre(dernier_soc_de_selection);
+                        canvas_environnement.selection().vider();
+                        soc_ajoutes.forEach(s->canvas_environnement.selection().ajoute(s));
                     }
 
                     if (listview_socs.getContextMenu()==null)
@@ -614,10 +530,6 @@ public class PanneauPrincipal {
                 }
                 else if (c.wasRemoved())  {
                     scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
-//                    scrollpane_bas_element_courant.setContent(null);
-//                    scrollpane_bas_element_courant.getChildren().clear();
-
-//                    listview_sources.getSelectionModel().clearSelection();
 
                     if (socs_selectionnes.isEmpty())
                         listview_socs.setContextMenu(null);
@@ -640,27 +552,16 @@ public class PanneauPrincipal {
             if (oldValue == ajout_source && source_en_cours_ajout != null)
                 source_en_cours_ajout = null ;
 
-            if (oldValue == selection && canvas_affichage_environnement.obstacleSelectionne() != null)
-                canvas_affichage_environnement.deselectionneObstacle();
-            if (oldValue == selection && canvas_affichage_environnement.sourceSelectionnee() != null)
-                canvas_affichage_environnement.deselectionneSource();
-            if (oldValue == selection && canvas_affichage_environnement.systemeOptiqueCentreSelectionne() != null)
-                canvas_affichage_environnement.deselectionneSystemeOptiqueCentre();
+            if (oldValue == selection && canvas_environnement.selection().nombreElements()>0)
+                canvas_environnement.selection().vider();
 
-            if (oldValue != selection && newValue==selection && treeview_obstacles.getSelectionModel().getSelectedItem()!=null)
-                canvas_affichage_environnement.selectionneObstacle(treeview_obstacles.getSelectionModel().getSelectedItem().getValue());
-            if (oldValue != selection && newValue==selection && listview_sources.getSelectionModel().getSelectedItem()!=null)
-                canvas_affichage_environnement.selectionneSource(listview_sources.getSelectionModel().getSelectedItem());
-            if (oldValue != selection && newValue==selection && listview_socs.getSelectionModel().getSelectedItem()!=null)
-                canvas_affichage_environnement.selectionneSystemeOptiqueCentre(listview_socs.getSelectionModel().getSelectedItem());
+            if (oldValue != selection && newValue==selection)
+                canvas_environnement.selection().vider();
 
         });
 
         lcl_sources = change -> {
             while (change.next()) {
-                //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
-                //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
-                //                else
                 if (change.wasRemoved()) {
                     for (Source remitem : change.getRemoved()) {
                         LOGGER.log(Level.FINE,"Source supprimée : {0}",remitem.nom()) ;
@@ -696,8 +597,7 @@ public class PanneauPrincipal {
 
                         treeview_obstacles.getSelectionModel().clearSelection();
 
-//                        if (canvas_affichage_environnement.obstacleSelectionne()==remitem)
-                            canvas_affichage_environnement.deselectionneObstacle();
+                        canvas_environnement.selection().retireObstacle(remitem);
 
                     }
                 } else if (change.wasAdded()) {
@@ -715,14 +615,13 @@ public class PanneauPrincipal {
 
         lcl_socs = change -> {
             while (change.next()) {
-                //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
-                //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
-                //                else
                 if (change.wasRemoved()) {
                     for (SystemeOptiqueCentre remitem : change.getRemoved()) {
                         LOGGER.log(Level.FINE,"SOC supprimé : {0}",remitem.nom()) ;
 
                         listview_socs.getSelectionModel().clearSelection();
+
+                        canvas_environnement.selection().retireSoc(remitem);
 
                     }
 
@@ -743,6 +642,7 @@ public class PanneauPrincipal {
 
     }
 
+
     private void setUpDependecyInjector() {
         // TODO plus tard : set bundle
         //DependencyInjection.setBundle(ResourceBundle.getBundle("greetings", Locale.FRENCH));
@@ -761,49 +661,49 @@ public class PanneauPrincipal {
 
 
         //create factory
-        Callable<?> controleurPanneauSourceFactory = () -> new PanneauSource(source_en_attente_de_panneau , canvas_affichage_environnement);
+        Callable<?> controleurPanneauSourceFactory = () -> new PanneauSource(source_en_attente_de_panneau , canvas_environnement);
 
         //save the factory in the injector
         DependencyInjection.addInjectionMethod(PanneauSource.class, controleurPanneauSourceFactory) ;
 
-        Callable<?> controleurPanneauParametresAffichageEnvironnementFactory = () -> new PanneauParametresAffichageEnvironnement(canvas_affichage_environnement);
+        Callable<?> controleurPanneauParametresAffichageEnvironnementFactory = () -> new PanneauParametresAffichageEnvironnement(canvas_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauParametresAffichageEnvironnement.class, controleurPanneauParametresAffichageEnvironnementFactory) ;
 
 
-        Callable<?> controleurPanneauDemiPlanFactory = () -> new PanneauDemiPlan((DemiPlan)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement);
+        Callable<?> controleurPanneauDemiPlanFactory = () -> new PanneauDemiPlan((DemiPlan)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauDemiPlan.class, controleurPanneauDemiPlanFactory) ;
 
-        Callable<?> controleurPanneauSegmentFactory = () -> new PanneauSegment((Segment)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement);
+        Callable<?> controleurPanneauSegmentFactory = () -> new PanneauSegment((Segment)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauSegment.class, controleurPanneauSegmentFactory) ;
 
-        Callable<?> controleurPanneauPrismeFactory = () -> new PanneauPrisme((Prisme)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement);
+        Callable<?> controleurPanneauPrismeFactory = () -> new PanneauPrisme((Prisme)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauPrisme.class, controleurPanneauPrismeFactory) ;
 
-        Callable<?> controleurPanneauRectangleFactory = () -> new PanneauRectangle((Rectangle)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement);
+        Callable<?> controleurPanneauRectangleFactory = () -> new PanneauRectangle((Rectangle)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauRectangle.class, controleurPanneauRectangleFactory) ;
 
-        Callable<?> controleurPanneauCercleFactory = () -> new PanneauCercle((Cercle)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement);
+        Callable<?> controleurPanneauCercleFactory = () -> new PanneauCercle((Cercle)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauCercle.class, controleurPanneauCercleFactory) ;
 
-        Callable<?> controleurPanneauConiqueFactory = () -> new PanneauConique((Conique)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement);
+        Callable<?> controleurPanneauConiqueFactory = () -> new PanneauConique((Conique)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauConique.class, controleurPanneauConiqueFactory) ;
 
-        Callable<?> controleurPanneauCompositionFactory = () -> new PanneauComposition((Composition) obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition,canvas_affichage_environnement);
+        Callable<?> controleurPanneauCompositionFactory = () -> new PanneauComposition((Composition) obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauComposition.class, controleurPanneauCompositionFactory) ;
 
-        Callable<?> controleurPanneauSystemeOptiqueCentre = () -> new PanneauSystemeOptiqueCentre(soc_en_attente_de_panneau,canvas_affichage_environnement);
+        Callable<?> controleurPanneauSystemeOptiqueCentre = () -> new PanneauSystemeOptiqueCentre(soc_en_attente_de_panneau, canvas_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauSystemeOptiqueCentre.class, controleurPanneauSystemeOptiqueCentre) ;
 
-        Callable<?> controleurPanneauAnalyseParaxialeSystemeOptiqueCentre = () -> new PanneauAnalyseParaxialeSystemeOptiqueCentre(soc_en_attente_de_panneau,canvas_affichage_environnement);
+        Callable<?> controleurPanneauAnalyseParaxialeSystemeOptiqueCentre = () -> new PanneauAnalyseParaxialeSystemeOptiqueCentre(soc_en_attente_de_panneau, canvas_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauAnalyseParaxialeSystemeOptiqueCentre.class, controleurPanneauAnalyseParaxialeSystemeOptiqueCentre) ;
 
@@ -820,7 +720,7 @@ public class PanneauPrincipal {
         if (glisser_en_cours)
             return ;
 
-        Point2D pclic = canvas_affichage_environnement.gc_vers_g(me.getX(),me.getY()) ;
+        Point2D pclic = canvas_environnement.gc_vers_g(me.getX(),me.getY()) ;
 
         LOGGER.log(Level.FINER,"Clic en ({0},{1})",new Object[] {pclic.getX(),pclic.getY()});
 
@@ -844,36 +744,32 @@ public class PanneauPrincipal {
             traiterClicSourisPourAjoutSystemeOptiqueCentre(pclic);
 
         if (modeCourant() != selection) {
-            canvas_affichage_environnement.deselectionneObstacle();
-            canvas_affichage_environnement.deselectionneSource();
+            canvas_environnement.selection().vider();
         }
 
-        if (modeCourant() == selection && canvas_affichage_environnement.obstacleSelectionne() != null) {
+        if (modeCourant() == selection && canvas_environnement.selection().obstacleUnique() != null) {
             if (!retaillage_selection_en_cours) { // On commence un retaillage
-                if (canvas_affichage_environnement.poignee_obstacle_pointee_en(pclic)) {
+                if (canvas_environnement.poignee_obstacle_pointee_en(pclic)) {
                     LOGGER.log(Level.FINE, "Poignée sélectionnée");
                     retaillage_selection_en_cours = true;
                 }
                 else
                     LOGGER.log(Level.FINE, "Poignée non sélectionnée");
-
-//                    retaillage_selection_en_cours = false ;
             } else { // Retaillage de sélection était en cours : on le termine
-                canvas_affichage_environnement.obstacleSelectionne().retaillerSelectionPourSourisEn(pclic);
+                canvas_environnement.selection().obstacleUnique().retaillerSelectionPourSourisEn(pclic);
                 retaillage_selection_en_cours = false ;
             }
-        }  else if (modeCourant() == selection && canvas_affichage_environnement.sourceSelectionnee() != null) {
+        }  else if (modeCourant() == selection && canvas_environnement.selection().sourceUnique() != null) {
             if (!retaillage_selection_en_cours) { // On commence un retaillage
-                if (canvas_affichage_environnement.poignee_source_pointee_en(pclic)) {
+                if (canvas_environnement.poignee_source_pointee_en(pclic)) {
                     LOGGER.log(Level.FINE, "Poignée source sélectionnée");
                     retaillage_selection_en_cours = true;
                 }
                 else
                     LOGGER.log(Level.FINE, "Poignée source non sélectionnée");
 
-//                    retaillage_selection_en_cours = false ;
             } else { // Retaillage de sélection était en cours : on le termine
-                canvas_affichage_environnement.source_selectionnee.retaillerPourSourisEn(pclic);
+                canvas_environnement.selection().sourceUnique().retaillerPourSourisEn(pclic);
                 retaillage_selection_en_cours = false ;
             }
         }
@@ -891,7 +787,7 @@ public class PanneauPrincipal {
             return ;
         }
 
-        // On est sur le 2ème clic qui fige l'orientation du SOC en cours d'ajout
+        // On est sur le 2ᵉ clic qui fige l'orientation du SOC en cours d'ajout
         Point2D direction = pclic.subtract(soc_en_cours_ajout.origine()) ;
 
         if (direction.magnitude()==0.0)
@@ -914,7 +810,7 @@ public class PanneauPrincipal {
             return ;
         }
 
-        // On est donc sur le 2ème clic, qui fige la direction de la source
+        // On est donc sur le 2ᵉ clic, qui fige la direction de la source
 
         Point2D direction = pclic.subtract(source_en_cours_ajout.position()) ;
 
@@ -952,7 +848,7 @@ public class PanneauPrincipal {
         if (obstacle_en_cours_ajout == null) { // On vient de commencer le tracé d'un nouveau segment
 
             // Création d'un nouveau segment
-            obstacle_en_cours_ajout = new Segment(pclic.getX(), pclic.getY(), canvas_affichage_environnement.resolution(), 0d,0d) ;
+            obstacle_en_cours_ajout = new Segment(pclic.getX(), pclic.getY(), canvas_environnement.resolution(), 0d,0d) ;
 
             return ;
         }
@@ -971,7 +867,7 @@ public class PanneauPrincipal {
         if (obstacle_en_cours_ajout == null) { // On vient de commencer le tracé d'un nouveau rectangle
 
             // Création d'un nouveau prisme
-            obstacle_en_cours_ajout = new Prisme(TypeSurface.CONVEXE, pclic.getX(), pclic.getY(), 60, canvas_affichage_environnement.resolution(),0.0) ;
+            obstacle_en_cours_ajout = new Prisme(TypeSurface.CONVEXE, pclic.getX(), pclic.getY(), 60, canvas_environnement.resolution(),0.0) ;
 
             return ;
         }
@@ -989,7 +885,7 @@ public class PanneauPrincipal {
         if (obstacle_en_cours_ajout == null) { // On vient de commencer le tracé d'un nouveau rectangle
 
             // Création d'un nouveau rectangle
-            obstacle_en_cours_ajout = new Rectangle(TypeSurface.CONVEXE, pclic.getX(), pclic.getY(), pclic.getX()+canvas_affichage_environnement.resolution(), pclic.getY()-canvas_affichage_environnement.resolution(),0.0) ;
+            obstacle_en_cours_ajout = new Rectangle(TypeSurface.CONVEXE, pclic.getX(), pclic.getY(), pclic.getX()+ canvas_environnement.resolution(), pclic.getY()- canvas_environnement.resolution(),0.0) ;
 
             return ;
         }
@@ -1007,7 +903,7 @@ public class PanneauPrincipal {
         if (obstacle_en_cours_ajout == null) { // On vient de commencer le tracé d'un nouveau cercle
 
             // Création d'un nouveau cercle
-            obstacle_en_cours_ajout = new Cercle(TypeSurface.CONVEXE, pclic.getX(), pclic.getY(),canvas_affichage_environnement.resolution()) ;
+            obstacle_en_cours_ajout = new Cercle(TypeSurface.CONVEXE, pclic.getX(), pclic.getY(), canvas_environnement.resolution()) ;
 
             return ;
         }
@@ -1025,7 +921,7 @@ public class PanneauPrincipal {
         if (obstacle_en_cours_ajout == null) { // On vient de commencer le tracé d'un nouveau cercle
 
             // Création d'un nouveau rectangle
-            obstacle_en_cours_ajout = new Conique(TypeSurface.CONVEXE, pclic.getX(), pclic.getY(), 0.0,canvas_affichage_environnement.resolution(),1.0);
+            obstacle_en_cours_ajout = new Conique(TypeSurface.CONVEXE, pclic.getX(), pclic.getY(), 0.0, canvas_environnement.resolution(),1.0);
 
             return ;
         }
@@ -1105,8 +1001,6 @@ public class PanneauPrincipal {
 
         map_element_panneau_bas.put(s,panneau_bas_soc_courant) ;
 
-//        scrollpane_bas_element_courant.getChildren().set(0,panneau_bas_soc_courant);
-
         if (!anchorpane_bas_element_courant.getChildren().contains(panneau_bas_soc_courant)) {
             AnchorPane.setTopAnchor(panneau_bas_soc_courant,1.0);
             AnchorPane.setBottomAnchor(panneau_bas_soc_courant,1.0);
@@ -1117,9 +1011,6 @@ public class PanneauPrincipal {
             anchorpane_bas_element_courant.getChildren().add(panneau_bas_soc_courant);
 
         }
-
-//        scrollpane_bas_element_courant.setContent(panneau_bas_soc_courant);
-
 
     }
 
@@ -1160,8 +1051,8 @@ public class PanneauPrincipal {
             LOGGER.log(Level.FINE,"Panneau créé : {0}",panneau_obstacle_courant) ;
         } catch (IOException e) {
             // NB : Mettre un point d'arrêt sur la ligne suivante pour obtenir des details lors d'une erreur au chargement d'un fichier .fxml
-            System.err.println("Exception lors de l'accès au fichier .fxml : Message : "+e.getMessage());
-            System.err.println("Exception lors de l'accès au fichier .fxml : Cause : "+e.getCause());
+            LOGGER.log(Level.SEVERE,"Exception lors de l'accès au fichier .fxml : Message : "+e.getMessage(),e);
+            LOGGER.log(Level.SEVERE,"Exception lors de l'accès au fichier .fxml : Cause : "+e.getCause(),e);
             System.exit(1);
         }
 
@@ -1214,44 +1105,40 @@ public class PanneauPrincipal {
     @FXML
     public void traiterDeplacementSourisCanvas(MouseEvent me) {
 
-        Point2D pos_souris = canvas_affichage_environnement.gc_vers_g(me.getX(),me.getY()) ;
+        Point2D pos_souris = canvas_environnement.gc_vers_g(me.getX(),me.getY()) ;
 
 
         // Affichage des infos en bas de l'écran
 
-//        // TODO : Adapter le nombre de décimales au facteur de zoom
+//        // TODO : Adapter le nombreElements de décimales au facteur de zoom
 //        String coord = String.format("(X : %.4f , Y : %.4f)",pos_souris.getX(),pos_souris.getY()) ;
 //        label_droit.setText(coord);
 
         String sb = "(X : "
-                + canvas_affichage_environnement.convertisseurAffichageDistance().toString(pos_souris.getX())
+                + canvas_environnement.convertisseurAffichageDistance().toString(pos_souris.getX())
                 + " , Y : "
-                + canvas_affichage_environnement.convertisseurAffichageDistance().toString(pos_souris.getY())
+                + canvas_environnement.convertisseurAffichageDistance().toString(pos_souris.getY())
 
                 + ") " + environnement.unite().symbole;
 
         label_droit.setText(sb);
 
-        Obstacle obs = canvas_affichage_environnement.obstacle_pointe_en(pos_souris) ;
+        Obstacle obs = canvas_environnement.obstacle_pointe_en(pos_souris) ;
         Source src;
 
         if (obs!=null) {
             label_gauche.setText(obs.nom() + " (" + obs.natureMilieu().toString().toLowerCase() + (obs.natureMilieu() == NatureMilieu.TRANSPARENT ? " n=" + obs.indiceRefraction()+")":")"));
         } else {
-            src = canvas_affichage_environnement.source_pointee_en(pos_souris) ;
+            src = canvas_environnement.source_pointee_en(pos_souris) ;
             label_gauche.setText(src != null ? src.nom() + " (" + src.type().toString().toLowerCase()+")" : "-");
 
         }
-
-//        if (source_en_cours_ajout == null && obstacle_en_cours_ajout == null && !retaillage_selection_en_cours)
-//            return;
 
         // Si c'est un glisser, on oublie le point de départ potentiel
         if (glisser_en_cours) {
             source_en_cours_ajout = null ;
             return ;
         }
-
 
         if (source_en_cours_ajout !=null) {
             Point2D direction = pos_souris.subtract(source_en_cours_ajout.position());
@@ -1289,12 +1176,12 @@ public class PanneauPrincipal {
         }
 
 
-        if (canvas_affichage_environnement.obstacleSelectionne() !=null && retaillage_selection_en_cours) {
-            canvas_affichage_environnement.obstacleSelectionne().retaillerSelectionPourSourisEn(pos_souris);
-        } else if (canvas_affichage_environnement.sourceSelectionnee() !=null && retaillage_selection_en_cours) {
-            canvas_affichage_environnement.sourceSelectionnee().retaillerPourSourisEn(pos_souris);
-        } else if (canvas_affichage_environnement.systemeOptiqueCentreSelectionne() !=null && retaillage_selection_en_cours) {
-            canvas_affichage_environnement.systemeOptiqueCentreSelectionne().retaillerPourSourisEn(pos_souris);
+        if (canvas_environnement.selection().obstacleUnique() !=null && retaillage_selection_en_cours) {
+            canvas_environnement.selection().obstacleUnique().retaillerSelectionPourSourisEn(pos_souris);
+        } else if (canvas_environnement.selection().sourceUnique() !=null && retaillage_selection_en_cours) {
+            canvas_environnement.selection().sourceUnique().retaillerPourSourisEn(pos_souris);
+        } else if (canvas_environnement.selection().socUnique() !=null && retaillage_selection_en_cours) {
+            canvas_environnement.selection().socUnique().retaillerPourSourisEn(pos_souris);
         }
 
 
@@ -1313,49 +1200,40 @@ public class PanneauPrincipal {
         // C'est peut-être le début d'un glisser de souris : enregistrons la position de début de glisser
         p_debut_glisser = new Point2D(mouseEvent.getX(),mouseEvent.getY());
 
+        p_debut_glisser_selection = new Point2D(mouseEvent.getX(),mouseEvent.getY());
+
         if (modeCourant()==selection) {
-            Point2D pclic = canvas_affichage_environnement.gc_vers_g(mouseEvent.getX(), mouseEvent.getY());
+            Point2D pclic = canvas_environnement.gc_vers_g(mouseEvent.getX(), mouseEvent.getY());
 
-            Obstacle o_avant = canvas_affichage_environnement.obstacleSelectionne() ;
-            Source   s_avant = canvas_affichage_environnement.sourceSelectionnee() ;
-            SystemeOptiqueCentre   soc_avant = canvas_affichage_environnement.systemeOptiqueCentreSelectionne() ;
+            Obstacle o_avant = canvas_environnement.selection().obstacleUnique() ;
+            Source   s_avant = canvas_environnement.selection().sourceUnique();
+            SystemeOptiqueCentre   soc_avant = canvas_environnement.selection().socUnique() ;
 
-            Obstacle o_pointe  = canvas_affichage_environnement.obstacle_pointe_en(pclic) ;
-            Source   s_pointee = canvas_affichage_environnement.source_pointee_en(pclic) ;
-            SystemeOptiqueCentre   soc_pointe = canvas_affichage_environnement.soc_pointe_en(pclic) ;
+            Obstacle o_pointe  = canvas_environnement.obstacle_pointe_en(pclic) ;
+            Source   s_pointee = canvas_environnement.source_pointee_en(pclic) ;
+            SystemeOptiqueCentre   soc_pointe = canvas_environnement.soc_pointe_en(pclic) ;
 
             if (!retaillage_selection_en_cours) {
-                if (s_pointee!=null) {
-                    canvas_affichage_environnement.deselectionneObstacle();
-                    canvas_affichage_environnement.deselectionneSystemeOptiqueCentre();
-
-                    canvas_affichage_environnement.selectionneSource(s_pointee);
-                }
-                else if (o_pointe!=null) {
-                    canvas_affichage_environnement.deselectionneSource();
-                    canvas_affichage_environnement.deselectionneSystemeOptiqueCentre();
-
-                    canvas_affichage_environnement.selectionneObstacle(o_pointe);
-                } else if (soc_pointe!=null) {
-                    canvas_affichage_environnement.deselectionneSource();
-                    canvas_affichage_environnement.deselectionneObstacle();
-
-                    canvas_affichage_environnement.selectionneSystemeOptiqueCentre(soc_pointe);
+                if (s_pointee!=null && !canvas_environnement.selection().comprend(s_pointee)) {
+                    canvas_environnement.selection().selectionneUniquement(s_pointee);
+                } else if (o_pointe!=null && !canvas_environnement.selection().comprend(o_pointe)) {
+                    canvas_environnement.selection().selectionneUniquement(o_pointe);
+                } else if (soc_pointe!=null && !canvas_environnement.selection().comprend(soc_pointe)) {
+                    canvas_environnement.selection().selectionneUniquement(soc_pointe);
                 } else {
-                    canvas_affichage_environnement.deselectionneSource();
-                    canvas_affichage_environnement.deselectionneObstacle();
-                    canvas_affichage_environnement.deselectionneSystemeOptiqueCentre();
+                    canvas_environnement.selection().vider();
+                    selection_rectangulaire_en_cours = true ;
                 }
             }
 
-            if (canvas_affichage_environnement.obstacleSelectionne()!=o_avant) {
-                treeview_obstacles.getSelectionModel().select(chercheObstacleDansTreeItem(canvas_affichage_environnement.obstacleSelectionne(), treeview_obstacles.getRoot()));
+            if (canvas_environnement.selection().obstacleUnique()!=o_avant) {
+                treeview_obstacles.getSelectionModel().select(chercheObstacleDansTreeItem(canvas_environnement.selection().obstacleUnique(), treeview_obstacles.getRoot()));
             }
-            if (canvas_affichage_environnement.sourceSelectionnee()!=s_avant) {
-                listview_sources.getSelectionModel().select(canvas_affichage_environnement.sourceSelectionnee());
+            if (canvas_environnement.selection().sourceUnique()!=s_avant) {
+                listview_sources.getSelectionModel().select(canvas_environnement.selection().sourceUnique());
             }
-            if (canvas_affichage_environnement.systemeOptiqueCentreSelectionne()!=soc_avant) {
-                listview_socs.getSelectionModel().select(canvas_affichage_environnement.systemeOptiqueCentreSelectionne());
+            if (canvas_environnement.selection().socUnique()!=soc_avant) {
+                listview_socs.getSelectionModel().select(canvas_environnement.selection().socUnique());
             }
 
         }
@@ -1366,39 +1244,37 @@ public class PanneauPrincipal {
 
         glisser_en_cours = true ;
 
-        canvas_affichage_environnement.getScene().setCursor(Cursor.MOVE);
+        canvas_environnement.getScene().setCursor(Cursor.MOVE);
 
         Point2D p_fin_glisser = new Point2D(mouseEvent.getX(),mouseEvent.getY());
 
-        Point2D p_debut_glisser_g = canvas_affichage_environnement.gc_vers_g(p_debut_glisser.getX(),p_debut_glisser.getY());
-        Point2D p_fin_glisser_g   = canvas_affichage_environnement.gc_vers_g(p_fin_glisser.getX(),p_fin_glisser.getY());
+        Point2D p_debut_glisser_g = canvas_environnement.gc_vers_g(p_debut_glisser.getX(),p_debut_glisser.getY());
+        Point2D p_debut_glisser_selection_g = canvas_environnement.gc_vers_g(p_debut_glisser_selection.getX(), p_debut_glisser_selection.getY());
+        Point2D p_fin_glisser_g   = canvas_environnement.gc_vers_g(p_fin_glisser.getX(),p_fin_glisser.getY());
 
         Point2D v_glisser_g = p_fin_glisser_g.subtract(p_debut_glisser_g) ;
 
         // La position actuelle de la souris devient le nouveau point de début de glisser
         p_debut_glisser = p_fin_glisser ;
 
-        if (modeCourant() == selection && canvas_affichage_environnement.obstacleSelectionne() != null) {
+        if (modeCourant() == selection) {
+            if (selection_rectangulaire_en_cours) {
+                BoiteLimiteGeometrique zone_rect = new BoiteLimiteGeometrique(
+                   Math.min(p_debut_glisser_selection_g.getX(),p_fin_glisser_g.getX()),
+                   Math.min(p_debut_glisser_selection_g.getY(),p_fin_glisser_g.getY()),
+                   Math.abs(p_debut_glisser_selection_g.getX()-p_fin_glisser_g.getX()),
+                   Math.abs(p_debut_glisser_selection_g.getY()-p_fin_glisser_g.getY())
+                ) ;
 
-            Obstacle ob_select = canvas_affichage_environnement.obstacleSelectionne() ;
-            SystemeOptiqueCentre soc_contenant = environnement.systemeOptiqueCentreContenant(ob_select);
-
-            if (soc_contenant==null)
-                ob_select.translater(v_glisser_g);
-            else {
-                Point2D vec_dir = soc_contenant.vecteurDirecteurAxe() ;
-                ob_select.translater(vec_dir.multiply(vec_dir.dotProduct(v_glisser_g)));
+                canvas_environnement.selectionnerParZoneRectangulaire(zone_rect);
             }
-
-        } else if (modeCourant() == selection && canvas_affichage_environnement.sourceSelectionnee() != null) {
-            canvas_affichage_environnement.sourceSelectionnee().translater(v_glisser_g);
-        } else if (modeCourant() == selection && canvas_affichage_environnement.systemeOptiqueCentreSelectionne() != null) {
-            canvas_affichage_environnement.systemeOptiqueCentreSelectionne().translater(v_glisser_g);
+            else
+                canvas_environnement.translaterSelection(v_glisser_g);
         } else {
-            canvas_affichage_environnement.translaterLimites(v_glisser_g.getX(),v_glisser_g.getY());
+            canvas_environnement.translaterLimites(v_glisser_g.getX(),v_glisser_g.getY());
         }
 
-        canvas_affichage_environnement.rafraichirAffichage();
+        canvas_environnement.rafraichirAffichage();
 
     }
 
@@ -1415,49 +1291,24 @@ public class PanneauPrincipal {
         // Si un rayon était en cours de placement, on l'oublie
         source_en_cours_ajout = null ;
 
-        canvas_affichage_environnement.getScene().setCursor(Cursor.DEFAULT);
+        canvas_environnement.selectionnerParZoneRectangulaire(null);
+        selection_rectangulaire_en_cours = false ;
+
+        canvas_environnement.getScene().setCursor(Cursor.DEFAULT);
 
         Point2D p_fin_glisser = new Point2D(mouseEvent.getX(),mouseEvent.getY());
 
-        Point2D p_debut_glisser_g = canvas_affichage_environnement.gc_vers_g(p_debut_glisser.getX(),p_debut_glisser.getY());
-        Point2D p_fin_glisser_g   = canvas_affichage_environnement.gc_vers_g(p_fin_glisser.getX(),p_fin_glisser.getY());
+        Point2D p_debut_glisser_g = canvas_environnement.gc_vers_g(p_debut_glisser.getX(),p_debut_glisser.getY());
+        Point2D p_fin_glisser_g   = canvas_environnement.gc_vers_g(p_fin_glisser.getX(),p_fin_glisser.getY());
 
         Point2D v_glisser_g = p_fin_glisser_g.subtract(p_debut_glisser_g) ;
 
         // Etait-on en train de déplacer un obstacle sélectionné ?
-        if (modeCourant() == selection && canvas_affichage_environnement.obstacleSelectionne() != null) {
-
-            // Autre approche à étudier :
-            //   ob_select.translater(v_glisser_g);
-            //   ...et mettre les lignes ci-dessous dans la méthode translater() de chaque obstacle
-            // Ou alors :
-            // Lorsqu'un obstacle est mis dans un SOC, lui ajouter un listener spécial sur x_centre, y_centre pour
-            // calculer l'un en fonction de l'autre, le long de l'axe du SOC : mais si le déplacement est perpendiculaire
-            // à l'axe, comment faire pour bloquer le déplacement ??
-
-            Obstacle ob_select = canvas_affichage_environnement.obstacleSelectionne() ;
-            SystemeOptiqueCentre soc_contenant = environnement.systemeOptiqueCentreContenant(ob_select);
-
-            if (soc_contenant==null)
-                ob_select.translater(v_glisser_g);
-            else {
-                Point2D vec_dir = soc_contenant.vecteurDirecteurAxe() ;
-                ob_select.translater(vec_dir.multiply(vec_dir.dotProduct(v_glisser_g)));
-            }
-
-//            canvas_affichage_environnement.deselectionneObstacle();
-        }
-        // Etait-on en train de déplacer une source sélectionnée ?
-        else if (modeCourant() == selection && canvas_affichage_environnement.sourceSelectionnee() != null) {
-            canvas_affichage_environnement.sourceSelectionnee().translater(v_glisser_g);
-        // Etait-on en train de déplacer une source sélectionnée ?
-        } else if (modeCourant() == selection && canvas_affichage_environnement.systemeOptiqueCentreSelectionne() != null) {
-            canvas_affichage_environnement.systemeOptiqueCentreSelectionne().translater(v_glisser_g);
-        // Sinon, aucun élément n'était sélectionné : on était en train de déplacer la zone visible
-        } else {
-            canvas_affichage_environnement.translaterLimites(v_glisser_g.getX(), v_glisser_g.getY());
-
-            canvas_affichage_environnement.rafraichirAffichage();
+        if (modeCourant() == selection && canvas_environnement.selection().nombreElements() >0 ) {
+            canvas_environnement.translaterSelection(v_glisser_g);
+        } else { // Sinon, aucun élément n'était sélectionné : on était en train de déplacer la zone visible
+            canvas_environnement.translaterLimites(v_glisser_g.getX(), v_glisser_g.getY());
+            canvas_environnement.rafraichirAffichage();
         }
 
     }
@@ -1476,17 +1327,12 @@ public class PanneauPrincipal {
         Iterator<Obstacle> ito =  environnement.iterateur_obstacles() ;
         while (ito.hasNext()) {
             Obstacle o = ito.next() ;
-            // Rechercher si l'obstacle o implemente l'interface ElementAvecMatiere car eux seuls peuvent faire partie d'une composition
+            // Rechercher si l'obstacle o implémente l'interface ElementAvecMatiere car eux seuls peuvent faire partie d'une composition
             if (o instanceof ElementAvecMatiere)
                 obstacles_a_proposer.add( o ) ;
         }
 
         ListView<Obstacle> lo = new ListView<>(obstacles_a_proposer) ;
-
-        // TODO Limiter la composition à deux objets : proposer deux listview en sélection SINGLE côte à côte (mais
-        // interdire de choisir le même objet dans les deux listes... : retirer de la 2ème l'objet sélectionné dans
-        // la première, et le remettre si il n'est plus sélectionné dans la première... Mais quid si on sélectionne
-        // d'abord dans la 2eme liste, avant la première ??
 
         ScrollPane sp = new ScrollPane(lo) ;
         sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -1574,7 +1420,7 @@ public class PanneauPrincipal {
     public void traiterChargerEnvironnement() {
 
         // Ouverture d'un FileChooser modal sur la fenêtre principale (un paramètre 'null' l'aurait rendu amodal)
-        File fichier_a_charger = fileChooser.showOpenDialog(canvas_affichage_environnement.getScene().getWindow());
+        File fichier_a_charger = fileChooser.showOpenDialog(canvas_environnement.getScene().getWindow());
 
         if (fichier_a_charger == null)
             return ;
@@ -1582,8 +1428,8 @@ public class PanneauPrincipal {
         try {
 
             ContextAttributes ca = ContextAttributes.getEmpty() ;
-            ca = ca.withSharedAttribute("largeur_graphique", canvas_affichage_environnement.largeurGraphique()) ;
-            ca = ca.withSharedAttribute("hauteur_graphique", canvas_affichage_environnement.hauteurGraphique()) ;
+            ca = ca.withSharedAttribute("largeur_graphique", canvas_environnement.largeurGraphique()) ;
+            ca = ca.withSharedAttribute("hauteur_graphique", canvas_environnement.hauteurGraphique()) ;
 
             ObjectReader or = jsonMapper.readerFor(CanvasAffichageEnvironnement.class).with(ca) ;
 
@@ -1641,9 +1487,9 @@ public class PanneauPrincipal {
         // Ouverture d'un FileChooser modal sur la fenêtre principale (un paramètre 'null' l'aurait rendu amodal)
         if (window.getUserData() == null) {
             fileChooser.setInitialFileName("Nouveau");
+
+            // Mémorisation du File ouvert
             window.setUserData(fileChooser.showSaveDialog(racine.getScene().getWindow()));
-            // oldTODO : il doit y avoir un moyen plus direct de retrouver la Fenêtre principale...
-//            fichier_sauvegarde = fileChooser.showSaveDialog(canvas_affichage_environnement.getScene().getWindow());
         }
 
         if (window.getUserData() == null)
@@ -1673,10 +1519,10 @@ public class PanneauPrincipal {
     }
 
     private void sauvegarderEnvironnement() {
-        String json = null ;
+        String json;
 
         try {
-            json = jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(canvas_affichage_environnement);
+            json = jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(canvas_environnement);
         } catch (JsonProcessingException e) {
             LOGGER.log(Level.SEVERE,"Exception lors de la sérialisation en JSON de l'Environnement ou des propriétés d'afffichage associées : ",e);
 
@@ -1689,7 +1535,8 @@ public class PanneauPrincipal {
 
         Window window = racine.getScene().getWindow() ;
 
-        FileOutputStream fos = null;
+        FileOutputStream fos;
+
         try {
             fos = new FileOutputStream((File)window.getUserData());
         } catch (FileNotFoundException e) {
@@ -1722,7 +1569,7 @@ public class PanneauPrincipal {
 
     public void traiterImporter() {
         // Ouverture d'un FileChooser modal sur la fenêtre principale (un paramètre 'null' l'aurait rendu amodal)
-        File fichier_a_charger = fileChooser.showOpenDialog(canvas_affichage_environnement.getScene().getWindow());
+        File fichier_a_charger = fileChooser.showOpenDialog(canvas_environnement.getScene().getWindow());
 
         if (fichier_a_charger == null)
             return ;
@@ -1744,7 +1591,6 @@ public class PanneauPrincipal {
             alert.showAndWait();
 
         }
-
 
     }
 }

@@ -30,7 +30,7 @@ public class DemiDroiteOuSegment {
     /**
      * Vecteur directeur de la demi-droite ou du segment.
      * Si demi-droite : la norme de la direction est quelconque
-     * Si segment : la norme de la direction est égal à la longueur du segment
+     * Si segment : la norme de la direction est égale à la longueur du segment.
      */
     private Point2D direction ;
 
@@ -44,40 +44,6 @@ public class DemiDroiteOuSegment {
         this.direction = direction.normalize();
         this.arrivee = null ;
     }
-
-//    public DemiDroiteOuSegment(DemiDroiteOuSegment autre) {
-//        // Une copie de surface suffit car les attributs sont de type Point2D (qi ne peut pas être modifié une fois créé)
-//        this.depart = autre.depart ;
-//        this.arrivee = autre.arrivee ;
-//        this.direction = autre.direction ;
-//
-//    }
-
-//    public DemiDroiteOuSegment(Point2D depart, Point2D direction, Point2D arrivee) {
-//        this.depart = depart;
-//        this.direction = direction ;
-//        this.arrivee = arrivee;
-//    }
-
-    // TODO : ne marche que pour les segments ! A revoir pour les demi-droites
-//    public boolean contient(Point2D p) {
-//        if (p.getX() < Math.min(depart.getX(), arrivee.getX()) || p.getX() > Math.max(depart.getX(), arrivee.getX()))
-//            return false;
-//
-//        if (depart.getX() == arrivee.getX()) {
-//            if (p.getX() == depart.getX() && p.getY() > Math.min(depart.getY(), arrivee.getY()) && p.getY() < Math.max(depart.getY(), arrivee.getY()))
-//                return true;
-//
-//            return false;
-//        }
-//
-//        double a = (arrivee.getY() - depart.getY()) / (arrivee.getX() - depart.getX());
-//        double yseg = a * (p.getX() - depart.getX()) + depart.getY();
-//
-//        return Environnement.quasiEgal(yseg, p.getY());
-//
-//    }
-
     public void definirDepart(Point2D dep) {
         this.depart = dep ;
         this.direction = (this.arrivee!=null?this.arrivee.subtract(dep).normalize():null) ;
@@ -89,7 +55,6 @@ public class DemiDroiteOuSegment {
         if (arr!=null)
             this.direction = arr.subtract(this.depart).normalize();
     }
-
 
     public Point2D milieu() {
         if (arrivee == null)
@@ -141,7 +106,7 @@ public class DemiDroiteOuSegment {
 //    }
 
     /**
-     * Retourne, si il existe, le point d'intersection entre deux DemiDroiteOuSegment
+     * Retourne, s'il existe, le point d'intersection entre deux DemiDroiteOuSegment
      * Attention : si le point de départ de l'un est sur l'autre, le résultat est indéterminé du fait des erreurs
      * d'arrondis sur les flottants de type 'double' : le point de contact peut être retourné ou pas...
      * @param autre_support
@@ -198,15 +163,11 @@ public class DemiDroiteOuSegment {
                 return null ;
         }
 
-
-        if (arrivee != null && autre_support.arrivee != null) {// Deux segments
-            if (0d <= t && t <= 1d && 0d <=u && u <= 1d)
-                return depart.add(r.multiply(t)) ;
-            else
-                return null ;
-        }
-
-        return null ;
+        // Deux segments
+        if (0d <= t && t <= 1d && 0d <=u && u <= 1d)
+            return depart.add(r.multiply(t)) ;
+        else
+            return null ;
 
     }
 
@@ -241,6 +202,7 @@ public class DemiDroiteOuSegment {
 
         return new DemiDroiteOuSegment(this.arrivee,this.direction) ;
     }
+
 
 
 }

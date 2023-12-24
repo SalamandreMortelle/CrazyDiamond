@@ -8,6 +8,7 @@ import javafx.scene.transform.Affine;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -91,7 +92,7 @@ public class Source implements Nommable {
             return null;
         }
 
-    } ;
+    }
 
     public TypeSource type() {
         return type.get();
@@ -169,6 +170,19 @@ public class Source implements Nommable {
     public ObjectProperty<Color> couleurProperty() { return couleur; }
     public Color couleur() { return couleur.get(); }
 
+    public Point2D[] extremitesProjecteur() {
+        Point2D dir = direction() ;
+        Point2D vect_perp = new Point2D(-dir.getY(),dir.getX()) ;
+
+        Point2D[] res = new Point2D[2] ;
+
+        res[0] = position().subtract(vect_perp.multiply(0.5d*largeurProjecteur())) ;
+        res[1] = position().add(vect_perp.multiply(0.5d*largeurProjecteur())) ;
+
+        return res ;
+
+    }
+
 
     public Source(Environnement environnement, Point2D position, double orientation, TypeSource type , int nb_rayons, Color couleur) {
         this(environnement,position, orientation,type,nb_rayons,couleur,false,0d,nombre_max_obstacles_rencontres_par_defaut) ;
@@ -200,17 +214,9 @@ public class Source implements Nommable {
 
         this.nombre_maximum_rencontres_obstacle = new SimpleIntegerProperty(nombre_max_obstacles_rencontres) ;
 
-        this.position_orientation = new SimpleObjectProperty<PositionEtOrientation>(new PositionEtOrientation(position,orientation_deg)) ;
+        this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(position, orientation_deg)) ;
 
-//        this.position_x = new SimpleDoubleProperty(position.getX()) ;
-//        this.position_y = new SimpleDoubleProperty(position.getY()) ;
-//
-//        this.orientation = new SimpleDoubleProperty(orientation) ;
-
-        if (type == null)
-            this.type = new SimpleObjectProperty<TypeSource>(TypeSource.PINCEAU) ;
-        else
-            this.type      = new SimpleObjectProperty<TypeSource>(type) ;
+        this.type = new SimpleObjectProperty<>(Objects.requireNonNullElse(type, TypeSource.PINCEAU));
 
         this.nombre_rayons = new SimpleIntegerProperty(nb_rayons) ;
 
@@ -218,9 +224,9 @@ public class Source implements Nommable {
         this.largeur_projecteur = new SimpleDoubleProperty(largeur_projecteur) ;
 
         if (couleur == null)
-            this.couleur = new SimpleObjectProperty<Color>(couleur_par_defaut_property.getValue()) ;
+            this.couleur = new SimpleObjectProperty<>(couleur_par_defaut_property.getValue()) ;
         else
-            this.couleur =  new SimpleObjectProperty<Color>(couleur) ;
+            this.couleur = new SimpleObjectProperty<>(couleur) ;
 
         this.lumiere_polarisee = new SimpleBooleanProperty(lumiere_polarisee) ;
         this.angle_champ_electrique = new SimpleDoubleProperty(angle_champ_electrique) ;
@@ -251,18 +257,15 @@ public class Source implements Nommable {
 
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
 
-        position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        position_x.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        position_y.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        nombre_maximum_rencontres_obstacle.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        nombre_rayons.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        ouverture_pinceau.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        largeur_projecteur.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        type.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        couleur.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        lumiere_polarisee.addListener((observable, oldvalue, newValue) -> { rap.rappel(); });
-        angle_champ_electrique.addListener((observable, oldvalue, newValue) -> { rap.rappel(); });
+        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
+        nombre_maximum_rencontres_obstacle.addListener((observable, oldValue, newValue) -> rap.rappel());
+        nombre_rayons.addListener((observable, oldValue, newValue) -> rap.rappel());
+        ouverture_pinceau.addListener((observable, oldValue, newValue) -> rap.rappel());
+        largeur_projecteur.addListener((observable, oldValue, newValue) -> rap.rappel());
+        type.addListener((observable, oldValue, newValue) -> rap.rappel());
+        couleur.addListener((observable, oldValue, newValue) -> rap.rappel());
+        lumiere_polarisee.addListener((observable, oldvalue, newValue) -> rap.rappel());
+        angle_champ_electrique.addListener((observable, oldvalue, newValue) -> rap.rappel());
     }
 
     public void definirDirection(Point2D direction) {
@@ -270,7 +273,6 @@ public class Source implements Nommable {
         if (direction != null && direction.magnitude()==0.0) {
             throw new IllegalArgumentException("La direction de la source ne peut pas être un vecteur nul.") ;
         }
-//        this.direction = direction.normalize() ;
 
         double angle_deg = direction.angle(new Point2D(1,0)) ;
 
@@ -285,7 +287,6 @@ public class Source implements Nommable {
 
     public void definirOrientation(double or) {
         position_orientation.set(new PositionEtOrientation(position(),or)) ;
-//        this.orientation.set(angle_deg);
     }
 
     public void definirOuverturePinceau(double ouverture_pinceau) {
@@ -302,14 +303,10 @@ public class Source implements Nommable {
 
     public Point2D position() {
         return position_orientation.get().position() ;
-//        return new Point2D(position_x.get(),position_y.get()) ;
     }
 
     public Point2D direction() {
-//        if (orientation != null)
         return new Point2D(Math.rint(1.0E10*Math.cos(Math.toRadians(orientation())))/1.0E10, Math.rint(1E10*Math.sin(Math.toRadians(orientation())))/1.0E10) ;
-
-//        return null ;
     }
 
     boolean est_tres_proche_de(Point2D p,double tolerance) {
@@ -343,13 +340,9 @@ public class Source implements Nommable {
             return false;
 
         if (x1 == x2) {
-            if ( Environnement.quasiEgal(p.getX() , x1,tolerance)
-                    && Environnement.quasiSuperieurOuEgal(p.getY(),Math.min(y1, y2),tolerance)
-                    && Environnement.quasiInferieurOuEgal(p.getY(),Math.max(y1, y2),tolerance) )
-                return true ;
-
-            return false ;
-
+            return Environnement.quasiEgal(p.getX(), x1, tolerance)
+                    && Environnement.quasiSuperieurOuEgal(p.getY(), Math.min(y1, y2), tolerance)
+                    && Environnement.quasiInferieurOuEgal(p.getY(), Math.max(y1, y2), tolerance);
         }
 
         double a = (y2 - y1) / (x2 - x1) ;
@@ -360,42 +353,17 @@ public class Source implements Nommable {
     }
     public void illuminer() {
 
-//        if (orientation ==null)
-//            throw new IllegalStateException("Une source ne peut pas illuminer si sa direction n'est pas définie.") ;
-
         if (chemins == null)
-            chemins = new ArrayList<CheminLumiere>(nombre_rayons.intValue()) ;
+            chemins = new ArrayList<>(nombre_rayons.intValue()) ;
         else
             // On oublie les chemins précédemmment calculés
             chemins.clear();
 
-//        Obstacle obs_contenant = environnement.obstacle_contenant(this.position()) ;
-//        NatureMilieu nature_mil = (obs_contenant!=null?obs_contenant.natureMilieu():NatureMilieu.TRANSPARENT) ;
-//
-//        if ( (type()==TypeSource.PINCEAU || type()==TypeSource.LASER)
-//                && obs_contenant != null && nature_mil != NatureMilieu.TRANSPARENT )
-//            return ;
-
         Point2D position  = this.position() ;
         Point2D direction = this.direction() ;
 
-
         switch (type.get()) {
-            case LASER -> {
-                lancer_rayon_si_possible(position,direction);
-//                if ( !peut_emettre_depuis(position) )
-//                    return ;
-//
-//                Obstacle obs_contenant = environnement.obstacle_contenant(position) ;
-//                if (!peut_emettre_depuis_point_dans_obstacle(obs_contenant,position))
-//                    return ;
-//
-//                Rayon r_emis = creer_rayon_si_possible(position,direction) ;
-//
-//                lancer(new Rayon(position,direction,
-//                                (obs_contenant==null?environnement.indiceRefraction():obs_contenant.indiceRefraction()),
-//                                Rayon.PhenomeneOrigine.EMISSION_SOURCE, 1.0)) ;
-            }
+            case LASER -> lancer_rayon_si_possible(position,direction);
             case PINCEAU -> {
 
                 if (nombre_rayons.intValue()==1) {
@@ -413,7 +381,6 @@ public class Source implements Nommable {
                     // d'origine, qui pourrait être sur un dioptre, à la limite entre deux milieux)
                     // dans la méthode calculerCheminDuRayon()
 
-
                     for (int i = 0; i < nombre_rayons.intValue(); i++ ) {
                         double theta = -ouverture_pinceau.doubleValue() / 2 + i * (ouverture_pinceau.doubleValue() / (nombre_rayons.intValue()-1));
 
@@ -426,7 +393,7 @@ public class Source implements Nommable {
 
                         lancer(r_pinceau,false) ;
                     }
-                } ;
+                }
             }
             case PROJECTEUR -> {
                 if (nombre_rayons.intValue()==1) {
@@ -507,10 +474,7 @@ public class Source implements Nommable {
         if (o.aSurSaSurface(pt_dep) && (trait_surf_obs != TraitementSurface.ABSORBANT))
             return true ;
 
-        if (nature_mil_obs == NatureMilieu.TRANSPARENT)
-            return true ;
-
-        return false ;
+        return nature_mil_obs == NatureMilieu.TRANSPARENT;
 
     }
     protected void lancer(Rayon r) {
@@ -543,17 +507,10 @@ public class Source implements Nommable {
         // Par défaut considérer que le rayon ne rencontre pas d'obstacle
         Obstacle obstacle_rencontre = null;
 
-        // Calculer l'intersection du rayon avec les limites de l'environnement
-        // NB : il faut prendre la derniere intersection pour gérer le cas d'un rayon provenant de l'extérieur de la zone visible
-  //      Point2D p_inter_le_plus_proche = environnement.derniere_intersection_avec_limites(r) ;
         Point2D p_inter_le_plus_proche = null ;
 
         // Attention : si le point de départ du rayon est hors zone visible, il peut y avoir 0 ou 2
-        // intersections (voire une seule si il passe par un coin)
-
-        // Considérer que c'est l'intersection la plus proche = toute sortie de la zone visible est définitive !
-        // Autrement dit, les bords de la zone visible "absorbent" (et arrêtent le rayon)
-//        double distance_inter_la_plus_proche = p_inter_le_plus_proche.subtract(r.depart).magnitude();
+        // intersections (voire une seule s'il passe par un coin)
 
         // Considérer qu'il n'y a aucune intersection = on va aussi aller chercher les intersections hors
         // de la zone visible
@@ -561,8 +518,7 @@ public class Source implements Nommable {
 
         Iterator<Obstacle> ito = environnement.iterateur_obstacles() ;
 
-        // Lister toutes les intersections du rayon avec les obstacles qui sont dans l'environnement (càd visibles)
-//        for (Obstacle o : obstacles) {
+        // Lister toutes les intersections du rayon avec les stream_obstacles qui sont dans l'environnement (càd visibles)
         while (ito.hasNext()) {
 
             Obstacle o = ito.next() ;
@@ -606,16 +562,6 @@ public class Source implements Nommable {
             // TODO (optimisation) : les deux lignes précédentes font qu'il ne sert à rien d'avoir défini au préalable l'indice du milieu
             //  traversé par le rayon r, comme on le fait dans le cas où le rayon r est un rayon source (PhenomeneOrigine==EMISSION_SOURCE).
 
-//            Rayon nouveau_rayon = null ;
-//            if (obs_traverse!=null)
-////X             chemin.ajouteRayon(new Rayon(r.depart, r.direction,obs_traverse.indiceRefraction()));
-//                nouveau_rayon = new Rayon(r.depart, r.direction,obs_traverse.indiceRefraction()) ;
-//            else
-////X             chemin.ajouteRayon(new Rayon(r.depart, r.direction,environnement.indiceRefraction()));
-//                nouveau_rayon = new Rayon(r.depart, r.direction,environnement.indiceRefraction()) ;
-//
-//            chemin.ajouteRayon(nouveau_rayon) ;
-
             chemin.ajouteRayon(r);
 
             // Fin du chemin
@@ -625,106 +571,32 @@ public class Source implements Nommable {
         // Sinon, faire de cette intersection le point d'arrivée du rayon
         r.definirArrivee(p_inter_le_plus_proche);
 
-        //
         Obstacle obs_traverse = environnement.dernier_obstacle_contenant(r.depart().midpoint(p_inter_le_plus_proche)) ;
         r.indice_milieu_traverse = (obs_traverse!=null?obs_traverse.indiceRefraction():environnement.indiceRefraction()) ;
         // TODO (optimisation) : les deux lignes précédentes font qu'il ne sert à rien d'avoir défini au préalable l'indice du milieu
         //  traversé par le rayon r, comme on le fait dans le cas où le rayon r est un rayon source (PhenomeneOrigine==EMISSION_SOURCE).
 
-
-
         chemin.ajouteRayon(r);
-
-//        Rayon rayon_du_chemin ;
-//        if (obs_traverse!=null) {
-//            rayon_du_chemin = new Rayon(r.depart, r.direction, p_inter_le_plus_proche, obs_traverse.indiceRefraction());
-//        }
-//        else {
-//            rayon_du_chemin = new Rayon(r.depart, r.direction, p_inter_le_plus_proche, environnement.indiceRefraction());
-//            r.arrivee
-//        }
-//
-//        chemin.ajouteRayon(rayon_du_chemin);
-
 
         nombre_obstacles_rencontres++ ;
 
         if (nombre_obstacles_rencontres > nombre_maximum_rencontres_obstacle.get())
             return;
 
-//        if (obs_traverse!=null)
-//            chemin.ajouteRayon(rayon_du_chemin,obs_traverse.indiceRefraction());
-//        else
-//            chemin.ajouteRayon(rayon_du_chemin,environnement.indiceRefraction());
-
-//        System.out.println("AJOUT ( n = "+numero_reflexion+" ) / dep : "+rayon_du_chemin.depart+" dir : "+rayon_du_chemin.direction+" / arr : "+rayon_du_chemin.arrivee) ;
-
-//X        Rayon rayon_suivant = null ;
-//        Rayon rayon_suivant_reflechi = null ;
-//        Rayon rayon_suivant_transmis = null ;
-
         RayonsRefracteEtReflechi rayons_res = null ;
 
         try {
-
                 rayons_res = Obstacle.rayonsRefracteEtReflechi(obstacle_rencontre,r,environnement) ;
 
-//            switch (obstacle_rencontre.natureMilieu())  {
-//                // TODO : Optimisation possible : on a déjà calculé l'intersection : on pourrait la passer dans l'appel suivant car la
-//                //        méthode rayonReflechi commence par refaire ce calcul d'intersection.
-//                case REFLECHISSANT -> {
-////X                    rayon_suivant = Obstacle.rayonReflechi(obstacle_rencontre, rayon_du_chemin);
-////                    rayon_suivant_reflechi = Obstacle.rayonReflechi(obstacle_rencontre, rayon_du_chemin);
-//                    rayon_suivant_transmis = null ;
-//                    rayon_suivant_reflechi = Obstacle.rayonReflechiTotal(obstacle_rencontre, r);
-//
-//                }
-//                case ABSORBANT -> {
-////X                    rayon_suivant = null;
-//                    rayon_suivant_reflechi = null;
-//                    rayon_suivant_transmis = null;
-//                }
-//                case TRANSPARENT -> {
-////X                    rayon_suivant = Obstacle.rayonRefracte(obstacle_rencontre, rayon_du_chemin, environnement);
-//                    // Le rayon reflechi ci-dessous sera calculé à 'null' si l'environnement est paramétré sans coefficients de Fresnel
-//
-////                    rayon_suivant_transmis = Obstacle.rayonRefracte(obstacle_rencontre, rayon_du_chemin, environnement);
-//                    rayon_suivant_transmis = Obstacle.rayonRefracte(obstacle_rencontre, r, environnement, environnement.reflexionAvecRefraction());
-//
-//                    if (rayon_suivant_transmis==null) {
-//                        // Réflexion totale : il n'y a pas de rayon transmis, ne reste qu'à calculer le rayon réfléchi
-//                        rayon_suivant_reflechi = Obstacle.rayonReflechiTotal(obstacle_rencontre, r);
-//                    } else if (environnement.reflexionAvecRefraction()) {
-//                        rayon_suivant_reflechi = Obstacle.rayonReflechiTotal(obstacle_rencontre, r);
-//
-//                        // Le ratio de puissance réflechi est la différence entre le ratio de puissance incidente et le
-//                        // ratio de puissance du rayon transmis que l'on a déjà calculé dans Obstacle.rayonRefracte()
-//                        rayon_suivant_reflechi.ratio_puissance =  r.ratio_puissance - rayon_suivant_transmis.ratio_puissance ;
-//
-//                    }
-//
-//                }
-//            }
-
-            // Calculer le rayon réfléchi, par l'obstacle atteint
-//            rayon_reflechi = Obstacle.rayonReflechi(obstacle_rencontre,rayon_du_chemin);
             // TODO : Optimisation possible : on a déjà calculé l'intersection : on pourrait la passer dans l'appel précédent car la
             //        méthode rayonReflechi commence par refaire ce calcul d'intersection.
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE,"Exception inattendue lors du calcul des rayons réfractés et réfléchis suivants",e);
         }
 
-//X        // Arrêter la récurrence si pas de rayon suivant
-//X        if (rayon_suivant == null)
-//X            return ;
-
         // Arrêt de la récurrence si pas de rayon suivant transmis ou réflechi
         if (rayons_res.rayon_refracte == null && rayons_res.rayon_reflechi == null)
             return ;
-
-        // Continuer par recurrence...
-//X        calculerCheminDuRayon(chemin,rayon,++numero_reflexion);
-
 
         chemin.normale = rayons_res.normale ;
 

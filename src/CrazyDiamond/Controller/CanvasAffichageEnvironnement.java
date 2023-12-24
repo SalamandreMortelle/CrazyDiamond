@@ -6,6 +6,7 @@ import clipper2.core.PathD;
 import clipper2.core.PointD;
 import javafx.beans.property.*;
 import javafx.collections.ListChangeListener;
+import javafx.geometry.BoundingBox;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.SpinnerValueFactory;
@@ -24,14 +25,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 // Cette classe est à la fois la Vue et le Controleur qui permet d'afficher un Environnement dans un Canvas JavaFX
-// redimensionnable et dynamique lié (via des Bindings) à tous les objets (sources+obstacles+socs) de l'Environnement.
+// redimensionnable et dynamique lié (via des Bindings) à tous les objets (stream_sources+stream_obstacles+stream_socs) de l'Environnement.
 public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
     // Modèle
     protected Environnement environnement;
-    protected Obstacle obstacle_selectionne = null ;
-    public Source source_selectionnee = null ;
-    protected SystemeOptiqueCentre soc_selectionne = null ;
+
+    /**
+     * Liste des stream_sources, stream_obstacles et stream_socs sélectionnés dans ce canvas
+     */
+    protected ElementsSelectionnes selection ;
+
+//    protected Obstacle obstacle_selectionne = null ;
+//    public Source source_selectionnee = null ;
+//    protected SystemeOptiqueCentre soc_selectionne = null ;
 
     // Rectangle des limites géométriques de l'environnement, en unités de l'environnement
     private BoiteLimiteGeometrique boite_limites ;
@@ -90,6 +97,8 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     protected ConvertisseurDoubleValidantAffichageDistance convertisseur_affichage_distance;
     private boolean suspendre_rafraichir_decor = false ;
 
+    private BoiteLimiteGeometrique zone_selection_rectangulaire;
+
     public Color couleurNormales() { return couleur_normales.get() ; }
 
     public void definirCouleurNormales(Color value) {
@@ -105,28 +114,6 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     public boolean commentaireVisible() { return commentaire_visible.get() ;  }
     public void definirCommentaireVisible(boolean b) { commentaire_visible.set(b) ;  }
 
-    public SystemeOptiqueCentre soc_pointe_en(Point2D pt_g) {
-        if (poignee_soc_pointee_en(pt_g))
-            return soc_selectionne ;
-
-        // Le SOC ne peut être pointé et sélectionné que par son axe : il n'a pas d'épaisseur
-        // SystemeOptiqueCentre soc = environnement.dernier_soc_contenant(pt_g) ;
-
-        return environnement.dernier_soc_tres_proche(pt_g, tolerance_pointage());
-    }
-
-    public boolean poignee_soc_pointee_en(Point2D pclic) {
-        if (soc_selectionne == null)
-            return false ;
-
-        Contour poignees = soc_selectionne.positions_poignees() ;
-
-        if (poignees==null)
-            return false ;
-
-        return poignees.comporte_point_proche_de(pclic, tolerance_pointage());
-
-    }
 
     /**
      * Créée un Canvas graphique (javafx.scene.canvas) d'Affichage d'un Environnement e de dimensions graphiques
@@ -170,9 +157,11 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
                 } )
         ) ;
 
+        selection = new ElementsSelectionnes() ;
+
         visiteur_affichage = new VisiteurAffichageEnvironnement(this) ;
 
-        // Convertisseur d'affichage des distances qui ajustera automatiquement le nombre de décimales à afficher en
+        // Convertisseur d'affichage des distances qui ajustera automatiquement le nombreElements de décimales à afficher en
         // fonction de la résolution de la résolution du Canvas, et qui fait de la virgule le séparateur des décimales.
         convertisseur_affichage_distance = new ConvertisseurDoubleValidantAffichageDistance(this) ;
 
@@ -241,20 +230,20 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
         environnement.reflexionAvecRefractionProperty().addListener((observable, oldValue,newValue) -> this.rafraichirAffichage());
 
-        // Intégration des rappels sur les éventuelles sources déjà présentes dans l'environnement (peut arriver si on a chargé l'environnement)
+        // Intégration des rappels sur les éventuelles stream_sources déjà présentes dans l'environnement (peut arriver si on a chargé l'environnement)
         Iterator<Source> its = environnement.iterateur_sources() ;
         while (its.hasNext())
             its.next().ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 
-        // Détection des sources ajoutées ou supprimées
+        // Détection des stream_sources ajoutées ou supprimées
         //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
-        //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
+        //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.stream_sources.get(i) */ } }
         //                else
         //                  for (Source remitem : change.getRemoved()) { }
         ListChangeListener<Source> lcl_sources = change -> {
             while (change.next()) {
                 //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
-                //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
+                //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.stream_sources.get(i) */ } }
                 //                else
                 if (change.wasRemoved()) {
                     //                  for (Source remitem : change.getRemoved()) { }
@@ -277,10 +266,10 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
             }
         };
 
-        // Enregistrer listener des sources
+        // Enregistrer listener des stream_sources
         environnement.ajouterListenerListeSources(lcl_sources);
 
-        // Intégration des rappels sur les éventuels obstacles déjà présents dans l'environnement (peut arriver si on a chargé l'environnement)
+        // Intégration des rappels sur les éventuels stream_obstacles déjà présents dans l'environnement (peut arriver si on a chargé l'environnement)
         Iterator<Obstacle> ito = environnement.iterateur_obstacles() ;
         while (ito.hasNext())
             ito.next().ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
@@ -307,7 +296,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
             }
         };
 
-        // Enregistrer listener des obstacles
+        // Enregistrer listener des stream_obstacles
         environnement.ajouterListenerListeObstacles(lcl_obstacles);
 
         // Intégration des rappels sur les éventuels SOC déjà présents dans l'environnement (peut arriver si on a chargé l'environnement)
@@ -316,18 +305,18 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
             itsoc.next().ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 
 
-        // Détection des socs ajoutés ou supprimés
+        // Détection des stream_socs ajoutés ou supprimés
         //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
-        //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
+        //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.stream_sources.get(i) */ } }
         //                else
         //                  for (Source remitem : change.getRemoved()) { }
         // Il faut un rappel pour redessiner l'axe en cas de changement d'une propriété du SOC, y compris sa matrice de transfert
-        // NB : Si ce rappel se déclenche, il est dommage qu'il y en ait déjà un de déclenché par les obstacles du SOC eux-mêmes, quand on
+        // NB : Si ce rappel se déclenche, il est dommage qu'il y en ait déjà un de déclenché par les stream_obstacles du SOC eux-mêmes, quand on
         // change ses propriétés : il faudrait s'en passer et ne garder que le rappel ci-dessous...
         ListChangeListener<SystemeOptiqueCentre> lcl_socs = change -> {
             while (change.next()) {
                 //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
-                //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
+                //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.stream_sources.get(i) */ } }
                 //                else
                 if (change.wasRemoved()) {
                     //                  for (Source remitem : change.getRemoved()) { }
@@ -342,7 +331,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
                         LOGGER.log(Level.FINER, "Création des liaisons pour le SOC {0}", additem);
 
                         // Il faut un rappel pour redessiner l'axe en cas de changement d'une propriété du SOC, y compris sa matrice de transfert
-                        // NB : Si ce rappel se déclenche, il est dommage qu'il y en ait déjà un de déclenché par les obstacles du SOC eux-mêmes, quand on
+                        // NB : Si ce rappel se déclenche, il est dommage qu'il y en ait déjà un de déclenché par les stream_obstacles du SOC eux-mêmes, quand on
                         // change ses propriétés : il faudrait s'en passer et ne garder que le rappel ci-dessous...
                         additem.ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 
@@ -441,57 +430,59 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         return boite_limites.getHeight() ;
     }
 
-    public Obstacle obstacleSelectionne() { return obstacle_selectionne ; }
 
-    public void selectionneObstacle(Obstacle o) {
-        Obstacle prec_obs = obstacle_selectionne ;
-        obstacle_selectionne = o ;
+    public ElementsSelectionnes selection() { return selection ; }
 
-        deselectionneSource();
-        deselectionneSystemeOptiqueCentre();
-
-    }
-    public void deselectionneObstacle() {
-        if (obstacle_selectionne==null)
-            return ;
-
-        obstacle_selectionne = null;
-    }
-
-    public Source sourceSelectionnee() { return source_selectionnee ; }
-
-    public void selectionneSource(Source s) {
-        source_selectionnee = s ;
-
-        deselectionneObstacle();
-        deselectionneSystemeOptiqueCentre();
-
-    }
-
-
-    public void deselectionneSource() {
-        if (source_selectionnee==null)
-            return ;
-
-        source_selectionnee = null;
-    }
-
-    public SystemeOptiqueCentre systemeOptiqueCentreSelectionne() { return soc_selectionne ;}
-
-    public void selectionneSystemeOptiqueCentre(SystemeOptiqueCentre s) {
-        soc_selectionne = s ;
-
-        deselectionneSource();
-        deselectionneObstacle();
-
-    }
-
-    public void deselectionneSystemeOptiqueCentre() {
-        if (soc_selectionne==null)
-            return ;
-
-        soc_selectionne = null;
-    }
+//    public Obstacle obstacleSelectionne() { return obstacle_selectionne ; }
+//
+//    public void selectionneObstacle(Obstacle o) {
+//        obstacle_selectionne = o ;
+//
+//        deselectionneSource();
+//        deselectionneSystemeOptiqueCentre();
+//
+//    }
+//    public void deselectionneObstacle() {
+//        if (obstacle_selectionne==null)
+//            return ;
+//
+//        obstacle_selectionne = null;
+//    }
+//
+//    public Source sourceSelectionnee() { return source_selectionnee ; }
+//
+//    public void selectionneSource(Source s) {
+//        source_selectionnee = s ;
+//
+//        deselectionneObstacle();
+//        deselectionneSystemeOptiqueCentre();
+//
+//    }
+//
+//
+//    public void deselectionneSource() {
+//        if (source_selectionnee==null)
+//            return ;
+//
+//        source_selectionnee = null;
+//    }
+//
+//    public SystemeOptiqueCentre systemeOptiqueCentreSelectionne() { return soc_selectionne ;}
+//
+//    public void selectionneSystemeOptiqueCentre(SystemeOptiqueCentre s) {
+//        soc_selectionne = s ;
+//
+//        deselectionneSource();
+//        deselectionneObstacle();
+//
+//    }
+//
+//    public void deselectionneSystemeOptiqueCentre() {
+//        if (soc_selectionne==null)
+//            return ;
+//
+//        soc_selectionne = null;
+//    }
 
 
     public double tolerance_pointage() {
@@ -891,10 +882,13 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
     public boolean poignee_obstacle_pointee_en(Point2D pclic) {
 
-        if (obstacle_selectionne == null)
+        if (selection().obstacleUnique()==null)
             return false ;
 
-        Contour poignees = obstacle_selectionne.positions_poignees() ;
+//        if (obstacle_selectionne == null)
+//            return false ;
+
+        Contour poignees = selection().obstacleUnique().positions_poignees() ;
 
         if (poignees==null)
             return false ;
@@ -904,10 +898,13 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
     public boolean poignee_source_pointee_en(Point2D pclic) {
 
-        if (source_selectionnee == null)
+        if (selection().sourceUnique()==null)
             return false ;
 
-        Contour poignees = source_selectionnee.positions_poignees() ;
+//        if (source_selectionnee == null)
+//            return false ;
+
+        Contour poignees = selection().sourceUnique().positions_poignees() ;
 
         if (poignees==null)
             return false ;
@@ -1011,7 +1008,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     public Obstacle obstacle_pointe_en(Point2D pt_g) {
 
         if (poignee_obstacle_pointee_en(pt_g))
-            return obstacle_selectionne ;
+            return selection().obstacleUnique() ;
 
         Obstacle obs = environnement.dernier_obstacle_contenant(pt_g) ;
 
@@ -1025,7 +1022,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     public Source source_pointee_en(Point2D pt_g) {
 
         if (poignee_source_pointee_en(pt_g))
-            return source_selectionnee ;
+            return selection.sourceUnique() ;
 
 //        Source s = environnement.derniere_source_contenant(pt_g) ;
 //
@@ -1035,6 +1032,29 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 //        return s ;
 
         return environnement.derniere_source_tres_proche(pt_g, tolerance_pointage());
+    }
+
+    public SystemeOptiqueCentre soc_pointe_en(Point2D pt_g) {
+        if (poignee_soc_pointee_en(pt_g))
+            return selection().socUnique() ;
+
+        // Le SOC ne peut être pointé et sélectionné que par son axe : il n'a pas d'épaisseur
+        // SystemeOptiqueCentre soc = environnement.dernier_soc_contenant(pt_g) ;
+
+        return environnement.dernier_soc_tres_proche(pt_g, tolerance_pointage());
+    }
+
+    public boolean poignee_soc_pointee_en(Point2D pclic) {
+        if (selection().socUnique() == null)
+            return false ;
+
+        Contour poignees = selection().socUnique().positions_poignees() ;
+
+        if (poignees==null)
+            return false ;
+
+        return poignees.comporte_point_proche_de(pclic, tolerance_pointage());
+
     }
 
     public void definirEnvironnement(Environnement nouvel_environnement) {
@@ -1073,5 +1093,66 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     public void effacerSelection() {
         gc_selection.clearRect(xmin(), ymin(),xmax() - xmin(), ymax()-ymin());
     }
+
+    private void translaterSiPossible(Obstacle o, Point2D tr) {
+        if (!o.appartientASystemeOptiqueCentre())
+            o.translater(tr);
+        else {
+            SystemeOptiqueCentre soc = environnement.systemeOptiqueCentreContenant(o);
+
+            // Si l'obstacle fait partie d'un SOC qui est lui-même sélectionné, ne pas le translater car c'est le SOC
+            // qui va être translaté dans son ensemble
+            if (selection().comprend(soc))
+                return ;
+
+            Point2D tr_sur_axe = soc.vecteurDirecteurAxe().multiply(soc.vecteurDirecteurAxe().dotProduct(tr));
+            o.translater(tr_sur_axe);
+        }
+
+    }
+
+    public void translaterSelection(Point2D tr) {
+        selection().stream_obstacles().forEach(obs -> translaterSiPossible(obs, tr));
+        selection().stream_sources().forEach(src -> src.translater(tr));
+        selection().stream_socs().forEach(soc -> soc.translater(tr));
+    }
+
+    public void selectionnerParZoneRectangulaire(BoiteLimiteGeometrique zone_rect) {
+        zone_selection_rectangulaire = zone_rect ;
+
+        if (zone_rect==null)
+            return;
+
+        selection().vider();
+
+        // Sélection des obstacles s'ils rencontrent la zone de sélection
+        visiteur_affichage.streamObstaclesVisibles().forEach(obstacle -> {
+            if(visiteur_affichage.contoursVisiblesObstacle(obstacle).intersecte(zone_rect))
+                selection().ajoute(obstacle);
+        }) ;
+
+        // Sélection des sources
+        environnement().sources().forEach(s->{
+            if (zone_rect.contains(s.position()))
+                selection().ajoute(s);
+            else {
+                if (s.type()== Source.TypeSource.PROJECTEUR) {
+                    Point2D[] extremites = s.extremitesProjecteur() ;
+                    DemiDroiteOuSegment prj = DemiDroiteOuSegment.construireSegment(extremites[0],extremites[1]) ;
+                    if (zone_rect.intersecte(prj))
+                        selection().ajoute(s);
+                }
+            }
+        });
+
+        // Sélection des SOCs si leur origine est dans la zone de sélection
+        environnement().systemesOptiquesCentres().forEach(soc -> {
+            if (zone_rect.contains(soc.origine()))
+                selection().ajoute(soc);
+        });
+    }
+
+    public BoundingBox zoneSelectionRectangulaire() { return zone_selection_rectangulaire ; }
+
 
 }

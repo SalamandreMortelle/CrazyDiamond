@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 public class SystemeOptiqueCentre implements Nommable {
 
@@ -277,7 +278,7 @@ public class SystemeOptiqueCentre implements Nommable {
 
         dioptres.clear();
 
-        Affine nouvelle_matrice_transfert = null ;
+        Affine nouvelle_matrice_transfert;
 
         try {
             // Calcul de tous les dioptres du SOC le sens des Z croissants et des Rcourbure "croissants"
@@ -648,7 +649,7 @@ public class SystemeOptiqueCentre implements Nommable {
                                     antecedent_diaphragme_relatif_soc.hauteur()) ) ;
 
                     //  double z_antecedent_diaphragme = z_plan_entree + (pas>0?1d:-1d) * antecedent_diaphragme.z() ; // NON : sur le plan
-                    // d'entree le rayon est toujours dans le sens de l'axe (et pas représente le sens du marche du rayon *au niveau du dioptre courant* et pas en entrée du SOC)
+                    // d'entree le rayon est toujours dans le sens de l'axe (et pas représente le sens de marche du rayon *au niveau du dioptre courant* et pas en entrée du SOC)
 //                    double z_antecedent_diaphragme = z_plan_entree + antecedent_diaphragme_relatif_soc.z() ;
 //                    double h_antecedent_diaphragme = antecedent_diaphragme_relatif_soc.hauteur();
 
@@ -1110,7 +1111,7 @@ public class SystemeOptiqueCentre implements Nommable {
         if (itoc.hasNext()) // Les dioptres de l'obstacle le plus en arrière sont a priori, tous visibles
             resultat.addAll(itoc.next().dioptresParaxiaux(axe())) ;
 
-        // Itération sur les obstacles centrés suivants, qui sont classés de l'arrière-plan vers l'avant plan
+        // Itération sur les stream_obstacles centrés suivants, qui sont classés de l'arrière-plan vers l'avant plan
         while (itoc.hasNext()) {
 
             Obstacle oc = itoc.next() ;
@@ -1213,7 +1214,7 @@ public class SystemeOptiqueCentre implements Nommable {
 
         this.environnement = env ;
 
-        // Inutile : c'est l'Ebvironnement qui se charge de déclencher les conversions de dimensions dans les SOCs lorsque
+        // Inutile : c'est l'Environnement qui se charge de déclencher les conversions de dimensions dans les SOCs lorsque
         // l'unité change.
 //        this.environnement.uniteProperty().addListener( ( (observableValue, oldValue, newValue) -> {
 //                    LOGGER.log(Level.FINER,"unite passe de {0} à {1}",new Object[] {oldValue,newValue});
@@ -1515,9 +1516,8 @@ public class SystemeOptiqueCentre implements Nommable {
 
     public ObjectProperty<Color> couleurAxeProperty() { return couleur_axe ;}
 
-    public ObservableList<Obstacle> obstacles_centres() {
-        return obstacles_centres.get() ;
-    }
+    public ObservableList<Obstacle> obstacles_centres() {return obstacles_centres.get() ;}
+    public Stream<Obstacle> stream_obstacles_centres() {return obstacles_centres.stream() ;}
 
     /**
      * Recherche de l'obstacle le plus à l'avant-plan contenant "strictement" un certain point (i.e. l'obstacle retourné

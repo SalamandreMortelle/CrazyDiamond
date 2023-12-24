@@ -47,9 +47,8 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
                 // TODO: voir si il y a un moyen de construire plus correctement le contour de surface,
                 //  en n'y incluant pas les bords de la zone visible
 
-
-                // Pour les compositions, il faut toujours fermer le contour de surface car tous les obstacles de la
-                // composition ont été préalablement "coupés" (clippés) par la zone visible
+                // Pour les compositions, il faut toujours fermer le contour de surface, car tous les obstacles de la
+                // composition ont été préalablement "coupés" (clippés) par la zone visible.
                 co.ajouterContourSurface(construireContourDepuisPathClipper(p,true));
         }
 
@@ -58,7 +57,6 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
             // dans cette zone
             co.ajouterContourMasse(boite_limites.construireContourAntitrigo());
         }
-
 
         return co ;
     }
@@ -225,7 +223,7 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
                     }
                 }
 
-                PathsD difference = null ;
+                PathsD difference;
 
                 if (union_autres_paths!=null && union_autres_paths.size()==0)
                     difference = construirePathsObstacle(o_courant) ;
@@ -235,11 +233,11 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
 
                 LOGGER.log(Level.FINE,"Différence construite contenant {0} paths",difference.size());
 
-                if (difference.size()>0)
+                if (difference!=null && difference.size()>0)
                     // Compléter le résultat en faisant son union avec cette différence
                     resultat = construireClipPaths(resultat,difference,ClipType.Union) ;
 
-                LOGGER.log(Level.FINE,"Différence unie aux autres contenant {0} paths",resultat.size());
+                LOGGER.log(Level.FINE,"Différence unie aux autres contenant {0} paths", resultat.size());
             }
 
             paths = resultat ;

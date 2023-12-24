@@ -53,7 +53,7 @@ public class Environnement {
     // TODO : une clip zone non rectangulaire (environnement circulaire, etc.)
 
     // TODO : propriétés des limites de l'environnement : immatérielle (par défaut), réfléchissante, absorbante...
-    // NON : si on veut des limtes réflechissantes, il suffit de créer un obstacle Rectangle Convexe pour délimiter la zone
+    // NON : si on veut des limites réfléchissantes, il suffit de créer un obstacle Rectangle Convexe pour délimiter la zone
 
 
     public Environnement() {

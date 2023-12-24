@@ -10,7 +10,7 @@ import java.util.ArrayList;
  */
 public class BoiteLimiteGeometrique extends BoundingBox {
 
-    protected enum ModeRecherche { PREMIERE, DERNIERE } ;
+    protected enum ModeRecherche { PREMIERE, DERNIERE }
 
     public BoiteLimiteGeometrique(double xmin, double ymin, double largeur, double hauteur) {
         super(xmin,ymin,largeur,hauteur);
@@ -78,21 +78,29 @@ public class BoiteLimiteGeometrique extends BoundingBox {
         return cherche_intersection(s,ModeRecherche.DERNIERE) ;
     }
 
-    protected Point2D cherche_intersection(DemiDroiteOuSegment s, ModeRecherche mode) {
-        double xdep = s.depart().getX() ;
-        double ydep = s.depart().getY() ;
+    /**
+     * Cherche la première ou la dernière intersection d'une *demi-doite* avec la boite.
+     * Attention : c'est toujours l'intersection avec le demi-droite (d'extension infinie) qui est cherchée et retournée,
+     * même si on passe un segment en paramètre.
+     * @param dd : la demi-droite
+     * @param mode : indique si on cherche la première ou la dernière intersection.
+     * @return l'intersection trouvée, ou 'null' s'il n'y en a pas.
+     */
+    protected Point2D cherche_intersection(DemiDroiteOuSegment dd, ModeRecherche mode) {
+        double xdep = dd.depart().getX() ;
+        double ydep = dd.depart().getY() ;
 
-        double xdir = s.direction().getX() ;
-        double ydir = s.direction().getY() ;
+        double xdir = dd.direction().getX() ;
+        double ydir = dd.direction().getY() ;
 
-        if (this.aSurSaSurface(s.depart())) {
+        if (this.aSurSaSurface(dd.depart())) {
             if ( (xdep == getMinX() && xdir<0) || (xdep==getMaxX() && xdir>0) )
                 return null ;
             if ( (ydep == getMinY() && ydir<0) || (ydep==getMaxY() && ydir>0) )
                 return null ;
         }
 
-        if (this.contains(s.depart())) {
+        if (this.contains(dd.depart())) {
             // Cas particulier du rayon vertical
             if (xdir == 0)
                 if ( ydir>0)
@@ -146,12 +154,12 @@ public class BoiteLimiteGeometrique extends BoundingBox {
                 if ( ydir>0.0)
                     if (xdep>=getMinX() && xdep <=getMaxX() && ydep <= getMinY())
                         if (mode==ModeRecherche.PREMIERE) {
-                            if (s.arrivee() == null || s.arrivee().getY() >= getMinY()) //
+                            if (dd.arrivee() == null || dd.arrivee().getY() >= getMinY()) //
                             return new Point2D(xdep, getMinY());
                             else
                                 return null;
                         } else {
-                            if (s.arrivee() ==null  || s.arrivee().getY()>=getMaxY()) //
+                            if (dd.arrivee() ==null  || dd.arrivee().getY()>=getMaxY()) //
                                 return new Point2D(xdep, getMaxY());
                             else
                                 return null ; // On considère que la première intersection ne peut pas servir de dernière intersection
@@ -161,12 +169,12 @@ public class BoiteLimiteGeometrique extends BoundingBox {
                 else // Rayon va vers le bas
                     if (xdep>=getMinX() && xdep <=getMaxX() && ydep >= getMaxY())
                         if (mode==ModeRecherche.PREMIERE) {
-                            if (s.arrivee() == null || s.arrivee().getY() <= getMaxY()) //
+                            if (dd.arrivee() == null || dd.arrivee().getY() <= getMaxY()) //
                                 return new Point2D(xdep, getMaxY());
                             else
                                 return null;
                         } else {
-                            if (s.arrivee() ==null  || s.arrivee().getY() <= getMinY()) //
+                            if (dd.arrivee() ==null  || dd.arrivee().getY() <= getMinY()) //
                                 return new Point2D(xdep, getMinY());
                             else
                                 return null ; // On considère que la première intersection ne peut pas servir de dernière intersection
@@ -179,13 +187,13 @@ public class BoiteLimiteGeometrique extends BoundingBox {
                 if ( xdir>0.0)
                     if (ydep>=getMinY() && ydep <=getMaxY() && xdep <= getMinX())
                         if (mode==ModeRecherche.PREMIERE) {
-                            if (s.arrivee() == null || s.arrivee().getX() >= getMinX()) //
+                            if (dd.arrivee() == null || dd.arrivee().getX() >= getMinX()) //
                              return new Point2D(getMinX(), ydep);
                             else
                                 return null; //
                         }
                         else {
-                            if (s.arrivee() == null || s.arrivee().getX() >= getMaxX()) //
+                            if (dd.arrivee() == null || dd.arrivee().getX() >= getMaxX()) //
                              return new Point2D(getMaxX(), ydep);
                             else
                                 return null ; // On considère que la première intersection ne peut pas servir de dernière intersection
@@ -195,13 +203,13 @@ public class BoiteLimiteGeometrique extends BoundingBox {
                 else // Rayon va vers la gauche
                     if (ydep>=getMinY() && ydep <=getMaxY() && xdep > getMaxX())
                         if (mode==ModeRecherche.PREMIERE) {
-                            if (s.arrivee() == null || s.arrivee().getX() <= getMaxX()) //
+                            if (dd.arrivee() == null || dd.arrivee().getX() <= getMaxX()) //
                             return new Point2D(getMaxX(), ydep);
                             else
                                 return null ;
                         }
                         else {
-                            if (s.arrivee() == null || s.arrivee().getX() <= getMinX()) //
+                            if (dd.arrivee() == null || dd.arrivee().getX() <= getMinX()) //
                             return new Point2D(getMinX(), ydep);
                             else
                                 return null ; // On considère que la première intersection ne peut pas servir de dernière intersection
@@ -226,20 +234,20 @@ public class BoiteLimiteGeometrique extends BoundingBox {
             double yinter_droite = (ydir/xdir)*(getMaxX()-xdep) + ydep ;
             double yinter_gauche = (ydir/xdir)*(getMinX()-xdep) + ydep ;
 
-            ArrayList<Point2D> its = new ArrayList<Point2D>(2) ;
+            ArrayList<Point2D> its = new ArrayList<>(2) ;
 
             if (getMinX() <= xinter_plafond && xinter_plafond <= getMaxX())
-                if (s.arrivee() == null || (ydir<0 && s.arrivee().getY()<=getMaxY()) || (ydir>0 && s.arrivee().getY()>=getMaxY()) )
-                its.add(new Point2D(xinter_plafond, getMaxY()));
+                if (dd.arrivee() == null || (ydir<0 && dd.arrivee().getY()<=getMaxY()) || (ydir>0 && dd.arrivee().getY()>=getMaxY()) )
+                     its.add(new Point2D(xinter_plafond, getMaxY()));
             if (getMinX() <= xinter_sol && xinter_sol <= getMaxX())
-                if (s.arrivee() == null || (ydir>0 && s.arrivee().getY()>=getMinY()) || (ydir<0 && s.arrivee().getY()<=getMinY()) )
-                its.add(new Point2D(xinter_sol, getMinY()));
+                if (dd.arrivee() == null || (ydir>0 && dd.arrivee().getY()>=getMinY()) || (ydir<0 && dd.arrivee().getY()<=getMinY()) )
+                    its.add(new Point2D(xinter_sol, getMinY()));
             if (getMinY() <= yinter_droite  && yinter_droite <= getMaxY())
-                if (s.arrivee() == null || (xdir<0 && s.arrivee().getX()<=getMaxX()) || (xdir>0 && s.arrivee().getX()>=getMaxX()) )
-                its.add(new Point2D(getMaxX(),yinter_droite));
+                if (dd.arrivee() == null || (xdir<0 && dd.arrivee().getX()<=getMaxX()) || (xdir>0 && dd.arrivee().getX()>=getMaxX()) )
+                    its.add(new Point2D(getMaxX(),yinter_droite));
             if (getMinY() <= yinter_gauche  && yinter_gauche <= getMaxY())
-                if (s.arrivee() == null || (xdir>0 && s.arrivee().getX()>=getMinX()) || (xdir<0 && s.arrivee().getX()<=getMinX()))
-                its.add(new Point2D(getMinX(),yinter_gauche));
+                if (dd.arrivee() == null || (xdir>0 && dd.arrivee().getX()>=getMinX()) || (xdir<0 && dd.arrivee().getX()<=getMinX()))
+                    its.add(new Point2D(getMinX(),yinter_gauche));
 
             if (its.size()>2)
                 System.err.println("On a un problème.");
@@ -249,7 +257,7 @@ public class BoiteLimiteGeometrique extends BoundingBox {
 
             if (its.size()==2) {
 
-                if (its.get(0).subtract(s.depart()).magnitude()>=its.get(1).subtract(s.depart()).magnitude()) {
+                if (its.get(0).subtract(dd.depart()).magnitude()>=its.get(1).subtract(dd.depart()).magnitude()) {
                     if (mode==ModeRecherche.PREMIERE)
                         return its.get(1) ;
                     else
@@ -266,15 +274,13 @@ public class BoiteLimiteGeometrique extends BoundingBox {
 
     }
 
-
     public  boolean aSurSaSurface(Point2D p) {
         if ( ( Environnement.quasiEgal(p.getY(),getMinY()) ) || Environnement.quasiEgal(p.getY(),getMaxY() ) )
             if ( (getMinX()<=p.getX()) && (p.getX()<=getMaxX()) )
                 return true ;
 
         if ( ( Environnement.quasiEgal(p.getX(),getMinX()) ) || Environnement.quasiEgal(p.getX(),getMaxX() ) )
-            if ( (getMinY()<=p.getY()) && (p.getY()<=getMaxY()) )
-                return true ;
+            return (getMinY() <= p.getY()) && (p.getY() <= getMaxY());
 
         return false ;
     }
@@ -303,7 +309,7 @@ public class BoiteLimiteGeometrique extends BoundingBox {
         return c;
     }
 
-    public void completerContourAvecCoinsConsecutifsEntreBordsContenusDansObstacle(BordRectangle b1, BordRectangle b2, Obstacle obst, Contour cont) {
+    public void completerContourAvecCoinsConsecutifsEntreBordsContenusDansObstacle(BordRectangle b1, BordRectangle b2, Contour cont) {
 
         if (b1 == b2)
             return;
@@ -313,10 +319,7 @@ public class BoiteLimiteGeometrique extends BoundingBox {
         while (true) {
             Point2D pos_coin = coin(c);
 
-//            if (obst.contient(pos_coin))
-                cont.ajoutePoint(pos_coin);
-//            else
-//                return;
+            cont.ajoutePoint(pos_coin);
 
             if (c.bord_suivant() == b2)
                 return;
@@ -325,4 +328,19 @@ public class BoiteLimiteGeometrique extends BoundingBox {
         }
 
     }
+
+    public boolean intersecte(DemiDroiteOuSegment s) {
+        if (bord(BordRectangle.GAUCHE).intersectionAvec(s)!=null)
+            return true ;
+        if (bord(BordRectangle.DROIT).intersectionAvec(s)!=null)
+            return true ;
+        if (bord(BordRectangle.HAUT).intersectionAvec(s)!=null)
+            return true ;
+        if (bord(BordRectangle.BAS).intersectionAvec(s)!=null)
+            return true ;
+
+        return (contains(s.depart()) && contains(s.arrivee())) ;
+
+    }
+
 }

@@ -2,6 +2,7 @@ package CrazyDiamond.Controller;
 
 import CrazyDiamond.Model.*;
 import javafx.animation.AnimationTimer;
+import javafx.geometry.BoundingBox;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.BlendMode;
@@ -15,6 +16,7 @@ import javafx.scene.transform.Affine;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
@@ -23,9 +25,9 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     // AnimationTimer utilisé pour animer les contours des obstacles sélectionnés, des rayons, etc.
     AnimationTimer anim_timer ;
 
-    /** Map contenant les contours, visibles dans les limites du canvas, de chacun des obstacles de l'.
+    /** Map contenant les contours, visibles dans les limites du canvas, de chacun des obstacles de l'environnement.
      * Ces contours sont constitués des contours des surfaces d'une part et des contours de la masse d'autre part (si
-     * l'obstacle est "avec matière").
+     * l'obstacle a une épaisseur [obstacle "avec matière"]).
      */
     private final Map<Obstacle, ContoursObstacle> contours_visibles_obstacles;
 
@@ -83,22 +85,44 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     }
 
     private void afficheSelections(long now) {
-        Obstacle os = cae.obstacleSelectionne() ;
-        Source ss = cae.sourceSelectionnee() ;
-        SystemeOptiqueCentre soc = cae.systemeOptiqueCentreSelectionne() ;
 
-        if (ss!=null) {
-            cae.effacerSelection();
-            afficheSelectionSource(ss, now) ;
-        } else if (os != null) {
-            cae.effacerSelection();
-            afficheSelectionObstacle(os, now) ;
-        } else if (soc != null) {
-            cae.effacerSelection();
-            afficheSelectionSystemeOptiqueCentre(soc, now) ;
-        } else { // Rien n'est sélectionné
-            cae.effacerSelection();
-        }
+        cae.effacerSelection();
+
+        cae.selection().stream_sources().forEach(s -> afficheSelectionSource(s,now));
+        cae.selection().stream_obstacles().forEach(o -> afficheSelectionObstacle(o,now));
+        cae.selection().stream_socs().forEach(soc -> afficheSelectionSystemeOptiqueCentre(soc,now));
+
+        afficheZoneSelectionRectangulaire();
+    }
+
+    private void afficheZoneSelectionRectangulaire() {
+        BoundingBox zone = cae.zoneSelectionRectangulaire() ;
+
+        if (zone==null)
+            return;
+
+        GraphicsContext gc = cae.gc_selection() ;
+        Paint pf = gc.getFill() ;
+        Paint s = gc.getStroke() ;
+
+        double lw = gc.getLineWidth() ;
+        double pas = cae.resolution() ;
+
+        gc.setLineWidth(1*pas);
+
+        gc.setLineDashes(3*pas,3*pas);
+
+        gc.setStroke(Color.WHITE);
+        gc.setFill(Color.BLACK);
+
+
+        gc.strokeRect(zone.getMinX(),zone.getMinY(),zone.getWidth(),zone.getHeight());
+
+        gc.setLineDashes(null);
+        gc.setLineWidth(lw);
+
+        gc.setFill(pf);
+        gc.setStroke(s);
     }
 
 
@@ -182,6 +206,8 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         if (seg.rayonDiaphragmeProperty().get()==0d) {
             gc.strokeLine(seg.x1(), seg.y1(), seg.x2(), seg.y2());
+            // On ne s'embête pas à clipper le segment dans la zone visible... Mais l'épaisseur de celui-ci peut devenir
+            // très mince si on zoome beaucoup...
 
             ContoursObstacle co = new ContoursObstacle();
             Contour c_surf = new Contour();
@@ -218,16 +244,6 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         gc.setStroke(s);
 
     }
-
-
-
-    //    public ReflexionParabolique.VisiteurAffichageEnvironnement.Contour extraire_sommets_cercle(Cercle c) {
-//        ReflexionParabolique.VisiteurAffichageEnvironnement.Contour sommets = new ReflexionParabolique.VisiteurAffichageEnvironnement.Contour() ;
-//
-//        // TODO...
-//
-//        return sommets ;
-//    }
 
     @Override
     public void visiteCercle(Cercle cercle) {
@@ -268,9 +284,6 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         Paint pf = gc.getFill() ;
 
-//        Paint couleur_masse = o.couleurMatiere() ;
-//        gc_affichage.setFill(couleur_masse);
-
         Paint s = gc.getStroke() ;
         double lw = gc.getLineWidth() ;
         double pas = cae.resolution() ;
@@ -289,8 +302,6 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         }
 
-//        double[] dashes = gc_affichage.getLineDashes()  ;
-
         cae.afficherContourSurfaceObstacle(co,gc) ;
 
         gc.setLineDashes(null);
@@ -305,9 +316,6 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     private void afficheSelectionSource(Source src, long temps) {
         GraphicsContext gc = cae.gc_selection() ;
         Paint pf = gc.getFill() ;
-
-//        Paint couleur_masse = o.couleurMatiere() ;
-//        gc_affichage.setFill(couleur_masse);
 
         Paint s = gc.getStroke() ;
         double lw = gc.getLineWidth() ;
@@ -327,23 +335,9 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         }
 
-//        double[] dashes = gc_affichage.getLineDashes()  ;
-
         if (src.type()== Source.TypeSource.PROJECTEUR) {
-//            cae.afficherContourSurfaceObstacle(co);
-            Point2D vect_perp = new Point2D(-src.direction().getY(),src.direction().getX()).normalize() ;
-
-//            double x1 = src.xPosition()-0.5* src.largeurProjecteur()*vect_perp.getX() ;
-//            double y1 = src.yPosition()-0.5* src.largeurProjecteur()*vect_perp.getY() ;
-            Point2D p1 = src.position().subtract(vect_perp.multiply(0.5d*src.largeurProjecteur())) ;
-
-//            double x2 = src.xPosition()+0.5* src.largeurProjecteur()*vect_perp.getX() ;
-//            double y2 = src.yPosition()+0.5* src.largeurProjecteur()*vect_perp.getY() ;
-            Point2D p2 = src.position().add(vect_perp.multiply(0.5d*src.largeurProjecteur())) ;
-
-//            gc_affichage.strokeLine(x1,y1,x2,y2);
-            gc.strokeLine(p1.getX(),p1.getY(),p2.getX(),p2.getY());
-
+            Point2D[] extremites = src.extremitesProjecteur() ;
+            gc.strokeLine(extremites[0].getX(),extremites[0].getY() ,extremites[1].getX(),extremites[1].getY() );
         }
 
         gc.setLineDashes(null);
@@ -834,10 +828,6 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         Point2D pobjet = origine.add(soc.direction().multiply(soc.ZObjet())) ;
         Point2D pimage = (soc.ZImage()!=null?origine.add(soc.direction().multiply(soc.ZImage())):null) ;
 
-//        gc_affichage.beginPath();
-//
-//        gc_affichage.moveTo(pobjet.getX(),pobjet.getY());
-
         Point2D pt_prec_haut = pobjet ;
         Point2D pt_prec_bas = pobjet ;
 
@@ -877,8 +867,6 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         }
 
         gc.setLineDashes(); // Arrêt des pointillés (s'il y en avait)
-
-        //        gc_affichage.stroke();
 
         gc.setStroke(s);
 
@@ -1235,26 +1223,25 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             pt_depart_pointe_droite = pt_extremite.add(soc.direction().multiply(+4 * res)).add(perp.multiply(8 * res));
         }
 
-        //if (cae.boite_limites().contains(pt)) {
+        Paint s = gc.getStroke() ;
 
-            Paint s = gc.getStroke() ;
-
-            gc.setStroke(c);
+        gc.setStroke(c);
 
 
-            gc.strokeLine(pt_depart.getX() , pt_depart.getY() ,
-                    pt_depart.getX() + hauteur_fleche * perp.getX(), pt_depart.getY() + hauteur_fleche * perp.getY());
+        gc.strokeLine(pt_depart.getX() , pt_depart.getY() ,
+                pt_depart.getX() + hauteur_fleche * perp.getX(), pt_depart.getY() + hauteur_fleche * perp.getY());
 
-            gc.strokeLine(pt_depart_pointe_gauche.getX(),pt_depart_pointe_gauche.getY(),pt_extremite.getX(),pt_extremite.getY());
-            gc.strokeLine(pt_depart_pointe_droite.getX(),pt_depart_pointe_droite.getY(),pt_extremite.getX(),pt_extremite.getY());
+        gc.strokeLine(pt_depart_pointe_gauche.getX(),pt_depart_pointe_gauche.getY(),pt_extremite.getX(),pt_extremite.getY());
+        gc.strokeLine(pt_depart_pointe_droite.getX(),pt_depart_pointe_droite.getY(),pt_extremite.getX(),pt_extremite.getY());
 
-            gc.setStroke(s) ;
-        //}
-
+        gc.setStroke(s) ;
     }
 
     public ContoursObstacle contoursVisiblesObstacle(Obstacle o) {
         return contours_visibles_obstacles.get(o) ;
     }
 
+    public Stream<Obstacle> streamObstaclesVisibles() {
+        return contours_visibles_obstacles.keySet().stream();
+    }
 }

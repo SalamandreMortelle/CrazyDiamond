@@ -77,9 +77,9 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
 
         ObservableList<Obstacle> olo = FXCollections.observableArrayList();
 
-        elements = new SimpleListProperty<Obstacle>(olo);
+        elements = new SimpleListProperty<>(olo);
 
-        operateur = new SimpleObjectProperty<Operateur>(op);
+        operateur = new SimpleObjectProperty<>(op);
 
         appartenance_systeme_optique_centre = new SimpleBooleanProperty(false);
         appartenance_composition = new SimpleBooleanProperty(false);
@@ -514,18 +514,14 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
                 return obst;
             }
             case INTERSECTION -> {
-                boolean est_sur_une_surface = false;
                 for (Obstacle o : elements) {
-
                     // Le point doit être contenu dans tous les obstacles pour être dans leur INTERSECTION
                     if (!o.contient(p))
                         throw ex;
 
                     // Il doit aussi être au moins sur une surface
-                    if (o.aSurSaSurface(p)) {
-                        est_sur_une_surface = true;
+                    if (o.aSurSaSurface(p))
                         obst = o;
-                    }
                 }
                 if (obst == null)
                     throw ex;
@@ -545,8 +541,6 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
 
                 boolean est_sur_surface_ob_principal = ob_principal.aSurSaSurface(p);
 
-                boolean est_sur_surface_autre_ob = false;
-
                 while (ito.hasNext()) {
                     Obstacle ob = ito.next();
 
@@ -554,7 +548,6 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
                         throw ex;
 
                     if (ob.aSurSaSurface(p)) {
-                        est_sur_surface_autre_ob = true;
                         obst = ob;
                     }
                 }
@@ -568,7 +561,6 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
                 return obst;
             }
             case DIFFERENCE_SYMETRIQUE -> {
-                boolean est_sur_une_surface = false;
                 boolean est_contenu_strictement_dans_un_obstacle = false;
 
                 for (Obstacle ob : elements) {
@@ -582,7 +574,6 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
                     }
 
                     if (ob.aSurSaSurface(p)) {
-                        est_sur_une_surface = true;
                         obst = ob;
                     }
 
@@ -730,19 +721,10 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
         imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
         imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
 
-
-        operateur.addListener((observable, oldValue, newValue) -> {
-            rap.rappel();
-        });
+        operateur.addListener((observable, oldValue, newValue) -> rap.rappel());
 
         for (Obstacle o : elements)
             o.ajouterRappelSurChangementToutePropriete(rap);
-
-//        obstacle1.get().ajouterRappelSurChangementToutePropriete(rap);
-//        obstacle2.get().ajouterRappelSurChangementToutePropriete(rap);
-
-//        obstacle1.addListener((observable, oldValue, newValue) -> {rap.rappel(); });
-//        obstacle2.addListener((observable, oldValue, newValue) -> {rap.rappel(); });
     }
 
     @Override
@@ -751,18 +733,10 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
         imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
         imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
-        operateur.addListener((observable, oldValue, newValue) -> {
-            rap.rappel();
-        });
+        operateur.addListener((observable, oldValue, newValue) -> rap.rappel());
 
         for (Obstacle o : elements)
             o.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-
-//        obstacle1.get().ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-//        obstacle2.get().ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-
-//        obstacle1.addListener((observable, oldValue, newValue) -> {rap.rappel(); });
-//        obstacle2.addListener((observable, oldValue, newValue) -> {rap.rappel(); });
 
     }
 
@@ -838,10 +812,8 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
         if (!aSymetrieDeRevolution())
             return;
 
-        double delta_ori = 0d;
-
         // On oriente le premier élément
-        delta_ori = orientation_deg - elements.get(0).orientation();
+        double delta_ori = orientation_deg - elements.get(0).orientation();
         elements.get(0).definirOrientation(orientation_deg);
 
         // Les éléments suivants doivent rester à même distance du premier, rotation par rapport au "centre" (=point sur axe révolution) du premier
@@ -930,10 +902,6 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
     @Override
     public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
 
-
-    /**
-     * @return
-     */
     @Override
     public double rayonDiaphragmeMaximumConseille() {
 
@@ -985,7 +953,7 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
                     ++nb_obs_secondaire_contenant ;
             }
 
-            ++nb_obs_avec_matiere; // Rappel : une Composition ne peut contenir que des obstacles avec matière (pas de segments)
+            ++nb_obs_avec_matiere; // Rappel : une Composition ne peut contenir que des stream_obstacles avec matière (pas de segments)
 
             dioptres_composition.addAll(dioptres_o) ;
         }

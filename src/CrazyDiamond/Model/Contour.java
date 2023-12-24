@@ -135,5 +135,8 @@ public class Contour {
         return path;
     }
 
+    Point2D point(int index){
+        return new Point2D(xpoints.get(index),ypoints.get(index)) ;
+    }
 
 }
