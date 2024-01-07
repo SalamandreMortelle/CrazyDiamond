@@ -25,10 +25,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -42,9 +39,11 @@ public class PanneauPrincipal {
     static private final SimpleModule simpleModule = new SimpleModule();
     static private final FileChooser fileChooser = new FileChooser();
 
+    static protected final DataFormat format_crazy_diamond_elements = new DataFormat("application/crazy-diamond.elements");
+
     static {
 
-        // Serializers
+        // Serializers pour la sauvegarde dans un fichier
         simpleModule.addSerializer(CanvasAffichageEnvironnement.class, new AffichageEnvironnementSerializer());
 
         simpleModule.addSerializer(Environnement.class, new EnvironnementSerializer());
@@ -65,7 +64,13 @@ public class PanneauPrincipal {
 
         simpleModule.addSerializer(Source.class, new SourceSerializer());
 
-        // Deserializers
+        simpleModule.addSerializer(SystemeOptiqueCentre.class, new SystemeOptiqueCentreSerializer());
+
+        // Serailizer pour l'ajout d'éléments dans le presse-papier
+        simpleModule.addSerializer(ElementsSelectionnes.class, new ElementsSelectionnesSerializer());
+
+
+        // Deserializers, pour le chargement ou l'import depuis un fichier
         simpleModule.addDeserializer(CanvasAffichageEnvironnement.class, new AffichageEnvironnementDeserializer()) ;
 
         simpleModule.addSerializer(SystemeOptiqueCentre.class, new SystemeOptiqueCentreSerializer());
@@ -89,6 +94,9 @@ public class PanneauPrincipal {
         simpleModule.addDeserializer(Source.class, new SourceDeserializer());
 
         simpleModule.addDeserializer(SystemeOptiqueCentre.class, new SystemeOptiqueCentreDeserializer());
+
+        // Serializer pour instancier des éléments depuis le presse-papier
+        simpleModule.addDeserializer(ElementsSelectionnes.class, new ElementsSelectionnesDeserializer());
 
 
         // Enregistrement du module
@@ -337,7 +345,7 @@ public class PanneauPrincipal {
                 }
                 case LEFT -> {
 
-                    if (canvas_environnement.selection().nombreElements()==0)
+                    if (canvas_environnement.selection().estVide())
                         break; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
                     canvas_environnement.translaterSelection(new Point2D(-canvas_environnement.resolution(), 0.0)) ;
@@ -345,7 +353,7 @@ public class PanneauPrincipal {
                 }
                 case RIGHT ->  {
 
-                    if (canvas_environnement.selection().nombreElements()==0)
+                    if (canvas_environnement.selection().estVide())
                         break; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
                     canvas_environnement.translaterSelection(new Point2D(canvas_environnement.resolution(),0.0)) ;
@@ -353,17 +361,88 @@ public class PanneauPrincipal {
                 }
                 case UP -> {
 
-                    if (canvas_environnement.selection().nombreElements()==0)
+                    if (canvas_environnement.selection().estVide())
                         break; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
                     canvas_environnement.translaterSelection(new Point2D(0.0, canvas_environnement.resolution())) ;
                     key_event.consume();
                 }
                 case DOWN ->  {
-                    if (canvas_environnement.selection().nombreElements()==0)
+                    if (canvas_environnement.selection().estVide())
                         break; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
                     canvas_environnement.translaterSelection(new Point2D(0.0,-canvas_environnement.resolution())) ;
+                    key_event.consume();
+                }
+                case C -> {
+                    if (!key_event.isControlDown() || canvas_environnement.selection().estVide())
+                        break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
+
+                    Clipboard clipboard = Clipboard.getSystemClipboard();
+                    ClipboardContent content = new ClipboardContent();
+
+                    String json = serialiserElementsSelectionnes();
+
+                    if (json!=null) {
+                        content.put(format_crazy_diamond_elements, json);
+                        content.putString(json);
+                        clipboard.setContent(content);
+                    }
+
+                    key_event.consume();
+                }
+                case X -> {
+                    if (!key_event.isControlDown())
+                        break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
+
+                    Clipboard clipboard = Clipboard.getSystemClipboard();
+                    ClipboardContent content = new ClipboardContent();
+
+                    String json = serialiserElementsSelectionnes();
+
+                    if (json!=null) {
+                        content.put(format_crazy_diamond_elements, json);
+                        content.putString(json);
+                        clipboard.setContent(content);
+
+                        supprimerElementsSelectionnes() ;
+                    }
+
+
+                    key_event.consume();
+                }
+                case V -> {
+                    if (!key_event.isControlDown())
+                        break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
+
+                    Clipboard clipboard = Clipboard.getSystemClipboard();
+
+                    ElementsSelectionnes es = null ;
+
+                    try {
+                        ContextAttributes ca = ContextAttributes.getEmpty() ;
+                        // Passage d'un environnement hote dans lequel l'ObjectReader va ajouter les éléments importables du fichier
+                        ca = ca.withSharedAttribute("environnement_hote", environnement) ;
+
+                        ObjectReader or = jsonMapper.readerFor(ElementsSelectionnes.class).with(ca) ;
+                        if (clipboard.hasContent(format_crazy_diamond_elements))
+                            es = or.readValue(clipboard.getContent(format_crazy_diamond_elements).toString(),ElementsSelectionnes.class) ;
+                        else if (clipboard.hasString()) // Si le clipbpard contient une string, on tente de la parser comme du JSON CrazyDiamond
+                            es = or.readValue(clipboard.getString(),ElementsSelectionnes.class) ;
+
+                        if (es!=null)
+                            canvas_environnement.definirSelection(es) ;
+
+                    } catch (Exception e) {
+                        LOGGER.log(Level.SEVERE,"Exception lors de la lecture du presse-papier") ;
+
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setHeaderText("Impossible d'instancier de nouveaux éléments à partir des éléments du presse-papier");
+                        alert.setContentText(e.getMessage()+System.lineSeparator()+"in :"+System.lineSeparator()+e.getStackTrace()[0].toString());
+                        alert.showAndWait();
+                    }
+
+
                     key_event.consume();
                 }
 
@@ -410,7 +489,8 @@ public class PanneauPrincipal {
 
                     if (modeCourant()==selection) {
                         canvas_environnement.selection().vider();
-                        s_ajoutees.forEach(s -> canvas_environnement.selection().ajoute(s));
+                        canvas_environnement.selection().definirUnite(environnement.unite());
+                        s_ajoutees.forEach(s -> canvas_environnement.selection().ajouter(s));
                     }
 
                     if (listview_sources.getContextMenu()==null)
@@ -464,7 +544,8 @@ public class PanneauPrincipal {
                     // Si on est en mode sélection, sélectionner les obstacles dans le canvas
                     if (modeCourant()==selection) {
                         canvas_environnement.selection().vider();
-                        o_ajoutes.forEach(tio -> canvas_environnement.selection().ajoute(tio.getValue())) ;
+                        canvas_environnement.selection().definirUnite(environnement.unite());
+                        o_ajoutes.forEach(tio -> canvas_environnement.selection().ajouter(tio.getValue())) ;
                     }
 
                     if (treeview_obstacles.getContextMenu()==null)
@@ -521,7 +602,8 @@ public class PanneauPrincipal {
                     // Si on est en mode sélection, sélectionner l'objet dans le canvas
                     if (modeCourant()==selection) {
                         canvas_environnement.selection().vider();
-                        soc_ajoutes.forEach(s->canvas_environnement.selection().ajoute(s));
+                        canvas_environnement.selection().definirUnite(environnement.unite());
+                        soc_ajoutes.forEach(s->canvas_environnement.selection().ajouter(s));
                     }
 
                     if (listview_socs.getContextMenu()==null)
@@ -639,6 +721,39 @@ public class PanneauPrincipal {
         };
 
         environnement.ajouterListenerListeSystemesOptiquesCentres(lcl_socs);
+
+    }
+
+    private void supprimerElementsSelectionnes() {
+        ElementsSelectionnes es = canvas_environnement.selection() ;
+
+        // Le retrait des obstacles, sources et socs de l'environnement altère (cf. callbacks ListChangeListener dans
+        // l'Environnement) les éléments sélectionnés que l'on est en train de parcourir, ce qui lèverait une exception.
+        // Pour éviter cela, commençons par faire une copie (non profonde) de la sélection.
+        ElementsSelectionnes es_copie = new ElementsSelectionnes(es) ;
+
+        es_copie.stream_obstacles().forEach(environnement::retirerObstacle);
+        es_copie.stream_sources().forEach(environnement::retirerSource);
+        es_copie.stream_socs().forEach(environnement::retirerSystemeOptiqueCentre);
+
+    }
+
+    private String serialiserElementsSelectionnes() {
+
+        String json = null ;
+
+        try {
+            json = jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(canvas_environnement.selection());
+        } catch (JsonProcessingException e) {
+            LOGGER.log(Level.SEVERE,"Exception lors de la sérialisation en JSON des éléments sélectionnés ",e.getMessage());
+
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText("Impossible de sérialiser les éléments sélectionnés");
+            alert.setContentText(e.getMessage()+System.lineSeparator()+e.getCause());
+            alert.showAndWait();
+        }
+
+        return json ;
 
     }
 
@@ -1215,11 +1330,14 @@ public class PanneauPrincipal {
 
             if (!retaillage_selection_en_cours) {
                 if (s_pointee!=null && !canvas_environnement.selection().comprend(s_pointee)) {
-                    canvas_environnement.selection().selectionneUniquement(s_pointee);
+                    canvas_environnement.selection().definirUnite(environnement.unite());
+                    canvas_environnement.selection().selectionnerUniquement(s_pointee);
                 } else if (o_pointe!=null && !canvas_environnement.selection().comprend(o_pointe)) {
-                    canvas_environnement.selection().selectionneUniquement(o_pointe);
+                    canvas_environnement.selection().definirUnite(environnement.unite());
+                    canvas_environnement.selection().selectionnerUniquement(o_pointe);
                 } else if (soc_pointe!=null && !canvas_environnement.selection().comprend(soc_pointe)) {
-                    canvas_environnement.selection().selectionneUniquement(soc_pointe);
+                    canvas_environnement.selection().definirUnite(environnement.unite());
+                    canvas_environnement.selection().selectionnerUniquement(soc_pointe);
                 } else {
                     canvas_environnement.selection().vider();
                     selection_rectangulaire_en_cours = true ;
@@ -1559,7 +1677,6 @@ public class PanneauPrincipal {
             alert.setHeaderText("Impossible de sauvegarder l'environnement");
             alert.setContentText(e.getMessage()+System.lineSeparator()+e.getCause());
             alert.showAndWait();
-
         }
 
         Stage s = (Stage) racine.getScene().getWindow() ;
@@ -1589,7 +1706,6 @@ public class PanneauPrincipal {
             alert.setHeaderText("Impossible de charger l'environnement ou l'affichage associé");
             alert.setContentText(e.getMessage()+System.lineSeparator()+"in :"+System.lineSeparator()+e.getStackTrace()[0].toString());
             alert.showAndWait();
-
         }
 
     }

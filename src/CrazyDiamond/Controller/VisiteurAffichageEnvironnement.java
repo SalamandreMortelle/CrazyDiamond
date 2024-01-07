@@ -797,7 +797,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         }
 
-        if (soc.MontrerImage()) {
+        if (soc.MontrerImage() && soc.HImage()!=null) {
             afficheFlechePerpendiculaireAxeSOC(soc, soc.ZImage(), Color.GREEN, soc.HImage());
             afficheLabelSOC(soc, soc.ZImage(), 0d, Color.GREEN,"Ai");
             afficheLabelSOC(soc, soc.ZImage(), soc.HImage(), Color.GREEN,"Bi");

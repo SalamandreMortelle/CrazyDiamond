@@ -161,7 +161,7 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
 
         BordRectangle bord_init = null ;
         BordRectangle bord_prec = null ;
-        Point2D intersection = null ;
+        Point2D intersection;
 
         boolean trace_surface = false ;
 
@@ -211,7 +211,7 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
                     bord_init = intersections_avec_bords[0].getKey() ;
 
                 if (bord_prec!=null)
-                    boite.completerContourAvecCoinsConsecutifsEntreBordsContenusDansObstacle(bord_prec,intersections_avec_bords[0].getKey(),this,c_masse);
+                    boite.completerContourAvecCoinsConsecutifsEntreBordsContenusDansObstacle(bord_prec,intersections_avec_bords[0].getKey(),c_masse);
 
                 c_masse.ajoutePoint(intersections_avec_bords[0].getValue());
 
@@ -255,7 +255,7 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
         } while (cote_courant != BordRectangle.HAUT) ;
 
         if (bord_prec!=null)
-            boite.completerContourAvecCoinsConsecutifsEntreBordsContenusDansObstacle(bord_prec,bord_init,this,c_masse);
+            boite.completerContourAvecCoinsConsecutifsEntreBordsContenusDansObstacle(bord_prec,bord_init,c_masse);
 
         // Aucune partie du contour du rectangle n'est visible, et le centre de la zone visible est dans le Rectangle
         if (c_masse.nombrePoints() == 0 && this.contient(boite.centre())) {

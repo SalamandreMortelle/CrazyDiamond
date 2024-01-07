@@ -3,6 +3,7 @@ package CrazyDiamond.Controller;
 import CrazyDiamond.Model.Obstacle;
 import CrazyDiamond.Model.Source;
 import CrazyDiamond.Model.SystemeOptiqueCentre;
+import CrazyDiamond.Model.Unite;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -11,17 +12,27 @@ import java.util.stream.Stream;
 
 public class ElementsSelectionnes {
 
+    Unite unite ;
     ArrayList<Obstacle> obstacles ;
     ArrayList<Source> sources ;
     ArrayList<SystemeOptiqueCentre> socs ;
 
-    public ElementsSelectionnes() {
+    public ElementsSelectionnes(Unite unite) {
+        this.unite = unite ;
         obstacles = new ArrayList<>(1) ;
         sources = new ArrayList<>(1) ;
         socs = new ArrayList<>(1) ;
     }
 
-    public void selectionneUniquement(Obstacle o) {
+    // Constructeur de copie
+    public ElementsSelectionnes(ElementsSelectionnes es) {
+        this.unite = es.unite() ;
+        this.obstacles = (ArrayList<Obstacle>) es.obstacles.clone();
+        this.sources = (ArrayList<Source>) es.sources.clone();
+        this.socs = (ArrayList<SystemeOptiqueCentre>) es.socs.clone();
+    }
+
+    public void selectionnerUniquement(Obstacle o) {
         vider();
         obstacles.add(o) ;
     }
@@ -33,7 +44,7 @@ public class ElementsSelectionnes {
      *
      * @param a_ajouter : l'obstacle à ajouter
      */
-    public void ajoute(Obstacle a_ajouter) {
+    public void ajouter(Obstacle a_ajouter) {
         if (!obstacles.contains(a_ajouter))
             obstacles.add(a_ajouter) ;
 
@@ -59,37 +70,42 @@ public class ElementsSelectionnes {
         return socs.contains(soc) ;
     }
 
-    public void selectionneUniquement(Source s) {
+    public void selectionnerUniquement(Source s) {
         vider();
         sources.add(s) ;
     }
 
-    public void ajoute(Source s) {
+    public void ajouter(Source s) {
         if (!sources.contains(s))
             sources.add(s) ;
     }
 
-    public void ajouteSources(List<Source> sources_a_ajouter) {
-        sources_a_ajouter.forEach(this::ajoute);
+    public void ajouterSources(List<Source> sources_a_ajouter) {
+        sources_a_ajouter.forEach(this::ajouter);
     }
 
-    public void ajouteObstacles(List<Obstacle> obstacles_a_ajouter) {
-        obstacles_a_ajouter.forEach(this::ajoute);
+    public void ajouterObstacles(List<Obstacle> obstacles_a_ajouter) {
+        obstacles_a_ajouter.forEach(this::ajouter);
     }
 
-    public void ajouteSocs(List<SystemeOptiqueCentre> socs_a_ajouter) {
-        socs_a_ajouter.forEach(this::ajoute);
+    public void ajouterSocs(List<SystemeOptiqueCentre> socs_a_ajouter) {
+        socs_a_ajouter.forEach(this::ajouter);
     }
 
-    public void selectionneUniquement(SystemeOptiqueCentre sysoc) {
-
+    public void selectionnerUniquement(SystemeOptiqueCentre sysoc) {
         vider();
         socs.add(sysoc) ;
     }
 
-    public void ajoute(SystemeOptiqueCentre soc) {
-        if (!socs.contains(soc))
-            socs.add(soc) ;
+    public void ajouter(SystemeOptiqueCentre soc) {
+        if (socs.contains(soc))
+            return;
+
+        // On supprime, puis on remet les obstacles afin qu'ils soient dans le même ordre dans les éléments sélectionnés et dans le SOC
+        soc.obstacles_centres().forEach(obstacles::remove);
+        ajouterObstacles(soc.obstacles_centres());
+
+        socs.add(soc) ;
     }
 
     public void vider() {
@@ -102,9 +118,13 @@ public class ElementsSelectionnes {
         return sources.size() + obstacles.size() + socs.size() ;
     }
 
+    public boolean estVide() {
+        return nombreElements()==0 ;
+    }
+
     public int nombreSources() { return sources.size() ;}
     public int nombreObstacles() { return obstacles.size() ;}
-    public int nombreSocs() { return socs.size() ;}
+    public int nombreSystemesOptiquesCentres() { return socs.size() ;}
     public Source sourceUnique() {
 
         if (nombreElements()!=1 || sources.size()!=1)
@@ -132,53 +152,33 @@ public class ElementsSelectionnes {
 
     }
 
-
-    /**
-     * Returns an iterator over elements of type {@code T}.
-     *
-     * @return an Iterator.
-     */
-    public Iterator<Source> iterateur_sources() {
-        return sources.iterator();
-    }
-
-    /**
-     * Returns an iterator over elements of type {@code T}.
-     *
-     * @return an Iterator.
-     */
-    public Iterator<Obstacle> iterateur_obstacles() {
-        return obstacles.iterator();
-    }
-
-    /**
-     * Returns an iterator over elements of type {@code T}.
-     *
-     * @return an Iterator.
-     */
-    public Iterator<SystemeOptiqueCentre> iterateur_socs() {
-        return socs.iterator();
-    }
-
-
     public Stream<Obstacle> stream_obstacles() { return obstacles.stream() ; }
     public Stream<Source> stream_sources() { return sources.stream() ; }
     public Stream<SystemeOptiqueCentre> stream_socs() { return socs.stream() ; }
 
     public void remplaceParSources(List<Source> s_ajoutees) {
         vider();
-        ajouteSources(s_ajoutees);
+        ajouterSources(s_ajoutees);
     }
     public void remplaceParObstacles(List<Obstacle> o_ajoutes) {
         vider();
-        ajouteObstacles(o_ajoutes);
+        ajouterObstacles(o_ajoutes);
     }
     public void remplaceParSocs(List<SystemeOptiqueCentre> soc_ajoutes) {
         vider();
-        ajouteSocs(soc_ajoutes);
+        ajouterSocs(soc_ajoutes);
     }
 
-    public void retireObstacle(Obstacle remitem) {obstacles.remove(remitem) ;}
-    public void retireSource(Source remitem) {sources.remove(remitem) ;}
-    public void retireSoc(SystemeOptiqueCentre remitem) {socs.remove(remitem) ;}
+    public void retireObstacle(Obstacle remitem) { obstacles.remove(remitem) ;}
+    public void retireSource(Source remitem) { sources.remove(remitem) ;}
+    public void retireSoc(SystemeOptiqueCentre remitem) { socs.remove(remitem) ;}
+
+    public void definirUnite(Unite unite) { this.unite = unite ;}
+    public Unite unite() { return unite ; }
+
+    public Iterator<Obstacle> iterateur_obstacles() {return obstacles.iterator(); }
+
+    public Iterator<Source> iterateur_sources() { return sources.iterator() ; }
+
+    public Iterator<SystemeOptiqueCentre> iterateur_systemesOptiquesCentres() { return socs.iterator() ; }
 }

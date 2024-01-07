@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 // à condition qu'ils soient infinis.
 public interface Obstacle {
 
+
     enum ModeRecherche { PREMIERE, DERNIERE }
 
     // Récupération du logger
@@ -38,6 +39,9 @@ public interface Obstacle {
     default boolean contient_strict(Point2D p) { return (contient(p) && !aSurSaSurface(p)) ; }
 
     default boolean comprend(Obstacle o) { return this.equals(o) ; }
+
+    default Obstacle obstacle_avec_id(String obs_id) { return id().equals(obs_id)?this:null ; }
+
     default Composition composition_contenant(Obstacle o) { return null ; }
 
     Point2D normale(Point2D p) throws Exception ;
@@ -116,7 +120,7 @@ public interface Obstacle {
     /**
      * Recherche la première ou la dernière intersection du rayon r avec l'obstacle.
      * À noter que si le point de départ du rayon est sur la surface de l'obstacle, il ne sera pas retourné.
-     * S'il n'y a qu'une intersection, elle est retournée aussi bien en tant que première et en tant que dernière intersection.
+     * S'il n'y a qu'une intersection, elle est retournée aussi bien en tant que première qu'en tant que dernière intersection.
      * @param r : rayon dont on cherche l'intersection
      * @param mode (PREMIERE ou DERNIERE)
      * @return le point d'intersection trouvé, ou 'null' s'il n'y en a pas
@@ -280,7 +284,7 @@ public interface Obstacle {
      * @param env : environnement
      * @param calcul_transmittance : indique si les facteurs de transmittance doivent être calculés
      * @return le rayon réfracté
-     * @throws Exception
+     * @throws  Exception si le rayon réfracté n'a pas pu être calculé
      */
     static Rayon rayonRefracte(Obstacle o, Rayon r, Environnement env,boolean calcul_transmittance) throws Exception {
         Point2D inter = (r.arrivee() !=null)? r.arrivee() :o.premiere_intersection(r) ;
@@ -311,8 +315,6 @@ public interface Obstacle {
 
         LOGGER.log(Level.FINER,"Angle i1 : {0}°"+normale.angle(oppose_vecteur_incident));
         LOGGER.log(Level.FINER,"Angle i1 : {0}°"+oppose_vecteur_incident.angle(normale));
-
-
 
         double sens_rotation ;
 

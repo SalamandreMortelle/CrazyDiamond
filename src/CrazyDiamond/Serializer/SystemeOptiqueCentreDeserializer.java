@@ -3,7 +3,6 @@ package CrazyDiamond.Serializer;
 import CrazyDiamond.Model.Environnement;
 import CrazyDiamond.Model.Imp_Nommable;
 import CrazyDiamond.Model.SystemeOptiqueCentre;
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -12,6 +11,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import javafx.geometry.Point2D;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class SystemeOptiqueCentreDeserializer extends StdDeserializer<SystemeOptiqueCentre> {
 
@@ -60,12 +60,21 @@ public class SystemeOptiqueCentreDeserializer extends StdDeserializer<SystemeOpt
 
         if (soc_node.has("obstacles")) {
 
+            Map<String,String> id_remp = (Map <String,String>) deserializationContext.getAttribute("identifiants_remplaces") ;
+
             int nb_obs_soc = soc_node.get("obstacles").size();
 
             for (int i = 0; i < nb_obs_soc; i++) {
                 String obs_id = soc_node.get("obstacles").get(i).asText();
 
-//                System.out.println("Obstacle "+obs_id+" à ajouter dans SOC "+soc.nom());
+                // Il est possible que l'identifiant originel ait été remplacé (pour éviter un doublon) lorsque l'obstacle a
+                // été désérialisé ; dans ce cas, il faut utiliser l'identifiant de remplacement qui a été généré.
+                if (id_remp.containsKey(obs_id))
+                    obs_id = id_remp.get(obs_id) ;
+
+                // NB : attention, ici on suppose que l'environnement contient déjà l'obstacle dont on a l'identifiant : c'est vrai
+                // quand on désérialise tout un environnement depuis un fichier, mais pas quand on désérialise depuis le presse-papier car
+                // les obstacles ne sont chargés que dans l'objet ElementsSelectionnes, et pas encore dans l'environnement hote.
                 soc.ajouterObstacle(env.obstacle(obs_id));
             }
 
@@ -86,7 +95,6 @@ public class SystemeOptiqueCentreDeserializer extends StdDeserializer<SystemeOpt
             }
 
         }
-
 
         return soc;
     }

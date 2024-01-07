@@ -19,7 +19,7 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
     protected final DoubleProperty angle_sommet;
     protected final DoubleProperty largeur_base;
 
-    private BooleanProperty appartenance_composition;
+    private final BooleanProperty appartenance_composition;
 
     private static int compteur_prisme;
 
@@ -42,10 +42,7 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
         imp_elementAvecContour = iec;
         imp_elementAvecMatiere = iem;
 
-        this.position_orientation = new SimpleObjectProperty<PositionEtOrientation>(new PositionEtOrientation(new Point2D(x_centre,y_centre),orientation_deg)) ;
-//        this.x_centre = new SimpleDoubleProperty(x_centre);
-//        this.y_centre = new SimpleDoubleProperty(y_centre);
-//        this.orientation = new SimpleDoubleProperty(orientation_deg) ;
+        this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(new Point2D(x_centre,y_centre),orientation_deg)) ;
 
         this.angle_sommet = new SimpleDoubleProperty(angle_sommet);
         this.largeur_base = new SimpleDoubleProperty(largeur_base);
@@ -176,7 +173,7 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
 
         BordRectangle bord_init = null ;
         BordRectangle bord_prec = null ;
-        Point2D intersection = null ;
+        Point2D intersection;
 
         boolean trace_surface = false ;
 
@@ -220,12 +217,12 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
                     bord_init = intersections_avec_bords[0].getKey() ;
 
                 if (bord_prec!=null)
-                    boite.completerContourAvecCoinsConsecutifsEntreBordsContenusDansObstacle(bord_prec,intersections_avec_bords[0].getKey(),this,c_masse);
+                    boite.completerContourAvecCoinsConsecutifsEntreBordsContenusDansObstacle(bord_prec,intersections_avec_bords[0].getKey(),c_masse);
 
                 c_masse.ajoutePoint(intersections_avec_bords[0].getValue());
 
                 // Initialiser un nouveau c_surface si nécessaire
-                if (trace_surface==true) {
+                if (trace_surface) {
                     c_surface.ajoutePoint(intersections_avec_bords[0].getValue());
                     trace_surface = false ;
                 }
@@ -264,7 +261,7 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
         } while (cote_courant != BordPrisme.GAUCHE) ;
 
         if (bord_prec!=null)
-            boite.completerContourAvecCoinsConsecutifsEntreBordsContenusDansObstacle(bord_prec,bord_init,this,c_masse);
+            boite.completerContourAvecCoinsConsecutifsEntreBordsContenusDansObstacle(bord_prec,bord_init,c_masse);
 
         // Aucune partie du contour du rectangle n'est visible, et le centre de la zone visible est dans le Prisme
         if (c_masse.nombrePoints() == 0 && this.contient(boite.centre())) {
@@ -295,10 +292,10 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
         imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
         imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
 
-        position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
 
-        angle_sommet.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        largeur_base.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        angle_sommet.addListener((observable, oldValue, newValue) -> rap.rappel());
+        largeur_base.addListener((observable, oldValue, newValue) -> rap.rappel());
     }
 
     @Override
@@ -306,10 +303,10 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
         imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
         imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
-        position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
 
-        angle_sommet.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        largeur_base.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        angle_sommet.addListener((observable, oldValue, newValue) -> rap.rappel());
+        largeur_base.addListener((observable, oldValue, newValue) -> rap.rappel());
     }
 
     public void retaillerPourSourisEn(Point2D pos_souris) {
@@ -406,13 +403,13 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
         double cos_theta = Math.cos(theta) ;
         double sin_theta = Math.sin(theta) ;
 
-        Point2D coins[] = new Point2D[3] ;
+        Point2D[] coins = new Point2D[3] ;
 
         // On part du sommet Haut , abstraction faite de l'orientation du prisme, et on tourne dans le sens trigo
 
         double hauteur = largeur_base.get()/(2*Math.tan(Math.toRadians(angle_sommet.get())/2d)) ;
 
-        double x_avant_rot = 0d; ;
+        double x_avant_rot = 0d;
         double y_avant_rot = 2*hauteur/3;
 
         coins[0] = new Point2D(xCentre()+x_avant_rot*cos_theta-y_avant_rot*sin_theta,yCentre()+x_avant_rot*sin_theta+y_avant_rot*cos_theta) ;
@@ -434,12 +431,9 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
     @Override
     public  boolean contient(Point2D p) {
 
-        boolean dans_prisme = false ;
-
-        if ( produit_vectoriel_simplifie(cote(BordPrisme.GAUCHE).direction(),p.subtract(sommet(Sommet.H)))>0
-          && produit_vectoriel_simplifie(cote(BordPrisme.BAS).direction(),p.subtract(sommet(Sommet.BG)))>0
-          && produit_vectoriel_simplifie(cote(BordPrisme.DROIT).direction(),p.subtract(sommet(Sommet.BD)))>0 )
-            dans_prisme = true ;
+        boolean dans_prisme = produit_vectoriel_simplifie(cote(BordPrisme.GAUCHE).direction(), p.subtract(sommet(Sommet.H))) > 0
+                && produit_vectoriel_simplifie(cote(BordPrisme.BAS).direction(), p.subtract(sommet(Sommet.BG))) > 0
+                && produit_vectoriel_simplifie(cote(BordPrisme.DROIT).direction(), p.subtract(sommet(Sommet.BD))) > 0;
 
         if (typeSurface()==TypeSurface.CONVEXE)
             return dans_prisme || this.aSurSaSurface(p)  ;
@@ -479,26 +473,9 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
         Point2D vec_sommet_bd_p = p.subtract(sommet(Sommet.BD)) ;
         double vec_sommet_bd_p_mag = p.subtract(sommet(Sommet.BD)).magnitude() ;
 
-        if ( Environnement.quasiEgal(produit_vectoriel_simplifie(cote(BordPrisme.DROIT).direction(),vec_sommet_bd_p),0d)
-                && (0d<=vec_sommet_bg_p_mag && vec_sommet_bd_p_mag <= cote(BordPrisme.DROIT).longueur() ) ) {
-            return true;
-        }
-
-        return false ;
+        return Environnement.quasiEgal(produit_vectoriel_simplifie(cote(BordPrisme.DROIT).direction(), vec_sommet_bd_p), 0d)
+                && (0d <= vec_sommet_bg_p_mag && vec_sommet_bd_p_mag <= cote(BordPrisme.DROIT).longueur());
     }
-
-//    private Point2D point_dans_ref_oriente(Point2D p) {
-//        Point2D vec_centre_p = p.subtract(centre()) ;
-//
-//        double angle_avec_vec_dir = Math.atan2(vec_centre_p.getY(),vec_centre_p.getX()) - Math.atan2(vecteur_directeur().getY(),vecteur_directeur().getX()) ;
-//
-//        double dist_centre_p = vec_centre_p.magnitude() ;
-//
-//        double x_proj_sur_dir = dist_centre_p*Math.cos(angle_avec_vec_dir) ;
-//        double y_proj_sur_dir = dist_centre_p*Math.sin(angle_avec_vec_dir) ;
-//
-//        return new Point2D(x_proj_sur_dir,y_proj_sur_dir) ;
-//    }
 
     private double produit_vectoriel_simplifie(Point2D v1, Point2D v2) {
         return (v1.getX()*v2.getY()-v1.getY()*v2.getX()) ;
@@ -591,9 +568,9 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
 
         Point2D[] intersections  ;
 
-        Point2D sommets[] = sommets() ;
+        Point2D[] sommets = sommets() ;
 
-        Point2D p_inter = null ;
+        Point2D p_inter;
         Point2D p1 = null  ;
         Point2D p2 = null ;
 

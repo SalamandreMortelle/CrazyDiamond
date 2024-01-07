@@ -309,6 +309,17 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
         return Obstacle.super.comprend(o);
     }
 
+    @Override
+    public Obstacle obstacle_avec_id(String obs_id) {
+
+        for (Obstacle ob : elements) {
+            Obstacle o_trouve = ob.obstacle_avec_id(obs_id) ;
+            if (o_trouve!=null)
+                return o_trouve ;
+        }
+
+        return Obstacle.super.obstacle_avec_id(obs_id);
+    }
     public Composition composition_contenant(Obstacle o) {
         for (Obstacle ob : elements) {
             if (ob.comprend(o)) {

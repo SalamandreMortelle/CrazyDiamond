@@ -1,5 +1,6 @@
 package CrazyDiamond.Model;
 
+import CrazyDiamond.Controller.ElementsSelectionnes;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -346,6 +347,12 @@ public class Environnement {
             its.next().illuminer();
     }
 
+    /**
+     * Retire (supprime) un obstacle de l'environnement.
+     * S'il appartenait à une composition, il en est retiré avant d'être supprimé de l'environnement.
+     * S'il appartenait à un SOC, sa référence en est retirée avant qu'il soit supprimé de l'environnement.
+     * @param o : obstacle à retirer.
+     */
     public void retirerObstacle(Obstacle o) {
 
         if (o.appartientAComposition()) {
@@ -568,11 +575,22 @@ public class Environnement {
         return ( quasiEgal(a.getX(),b.getX()) && quasiEgal(a.getY(),b.getY()) ) ;
     }
 
+    /**
+     * Recherche parmi tous les obstacles de l'environnement, y compris ceux qui font partie de compositions, si l'un
+     * d'entre eux porte l'identifiant obs_id, et le retourne.
+     * @param obs_id : identifiant d'obstacle recherché
+     * @return l'obstacle trouvé, ou 'null' sinon.
+     */
     public Obstacle obstacle(String obs_id) {
+
         for (Obstacle o : obstacles) {
-            if(o.id().equals(obs_id))
-                return o ;
+
+            Obstacle o_trouve = o.obstacle_avec_id(obs_id) ;
+
+            if (o_trouve!=null)
+                return o_trouve ;
         }
+
         return null ;
     }
 
@@ -634,5 +652,10 @@ public class Environnement {
 
     public String suffixeUnite() { return " "+unite().symbole ; }
 
+    public void ajouterElements(ElementsSelectionnes es) {
+        es.stream_sources().forEach(this::ajouterSource);
+        es.stream_obstacles().forEach(this::ajouterObstacle);
+        es.stream_socs().forEach(this::ajouterSystemeOptiqueCentre);
+    }
 }
 

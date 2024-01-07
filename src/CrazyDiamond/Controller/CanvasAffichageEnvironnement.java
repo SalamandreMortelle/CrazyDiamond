@@ -157,7 +157,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
                 } )
         ) ;
 
-        selection = new ElementsSelectionnes() ;
+        selection = new ElementsSelectionnes(environnement().unite()) ;
 
         visiteur_affichage = new VisiteurAffichageEnvironnement(this) ;
 
@@ -433,57 +433,9 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
     public ElementsSelectionnes selection() { return selection ; }
 
-//    public Obstacle obstacleSelectionne() { return obstacle_selectionne ; }
-//
-//    public void selectionneObstacle(Obstacle o) {
-//        obstacle_selectionne = o ;
-//
-//        deselectionneSource();
-//        deselectionneSystemeOptiqueCentre();
-//
-//    }
-//    public void deselectionneObstacle() {
-//        if (obstacle_selectionne==null)
-//            return ;
-//
-//        obstacle_selectionne = null;
-//    }
-//
-//    public Source sourceSelectionnee() { return source_selectionnee ; }
-//
-//    public void selectionneSource(Source s) {
-//        source_selectionnee = s ;
-//
-//        deselectionneObstacle();
-//        deselectionneSystemeOptiqueCentre();
-//
-//    }
-//
-//
-//    public void deselectionneSource() {
-//        if (source_selectionnee==null)
-//            return ;
-//
-//        source_selectionnee = null;
-//    }
-//
-//    public SystemeOptiqueCentre systemeOptiqueCentreSelectionne() { return soc_selectionne ;}
-//
-//    public void selectionneSystemeOptiqueCentre(SystemeOptiqueCentre s) {
-//        soc_selectionne = s ;
-//
-//        deselectionneSource();
-//        deselectionneObstacle();
-//
-//    }
-//
-//    public void deselectionneSystemeOptiqueCentre() {
-//        if (soc_selectionne==null)
-//            return ;
-//
-//        soc_selectionne = null;
-//    }
-
+    public void definirSelection(ElementsSelectionnes elements) {
+        selection = elements ;
+    }
 
     public double tolerance_pointage() {
         // Facteur de tolerance pointage
@@ -1124,23 +1076,24 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
             return;
 
         selection().vider();
+        selection().definirUnite(environnement().unite()) ;
 
         // Sélection des obstacles s'ils rencontrent la zone de sélection
         visiteur_affichage.streamObstaclesVisibles().forEach(obstacle -> {
             if(visiteur_affichage.contoursVisiblesObstacle(obstacle).intersecte(zone_rect))
-                selection().ajoute(obstacle);
+                selection().ajouter(obstacle);
         }) ;
 
         // Sélection des sources
         environnement().sources().forEach(s->{
             if (zone_rect.contains(s.position()))
-                selection().ajoute(s);
+                selection().ajouter(s);
             else {
                 if (s.type()== Source.TypeSource.PROJECTEUR) {
                     Point2D[] extremites = s.extremitesProjecteur() ;
                     DemiDroiteOuSegment prj = DemiDroiteOuSegment.construireSegment(extremites[0],extremites[1]) ;
                     if (zone_rect.intersecte(prj))
-                        selection().ajoute(s);
+                        selection().ajouter(s);
                 }
             }
         });
@@ -1148,7 +1101,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         // Sélection des SOCs si leur origine est dans la zone de sélection
         environnement().systemesOptiquesCentres().forEach(soc -> {
             if (zone_rect.contains(soc.origine()))
-                selection().ajoute(soc);
+                selection().ajouter(soc);
         });
     }
 

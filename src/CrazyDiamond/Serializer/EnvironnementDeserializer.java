@@ -5,10 +5,12 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.cfg.ContextAttributes;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import javafx.scene.paint.Color;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
 
@@ -63,47 +65,35 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
               e = env_hote ;
           }
 
+          // Dictionnaire des identifiants qui auront dû être remplacés par de nouveaux lors de la désérialisation des
+          // obstacles afin d'éviter d'avoir des doublons d'id dans l'environnement (cf. Imp_IdentifiableDeserializer
+          // pour le renseignement de ce dictionnaire)
+          HashMap<String,String> identifiants_remplaces = new HashMap<>(0) ;
+
+          // NB : on ajoute l'attribut environnement une fois pour toute, même s'il ne sert que pour la construction des sources et des SOCs
+          ContextAttributes ctxa = ContextAttributes.getEmpty()
+                  .withSharedAttribute("environnement",e)
+                  .withSharedAttribute("facteur_conversion",facteur_conversion)
+                  .withSharedAttribute("identifiants_remplaces",identifiants_remplaces);
+          mapper.setDefaultAttributes(ctxa) ;
+
         if (env_node.has("obstacles")) {
 
             JsonNode liste_obs_node = env_node.get("obstacles") ;
 
             int nb_obs = liste_obs_node.size();
 
-
-            if (env_hote==null) {
-                for (int i = 0; i < nb_obs; i++) {
-                    JsonNode obs_node = liste_obs_node.get(i);
-                    switch (obs_node.get("@type").asText()) {
-                        case "Cercle" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Cercle.class));
-                        case "Conique" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Conique.class));
-                        case "DemiPlan" -> e.ajouterObstacle(mapper.treeToValue(obs_node, DemiPlan.class));
-                        case "Prisme" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Prisme.class));
-                        case "Rectangle" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Rectangle.class));
-                        case "Segment" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Segment.class));
-                        case "Composition" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Composition.class));
-                    }
+            for (int i = 0; i < nb_obs; i++) {
+                JsonNode obs_node = liste_obs_node.get(i);
+                switch (obs_node.get("@type").asText()) {
+                    case "Cercle" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Cercle.class));
+                    case "Conique" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Conique.class));
+                    case "DemiPlan" -> e.ajouterObstacle(mapper.treeToValue(obs_node, DemiPlan.class));
+                    case "Prisme" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Prisme.class));
+                    case "Rectangle" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Rectangle.class));
+                    case "Segment" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Segment.class));
+                    case "Composition" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Composition.class));
                 }
-            } else {
-                for (int i = 0; i < nb_obs; i++) {
-                    JsonNode obs_node = liste_obs_node.get(i);
-                    switch (obs_node.get("@type").asText()) {
-                        case "Cercle" -> e.ajouterObstacle(mapper.readerFor(Cercle.class)
-                                .withAttribute("facteur_conversion", facteur_conversion).treeToValue(obs_node,Cercle.class));
-                        case "Conique" -> e.ajouterObstacle(mapper.readerFor(Conique.class)
-                                .withAttribute("facteur_conversion", facteur_conversion).treeToValue(obs_node,Conique.class));
-                        case "DemiPlan" -> e.ajouterObstacle(mapper.readerFor(DemiPlan.class)
-                                .withAttribute("facteur_conversion", facteur_conversion).treeToValue(obs_node,DemiPlan.class));
-                        case "Prisme" -> e.ajouterObstacle(mapper.readerFor(Prisme.class)
-                                .withAttribute("facteur_conversion", facteur_conversion).treeToValue(obs_node,Prisme.class));
-                        case "Rectangle" -> e.ajouterObstacle(mapper.readerFor(Rectangle.class)
-                                .withAttribute("facteur_conversion", facteur_conversion).treeToValue(obs_node,Rectangle.class));
-                        case "Segment" -> e.ajouterObstacle(mapper.readerFor(Segment.class)
-                                .withAttribute("facteur_conversion", facteur_conversion).treeToValue(obs_node,Segment.class));
-                        case "Composition" -> e.ajouterObstacle(mapper.readerFor(Composition.class)
-                                .withAttribute("facteur_conversion", facteur_conversion).treeToValue(obs_node,Composition.class));
-                    }
-                }
-
             }
         }
 
@@ -111,24 +101,9 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
 
             int nb_src = env_node.get("sources").size();
 
-            if (env_hote==null) {
-                for (int j = 0; j < nb_src; j++) {
-                    Source src = mapper.readerFor(Source.class)
-                            .withAttribute("environnement", e)
-                            .treeToValue(env_node.get("sources").get(j), Source.class);
-                    e.ajouterSource(src);
-                }
-            } else {
-                for (int j = 0; j < nb_src; j++) {
-                    Source src = mapper.readerFor(Source.class)
-                            .withAttribute("environnement", e)
-                            .withAttribute("facteur_conversion",facteur_conversion)
-                            .treeToValue(env_node.get("sources").get(j), Source.class);
-                    e.ajouterSource(src);
-                }
-
+            for (int j = 0; j < nb_src; j++) {
+                e.ajouterSource(mapper.treeToValue(env_node.get("sources").get(j), Source.class));
             }
-
 
         }
 
@@ -136,22 +111,10 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
 
             int nb_soc = env_node.get("systemes_optiques_centres").size();
 
-            if (env_hote==null) {
-                for (int k = 0; k < nb_soc; k++) {
-                    SystemeOptiqueCentre soc = mapper.readerFor(SystemeOptiqueCentre.class)
-                            .withAttribute("environnement", e)
-                            .treeToValue(env_node.get("systemes_optiques_centres").get(k), SystemeOptiqueCentre.class);
-                    e.ajouterSystemeOptiqueCentre(soc);
-                }
-            } else {
-                for (int k = 0; k < nb_soc; k++) {
-                    SystemeOptiqueCentre soc = mapper.readerFor(SystemeOptiqueCentre.class)
-                            .withAttribute("environnement", e)
-                            .withAttribute("facteur_conversion",facteur_conversion)
-                            .treeToValue(env_node.get("systemes_optiques_centres").get(k), SystemeOptiqueCentre.class);
-                    e.ajouterSystemeOptiqueCentre(soc);
-                }
+            for (int k = 0; k < nb_soc; k++) {
+                e.ajouterSystemeOptiqueCentre(mapper.treeToValue(env_node.get("systemes_optiques_centres").get(k), SystemeOptiqueCentre.class));
             }
+
         }
 
         return e;
