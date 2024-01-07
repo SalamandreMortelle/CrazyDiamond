@@ -374,6 +374,14 @@ public class PanneauPrincipal {
                     canvas_environnement.translaterSelection(new Point2D(0.0,-canvas_environnement.resolution())) ;
                     key_event.consume();
                 }
+                case A -> {
+                    if (!key_event.isControlDown())
+                        break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
+
+                    selectionnerTout() ;
+
+                    key_event.consume();
+                }
                 case C -> {
                     if (!key_event.isControlDown() || canvas_environnement.selection().estVide())
                         break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
@@ -721,6 +729,25 @@ public class PanneauPrincipal {
         };
 
         environnement.ajouterListenerListeSystemesOptiquesCentres(lcl_socs);
+
+    }
+
+    private void selectionnerTout() {
+
+        canvas_environnement.selection().vider();
+        canvas_environnement.selection().definirUnite(environnement.unite()) ;
+
+        Iterator<Obstacle> ito = environnement.iterateur_obstacles() ;
+        while (ito.hasNext())
+            canvas_environnement.selection().ajouter(ito.next());
+
+        Iterator<Source> its = environnement.iterateur_sources() ;
+        while (its.hasNext())
+            canvas_environnement.selection().ajouter(its.next());
+
+        Iterator<SystemeOptiqueCentre> itsoc = environnement.iterateur_systemesOptiquesCentres() ;
+        while (itsoc.hasNext())
+            canvas_environnement.selection().ajouter(itsoc.next());
 
     }
 

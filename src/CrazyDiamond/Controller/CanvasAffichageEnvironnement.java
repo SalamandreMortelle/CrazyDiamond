@@ -36,10 +36,6 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
      */
     protected ElementsSelectionnes selection ;
 
-//    protected Obstacle obstacle_selectionne = null ;
-//    public Source source_selectionnee = null ;
-//    protected SystemeOptiqueCentre soc_selectionne = null ;
-
     // Rectangle des limites géométriques de l'environnement, en unités de l'environnement
     private BoiteLimiteGeometrique boite_limites ;
 
