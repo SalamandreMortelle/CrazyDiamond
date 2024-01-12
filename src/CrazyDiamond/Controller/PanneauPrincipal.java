@@ -229,7 +229,7 @@ public class PanneauPrincipal {
     ObservableList<SystemeOptiqueCentre> socs_selectionnes;
 
 
-    // Table donnent le nom des fichiers. fxml de panneau associé à chaque obstacle d'environnement
+    // Table donnent le nom des fichiers .fxml de panneau associé à chaque obstacle d'environnement
     private static final Map<Class<?>,String> dico_fxml = Map.ofEntries(
             Map.entry(DemiPlan.class, "View/PanneauDemiPlan.fxml"),
             Map.entry(Segment.class, "View/PanneauSegment.fxml"),
@@ -627,8 +627,6 @@ public class PanneauPrincipal {
 
             }
         });
-
-
 
         // Gestion des "modes" d'ajout : source, segment, demi-plan, etc.
         choix_mode.selectedToggleProperty().addListener((observable, oldValue,newValue) -> {

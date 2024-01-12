@@ -51,7 +51,8 @@ public class SystemeOptiqueCentreSerializer extends StdSerializer<SystemeOptique
 
         for (RencontreDioptreParaxial renc : soc.dioptresRencontres()) {
             jsonGenerator.writeStartObject();
-            jsonGenerator.writeNumberField("r_diaphragme",renc.rayonDiaphragme());
+            if (renc.rayonDiaphragme()!=null)
+                jsonGenerator.writeNumberField("r_diaphragme",renc.rayonDiaphragme());
             jsonGenerator.writeBooleanField("ignorer",renc.ignorer());
             jsonGenerator.writeEndObject();
         }
