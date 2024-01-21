@@ -8,5 +8,7 @@ module CrazyDiamond {
     requires com.fasterxml.jackson.databind;
     requires clipper2;
     opens CrazyDiamond.Controller ;
+    exports CrazyDiamond.Model ;
+    exports CrazyDiamond.Controller ;
     exports CrazyDiamond;
 }

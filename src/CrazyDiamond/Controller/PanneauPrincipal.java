@@ -11,7 +11,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -517,6 +516,12 @@ public class PanneauPrincipal {
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Initialisation de l'arbre des obstacles
+
+        // Définition de la Cell Factory qui se chargera d'afficher de créer une cellule dans l'arborescence pour chaque
+        // Obstacle (éventuellement avec des images), de gérer le drag and drop et de mettre à jour le nom affiché si le
+        // nom de l'obstacle change
+        treeview_obstacles.setCellFactory(new ObstacleTreeCellFactory(environnement));
+
         // TreeView exige un objet racine (qu'on ne montrera pas) : créons donc un objet caché, qui n'est pas dans l'environnement
         Obstacle ob_racine = new Cercle(TypeSurface.CONVEXE,0,0,1.0) ;
         Cercle.razCompteur() ;
@@ -526,9 +531,10 @@ public class PanneauPrincipal {
         treeview_obstacles.getRoot().setExpanded(true);
 
         // Intégration dans la vue des éventuels obstacles déjà présents dans l'environnement (peut arriver si on a chargé l'environnement)
-        Iterator<Obstacle> ito = environnement.iterateur_obstacles() ;
-        while (ito.hasNext())
-            integrerObstacleDansVue(ito.next(),treeview_obstacles.getRoot());
+        environnement.obstacles().forEach(o->integrerObstacleDansVue(o,treeview_obstacles.getRoot()));
+//        Iterator<Obstacle> ito = environnement.iterateur_obstacles() ;
+//        while (ito.hasNext())
+//            integrerObstacleDansVue(ito.next(),treeview_obstacles.getRoot());
 
         // Maintenir une référence vers la liste observable des obstacles actuellement sélectionnés dans la listview
         obstacles_selectionnes_dans_arborescence = treeview_obstacles.getSelectionModel().getSelectedItems() ;
@@ -569,14 +575,17 @@ public class PanneauPrincipal {
             }
         });
 
-
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Initialisation de la liste des socs : rattachement à la liste observable des socs de l'environnement
+        listview_socs.setCellFactory(new SystemeOptiqueCentreListCellFactory(environnement));
         listview_socs.setItems(environnement.systemesOptiquesCentres());
 
         // Intégration dans la vue des éventuels obstacles déjà présents dans l'environnement (peut arriver si on a chargé l'environnement)
         Iterator<SystemeOptiqueCentre> itso = environnement.iterateur_systemesOptiquesCentres() ;
         while (itso.hasNext())
             integrerSystemeOptiqueCentreDansVue(itso.next());
+
+
 
         // Maintenir une référence vers la liste observable des socs actuellement sélectionnées dans la listview
         socs_selectionnes = listview_socs.getSelectionModel().getSelectedItems() ;
@@ -693,7 +702,7 @@ public class PanneauPrincipal {
                     for (Obstacle additem : change.getAddedSubList()) {
                         LOGGER.log(Level.FINE,"Obstacle ajouté : {0}",additem.nom()) ;
 
-                        integrerObstacleDansVue(additem,treeview_obstacles.getRoot());
+                        integrerObstacleDansVue(additem,treeview_obstacles.getRoot(),environnement.rang(additem));
                     }
                 }
             }
@@ -787,7 +796,7 @@ public class PanneauPrincipal {
         // TODO plus tard : set bundle
         //DependencyInjection.setBundle(ResourceBundle.getBundle("greetings", Locale.FRENCH));
 
-        // Il est possible que l'Application (i.e. la classe CrazyDiamond) ait déjà injecté sa propre méthode fabrique
+        // Il est possible que l'Application (c'est-à-dire la classe CrazyDiamond) ait déjà injecté sa propre méthode fabrique
         // de création de contrôleur pour PanneauPrincipal, qui récupère l'environnement depuis son attribut CrazyDiamond.environnement_initial_a_charger.
         // On la remplace par une méthode fabrique qui va maintenant récupérer l'environnement du PanneauPrincipal courant et le passer
         // en paramètre du constructeur d'un nouveau PanneauPrincipal, créé lorsqu'on charge un nouvel environnement depuis un fichier.
@@ -1105,9 +1114,9 @@ public class PanneauPrincipal {
 
     protected void integrerSystemeOptiqueCentreDansVue(SystemeOptiqueCentre s) {
 
-        // Rafraichissement automatique de la liste des socs quand le nom du SOC change
-        ChangeListener<String> listenerNom = (obs, oldName, newName) -> listview_socs.refresh();
-        s.nomProperty().addListener(listenerNom);
+//        // Rafraichissement automatique de la liste des socs quand le nom du SOC change
+//        ChangeListener<String> listenerNom = (obs, oldName, newName) -> listview_socs.refresh();
+//        s.nomProperty().addListener(listenerNom);
 
         Parent panneau_droit_soc_courant = null ;
 
@@ -1167,16 +1176,20 @@ public class PanneauPrincipal {
 
         parent.getChildren().add(tio) ;
 
-        // Mise sur écoute du nom de l'obstacle pour mettre à jour l'item de l'arbre quand il est modifié
-        ChangeListener<String> listenerNom = (obs, oldName, newName) -> {
-            TreeItem.TreeModificationEvent<Obstacle> event = new TreeItem.TreeModificationEvent<>(TreeItem.valueChangedEvent(), tio);
-            Event.fireEvent(tio, event);
-        };
-        o_a_ajouter.nomProperty().addListener(listenerNom);
+        return tio ;
+
+    }
+
+    protected TreeItem<Obstacle> ajouterObstacleDansArbre(TreeItem<Obstacle> parent, Obstacle o_a_ajouter, int i_pos) {
+
+        TreeItem<Obstacle> tio = new TreeItem<>(o_a_ajouter) ;
+
+        parent.getChildren().add(i_pos,tio) ;
 
         return tio ;
 
     }
+
 
     protected Node creerPanneauSimplePourObstacle(Obstacle o,boolean dans_composition) {
         Parent panneau_obstacle_courant = null ;
@@ -1211,11 +1224,52 @@ public class PanneauPrincipal {
         TreeItem<Obstacle> tio = ajouterObstacleDansArbre(parent,o);
 
         if (o.getClass()==Composition.class) {
-             ObservableList<Obstacle> obstacles = ((Composition) o).elements() ;
+            ObservableList<Obstacle> obstacles = ((Composition) o).elements() ;
 
-            for (Obstacle oi : obstacles) {
-                integrerObstacleDansVue(oi,tio);
+            obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
+            observerElementsDeComposition(tio, obstacles);
+
+        }
+
+    }
+
+    private void observerElementsDeComposition(TreeItem<Obstacle> tio, ObservableList<Obstacle> obstacles) {
+        obstacles.addListener((ListChangeListener<Obstacle>) c -> {
+            while (c.next()) {
+                if (c.wasAdded()) {
+
+                    List<? extends Obstacle> o_ajoutes = c.getAddedSubList() ;
+
+                    for (Obstacle o_a : o_ajoutes) {
+                        integrerObstacleDansVue(o_a, tio);
+                    }
+
+                }
+                else if (c.wasRemoved()) {
+                    List<? extends Obstacle> o_supprimes = c.getRemoved() ;
+                    for (Obstacle o_s : o_supprimes) {
+                        tio.getChildren().removeIf(tioc -> ( tioc.getValue() == o_s ) ) ;
+                    }
+                }
+
             }
+        });
+    }
+
+    protected void integrerObstacleDansVue(Obstacle o, TreeItem<Obstacle> parent, int i_pos) {
+
+        creerPanneauSimplePourObstacle(o, parent != treeview_obstacles.getRoot()) ;
+
+        TreeItem<Obstacle> tio = ajouterObstacleDansArbre(parent,o,i_pos);
+
+        if (o.getClass()==Composition.class) {
+            ObservableList<Obstacle> obstacles = ((Composition) o).elements() ;
+
+            obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
+            observerElementsDeComposition(tio, obstacles);
+//            for (Obstacle oi : obstacles) {
+//                integrerObstacleDansVue(oi,tio);
+//            }
         }
 
     }
@@ -1247,13 +1301,7 @@ public class PanneauPrincipal {
 
         Point2D pos_souris = canvas_environnement.gc_vers_g(me.getX(),me.getY()) ;
 
-
         // Affichage des infos en bas de l'écran
-
-//        // TODO : Adapter le nombreElements de décimales au facteur de zoom
-//        String coord = String.format("(X : %.4f , Y : %.4f)",pos_souris.getX(),pos_souris.getY()) ;
-//        label_droit.setText(coord);
-
         String sb = "(X : "
                 + canvas_environnement.convertisseurAffichageDistance().toString(pos_souris.getX())
                 + " , Y : "
@@ -1274,7 +1322,7 @@ public class PanneauPrincipal {
 
         }
 
-        // Si c'est un glisser, on oublie le point de départ potentiel
+        // Si c'est un "glisser", on oublie le point de départ potentiel
         if (glisser_en_cours) {
             source_en_cours_ajout = null ;
             return ;
@@ -1470,8 +1518,9 @@ public class PanneauPrincipal {
         Iterator<Obstacle> ito =  environnement.iterateur_obstacles() ;
         while (ito.hasNext()) {
             Obstacle o = ito.next() ;
-            // Rechercher si l'obstacle o implémente l'interface ElementAvecMatiere car eux seuls peuvent faire partie d'une composition
-            if (o instanceof ElementAvecMatiere)
+            // Rechercher si l'obstacle o implémente l'interface ElementAvecMatiere car c'est requis pour faire partie d'une composition
+            // S"assurer aussi qu'il ne fait pas partie d'un SOC
+            if (o instanceof ElementAvecMatiere && !o.appartientASystemeOptiqueCentre())
                 obstacles_a_proposer.add( o ) ;
         }
 

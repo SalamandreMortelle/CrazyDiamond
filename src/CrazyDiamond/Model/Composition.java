@@ -734,8 +734,32 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
 
         operateur.addListener((observable, oldValue, newValue) -> rap.rappel());
 
-        for (Obstacle o : elements)
+        for (Obstacle o : elements) {
             o.ajouterRappelSurChangementToutePropriete(rap);
+        }
+
+        // Dans une composition, il faut aussi mettre en observation la liste de ses éléments pour réagir aux ajouts
+        // et aux suppressions d'éléments
+        ListChangeListener<Obstacle> lcl_elements = change -> {
+            while (change.next()) {
+
+                if (change.wasRemoved()) {
+                    LOGGER.log(Level.FINER, "Obstacle supprimé de composition");
+                    rap.rappel();
+
+                } else if (change.wasAdded()) {
+
+                    for (Obstacle additem : change.getAddedSubList()) {
+                        LOGGER.log(Level.FINER, "Obstacle ajouté dans la composition : {0}", additem);
+                        rap.rappel();
+
+                    }
+                }
+
+            }
+        };
+        elements.addListener(lcl_elements);
+
     }
 
     @Override

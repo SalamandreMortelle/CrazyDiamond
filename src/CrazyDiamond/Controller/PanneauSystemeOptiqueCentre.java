@@ -1,13 +1,11 @@
 package CrazyDiamond.Controller;
 
-import CrazyDiamond.Model.ChangeListenerAvecGarde;
-import CrazyDiamond.Model.Obstacle;
-import CrazyDiamond.Model.PositionEtOrientation;
-import CrazyDiamond.Model.SystemeOptiqueCentre;
+import CrazyDiamond.Model.*;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -145,11 +143,33 @@ public class PanneauSystemeOptiqueCentre {
         // Liste des obstacles centrés
         listview_obstacles_centres.setItems(soc.obstacles_centres());
 
-        for (Obstacle o : soc.obstacles_centres()) {
-            // Rafraichissement automatique de la liste des obstacles du SOC quand le nom d'un obstacle change
-            ChangeListener<String> listenerNom = (obs, oldName, newName) -> listview_obstacles_centres.refresh();
-            o.nomProperty().addListener(listenerNom);
-        }
+        ListChangeListener<Obstacle> lcl_oc = change -> {
+            while (change.next()) {
+                if (change.wasRemoved()) {
+                    for (Obstacle oc_retire : change.getRemoved()) {
+                        LOGGER.log(Level.FINE,"Obstacle centré supprimé : {0}",oc_retire.nom()) ;
+                        // Rien à faire en cas de suppression
+                    }
+
+                } else if (change.wasAdded()) {
+                    for (Obstacle oc_ajoute : change.getAddedSubList()) {
+                        LOGGER.log(Level.FINE,"Obstacle centré ajouté : {0}",oc_ajoute.nom()) ;
+                        // Rafraichissement auto matique de la listview quand le nom de l'obstacle change
+                        oc_ajoute.nomProperty().addListener((obs, oldName, newName) -> listview_obstacles_centres.refresh());
+                    }
+                }
+
+            }
+        };
+
+
+        soc.obstacles_centres().addListener(lcl_oc);
+
+//        for (Obstacle o : soc.obstacles_centres()) {
+//            // Rafraichissement automatique de la liste des obstacles du SOC quand le nom d'un obstacle change
+//            ChangeListener<String> listenerNom = (obs, oldName, newName) -> listview_obstacles_centres.refresh();
+//            o.nomProperty().addListener(listenerNom);
+//        }
 
 
 //        if (listview_obstacles_centres.getContextMenu()==null)
@@ -161,6 +181,8 @@ public class PanneauSystemeOptiqueCentre {
 //        checkbox_plans_nodaux.selectedProperty().bindBidirectional(soc.MontrerPlansNodauxProperty());
 
     }
+
+
 
     public void ajouterObstacle(ActionEvent actionEvent) throws Exception {
         // Afficher dialogue avec la liste des Obstacles ayant une symétrie de révolution
@@ -218,9 +240,9 @@ public class PanneauSystemeOptiqueCentre {
 //                integrerObstacle(o);
                     soc.ajouterObstacle(o) ;
 
-                    // Rafraichissement automatique de la liste des obstacles du SOC quand le nom de l'obstacle ajouté change
-                    ChangeListener<String> listenerNom = (obs, oldName, newName) -> listview_obstacles_centres.refresh();
-                    o.nomProperty().addListener(listenerNom);
+//                    // Rafraichissement automatique de la liste des obstacles du SOC quand le nom de l'obstacle ajouté change
+//                    ChangeListener<String> listenerNom = (obs, oldName, newName) -> listview_obstacles_centres.refresh();
+//                    o.nomProperty().addListener(listenerNom);
 
 //                environnement.retirerObstacle(o);
 //                compo.ajouterObstacle(o);

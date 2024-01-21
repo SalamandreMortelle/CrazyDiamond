@@ -168,6 +168,32 @@ public class SystemeOptiqueCentre implements Nommable {
 
     public void definirMontrerDioptres(boolean md) { montrer_dioptres.set(md); }
 
+    public void deplacerObstacle(Obstacle o_a_deplacer, int i_pos_dans_env) {
+        obstacles_centres.remove(o_a_deplacer) ;
+
+        int i_pos_cible_dans_soc = -1 ;
+
+        for (Obstacle oc : obstacles_centres) {
+            if (environnement.rang(oc)>i_pos_dans_env) {
+                i_pos_cible_dans_soc = obstacles_centres.indexOf(oc) ;
+                break ;
+            }
+        }
+
+        if (i_pos_cible_dans_soc>=0)
+            obstacles_centres.add(i_pos_cible_dans_soc,o_a_deplacer);
+        else
+            // L'obstacle va en dernière position
+            obstacles_centres.add(o_a_deplacer) ;
+
+        calculeElementsCardinaux();
+
+    }
+
+    public Environnement environnement() {
+        return environnement ;
+    }
+
 
     public record PositionElement(double z, double hauteur) { }
 

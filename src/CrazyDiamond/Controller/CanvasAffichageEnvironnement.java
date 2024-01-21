@@ -226,31 +226,25 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
         environnement.reflexionAvecRefractionProperty().addListener((observable, oldValue,newValue) -> this.rafraichirAffichage());
 
-        // Intégration des rappels sur les éventuelles stream_sources déjà présentes dans l'environnement (peut arriver si on a chargé l'environnement)
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Initialisation et mise en observation de la liste des sources.
+
+        // Intégration des rappels sur les éventuelles sources déjà présentes dans l'environnement (peut arriver si on a
+        // chargé l'environnement)
         Iterator<Source> its = environnement.iterateur_sources() ;
         while (its.hasNext())
             its.next().ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 
-        // Détection des stream_sources ajoutées ou supprimées
-        //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
-        //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.stream_sources.get(i) */ } }
-        //                else
-        //                  for (Source remitem : change.getRemoved()) { }
+        // Détection des sources ajoutées ou supprimées
         ListChangeListener<Source> lcl_sources = change -> {
             while (change.next()) {
-                //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
-                //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.stream_sources.get(i) */ } }
-                //                else
                 if (change.wasRemoved()) {
-                    //                  for (Source remitem : change.getRemoved()) { }
-
                     LOGGER.log(Level.FINER, "Source supprimée");
                     rafraichirAffichage();
                 } else if (change.wasAdded()) {
                     for (Source additem : change.getAddedSubList()) {
 
                         LOGGER.log(Level.FINER, "Source ajoutée : {0}", additem);
-
                         LOGGER.log(Level.FINER, "Création des liaisons pour la Source {0}", additem);
 
                         additem.ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
@@ -262,20 +256,21 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
             }
         };
 
-        // Enregistrer listener des stream_sources
+        // Enregistrer listener des sources
         environnement.ajouterListenerListeSources(lcl_sources);
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Initialisation et mise en observation de la liste des obstacles.
 
         // Intégration des rappels sur les éventuels stream_obstacles déjà présents dans l'environnement (peut arriver si on a chargé l'environnement)
         Iterator<Obstacle> ito = environnement.iterateur_obstacles() ;
         while (ito.hasNext())
             ito.next().ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 
-        //                  for (Source remitem : change.getRemoved()) { }
         ListChangeListener<Obstacle> lcl_obstacles = change -> {
             while (change.next()) {
 
                 if (change.wasRemoved()) {
-                    //                  for (Source remitem : change.getRemoved()) { }
                     LOGGER.log(Level.FINER, "Obstacle supprimé");
                     rafraichirAffichage();
                 } else if (change.wasAdded()) {
@@ -284,6 +279,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
                         LOGGER.log(Level.FINER, "Obstacle ajouté : {0}", additem);
 
                         additem.ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
+
                     }
 
                     rafraichirAffichage();
@@ -294,6 +290,9 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
         // Enregistrer listener des stream_obstacles
         environnement.ajouterListenerListeObstacles(lcl_obstacles);
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Initialisation et mise en observation de la liste des SOCs.
 
         // Intégration des rappels sur les éventuels SOC déjà présents dans l'environnement (peut arriver si on a chargé l'environnement)
         Iterator<SystemeOptiqueCentre> itsoc = environnement.iterateur_systemesOptiquesCentres() ;

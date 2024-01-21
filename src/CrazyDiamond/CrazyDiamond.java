@@ -8,6 +8,7 @@ import javafx.application.Application;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.input.DataFormat;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
@@ -33,6 +34,8 @@ public class CrazyDiamond extends Application {
                 LOGGER.log(Level.SEVERE,"Impossible de charger le fichier logging.properties",e);
             }
     }
+
+    public static final DataFormat FORMAT_OBSTACLE_ID = new DataFormat("application/crazy-diamond-obstacle-id");
 
     protected CanvasAffichageEnvironnement affichage_environnement_initial_a_charger;
 

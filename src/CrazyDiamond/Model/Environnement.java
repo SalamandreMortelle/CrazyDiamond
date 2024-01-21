@@ -9,6 +9,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -312,6 +313,25 @@ public class Environnement {
 
        // TODO ajouter un listener sur la liste des obstacles et appeler illuminerTouteSource lors d'un ajout
 
+    }
+
+    public List<Obstacle> obstacles() {
+        return obstacles ;
+    }
+
+    public void deplacerObstacleEnPosition(Obstacle o_a_deplacer, int i_pos) {
+        obstacles.remove(o_a_deplacer);
+        obstacles.add(i_pos,o_a_deplacer);
+
+        if (o_a_deplacer.appartientASystemeOptiqueCentre()) {
+
+            SystemeOptiqueCentre soc = systemeOptiqueCentreContenant(o_a_deplacer) ;
+
+            // Déplacer l'obstacle dans le SOC sachant qu'il est maintenant à la position i_pos dans l'environnement
+            soc.deplacerObstacle(o_a_deplacer,i_pos) ;
+
+            // TODO : répercuter le réordonnancent dans le SOC
+        }
     }
 
     public Obstacle dernierObstacle() {
@@ -656,6 +676,10 @@ public class Environnement {
         es.stream_sources().forEach(this::ajouterSource);
         es.stream_obstacles().forEach(this::ajouterObstacle);
         es.stream_socs().forEach(this::ajouterSystemeOptiqueCentre);
+    }
+
+    public int rang(Obstacle o) {
+        return obstacles.indexOf(o);
     }
 }
 
