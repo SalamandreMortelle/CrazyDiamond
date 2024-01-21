@@ -323,14 +323,22 @@ public class Environnement {
         obstacles.remove(o_a_deplacer);
         obstacles.add(i_pos,o_a_deplacer);
 
+        repositionnerObstacleDansSoc(o_a_deplacer, i_pos);
+    }
+
+    public void insererObstacleEnPosition(Obstacle o_a_deplacer, int i_pos) {
+        obstacles.add(i_pos,o_a_deplacer);
+
+        repositionnerObstacleDansSoc(o_a_deplacer, i_pos);
+    }
+
+    private void repositionnerObstacleDansSoc(Obstacle o_a_deplacer, int i_pos_dans_env) {
         if (o_a_deplacer.appartientASystemeOptiqueCentre()) {
 
             SystemeOptiqueCentre soc = systemeOptiqueCentreContenant(o_a_deplacer) ;
 
-            // Déplacer l'obstacle dans le SOC sachant qu'il est maintenant à la position i_pos dans l'environnement
-            soc.deplacerObstacle(o_a_deplacer,i_pos) ;
-
-            // TODO : répercuter le réordonnancent dans le SOC
+            // Déplacer l'obstacle dans le SOC sachant qu'il est maintenant à la position _dans_env dans l'environnement
+            soc.deplacerObstacle(o_a_deplacer, i_pos_dans_env) ;
         }
     }
 

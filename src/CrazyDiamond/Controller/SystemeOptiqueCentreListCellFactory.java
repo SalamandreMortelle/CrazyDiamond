@@ -78,7 +78,7 @@ public class SystemeOptiqueCentreListCellFactory implements Callback<ListView<Sy
 
         Obstacle dragged_obs = environnement.obstacle((String)event.getDragboard().getContent(CrazyDiamond.FORMAT_OBSTACLE_ID)) ;
 
-        if (!dragged_obs.aSymetrieDeRevolution() || dragged_obs.appartientASystemeOptiqueCentre())
+        if (!dragged_obs.aSymetrieDeRevolution() || dragged_obs.appartientASystemeOptiqueCentre() || dragged_obs.appartientAComposition())
             return;
 
         event.acceptTransferModes(TransferMode.MOVE);

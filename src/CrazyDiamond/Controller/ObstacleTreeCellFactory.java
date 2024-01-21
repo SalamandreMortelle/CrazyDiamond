@@ -79,8 +79,8 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
 
         // Seuls les obstacles "libres" (c'est-à-dire ceux qui sont au 1er niveau sous le noeud racine, et qui ne font
         // donc pas partie d'une Composition) peuvent être déplacés.
-        if (draggedItem.getParent()!=treeView.getRoot())
-            return ;
+//        if (draggedItem.getParent()!=treeView.getRoot())
+//            return ;
 
         Dragboard db = treeCell.startDragAndDrop(TransferMode.MOVE);
 
@@ -140,6 +140,7 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
         }
 
         Obstacle o_dragged = draggedItem.getValue() ;
+        boolean o_dragged_est_inclus_dans_composition = o_dragged.appartientAComposition() ;
 
         TreeItem<Obstacle> item_cible_depose = treeCell.getTreeItem(); // Item sur lequel on a déposé
         Obstacle o_cible_depose = item_cible_depose.getValue() ;
@@ -155,18 +156,34 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
             dropZone.setStyle(DROP_HINT_STYLE_DANS);
             Composition comp_cible = (Composition) o_cible_depose ;
 
-            environnement.retirerObstacle(draggedItem.getValue());
+            if (!o_dragged_est_inclus_dans_composition) // Obstacle glissé non inclus dans une composition
+                environnement.retirerObstacle(draggedItem.getValue()); // On le retire de l'environnement
+            else
+                // On le retire de la composition dont il fait partie
+                environnement.compositionContenant(o_dragged).retirerObstacle(o_dragged);
+
             comp_cible.ajouterObstacle(draggedItem.getValue());
         }
         else {
             dropZone.setStyle(DROP_HINT_STYLE_APRES);
 
             int indexCibleInParent = item_cible_depose.getParent().getChildren().indexOf(item_cible_depose);
-            int indexSourceInParent = item_cible_depose.getParent().getChildren().indexOf(draggedItem);
-            if (indexCibleInParent > indexSourceInParent)
-                environnement.deplacerObstacleEnPosition(draggedItem.getValue(), indexCibleInParent);
-            else if (indexCibleInParent < indexSourceInParent)
-                environnement.deplacerObstacleEnPosition(draggedItem.getValue(), indexCibleInParent + 1);
+            if (!o_dragged_est_inclus_dans_composition) {
+                int indexSourceInParent = item_cible_depose.getParent().getChildren().indexOf(draggedItem);
+
+                if (indexCibleInParent > indexSourceInParent)
+                    environnement.deplacerObstacleEnPosition(draggedItem.getValue(), indexCibleInParent);
+                else if (indexCibleInParent < indexSourceInParent)
+                    environnement.deplacerObstacleEnPosition(draggedItem.getValue(), indexCibleInParent + 1);
+            }
+            else // L'obstacle glissé est inclus dans une composition
+            {
+                // On l'en retire
+                environnement.compositionContenant(o_dragged).retirerObstacle(o_dragged);
+
+                // On le positionne dans l'environnement
+                environnement.insererObstacleEnPosition(draggedItem.getValue(),indexCibleInParent + 1);
+            }
 
             treeView.getSelectionModel().select(draggedItem);
         }

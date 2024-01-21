@@ -700,9 +700,13 @@ public class PanneauPrincipal {
                 } else if (change.wasAdded()) {
 
                     for (Obstacle additem : change.getAddedSubList()) {
-                        LOGGER.log(Level.FINE,"Obstacle ajouté : {0}",additem.nom()) ;
+                        LOGGER.log(Level.FINE, "Obstacle ajouté : {0}", additem.nom());
 
-                        integrerObstacleDansVue(additem,treeview_obstacles.getRoot(),environnement.rang(additem));
+                        if (environnement.rang(additem) >= 0) // additem fait partie des obstacles de l'environnement (1er niveau)
+                            integrerObstacleDansVue(additem, treeview_obstacles.getRoot(), environnement.rang(additem));
+//                        else { // additem fait partie d'une Composition / Ne rien faire (NDLR : reste à comprendre pourquoi, mais ça semble fonctionner comme ça...)
+//
+//                        }
                     }
                 }
             }
