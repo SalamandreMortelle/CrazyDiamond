@@ -217,15 +217,17 @@ public class PanneauPrincipal {
     // Liste observable des obstacles sélectionnés dans l'arborescence
     ObservableList<TreeItem<Obstacle>> obstacles_selectionnes_dans_arborescence;
 
-    // Liste des Systèmes Optiques Centrés
+    // Liste des Systèmes Optiques Centrés avec leurs éléments
     @FXML
-    public ListView<SystemeOptiqueCentre> listview_socs;
+    public TreeView<ElementArbreSOC> treeview_socs;
 
     // Menu contextuel avec l'entrée "Supprimer" (pour la liste des sources)
-    private final ContextMenu menuContextuelSoc ;
+    private final ContextMenu menuContextuelSocSupprimer;
+    // et avec l'entrée retirer (pour retirer un obstacle d'un SOC depuis l'arbre des SOCs)
+    private final ContextMenu menuContextuelSocRetirerObstacle;
 
-    // Liste observable des SOC sélectionnées
-    ObservableList<SystemeOptiqueCentre> socs_selectionnes;
+    // Liste observable des éléments d'arbre des SOCs (SOC ou Obstacle dans le SOC) sélectionnés
+    ObservableList<TreeItem<ElementArbreSOC>> socs_selectionnes;
 
 
     // Table donnent le nom des fichiers .fxml de panneau associé à chaque obstacle d'environnement
@@ -270,10 +272,20 @@ public class PanneauPrincipal {
         deleteItemObstacle.setOnAction(event -> environnement.retirerObstacle(treeview_obstacles.getSelectionModel().getSelectedItem().getValue()));
         menuContextuelObstacles.getItems().add(deleteItemObstacle);
 
-        menuContextuelSoc = new ContextMenu() ;
+
+        // TODO : définir ces menus contextuels dans le TreeCellFactory
+
+        menuContextuelSocSupprimer = new ContextMenu() ;
         MenuItem deleteItemSoc = new MenuItem(rb.getString("supprimer.soc"));
-        deleteItemSoc.setOnAction(event -> environnement.retirerSystemeOptiqueCentre(listview_socs.getSelectionModel().getSelectedItem()));
-        menuContextuelSoc.getItems().add(deleteItemSoc);
+        deleteItemSoc.setOnAction(event -> environnement.retirerSystemeOptiqueCentre(treeview_socs.getSelectionModel().getSelectedItem().getValue().soc));
+        menuContextuelSocSupprimer.getItems().add(deleteItemSoc);
+
+        menuContextuelSocRetirerObstacle = new ContextMenu() ;
+        MenuItem retirerItemSoc = new MenuItem(rb.getString("retirer.obstacle.soc"));
+        retirerItemSoc.setOnAction(event -> treeview_socs.getSelectionModel().getSelectedItem().getParent().getValue().soc
+                .retirerObstacleCentre(treeview_socs.getSelectionModel().getSelectedItem().getValue().obstacle));
+        menuContextuelSocRetirerObstacle.getItems().add(retirerItemSoc);
+
 
     }
 
@@ -488,7 +500,7 @@ public class PanneauPrincipal {
                 if (c.wasAdded()) {
 
                     treeview_obstacles.getSelectionModel().clearSelection();
-                    listview_socs.getSelectionModel().clearSelection();
+                    treeview_socs.getSelectionModel().clearSelection();
 
                     List<? extends Source> s_ajoutees = c.getAddedSubList() ;
                     // Afficher le panneau correspondant à la dernière source ajoutée
@@ -546,7 +558,7 @@ public class PanneauPrincipal {
                 if (c.wasAdded()) {
 
                     listview_sources.getSelectionModel().clearSelection();
-                    listview_socs.getSelectionModel().clearSelection();
+                    treeview_socs.getSelectionModel().clearSelection();
 
                     List<? extends TreeItem<Obstacle>> o_ajoutes = c.getAddedSubList() ;
 
@@ -577,61 +589,87 @@ public class PanneauPrincipal {
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Initialisation de la liste des socs : rattachement à la liste observable des socs de l'environnement
-        listview_socs.setCellFactory(new SystemeOptiqueCentreListCellFactory(environnement));
-        listview_socs.setItems(environnement.systemesOptiquesCentres());
+        treeview_socs.setCellFactory(new ArbreSOCTreeCellFactory(environnement));
+        //treeview_socs.setItems(environnement.systemesOptiquesCentres());
 
-        // Intégration dans la vue des éventuels obstacles déjà présents dans l'environnement (peut arriver si on a chargé l'environnement)
-        Iterator<SystemeOptiqueCentre> itso = environnement.iterateur_systemesOptiquesCentres() ;
-        while (itso.hasNext())
-            integrerSystemeOptiqueCentreDansVue(itso.next());
+        // TreeView exige un objet racine (qu'on ne montrera pas) : créons donc un objet caché, qui n'est pas dans l'environnement
+        ElementArbreSOC el_racine = new ElementArbreSOC() ;
 
+        treeview_socs.setShowRoot(false);
+        treeview_socs.setRoot(new TreeItem<>(el_racine));
+        treeview_socs.getRoot().setExpanded(true);
 
+        // Intégration dans la vue des éventuels SOCs déjà présents dans l'environnement (peut arriver si on a chargé l'environnement)
+        environnement.systemesOptiquesCentres().forEach(s->integrerSystemeOptiqueCentreDansVue(s,treeview_socs.getRoot()));
+//        environnement.systemesOptiquesCentres().forEach(this::integrerSystemeOptiqueCentreDansVue);
 
-        // Maintenir une référence vers la liste observable des socs actuellement sélectionnées dans la listview
-        socs_selectionnes = listview_socs.getSelectionModel().getSelectedItems() ;
+        // Maintenir une référence vers la liste observable des éléments d'arbre des SOCs actuellement sélectionnées dans la TreeView
+        socs_selectionnes = treeview_socs.getSelectionModel().getSelectedItems() ;
 
         // Brancher ou débrancher le menu contextuel de suppression selon qu'il y a un SOC sélectionné ou non
         // Et mettre le bon panneau de contenu
-        socs_selectionnes.addListener((ListChangeListener<SystemeOptiqueCentre>) c -> {
+        socs_selectionnes.addListener((ListChangeListener<TreeItem<ElementArbreSOC>>) c -> {
             while (c.next()) {
                 if (c.wasAdded()) {
 
                     listview_sources.getSelectionModel().clearSelection();
                     treeview_obstacles.getSelectionModel().clearSelection();
 
+                    List<? extends TreeItem<ElementArbreSOC>> el_soc_ajoutes = c.getAddedSubList() ;
 
-                    List<? extends SystemeOptiqueCentre> soc_ajoutes = c.getAddedSubList() ;
+                    // Cette variable contiendra soit un SOC soit un obstacle qui fait partie d'un SOC
+                    ElementArbreSOC dernier_element_de_selection = el_soc_ajoutes.get(el_soc_ajoutes.size()-1).getValue() ;
 
-                    // Afficher le panneau droit correspondant au dernier SOC ajouté dans la sélection
-                    scrollpane_droit_element_courant.setContent(map_element_panneau_droit.get(soc_ajoutes.get(soc_ajoutes.size()-1)));
+                    // Afficher le panneau droit correspondant au dernier SOC  ou obstacle ajouté dans la sélection
+                    scrollpane_droit_element_courant.setContent(map_element_panneau_droit.get(dernier_element_de_selection.contenu()));
+//                  scrollpane_droit_element_courant.setContent(map_element_panneau_droit.get(el_soc_ajoutes.get(el_soc_ajoutes.size()-1)));
+
                     // Afficher le panneau bas correspondant au dernier SOC ajouté
-                    Node panneau_a_ajouter = map_element_panneau_bas.get(soc_ajoutes.get(soc_ajoutes.size()-1)) ;
-                    if (!anchorpane_bas_element_courant.getChildren().contains(panneau_a_ajouter)) {
-                        AnchorPane.setTopAnchor(panneau_a_ajouter,1.0);
-                        AnchorPane.setBottomAnchor(panneau_a_ajouter,1.0);
-                        AnchorPane.setLeftAnchor(panneau_a_ajouter,1.0);
-                        AnchorPane.setRightAnchor(panneau_a_ajouter,1.0);
+                    if (dernier_element_de_selection.soc !=null) {
+                        Node panneau_a_ajouter = map_element_panneau_bas.get(dernier_element_de_selection.soc);
+//                      Node panneau_a_ajouter = map_element_panneau_bas.get(el_soc_ajoutes.get(el_soc_ajoutes.size()-1)) ;
+                        if (!anchorpane_bas_element_courant.getChildren().contains(panneau_a_ajouter)) {
+                            AnchorPane.setTopAnchor(panneau_a_ajouter, 1.0);
+                            AnchorPane.setBottomAnchor(panneau_a_ajouter, 1.0);
+                            AnchorPane.setLeftAnchor(panneau_a_ajouter, 1.0);
+                            AnchorPane.setRightAnchor(panneau_a_ajouter, 1.0);
 
-                        anchorpane_bas_element_courant.getChildren().clear();
-                        anchorpane_bas_element_courant.getChildren().add(panneau_a_ajouter);
+                            anchorpane_bas_element_courant.getChildren().clear();
+                            anchorpane_bas_element_courant.getChildren().add(panneau_a_ajouter);
+                        }
+
+                        // Si on est en mode sélection, sélectionner l'objet dans le canvas
+                        if (modeCourant() == selection) {
+                            canvas_environnement.selection().vider();
+                            canvas_environnement.selection().definirUnite(environnement.unite());
+                            el_soc_ajoutes.forEach(el_soc -> {
+                                if (el_soc.getValue().soc!=null)
+                                    canvas_environnement.selection().ajouter(el_soc.getValue().soc) ;
+                                else if (el_soc.getValue().obstacle!=null)
+                                    canvas_environnement.selection().ajouter(el_soc.getValue().obstacle);
+
+                            });
+                        }
+
+                        // TODO déplacer la définition de ce Context menu dans SystemeOptiqueCentreTreeCellFactory
+                        if (treeview_socs.getContextMenu() == null || treeview_socs.getContextMenu()==menuContextuelSocRetirerObstacle)
+                            treeview_socs.setContextMenu(menuContextuelSocSupprimer);
+
+                    } else { // C'est un des obstacles d'un SOC qui est sélectionné
+                        // TODO déplacer la définition de ce Context menu dans SystemeOptiqueCentreTreeCellFactory
+
+                        // Définir un context menu permettant de retirer l'obstacle du  + afficher le panneau associé à l'obstacle
+                        if (treeview_socs.getContextMenu() == null || treeview_socs.getContextMenu()==menuContextuelSocSupprimer)
+                            treeview_socs.setContextMenu(menuContextuelSocRetirerObstacle);
+
                     }
-
-                    // Si on est en mode sélection, sélectionner l'objet dans le canvas
-                    if (modeCourant()==selection) {
-                        canvas_environnement.selection().vider();
-                        canvas_environnement.selection().definirUnite(environnement.unite());
-                        soc_ajoutes.forEach(s->canvas_environnement.selection().ajouter(s));
-                    }
-
-                    if (listview_socs.getContextMenu()==null)
-                        listview_socs.setContextMenu(menuContextuelSoc);
-
                 }
                 else if (c.wasRemoved())  {
                     scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
 
+                    // TODO déplacer la définition de ce Context menu dans SystemeOptiqueCentreTreeCellFactory
                     if (socs_selectionnes.isEmpty())
-                        listview_socs.setContextMenu(null);
+                        treeview_socs.setContextMenu(null);
                 }
 
             }
@@ -688,7 +726,7 @@ public class PanneauPrincipal {
                     for (Obstacle remitem : change.getRemoved()) {
                         LOGGER.log(Level.FINE,"Obstacle supprimé : {0}",remitem.nom()) ;
 
-                        TreeItem<Obstacle> tio_a_supprimer = chercheObstacleDansTreeItem(remitem,treeview_obstacles.getRoot()) ;
+                        TreeItem<Obstacle> tio_a_supprimer = chercheItemDansTreeItem(remitem,treeview_obstacles.getRoot()) ;
                         if (tio_a_supprimer!=null && tio_a_supprimer.getParent()!=null)
                             tio_a_supprimer.getParent().getChildren().remove(tio_a_supprimer) ;
 
@@ -705,7 +743,7 @@ public class PanneauPrincipal {
                         if (environnement.rang(additem) >= 0) // additem fait partie des obstacles de l'environnement (1er niveau)
                             integrerObstacleDansVue(additem, treeview_obstacles.getRoot(), environnement.rang(additem));
 //                        else { // additem fait partie d'une Composition / Ne rien faire (NDLR : reste à comprendre pourquoi, mais ça semble fonctionner comme ça...)
-//
+// TODO : Comprendre pourquoi ça fonctionne :-)
 //                        }
                     }
                 }
@@ -720,7 +758,11 @@ public class PanneauPrincipal {
                     for (SystemeOptiqueCentre remitem : change.getRemoved()) {
                         LOGGER.log(Level.FINE,"SOC supprimé : {0}",remitem.nom()) ;
 
-                        listview_socs.getSelectionModel().clearSelection();
+                                                TreeItem<ElementArbreSOC> tio_a_supprimer = chercheItemDansTreeItem(chercheItemSOCDansArbreSOC(remitem,treeview_socs.getRoot()).getValue(),treeview_socs.getRoot()) ;
+                        if (tio_a_supprimer!=null && tio_a_supprimer.getParent()!=null)
+                            tio_a_supprimer.getParent().getChildren().remove(tio_a_supprimer) ;
+
+                        treeview_socs.getSelectionModel().clearSelection();
 
                         canvas_environnement.selection().retireSoc(remitem);
 
@@ -731,7 +773,7 @@ public class PanneauPrincipal {
 
                         LOGGER.log(Level.FINE,"SOC ajouté : {0}",additem.nom()) ;
 
-                        integrerSystemeOptiqueCentreDansVue(additem);
+                        integrerSystemeOptiqueCentreDansVue(additem,treeview_socs.getRoot());
 
                     }
                 }
@@ -1116,17 +1158,25 @@ public class PanneauPrincipal {
 
     }
 
-    protected void integrerSystemeOptiqueCentreDansVue(SystemeOptiqueCentre s) {
+    protected void integrerSystemeOptiqueCentreDansVue(SystemeOptiqueCentre soc, TreeItem<ElementArbreSOC> parent) {
 
 //        // Rafraichissement automatique de la liste des socs quand le nom du SOC change
 //        ChangeListener<String> listenerNom = (obs, oldName, newName) -> listview_socs.refresh();
 //        s.nomProperty().addListener(listenerNom);
 
+        TreeItem<ElementArbreSOC> tio = ajouterItemDansTreeItem(parent,new ElementArbreSOC(soc));
+
+        ObservableList<Obstacle> obstacles_centres = soc.obstacles_centres() ;
+
+        soc.obstacles_centres().forEach(oc->ajouterItemDansTreeItem(tio,new ElementArbreSOC(oc)));
+        observerElementsDeSOC(tio, obstacles_centres);
+
+
         Parent panneau_droit_soc_courant = null ;
 
         LOGGER.log(Level.FINE,"Tentative de chargement du PanneauSystemeOptiqueCentre") ;
 
-        soc_en_attente_de_panneau = s ;
+        soc_en_attente_de_panneau = soc ;
 
         try {
             panneau_droit_soc_courant = DependencyInjection.load("View/PanneauSystemeOptiqueCentre.fxml");
@@ -1136,9 +1186,11 @@ public class PanneauPrincipal {
             System.exit(1);
         }
 
-        map_element_panneau_droit.put(s,panneau_droit_soc_courant) ;
+        map_element_panneau_droit.put(soc,panneau_droit_soc_courant) ;
 
         scrollpane_droit_element_courant.setContent(panneau_droit_soc_courant);
+
+
 
         Parent panneau_bas_soc_courant = null ;
 
@@ -1152,7 +1204,7 @@ public class PanneauPrincipal {
             System.exit(1);
         }
 
-        map_element_panneau_bas.put(s,panneau_bas_soc_courant) ;
+        map_element_panneau_bas.put(soc,panneau_bas_soc_courant) ;
 
         if (!anchorpane_bas_element_courant.getChildren().contains(panneau_bas_soc_courant)) {
             AnchorPane.setTopAnchor(panneau_bas_soc_courant,1.0);
@@ -1167,16 +1219,41 @@ public class PanneauPrincipal {
 
     }
 
+    private void observerElementsDeSOC(TreeItem<ElementArbreSOC> tio, ObservableList<Obstacle> obstacles_centres) {
+        obstacles_centres.addListener((ListChangeListener<Obstacle>) c -> {
+            while (c.next()) {
+//                if (c.wasReplaced()) {
+//                    if (c.getAddedSubList().get(0)==c.getList().get(c.getFrom())) ;
+//                } else
+                    if (c.wasRemoved()) {
+                        List<? extends Obstacle> o_supprimes = c.getRemoved();
+                        for (Obstacle o_s : o_supprimes) {
+                            tio.getChildren().removeIf(tioc -> (tioc.getValue().obstacle == o_s));
+                        }
+                    }
+//                  else
+                    // Attention, quand le tri de la liste des obstacles centrés se déclenche (cf. méthode SOC::ajoutObstacle)
+                    // on reçoit des changements de remplacement (wasReplaced) pour lesquels wasRemoved et wasAdded sont tous les deux vrais :
+                    // il faut donc gérer simultanément le retrait et l'ajout (pas de else)
+                if (c.wasAdded()) {
+                    List<? extends Obstacle> o_ajoutes = c.getAddedSubList() ;
+                    o_ajoutes.forEach(oc->ajouterItemDansTreeItem(tio,new ElementArbreSOC(oc),c.getFrom())) ;
+                }
+
+
+            }
+        });
+    }
 
     /**
      * Ajoute un obstacle dans l'arbre des obstacles et met en place un Listener sur son nom pour assurer sa mise à jour
      * automatique dans l'arbre.
      * @param parent : Le TreeItem<Obstacle> sous lequel on souhaite ajouter l'obstacle
-     * @param o_a_ajouter : L'obstacle à ajouter
+     * @param it_a_ajouter : L'obstacle à ajouter
      */
-    protected TreeItem<Obstacle> ajouterObstacleDansArbre(TreeItem<Obstacle> parent, Obstacle o_a_ajouter) {
+    protected <IT> TreeItem<IT> ajouterItemDansTreeItem(TreeItem<IT> parent, IT it_a_ajouter) {
 
-        TreeItem<Obstacle> tio = new TreeItem<>(o_a_ajouter) ;
+        TreeItem<IT> tio = new TreeItem<>(it_a_ajouter) ;
 
         parent.getChildren().add(tio) ;
 
@@ -1184,9 +1261,9 @@ public class PanneauPrincipal {
 
     }
 
-    protected TreeItem<Obstacle> ajouterObstacleDansArbre(TreeItem<Obstacle> parent, Obstacle o_a_ajouter, int i_pos) {
+    protected <IT> TreeItem<IT> ajouterItemDansTreeItem(TreeItem<IT> parent, IT it_a_ajouter, int i_pos) {
 
-        TreeItem<Obstacle> tio = new TreeItem<>(o_a_ajouter) ;
+        TreeItem<IT> tio = new TreeItem<>(it_a_ajouter) ;
 
         parent.getChildren().add(i_pos,tio) ;
 
@@ -1225,7 +1302,7 @@ public class PanneauPrincipal {
 
         creerPanneauSimplePourObstacle(o, parent != treeview_obstacles.getRoot()) ;
 
-        TreeItem<Obstacle> tio = ajouterObstacleDansArbre(parent,o);
+        TreeItem<Obstacle> tio = ajouterItemDansTreeItem(parent,o);
 
         if (o.getClass()==Composition.class) {
             ObservableList<Obstacle> obstacles = ((Composition) o).elements() ;
@@ -1264,7 +1341,7 @@ public class PanneauPrincipal {
 
         creerPanneauSimplePourObstacle(o, parent != treeview_obstacles.getRoot()) ;
 
-        TreeItem<Obstacle> tio = ajouterObstacleDansArbre(parent,o,i_pos);
+        TreeItem<Obstacle> tio = ajouterItemDansTreeItem(parent,o,i_pos);
 
         if (o.getClass()==Composition.class) {
             ObservableList<Obstacle> obstacles = ((Composition) o).elements() ;
@@ -1279,17 +1356,17 @@ public class PanneauPrincipal {
     }
 
 
-    private TreeItem<Obstacle> chercheObstacleDansTreeItem(Obstacle o_a_trouver, TreeItem<Obstacle> tio) {
+    private <IT> TreeItem<IT> chercheItemDansTreeItem(IT o_a_trouver, TreeItem<IT> tio) {
 
-        TreeItem<Obstacle> resultat = null ;
+        TreeItem<IT> resultat = null ;
 
-        for (TreeItem<Obstacle> tio_fils : tio.getChildren()) {
+        for (TreeItem<IT> tio_fils : tio.getChildren()) {
             if (tio_fils.getValue()==o_a_trouver) // Bingo !
                 return tio_fils ; // Pas besoin de chercher plus loin
 
             if (!tio_fils.isLeaf()) { // Descente dans le fils si ce n'est pas une feuille de l'arbre
 
-                resultat = chercheObstacleDansTreeItem(o_a_trouver,tio_fils) ;
+                resultat = chercheItemDansTreeItem(o_a_trouver,tio_fils) ;
 
                 if (resultat!=null) // Bingo !
                         return resultat ;
@@ -1299,6 +1376,15 @@ public class PanneauPrincipal {
         return resultat ; // Forcément null
 
     }
+
+    private TreeItem<ElementArbreSOC> chercheItemSOCDansArbreSOC(SystemeOptiqueCentre soc_a_trouver, TreeItem<ElementArbreSOC> tio) {
+        for (TreeItem<ElementArbreSOC> tioc : tio.getChildren()) {
+            if (Objects.equals(tioc.getValue().soc,soc_a_trouver))
+                return tioc ;
+        }
+        return null ;
+    }
+
 
     @FXML
     public void traiterDeplacementSourisCanvas(MouseEvent me) {
@@ -1351,7 +1437,7 @@ public class PanneauPrincipal {
             // Ajouter l'obstacle dans l'environnement, si pas déjà fait (cette méthode ne fait rien si l'obstacle est déjà ajoutée)
             environnement.ajouterObstacle(obstacle_en_cours_ajout);
 
-            treeview_obstacles.getSelectionModel().select(chercheObstacleDansTreeItem(obstacle_en_cours_ajout,treeview_obstacles.getRoot()));
+            treeview_obstacles.getSelectionModel().select(chercheItemDansTreeItem(obstacle_en_cours_ajout,treeview_obstacles.getRoot()));
         }
 
         if (soc_en_cours_ajout !=null) {
@@ -1364,7 +1450,8 @@ public class PanneauPrincipal {
 
             environnement.ajouterSystemeOptiqueCentre(soc_en_cours_ajout); // Ne fait rien si source_courante est déjà dans l'environnement
 
-            listview_socs.getSelectionModel().select(soc_en_cours_ajout);
+            TreeItem<ElementArbreSOC> ti_soc = chercheItemSOCDansArbreSOC(soc_en_cours_ajout,treeview_socs.getRoot()) ;
+            treeview_socs.getSelectionModel().select(chercheItemDansTreeItem(ti_soc.getValue(),treeview_socs.getRoot()));
         }
 
 
@@ -1422,13 +1509,13 @@ public class PanneauPrincipal {
             }
 
             if (canvas_environnement.selection().obstacleUnique()!=o_avant) {
-                treeview_obstacles.getSelectionModel().select(chercheObstacleDansTreeItem(canvas_environnement.selection().obstacleUnique(), treeview_obstacles.getRoot()));
+                treeview_obstacles.getSelectionModel().select(chercheItemDansTreeItem(canvas_environnement.selection().obstacleUnique(), treeview_obstacles.getRoot()));
             }
             if (canvas_environnement.selection().sourceUnique()!=s_avant) {
                 listview_sources.getSelectionModel().select(canvas_environnement.selection().sourceUnique());
             }
             if (canvas_environnement.selection().socUnique()!=soc_avant) {
-                listview_socs.getSelectionModel().select(canvas_environnement.selection().socUnique());
+                treeview_socs.getSelectionModel().select(chercheItemSOCDansArbreSOC(canvas_environnement.selection().socUnique(),treeview_socs.getRoot()));
             }
 
         }
@@ -1571,7 +1658,7 @@ public class PanneauPrincipal {
     public void traiterDefinitionParametresEnvironnement() {
         listview_sources.getSelectionModel().clearSelection();
         treeview_obstacles.getSelectionModel().clearSelection();
-        listview_socs.getSelectionModel().clearSelection();
+        treeview_socs.getSelectionModel().clearSelection();
 
         scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
 
@@ -1580,7 +1667,7 @@ public class PanneauPrincipal {
     public void traiterDefinitionParametresAffichage() {
         listview_sources.getSelectionModel().clearSelection();
         treeview_obstacles.getSelectionModel().clearSelection();
-        listview_socs.getSelectionModel().clearSelection();
+        treeview_socs.getSelectionModel().clearSelection();
 
         scrollpane_droit_element_courant.setContent(panneau_parametres_affichage_environnement);
     }

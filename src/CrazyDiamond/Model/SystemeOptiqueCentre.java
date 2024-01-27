@@ -10,7 +10,6 @@ import javafx.scene.transform.Affine;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -1709,17 +1708,24 @@ public class SystemeOptiqueCentre implements Nommable {
 
         if (o.aSymetrieDeRevolution() && !o.appartientASystemeOptiqueCentre())
             if(!obstacles_centres.contains(o)) {
+
                 positionnerObstacle(o);
-                obstacles_centres.add(o);
+
+                // Insertion de l'objet à sa place compte tenu de son rang dans l'environnement (après les objets de
+                // rang inférieur et avant ceux de rang supérieur).
+                if (obstacles_centres.size()==0 || environnement.rang(o)>environnement.rang(obstacles_centres.get(obstacles_centres.size()-1))) {
+                    obstacles_centres.add(o) ;
+                } else {
+
+                    for (int i=0 ; i<obstacles_centres.size(); ++i) {
+                        if (environnement.rang(o)<environnement.rang(obstacles_centres.get(i))) {
+                            obstacles_centres.add(i,o) ;
+                            break;
+                        }
+                    }
+                }
 
                 o.definirAppartenanceSystemeOptiqueCentre(true) ;
-
-                // Trier les obstacles du SOC dans le même ordre que dans l'environnement (aura son importance pour chercher
-                // les intersections sur l'axe du SOC). ATTENTION : si l'ordre des obstacles changeait dans l'environnement
-                // il faudrait actualiser l'ordre des obstacles dans les SOC en conséquence (via un listener dans l'environnement)
-                Comparator<Obstacle> comparateur = (o1, o2) -> Integer.compare(environnement.indexObstacle(o1), environnement.indexObstacle(o2));
-
-                obstacles_centres.sort(comparateur);
 
                 calculeElementsCardinaux();
 
@@ -1729,7 +1735,6 @@ public class SystemeOptiqueCentre implements Nommable {
             }
 
     }
-
 
     private void positionnerObstacle(Obstacle o)  {
 
@@ -1771,6 +1776,9 @@ public class SystemeOptiqueCentre implements Nommable {
         //o.retirerRappelSurChangementToutePropriete(this::calculeElementsCardinaux);
 
         o.definirAppartenanceSystemeOptiqueCentre(false);
+
+        if (obstacles_centres.size()==0)
+            dioptres_rencontres.clear();
 
         calculeElementsCardinaux();
 

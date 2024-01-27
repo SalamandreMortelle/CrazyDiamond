@@ -13,25 +13,25 @@ import java.util.Objects;
 
 // Credits : https://github.com/cerebrosoft/treeview-dnd-example/tree/master/treedrag
 
-public class SystemeOptiqueCentreListCellFactory implements Callback<ListView<SystemeOptiqueCentre>, ListCell<SystemeOptiqueCentre>>  {
+public class ArbreSOCTreeCellFactory implements Callback<TreeView<ElementArbreSOC>, TreeCell<ElementArbreSOC>>  {
     private static final String DROP_HINT_STYLE = "-fx-border-color: #eea82f; -fx-border-width: 1 1 1 1; -fx-padding: 3 3 1 3";
 
     private final Environnement environnement ;
-    private ListCell<SystemeOptiqueCentre> dropZone;
-   // private SystemeOptiqueCentre draggedSystemeOptiqueCentre;
+    private TreeCell<ElementArbreSOC> dropZone;
+   // private ElementArbreSOC draggedElementArbreSOC;
 
 
-    public SystemeOptiqueCentreListCellFactory(Environnement env) {
+    public ArbreSOCTreeCellFactory(Environnement env) {
         this.environnement = env ;
     }
 
     @Override
-    public ListCell<SystemeOptiqueCentre> call(ListView<SystemeOptiqueCentre> socListView) {
-        ListCell<SystemeOptiqueCentre> cell = new ListCell<>() {
+    public TreeCell<ElementArbreSOC> call(TreeView<ElementArbreSOC> socTreeView) {
+        TreeCell<ElementArbreSOC> cell = new TreeCell<>() {
 
-            SystemeOptiqueCentre item_courant = null ;
+            ElementArbreSOC item_courant = null ;
             @Override
-            protected void updateItem(SystemeOptiqueCentre item, boolean empty) {
+            protected void updateItem(ElementArbreSOC item, boolean empty) {
                 super.updateItem(item, empty);
 
                 if (empty || item == null) {
@@ -61,20 +61,25 @@ public class SystemeOptiqueCentreListCellFactory implements Callback<ListView<Sy
             }
         };
 
-//        cell.setOnDragDetected((MouseEvent event) -> dragDetected(event, cell, socListView));
-        cell.setOnDragOver((DragEvent event) -> dragOver(event, cell, socListView));
-        cell.setOnDragDropped((DragEvent event) -> drop(event, cell, socListView));
+        cell.setOnDragDetected((MouseEvent event) -> dragDetected(event, cell, socTreeView));
+        cell.setOnDragOver((DragEvent event) -> dragOver(event, cell, socTreeView));
+        cell.setOnDragDropped((DragEvent event) -> drop(event, cell, socTreeView));
         cell.setOnDragDone((DragEvent event) -> clearDropLocation());
+        cell.setOnDragExited((DragEvent event) -> clearDropLocation());
 
         return cell;
     }
 
-    private void dragDetected(MouseEvent event, ListCell<SystemeOptiqueCentre> listCell, ListView<SystemeOptiqueCentre> listView) {
-        listCell.startDragAndDrop(TransferMode.MOVE);
+    private void dragDetected(MouseEvent event, TreeCell<ElementArbreSOC> treeCell, TreeView<ElementArbreSOC> treeView) {
+        treeCell.startDragAndDrop(TransferMode.MOVE);
     }
 
-    private void dragOver(DragEvent event, ListCell<SystemeOptiqueCentre> listCell, ListView<SystemeOptiqueCentre> listView) {
-        if (listCell.getItem()==null || !event.getDragboard().hasContent(CrazyDiamond.FORMAT_OBSTACLE_ID)) return;
+    private void dragOver(DragEvent event, TreeCell<ElementArbreSOC> treeCell, TreeView<ElementArbreSOC> treeView) {
+        if (treeCell.getItem()==null || treeCell.getItem().soc==null || !event.getDragboard().hasContent(CrazyDiamond.FORMAT_OBSTACLE_ID)) {
+            clearDropLocation();
+            this.dropZone = null ;
+            return;
+        }
 
         Obstacle dragged_obs = environnement.obstacle((String)event.getDragboard().getContent(CrazyDiamond.FORMAT_OBSTACLE_ID)) ;
 
@@ -82,29 +87,38 @@ public class SystemeOptiqueCentreListCellFactory implements Callback<ListView<Sy
             return;
 
         event.acceptTransferModes(TransferMode.MOVE);
-        if (!Objects.equals(dropZone, listCell)) {
+        if (!Objects.equals(dropZone, treeCell)) {
             clearDropLocation();
-            this.dropZone = listCell;
+            this.dropZone = treeCell;
             dropZone.setStyle(DROP_HINT_STYLE);
         }
     }
 
-    private void drop(DragEvent event, ListCell<SystemeOptiqueCentre> listCell, ListView<SystemeOptiqueCentre> listView) {
+    private void drop(DragEvent event, TreeCell<ElementArbreSOC> treeCell, TreeView<ElementArbreSOC> treeView) {
         Dragboard db = event.getDragboard();
 
         if (!db.hasContent(CrazyDiamond.FORMAT_OBSTACLE_ID))
             return;
 
         Obstacle dragged_obs = environnement.obstacle((String)event.getDragboard().getContent(CrazyDiamond.FORMAT_OBSTACLE_ID)) ;
-        SystemeOptiqueCentre soc_cible = listCell.getItem(); // Item sur lequel on a déposé
+        ElementArbreSOC el_cible = treeCell.getItem() ;
 
-        if (soc_cible==null || dragged_obs==null) {
+        if (el_cible.soc==null || dragged_obs==null) {
             event.setDropCompleted(false);
             return;
         }
 
+        SystemeOptiqueCentre soc_cible = el_cible.soc ; // Item sur lequel on a déposé
+
         soc_cible.ajouterObstacle(dragged_obs);
+
         event.setDropCompleted(true);
+
+//        treeView.getSelectionModel().select(draggedItem);
+
+        clearDropLocation();
+
+        treeCell.getTreeItem().setExpanded(true);
     }
 
     private void clearDropLocation() {

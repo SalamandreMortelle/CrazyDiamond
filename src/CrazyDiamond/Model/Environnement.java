@@ -337,7 +337,7 @@ public class Environnement {
 
             SystemeOptiqueCentre soc = systemeOptiqueCentreContenant(o_a_deplacer) ;
 
-            // Déplacer l'obstacle dans le SOC sachant qu'il est maintenant à la position _dans_env dans l'environnement
+            // Déplacer l'obstacle dans le SOC sachant qu'il est maintenant à la position i_pos_dans_env dans l'environnement
             soc.deplacerObstacle(o_a_deplacer, i_pos_dans_env) ;
         }
     }
@@ -688,6 +688,10 @@ public class Environnement {
 
     public int rang(Obstacle o) {
         return obstacles.indexOf(o);
+    }
+
+    public Obstacle obstacle(int rang) {
+        return obstacles.get(rang);
     }
 }
 

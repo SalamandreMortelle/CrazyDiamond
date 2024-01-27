@@ -152,7 +152,7 @@
                                     <Label alignment="TOP_CENTER" text="Systèmes optiques centrés" />
 <!--                                    <ScrollPane fitToHeight="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">-->
 <!--                                        <content>-->
-                                            <ListView fx:id="listview_socs" prefWidth="200.0" VBox.vgrow="ALWAYS" />
+                                            <TreeView fx:id="treeview_socs" prefWidth="200.0" VBox.vgrow="ALWAYS" />
 <!--                                        </content>-->
 <!--                                    </ScrollPane>-->
                                 </children>

@@ -152,6 +152,7 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
         if ( (o_dragged instanceof Composition) && o_cible_depose_est_composition && o_dragged.comprend(o_cible_depose))
             return;
 
+        // Dépose dans une sous-composition ou dans une composition de 1er niveau qui est déployée => ajout dans cette composition
         if (o_cible_depose_est_composition && (!o_cible_depose_est_premier_niveau || item_cible_depose.isExpanded())) {
             dropZone.setStyle(DROP_HINT_STYLE_DANS);
             Composition comp_cible = (Composition) o_cible_depose ;
@@ -164,7 +165,7 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
 
             comp_cible.ajouterObstacle(draggedItem.getValue());
         }
-        else {
+        else { // Dépose sur un élément de 1er niveau => Element à positionner au 1er niveau de l'environnement
             dropZone.setStyle(DROP_HINT_STYLE_APRES);
 
             int indexCibleInParent = item_cible_depose.getParent().getChildren().indexOf(item_cible_depose);
