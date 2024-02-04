@@ -1100,7 +1100,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         });
     }
 
-    public BoundingBox zoneSelectionRectangulaire() { return zone_selection_rectangulaire ; }
 
+    public BoundingBox zoneSelectionRectangulaire() { return zone_selection_rectangulaire ; }
 
 }
