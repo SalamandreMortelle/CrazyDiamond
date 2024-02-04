@@ -5,16 +5,30 @@ import javafx.geometry.Point2D;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 
-public class OutilSelection implements Outil {
-    
-    CanvasAffichageEnvironnement cae ;
+public class OutilSelection extends Outil {
+
     private boolean retaillage_selection_en_cours = false ;
     private boolean selection_rectangulaire_en_cours;
     private Point2D p_debut_glisser_selection_g;
     private Point2D p_debut_glisser_g;
 
-    public OutilSelection(CanvasAffichageEnvironnement cae) { this.cae = cae ; }
-    
+    public OutilSelection(CanvasAffichageEnvironnement cae) {
+        super(cae);
+    }
+
+    @Override
+    public void prendre() {
+        super.prendre();
+        cae.selection().vider();
+    }
+
+    @Override
+    public void deposer() {
+        super.deposer();
+        if (cae.selection().nombreElements()>0)
+            cae.selection().vider();
+    }
+
     @Override
     public void traiterClicSourisCanvas(MouseEvent me) {
         Point2D pclic = cae.gc_vers_g(me.getX(),me.getY()) ;
@@ -167,6 +181,7 @@ public class OutilSelection implements Outil {
         selection_rectangulaire_en_cours = false ;
         this.p_debut_glisser_g = null ;
         this.p_debut_glisser_selection_g = null ;
+        retaillage_selection_en_cours = false;
     }
 
     @Override

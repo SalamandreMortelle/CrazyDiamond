@@ -2,15 +2,18 @@ package CrazyDiamond.Controller;
 
 import CrazyDiamond.Model.Source;
 import javafx.geometry.Point2D;
+import javafx.scene.Cursor;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 
-public class OutilAjoutSource implements Outil {
+public class OutilAjoutSource extends OutilPermettantDeplacementZoneVisible {
 
-    CanvasAffichageEnvironnement cae ;
     protected Source source_en_cours_ajout = null ;
 
-    public OutilAjoutSource(CanvasAffichageEnvironnement cae) { this.cae = cae ; }
+    public OutilAjoutSource(CanvasAffichageEnvironnement cae) {
+        super(cae);
+        curseur_souris = Cursor.CROSSHAIR ;
+    }
 
     public void traiterClicSourisCanvas(MouseEvent me) {
 

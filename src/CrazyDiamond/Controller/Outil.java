@@ -1,20 +1,38 @@
 package CrazyDiamond.Controller;
 
+import javafx.scene.Cursor;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 
-public interface Outil {
+public abstract class Outil {
 
-    default void traiterClicSourisCanvas(MouseEvent me) { } // Traitement des clics en dehors d'un glisser
+    CanvasAffichageEnvironnement cae ;
+    Cursor curseur_souris = Cursor.DEFAULT;
 
-    default void traiterDeplacementSourisCanvas(MouseEvent me) { }
+    public Outil(CanvasAffichageEnvironnement cae) {
+        this.cae = cae;
+    }
 
-    default void traiterBoutonSourisPresse(MouseEvent mouseEvent) { }
+    public void prendre() { }
+    public void deposer() { }
 
-    default void traiterGlisserSourisCanvas(MouseEvent mouseEvent) { }
-    default void traiterBoutonSourisRelacheFinGlisser(MouseEvent mouseEvent) { }
-    default void interrompre() { }
+    void traiterClicSourisCanvas(MouseEvent me) { }  // Traitement des clics en dehors d'un glisser
 
-    default void traiterTouchePressee(KeyEvent keyEvent) { }
+    void traiterDeplacementSourisCanvas(MouseEvent me) { }
+
+     void traiterBoutonSourisPresse(MouseEvent mouseEvent)  { }
+
+    void traiterGlisserSourisCanvas(MouseEvent mouseEvent) { }
+    void traiterBoutonSourisRelacheFinGlisser(MouseEvent mouseEvent) { }
+    void interrompre() { }
+
+    void traiterTouchePressee(KeyEvent keyEvent) {}
+
+    public Cursor curseurSouris() {
+        return curseur_souris;
+    }
+//    public Cursor definirCurseurSouris() {
+//        return curseur_souris;
+//    }
 
 }

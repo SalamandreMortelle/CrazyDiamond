@@ -2,15 +2,19 @@ package CrazyDiamond.Controller;
 
 import CrazyDiamond.Model.SystemeOptiqueCentre;
 import javafx.geometry.Point2D;
+import javafx.scene.Cursor;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 
-public class OutilAjoutSystemeOptiqueCentre implements Outil {
+public class OutilAjoutSystemeOptiqueCentre extends OutilPermettantDeplacementZoneVisible {
 
-    CanvasAffichageEnvironnement cae ;
     protected SystemeOptiqueCentre soc_en_cours_ajout = null ;
 
-    public OutilAjoutSystemeOptiqueCentre(CanvasAffichageEnvironnement cae) { this.cae = cae ; }
+    public OutilAjoutSystemeOptiqueCentre(CanvasAffichageEnvironnement cae) {
+        super(cae);
+        curseur_souris = Cursor.CROSSHAIR ;
+    }
+
 
     public void traiterClicSourisCanvas(MouseEvent me) {
 
