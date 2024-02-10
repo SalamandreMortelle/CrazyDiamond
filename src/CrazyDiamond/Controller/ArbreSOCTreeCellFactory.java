@@ -9,27 +9,31 @@ import javafx.scene.input.*;
 import javafx.util.Callback;
 
 import java.util.Objects;
+import java.util.ResourceBundle;
 
 
 // Credits : https://github.com/cerebrosoft/treeview-dnd-example/tree/master/treedrag
 
-public class ArbreSOCTreeCellFactory implements Callback<TreeView<ElementArbreSOC>, TreeCell<ElementArbreSOC>>  {
+public class ArbreSOCTreeCellFactory implements Callback<TreeView<ElementArbreSOC>,/* ArbreSOCTreeCellFactory.TreeCellArbreSoc>*/ TreeCell<ElementArbreSOC>>  {
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("CrazyDiamond") ;
     private static final String DROP_HINT_STYLE = "-fx-border-color: #eea82f; -fx-border-width: 1 1 1 1; -fx-padding: 3 3 1 3";
 
     private final Environnement environnement ;
     private TreeCell<ElementArbreSOC> dropZone;
-   // private ElementArbreSOC draggedElementArbreSOC;
-
 
     public ArbreSOCTreeCellFactory(Environnement env) {
         this.environnement = env ;
     }
 
+
     @Override
     public TreeCell<ElementArbreSOC> call(TreeView<ElementArbreSOC> socTreeView) {
         TreeCell<ElementArbreSOC> cell = new TreeCell<>() {
+            //protected class TreeCellArbreSoc extends TreeCell<ElementArbreSOC> {
 
-            ElementArbreSOC item_courant = null ;
+            ElementArbreSOC item_courant = null;
+
             @Override
             protected void updateItem(ElementArbreSOC item, boolean empty) {
                 super.updateItem(item, empty);
@@ -39,27 +43,50 @@ public class ArbreSOCTreeCellFactory implements Callback<TreeView<ElementArbreSO
                     setText(null);
                     setGraphic(null);
 
-                    item_courant = null ;
+                    item_courant = null;
 
                     return;
                 }
 
-//                ImageView iv1 = new ImageView();
-//                if (item.getClass()== Cercle.class) {
-//                    iv1.setImage(ICONE_CERCLE);
-//                }
-//                else {
-////                    iv1.setImage(PIN_IMAGE);
-//                }
-//                setGraphic(iv1);
+                //                ImageView iv1 = new ImageView();
+                //                if (item.getClass()== Cercle.class) {
+                //                    iv1.setImage(ICONE_CERCLE);
+                //                }
+                //                else {
+                ////                    iv1.setImage(PIN_IMAGE);
+                //                }
+                //                setGraphic(iv1);
 
                 if (item != item_courant) {
                     textProperty().bind(item.nomProperty());
-                    item_courant = item ;
+                    item_courant = item;
                 }
 
             }
-        };
+
+        } ;
+
+        ContextMenu menuContextuelSocSupprimer = new ContextMenu();
+        MenuItem deleteItemSoc = new MenuItem(rb.getString("supprimer.soc"));
+        deleteItemSoc.setOnAction(event -> environnement.retirerSystemeOptiqueCentre(cell.getItem().soc));
+        menuContextuelSocSupprimer.getItems().add(deleteItemSoc);
+
+        ContextMenu menuContextuelSocRetirerObstacle = new ContextMenu();
+        MenuItem retirerItemSoc = new MenuItem(rb.getString("retirer.obstacle.soc"));
+        retirerItemSoc.setOnAction(event -> cell.getTreeItem().getParent().getValue().soc
+                .retirerObstacleCentre(cell.getItem().obstacle));
+        menuContextuelSocRetirerObstacle.getItems().add(retirerItemSoc);
+
+        cell.itemProperty().addListener((obs,old_val,new_val) -> {
+            if (new_val==null) {
+                cell.setContextMenu(null);
+            } else {
+                if (new_val.soc!=null)
+                    cell.setContextMenu(menuContextuelSocSupprimer);
+                else if (new_val.obstacle!=null)
+                    cell.setContextMenu(menuContextuelSocRetirerObstacle);
+            }
+        });
 
         cell.setOnDragDetected((MouseEvent event) -> dragDetected(event, cell, socTreeView));
         cell.setOnDragOver((DragEvent event) -> dragOver(event, cell, socTreeView));

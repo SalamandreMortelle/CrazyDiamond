@@ -1,19 +1,33 @@
 package CrazyDiamond.Controller;
 
 import CrazyDiamond.Model.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.cfg.ContextAttributes;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import javafx.geometry.Point2D;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.control.Alert;
+import javafx.scene.input.*;
+
+import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class OutilSelection extends Outil {
 
+    private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
+    static protected final DataFormat format_crazy_diamond_elements = new DataFormat("application/crazy-diamond.elements");
+
+    JsonMapper jsonMapper ;
+    
     private boolean retaillage_selection_en_cours = false ;
     private boolean selection_rectangulaire_en_cours;
     private Point2D p_debut_glisser_selection_g;
     private Point2D p_debut_glisser_g;
 
-    public OutilSelection(CanvasAffichageEnvironnement cae) {
+    public OutilSelection(CanvasAffichageEnvironnement cae, JsonMapper jsonMapper) {
         super(cae);
+        this.jsonMapper = jsonMapper ;
     }
 
     @Override
@@ -217,8 +231,138 @@ public class OutilSelection extends Outil {
                 cae.translaterSelection(new Point2D(0.0,-cae.resolution())) ;
                 keyEvent.consume();
             }
+            case A -> {
+                if (!keyEvent.isControlDown())
+                    break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
+
+                selectionnerTout() ;
+
+                keyEvent.consume();
+            }
+            case C -> {
+                if (!keyEvent.isControlDown() || cae.selection().estVide())
+                    break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
+
+                Clipboard clipboard = Clipboard.getSystemClipboard();
+                ClipboardContent content = new ClipboardContent();
+
+                String json = serialiserElementsSelectionnes();
+
+                if (json!=null) {
+                    content.put(format_crazy_diamond_elements, json);
+                    content.putString(json);
+                    clipboard.setContent(content);
+                }
+
+                keyEvent.consume();
+            }
+            case X -> {
+                if (!keyEvent.isControlDown())
+                    break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
+
+                Clipboard clipboard = Clipboard.getSystemClipboard();
+                ClipboardContent content = new ClipboardContent();
+
+                String json = serialiserElementsSelectionnes();
+
+                if (json!=null) {
+                    content.put(format_crazy_diamond_elements, json);
+                    content.putString(json);
+                    clipboard.setContent(content);
+
+                    supprimerElementsSelectionnes() ;
+                }
+
+
+                keyEvent.consume();
+            }
+            case V -> {
+                if (!keyEvent.isControlDown())
+                    break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
+
+                Clipboard clipboard = Clipboard.getSystemClipboard();
+
+                ElementsSelectionnes es = null ;
+
+                try {
+                    // Passage d'un environnement hôte dans lequel l'ObjectReader va ajouter les éléments importables du fichier
+                    ContextAttributes ca = ContextAttributes.getEmpty().withSharedAttribute("environnement_hote", cae.environnement()) ;
+
+                    ObjectReader or = jsonMapper.readerFor(ElementsSelectionnes.class).with(ca) ;
+                    if (clipboard.hasContent(format_crazy_diamond_elements))
+                        es = or.readValue(clipboard.getContent(format_crazy_diamond_elements).toString(),ElementsSelectionnes.class) ;
+                    else if (clipboard.hasString()) // Si le clipboard contient une string, on tente de la parser comme du JSON CrazyDiamond
+                        es = or.readValue(clipboard.getString(),ElementsSelectionnes.class) ;
+
+                    if (es!=null)
+                        cae.definirSelection(es) ;
+
+                } catch (Exception e) {
+                    LOGGER.log(Level.SEVERE,"Exception lors de la lecture du presse-papier") ;
+
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setHeaderText("Impossible d'instancier de nouveaux éléments à partir des éléments du presse-papier");
+                    alert.setContentText(e.getMessage()+System.lineSeparator()+"in :"+System.lineSeparator()+e.getStackTrace()[0].toString());
+                    alert.showAndWait();
+                }
+
+                keyEvent.consume();
+            }
+
 
         }
+
+    }
+
+    private void selectionnerTout() {
+
+        cae.selection().vider();
+        cae.selection().definirUnite(cae.environnement().unite()) ;
+
+        Iterator<Obstacle> ito = cae.environnement().iterateur_obstacles() ;
+        while (ito.hasNext())
+            cae.selection().ajouter(ito.next());
+
+        Iterator<Source> its = cae.environnement().iterateur_sources() ;
+        while (its.hasNext())
+            cae.selection().ajouter(its.next());
+
+        Iterator<SystemeOptiqueCentre> itsoc = cae.environnement().iterateur_systemesOptiquesCentres() ;
+        while (itsoc.hasNext())
+            cae.selection().ajouter(itsoc.next());
+
+    }
+
+    private String serialiserElementsSelectionnes() {
+
+        String json = null ;
+
+        try {
+            json = jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(cae.selection());
+        } catch (JsonProcessingException e) {
+            LOGGER.log(Level.SEVERE,"Exception lors de la sérialisation en JSON des éléments sélectionnés ",e.getMessage());
+
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText("Impossible de sérialiser les éléments sélectionnés");
+            alert.setContentText(e.getMessage()+System.lineSeparator()+e.getCause());
+            alert.showAndWait();
+        }
+
+        return json ;
+
+    }
+
+    private void supprimerElementsSelectionnes() {
+        ElementsSelectionnes es = cae.selection() ;
+
+        // Le retrait des obstacles, sources et socs de l'environnement altère (cf. callbacks ListChangeListener dans
+        // l'Environnement) les éléments sélectionnés que l'on est en train de parcourir, ce qui lèverait une exception.
+        // Pour éviter cela, commençons par faire une copie (non profonde) de la sélection.
+        ElementsSelectionnes es_copie = new ElementsSelectionnes(es) ;
+
+        es_copie.stream_obstacles().forEach(cae.environnement()::retirerObstacle);
+        es_copie.stream_sources().forEach(cae.environnement()::retirerSource);
+        es_copie.stream_socs().forEach(cae.environnement()::retirerSystemeOptiqueCentre);
 
     }
 

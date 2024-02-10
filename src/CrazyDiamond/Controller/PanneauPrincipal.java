@@ -32,14 +32,13 @@ import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-// Classe du Controleur du Panneau principal
+// Classe du Contrôleur du Panneau principal
 public class PanneauPrincipal {
 
     static private final JsonMapper jsonMapper = new JsonMapper();
     static private final SimpleModule simpleModule = new SimpleModule();
     static private final FileChooser fileChooser = new FileChooser();
 
-    static protected final DataFormat format_crazy_diamond_elements = new DataFormat("application/crazy-diamond.elements");
 
     static {
 
@@ -197,31 +196,12 @@ public class PanneauPrincipal {
     @FXML
     private ListView<Source> listview_sources;
 
-    // Menu contextuel avec l'entrée "Supprimer" (pour la liste des sources)
-    private final ContextMenu menuContextuelSources ;
-
-    // Liste observable des sources selectionnees
-    ObservableList<Source>  sources_selectionnees ;
-
     @FXML
     private TreeView<Obstacle> treeview_obstacles;
-
-    private final ContextMenu menuContextuelObstacles ;
-
-    // Liste observable des obstacles sélectionnés dans l'arborescence
-    ObservableList<TreeItem<Obstacle>> obstacles_selectionnes_dans_arborescence;
 
     // Liste des Systèmes Optiques Centrés avec leurs éléments
     @FXML
     public TreeView<ElementArbreSOC> treeview_socs;
-
-    // Menu contextuel avec l'entrée "Supprimer" (pour la liste des sources)
-    private final ContextMenu menuContextuelSocSupprimer;
-    // et avec l'entrée retirer (pour retirer un obstacle d'un SOC depuis l'arbre des SOCs)
-    private final ContextMenu menuContextuelSocRetirerObstacle;
-
-    // Liste observable des éléments d'arbre des SOCs (SOC ou Obstacle dans le SOC) sélectionnés
-    ObservableList<TreeItem<ElementArbreSOC>> socs_selectionnes;
 
 
     // Table donnent le nom des fichiers .fxml de panneau associé à chaque obstacle d'environnement
@@ -262,32 +242,6 @@ public class PanneauPrincipal {
 
         canvas_environnement = cae ;
         environnement = cae.environnement() ;
-
-        menuContextuelSources = new ContextMenu() ;
-        MenuItem deleteItemSource = new MenuItem(rb.getString("supprimer.source"));
-        deleteItemSource.setOnAction(event -> environnement.retirerSource(listview_sources.getSelectionModel().getSelectedItem()));
-        menuContextuelSources.getItems().add(deleteItemSource);
-
-        menuContextuelObstacles = new ContextMenu() ;
-        MenuItem deleteItemObstacle = new MenuItem(rb.getString("supprimer.obstacle"));
-        deleteItemObstacle.setOnAction(event -> environnement.retirerObstacle(treeview_obstacles.getSelectionModel().getSelectedItem().getValue()));
-        menuContextuelObstacles.getItems().add(deleteItemObstacle);
-
-
-        // TODO : définir ces menus contextuels dans le TreeCellFactory
-
-        menuContextuelSocSupprimer = new ContextMenu() ;
-        MenuItem deleteItemSoc = new MenuItem(rb.getString("supprimer.soc"));
-        deleteItemSoc.setOnAction(event -> environnement.retirerSystemeOptiqueCentre(treeview_socs.getSelectionModel().getSelectedItem().getValue().soc));
-        menuContextuelSocSupprimer.getItems().add(deleteItemSoc);
-
-        menuContextuelSocRetirerObstacle = new ContextMenu() ;
-        MenuItem retirerItemSoc = new MenuItem(rb.getString("retirer.obstacle.soc"));
-        retirerItemSoc.setOnAction(event -> treeview_socs.getSelectionModel().getSelectedItem().getParent().getValue().soc
-                .retirerObstacleCentre(treeview_socs.getSelectionModel().getSelectedItem().getValue().obstacle));
-        menuContextuelSocRetirerObstacle.getItems().add(retirerItemSoc);
-
-
     }
 
 
@@ -328,91 +282,6 @@ public class PanneauPrincipal {
 
         racine.setCenter(stack_racine);
 
-        racine.addEventFilter(KeyEvent.KEY_PRESSED,key_event -> {
-                switch (key_event.getCode()) {
-                case A -> {
-                    if (!key_event.isControlDown())
-                        break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
-
-                    selectionnerTout() ;
-
-                    key_event.consume();
-                }
-                case C -> {
-                    if (!key_event.isControlDown() || canvas_environnement.selection().estVide())
-                        break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
-
-                    Clipboard clipboard = Clipboard.getSystemClipboard();
-                    ClipboardContent content = new ClipboardContent();
-
-                    String json = serialiserElementsSelectionnes();
-
-                    if (json!=null) {
-                        content.put(format_crazy_diamond_elements, json);
-                        content.putString(json);
-                        clipboard.setContent(content);
-                    }
-
-                    key_event.consume();
-                }
-                case X -> {
-                    if (!key_event.isControlDown())
-                        break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
-
-                    Clipboard clipboard = Clipboard.getSystemClipboard();
-                    ClipboardContent content = new ClipboardContent();
-
-                    String json = serialiserElementsSelectionnes();
-
-                    if (json!=null) {
-                        content.put(format_crazy_diamond_elements, json);
-                        content.putString(json);
-                        clipboard.setContent(content);
-
-                        supprimerElementsSelectionnes() ;
-                    }
-
-
-                    key_event.consume();
-                }
-                case V -> {
-                    if (!key_event.isControlDown())
-                        break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
-
-                    Clipboard clipboard = Clipboard.getSystemClipboard();
-
-                    ElementsSelectionnes es = null ;
-
-                    try {
-                        ContextAttributes ca = ContextAttributes.getEmpty() ;
-                        // Passage d'un environnement hote dans lequel l'ObjectReader va ajouter les éléments importables du fichier
-                        ca = ca.withSharedAttribute("environnement_hote", environnement) ;
-
-                        ObjectReader or = jsonMapper.readerFor(ElementsSelectionnes.class).with(ca) ;
-                        if (clipboard.hasContent(format_crazy_diamond_elements))
-                            es = or.readValue(clipboard.getContent(format_crazy_diamond_elements).toString(),ElementsSelectionnes.class) ;
-                        else if (clipboard.hasString()) // Si le clipbpard contient une string, on tente de la parser comme du JSON CrazyDiamond
-                            es = or.readValue(clipboard.getString(),ElementsSelectionnes.class) ;
-
-                        if (es!=null)
-                            canvas_environnement.definirSelection(es) ;
-
-                    } catch (Exception e) {
-                        LOGGER.log(Level.SEVERE,"Exception lors de la lecture du presse-papier") ;
-
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setHeaderText("Impossible d'instancier de nouveaux éléments à partir des éléments du presse-papier");
-                        alert.setContentText(e.getMessage()+System.lineSeparator()+"in :"+System.lineSeparator()+e.getStackTrace()[0].toString());
-                        alert.showAndWait();
-                    }
-
-
-                    key_event.consume();
-                }
-
-            } } );
-
-
         creerOutils();
 
         outil_courant = outilSource;
@@ -423,13 +292,8 @@ public class PanneauPrincipal {
 
         canvas_environnement.setOnMouseClicked(this::traiterClicSourisCanvas);
         canvas_environnement.setOnMouseMoved(this::traiterDeplacementSourisCanvas);
-        canvas_environnement.setOnMouseEntered(mouseEvent ->  {
-//            if (outil_courant!=null)
-                canvas_environnement.getScene().setCursor(outil_courant.curseurSouris()) ;
-//            else
-//                canvas_environnement.getScene().setCursor(Cursor.DEFAULT) ;
-        });
-        canvas_environnement.setOnMouseExited(mouseEvent -> canvas_environnement.getScene().setCursor(Cursor.DEFAULT));
+        canvas_environnement.setOnMouseEntered(mouseEvent -> canvas_environnement.getScene().setCursor(outil_courant.curseurSouris())) ;
+        canvas_environnement.setOnMouseExited(mouseEvent  -> canvas_environnement.getScene().setCursor(Cursor.DEFAULT));
         // Pour détecter le début d'un cliquer glisser (NB : il n'existe pas de handler pour détecter directement la fin
         // d'un glisser ; pourrait se faire avec un appel à startFullDrag() dans le handler setOnDragDetected mais dans
         // ce cas tous les Nodes de la scène (càd tous les boutons, listview, treeview, etc.) recevraient des notifications
@@ -449,6 +313,8 @@ public class PanneauPrincipal {
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Initialisation de la liste des sources : rattachement à la liste observable des sources de l'environnement
+
+        listview_sources.setCellFactory(new SourceListCellFactory(environnement));
         listview_sources.setItems(environnement.sources());
 
         // Intégration dans la vue des éventuelles sources déjà présentes dans l'environnement (peut arriver si on a chargé l'environnement)
@@ -456,41 +322,19 @@ public class PanneauPrincipal {
         while (its.hasNext())
             integrerSourceDansVue(its.next());
 
-        // Maintenir une référence vers la liste observable des sources actuellement sélectionnées dans la listview
-        sources_selectionnees = listview_sources.getSelectionModel().getSelectedItems() ;
-
-        // Brancher ou débrancher le menu contextuel de suppression selon qu'il y a une source sélectionnée ou non
-        // Et mettre le bon panneau de contenu
-        sources_selectionnees.addListener((ListChangeListener<Source>) c -> {
-            while (c.next()) {
-                if (c.wasAdded()) {
-
-                    treeview_obstacles.getSelectionModel().clearSelection();
-                    treeview_socs.getSelectionModel().clearSelection();
-
-                    List<? extends Source> s_ajoutees = c.getAddedSubList() ;
-                    // Afficher le panneau correspondant à la dernière source ajoutée
-                    scrollpane_droit_element_courant.setContent(map_element_panneau_droit.get(s_ajoutees.get(s_ajoutees.size()-1)));
-
-                    if (modeCourant()==selection) {
-                        canvas_environnement.selection().vider();
-                        canvas_environnement.selection().definirUnite(environnement.unite());
-                        s_ajoutees.forEach(s -> canvas_environnement.selection().ajouter(s));
-                    }
-
-                    if (listview_sources.getContextMenu()==null)
-                        listview_sources.setContextMenu(menuContextuelSources);
-
-                }
-                else if (c.wasRemoved())  {
-                    scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
-
-                    if (sources_selectionnees.isEmpty())
-                        listview_sources.setContextMenu(null);
-                }
-
+        listview_sources.focusModelProperty().getValue().focusedItemProperty().addListener( (obs,old_val,new_val) -> {
+            if (new_val == null) {
+                scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
+                return;
             }
-        });
+            scrollpane_droit_element_courant.setContent(map_element_panneau_droit.get(new_val));
+            // Si on est en mode sélection, sélectionner les obstacles dans le canvas
+            if (modeCourant()==selection) {
+                canvas_environnement.selection().vider();
+                canvas_environnement.selection().definirUnite(environnement.unite());
+                canvas_environnement.selection().ajouter(new_val) ;
+            }
+        } ) ;
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Initialisation de l'arbre des obstacles
@@ -514,44 +358,19 @@ public class PanneauPrincipal {
 //        while (ito.hasNext())
 //            integrerObstacleDansVue(ito.next(),treeview_obstacles.getRoot());
 
-        // Maintenir une référence vers la liste observable des obstacles actuellement sélectionnés dans la listview
-        obstacles_selectionnes_dans_arborescence = treeview_obstacles.getSelectionModel().getSelectedItems() ;
-
-        // Brancher ou débrancher le menu contextuel de suppression selon qu'il y a un obstacle sélectionné ou non
-        // Et mettre le bon panneau de contenu
-        obstacles_selectionnes_dans_arborescence.addListener((ListChangeListener<TreeItem<Obstacle>>) c -> {
-            while (c.next()) {
-                if (c.wasAdded()) {
-
-                    listview_sources.getSelectionModel().clearSelection();
-                    treeview_socs.getSelectionModel().clearSelection();
-
-                    List<? extends TreeItem<Obstacle>> o_ajoutes = c.getAddedSubList() ;
-
-                    Obstacle dernier_obstacle_de_selection = o_ajoutes.get(o_ajoutes.size()-1).getValue() ;
-
-                    // Afficher le panneau correspondant au dernier obstacle ajouté
-                    scrollpane_droit_element_courant.setContent(map_element_panneau_droit.get(dernier_obstacle_de_selection));
-
-                    // Si on est en mode sélection, sélectionner les obstacles dans le canvas
-                    if (modeCourant()==selection) {
-                        canvas_environnement.selection().vider();
-                        canvas_environnement.selection().definirUnite(environnement.unite());
-                        o_ajoutes.forEach(tio -> canvas_environnement.selection().ajouter(tio.getValue())) ;
-                    }
-
-                    if (treeview_obstacles.getContextMenu()==null)
-                        treeview_obstacles.setContextMenu(menuContextuelObstacles);
-                }
-                else if (c.wasRemoved()) {
-                    scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
-
-                    if (obstacles_selectionnes_dans_arborescence.isEmpty())
-                        treeview_obstacles.setContextMenu(null);
-                }
-
+        treeview_obstacles.focusModelProperty().getValue().focusedItemProperty().addListener( (obs,old_val,new_val) -> {
+            if (new_val == null) {
+                scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
+                return;
             }
-        });
+            scrollpane_droit_element_courant.setContent(map_element_panneau_droit.get(new_val.getValue()));
+            // Si on est en mode sélection, sélectionner les obstacles dans le canvas
+            if (modeCourant()==selection) {
+                canvas_environnement.selection().vider();
+                canvas_environnement.selection().definirUnite(environnement.unite());
+                canvas_environnement.selection().ajouter(new_val.getValue()) ;
+            }
+        } ) ;
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Initialisation de la liste des socs : rattachement à la liste observable des socs de l'environnement
@@ -569,77 +388,40 @@ public class PanneauPrincipal {
         environnement.systemesOptiquesCentres().forEach(s->integrerSystemeOptiqueCentreDansVue(s,treeview_socs.getRoot()));
 //        environnement.systemesOptiquesCentres().forEach(this::integrerSystemeOptiqueCentreDansVue);
 
-        // Maintenir une référence vers la liste observable des éléments d'arbre des SOCs actuellement sélectionnées dans la TreeView
-        socs_selectionnes = treeview_socs.getSelectionModel().getSelectedItems() ;
 
-        // Brancher ou débrancher le menu contextuel de suppression selon qu'il y a un SOC sélectionné ou non
-        // Et mettre le bon panneau de contenu
-        socs_selectionnes.addListener((ListChangeListener<TreeItem<ElementArbreSOC>>) c -> {
-            while (c.next()) {
-                if (c.wasAdded()) {
+        treeview_socs.focusModelProperty().getValue().focusedItemProperty().addListener((observableValue, old_val, new_val) -> {
 
-                    listview_sources.getSelectionModel().clearSelection();
-                    treeview_obstacles.getSelectionModel().clearSelection();
+            if (new_val == null) {
+                scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
+                return;
+            }
+            scrollpane_droit_element_courant.setContent(map_element_panneau_droit.get(new_val.getValue().contenu()));
 
-                    List<? extends TreeItem<ElementArbreSOC>> el_soc_ajoutes = c.getAddedSubList() ;
+            // Si on est en mode sélection, sélectionner l'objet dans le canvas
+            if (modeCourant() == selection) {
+                canvas_environnement.selection().vider();
+                canvas_environnement.selection().definirUnite(environnement.unite());
+                if (new_val.getValue().soc!=null)
+                    canvas_environnement.selection().ajouter(new_val.getValue().soc) ;
+                else if (new_val.getValue().obstacle!=null)
+                    canvas_environnement.selection().ajouter(new_val.getValue().obstacle);
+            }
 
-                    // Cette variable contiendra soit un SOC soit un obstacle qui fait partie d'un SOC
-                    ElementArbreSOC dernier_element_de_selection = el_soc_ajoutes.get(el_soc_ajoutes.size()-1).getValue() ;
+            if (new_val.getValue().soc!=null) {
+                Node panneau_a_ajouter = map_element_panneau_bas.get(new_val.getValue().soc);
+                if (!anchorpane_bas_element_courant.getChildren().contains(panneau_a_ajouter)) {
+                    AnchorPane.setTopAnchor(panneau_a_ajouter, 1.0);
+                    AnchorPane.setBottomAnchor(panneau_a_ajouter, 1.0);
+                    AnchorPane.setLeftAnchor(panneau_a_ajouter, 1.0);
+                    AnchorPane.setRightAnchor(panneau_a_ajouter, 1.0);
 
-                    // Afficher le panneau droit correspondant au dernier SOC  ou obstacle ajouté dans la sélection
-                    scrollpane_droit_element_courant.setContent(map_element_panneau_droit.get(dernier_element_de_selection.contenu()));
-//                  scrollpane_droit_element_courant.setContent(map_element_panneau_droit.get(el_soc_ajoutes.get(el_soc_ajoutes.size()-1)));
-
-                    // Afficher le panneau bas correspondant au dernier SOC ajouté
-                    if (dernier_element_de_selection.soc !=null) {
-                        Node panneau_a_ajouter = map_element_panneau_bas.get(dernier_element_de_selection.soc);
-//                      Node panneau_a_ajouter = map_element_panneau_bas.get(el_soc_ajoutes.get(el_soc_ajoutes.size()-1)) ;
-                        if (!anchorpane_bas_element_courant.getChildren().contains(panneau_a_ajouter)) {
-                            AnchorPane.setTopAnchor(panneau_a_ajouter, 1.0);
-                            AnchorPane.setBottomAnchor(panneau_a_ajouter, 1.0);
-                            AnchorPane.setLeftAnchor(panneau_a_ajouter, 1.0);
-                            AnchorPane.setRightAnchor(panneau_a_ajouter, 1.0);
-
-                            anchorpane_bas_element_courant.getChildren().clear();
-                            anchorpane_bas_element_courant.getChildren().add(panneau_a_ajouter);
-                        }
-
-                        // Si on est en mode sélection, sélectionner l'objet dans le canvas
-                        if (modeCourant() == selection) {
-                            canvas_environnement.selection().vider();
-                            canvas_environnement.selection().definirUnite(environnement.unite());
-                            el_soc_ajoutes.forEach(el_soc -> {
-                                if (el_soc.getValue().soc!=null)
-                                    canvas_environnement.selection().ajouter(el_soc.getValue().soc) ;
-                                else if (el_soc.getValue().obstacle!=null)
-                                    canvas_environnement.selection().ajouter(el_soc.getValue().obstacle);
-
-                            });
-                        }
-
-                        // TODO déplacer la définition de ce Context menu dans SystemeOptiqueCentreTreeCellFactory
-                        if (treeview_socs.getContextMenu() == null || treeview_socs.getContextMenu()==menuContextuelSocRetirerObstacle)
-                            treeview_socs.setContextMenu(menuContextuelSocSupprimer);
-
-                    } else { // C'est un des obstacles d'un SOC qui est sélectionné
-                        // TODO déplacer la définition de ce Context menu dans SystemeOptiqueCentreTreeCellFactory
-
-                        // Définir un context menu permettant de retirer l'obstacle du  + afficher le panneau associé à l'obstacle
-                        if (treeview_socs.getContextMenu() == null || treeview_socs.getContextMenu()==menuContextuelSocSupprimer)
-                            treeview_socs.setContextMenu(menuContextuelSocRetirerObstacle);
-
-                    }
-                }
-                else if (c.wasRemoved())  {
-                    scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
-
-                    // TODO déplacer la définition de ce Context menu dans SystemeOptiqueCentreTreeCellFactory
-                    if (socs_selectionnes.isEmpty())
-                        treeview_socs.setContextMenu(null);
+                    anchorpane_bas_element_courant.getChildren().clear();
+                    anchorpane_bas_element_courant.getChildren().add(panneau_a_ajouter);
                 }
 
             }
         });
+
 
 
         // Gestion des "modes" d'ajout : source, segment, demi-plan, etc.
@@ -654,39 +436,6 @@ public class PanneauPrincipal {
             // Interruption de l'outil actuel
             if (newValue!=oldValue && outil_courant!=null)
                 outil_courant.interrompre();
-//            if (oldValue == ajout_source && source_en_cours_ajout != null)
-//                source_en_cours_ajout = null ;
-
-            // Transféré dans OutilSelection::deposer
-//            if (oldValue == selection && canvas_environnement.selection().nombreElements()>0)
-//                canvas_environnement.selection().vider();
-
-            // Transféré dans OutilSelection::prendre
-//            if (oldValue != selection && newValue==selection)
-//                canvas_environnement.selection().vider();
-
-
-            // Sélection du nouvel outil approprié
-//            if (newValue == selection && outil_courant != outilSelection)
-//                outil_courant = outilSelection;
-//            else if (newValue == ajout_source && outil_courant != outilSource)
-//                outil_courant = outilSource;
-//            else if (newValue == ajout_demi_plan && outil_courant != outilDemiPlan)
-//                outil_courant = outilDemiPlan;
-//            else if (newValue == ajout_segment && outil_courant != outilSegment)
-//                outil_courant = outilSegment;
-//            else if (newValue == ajout_prisme && outil_courant != outilPrisme)
-//                outil_courant = outilPrisme;
-//            else if (newValue == ajout_cercle && outil_courant != outilCercle)
-//                outil_courant = outilCercle;
-//            else if (newValue == ajout_rectangle && outil_courant != outilRectangle)
-//                outil_courant = outilRectangle;
-//            else if (newValue == ajout_conique && outil_courant != outilConique)
-//                outil_courant = outilConique;
-//            else if (newValue == ajout_composition && outil_courant != outilComposition)
-//                outil_courant = outilComposition;
-//            else if (newValue == ajout_axe_soc && outil_courant != outilSystemeOptiqueCentre)
-//                outil_courant = outilSystemeOptiqueCentre;
 
         });
 
@@ -784,7 +533,7 @@ public class PanneauPrincipal {
                     for (SystemeOptiqueCentre remitem : change.getRemoved()) {
                         LOGGER.log(Level.FINE,"SOC supprimé : {0}",remitem.nom()) ;
 
-                                                TreeItem<ElementArbreSOC> tio_a_supprimer = chercheItemDansTreeItem(chercheItemSOCDansArbreSOC(remitem,treeview_socs.getRoot()).getValue(),treeview_socs.getRoot()) ;
+                        TreeItem<ElementArbreSOC> tio_a_supprimer = chercheItemDansTreeItem(chercheItemSOCDansArbreSOC(remitem,treeview_socs.getRoot()).getValue(),treeview_socs.getRoot()) ;
                         if (tio_a_supprimer!=null && tio_a_supprimer.getParent()!=null)
                             tio_a_supprimer.getParent().getChildren().remove(tio_a_supprimer) ;
 
@@ -813,7 +562,7 @@ public class PanneauPrincipal {
 
     private void creerOutils() {
 
-        outilSelection = new OutilSelection(canvas_environnement) ;
+        outilSelection = new OutilSelection(canvas_environnement,jsonMapper) ;
 
         outilSource = new OutilAjoutSource(canvas_environnement);
 
@@ -856,57 +605,7 @@ public class PanneauPrincipal {
         outilSystemeOptiqueCentre = new OutilAjoutSystemeOptiqueCentre(canvas_environnement) ;
     }
 
-    private void selectionnerTout() {
 
-        canvas_environnement.selection().vider();
-        canvas_environnement.selection().definirUnite(environnement.unite()) ;
-
-        Iterator<Obstacle> ito = environnement.iterateur_obstacles() ;
-        while (ito.hasNext())
-            canvas_environnement.selection().ajouter(ito.next());
-
-        Iterator<Source> its = environnement.iterateur_sources() ;
-        while (its.hasNext())
-            canvas_environnement.selection().ajouter(its.next());
-
-        Iterator<SystemeOptiqueCentre> itsoc = environnement.iterateur_systemesOptiquesCentres() ;
-        while (itsoc.hasNext())
-            canvas_environnement.selection().ajouter(itsoc.next());
-
-    }
-
-    private void supprimerElementsSelectionnes() {
-        ElementsSelectionnes es = canvas_environnement.selection() ;
-
-        // Le retrait des obstacles, sources et socs de l'environnement altère (cf. callbacks ListChangeListener dans
-        // l'Environnement) les éléments sélectionnés que l'on est en train de parcourir, ce qui lèverait une exception.
-        // Pour éviter cela, commençons par faire une copie (non profonde) de la sélection.
-        ElementsSelectionnes es_copie = new ElementsSelectionnes(es) ;
-
-        es_copie.stream_obstacles().forEach(environnement::retirerObstacle);
-        es_copie.stream_sources().forEach(environnement::retirerSource);
-        es_copie.stream_socs().forEach(environnement::retirerSystemeOptiqueCentre);
-
-    }
-
-    private String serialiserElementsSelectionnes() {
-
-        String json = null ;
-
-        try {
-            json = jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(canvas_environnement.selection());
-        } catch (JsonProcessingException e) {
-            LOGGER.log(Level.SEVERE,"Exception lors de la sérialisation en JSON des éléments sélectionnés ",e.getMessage());
-
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setHeaderText("Impossible de sérialiser les éléments sélectionnés");
-            alert.setContentText(e.getMessage()+System.lineSeparator()+e.getCause());
-            alert.showAndWait();
-        }
-
-        return json ;
-
-    }
 
 
     private void setUpDependecyInjector() {

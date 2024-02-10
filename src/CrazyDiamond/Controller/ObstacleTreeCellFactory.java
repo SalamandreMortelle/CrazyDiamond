@@ -9,12 +9,14 @@ import javafx.scene.input.*;
 import javafx.util.Callback;
 
 import java.util.Objects;
+import java.util.ResourceBundle;
 
 
 // Credits : https://github.com/cerebrosoft/treeview-dnd-example/tree/master/treedrag
 
 public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, TreeCell<Obstacle>>  {
 
+    private static final ResourceBundle rb = ResourceBundle.getBundle("CrazyDiamond") ;
     private static final String DROP_HINT_STYLE_APRES = "-fx-border-color: #eea82f; -fx-border-width: 0 0 2 0; -fx-padding: 3 3 1 3";
     private static final String DROP_HINT_STYLE_DANS = "-fx-border-color: #eea82f; -fx-border-width: 1 1 1 1; -fx-padding: 3 3 1 3";
 
@@ -65,6 +67,18 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
 
             }
         };
+
+        ContextMenu menuContextuelObstacles = new ContextMenu() ;
+        MenuItem deleteItemObstacle = new MenuItem(rb.getString("supprimer.obstacle")) ;
+        deleteItemObstacle.setOnAction(event -> environnement.retirerObstacle(cell.getItem())) ;
+        menuContextuelObstacles.getItems().add(deleteItemObstacle) ;
+        cell.emptyProperty().addListener((obs, wasEmpty, isNowEmpty) -> {
+            if (isNowEmpty) {
+                cell.setContextMenu(null);
+            } else {
+                cell.setContextMenu(menuContextuelObstacles);
+            }
+        });
 
         cell.setOnDragDetected((MouseEvent event) -> dragDetected(event, cell, obstacleTreeView));
         cell.setOnDragOver((DragEvent event) -> dragOver(event, cell, obstacleTreeView));
