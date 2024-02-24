@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 public interface Obstacle {
 
 
+
     enum ModeRecherche { PREMIERE, DERNIERE }
 
     // Récupération du logger
@@ -35,6 +36,9 @@ public interface Obstacle {
      *
      */
     boolean contient(Point2D p) ;
+
+    default Commande commandeCreation(Environnement env) {  return new CommandeCreerObstacleSimple(env,this) ; }
+
 
     default boolean contient_strict(Point2D p) { return (contient(p) && !aSurSaSurface(p)) ; }
 
@@ -190,13 +194,18 @@ public interface Obstacle {
      }
 
     void retaillerPourSourisEn(Point2D pos_souris) ;
+    void retaillerParCommandePourSourisEn(Point2D pos_souris) ;
     default void retaillerSelectionPourSourisEn(Point2D pclic) {
         retaillerPourSourisEn(pclic);
     }
-
+    default void retaillerSelectionParCommandePourSourisEn(Point2D pclic,Point2D p_depart_poignee) {
+        new CommandeDefinirPositionPoigneeObstacleSelection(this,pclic,p_depart_poignee).executer();
+//        retaillerParCommandePourSourisEn(pclic,p_depart_poignee);
+    }
     default Contour positions_poignees() { return null ; }
 
-    default void translater(Point2D vecteur) { }
+    void translater(Point2D vecteur) ;
+    void translaterParCommande(Point2D vecteur) ;
     default boolean est_tres_proche_de(Point2D pt,double tolerance) { return false ; }
 
     void convertirDistances(double facteur_conversion) ;

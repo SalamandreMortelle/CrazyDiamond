@@ -88,8 +88,9 @@
                             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
                         </padding>
                     </Separator>
-                    <ToggleButton fx:id="ajout_composition" onAction="#traiterCreationComposition"
-                                  text="%ajouter.composition" toggleGroup="$choix_mode"/>
+<!--                    <ToggleButton fx:id="ajout_composition" onAction="#traiterCreationComposition"-->
+<!--                                  text="%ajouter.composition" toggleGroup="$choix_mode"/>-->
+                    <Button fx:id="ajout_composition"  text="%ajouter.composition" />
                     <Separator>
                         <padding>
                             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>

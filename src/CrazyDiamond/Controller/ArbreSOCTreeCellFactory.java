@@ -137,6 +137,7 @@ public class ArbreSOCTreeCellFactory implements Callback<TreeView<ElementArbreSO
 
         SystemeOptiqueCentre soc_cible = el_cible.soc ; // Item sur lequel on a déposé
 
+        // TODO : definir et appeler plutôt une méthode ajouterObstacleParCommande
         soc_cible.ajouterObstacle(dragged_obs);
 
         event.setDropCompleted(true);

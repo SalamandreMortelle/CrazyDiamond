@@ -80,6 +80,11 @@ public class ConvertisseurEntierValidant extends StringConverter<Integer> {
                 return valeur_retour_par_defaut;
             }
 
+            // Si le formatage de la valeur courante aboutit à la même chaîne que la nouvelle valeur value, on retourne
+            // aussi la valeur actuelle pour ne pas déclencher des mises à jour intempestives de la Value dans les spinners
+            if (valeur_retour_par_defaut!=null && (decimal_format.format(valeur_retour_par_defaut).equals(value)) )
+                return valeur_retour_par_defaut ;
+
             // Perform the requested parsing
             return decimal_format.parse(value).intValue();
         } catch (ParseException ex) {

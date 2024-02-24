@@ -57,6 +57,8 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
     @Override public StringProperty nomProperty() { return imp_nommable.nomProperty(); }
 
     @Override public Color couleurContour() { return imp_elementAvecContour.couleurContour();}
+    @Override public void definirCouleurContour(Color c) { imp_elementAvecContour.definirCouleurContour(c); }
+
     @Override public ObjectProperty<Color> couleurContourProperty() { return imp_elementAvecContour.couleurContourProperty(); }
 
     @Override public void definirTraitementSurface(TraitementSurface traitement_surf) { imp_elementAvecContour.definirTraitementSurface(traitement_surf);}
@@ -76,6 +78,8 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
     }
 
     @Override public Color couleurMatiere() { return imp_elementAvecMatiere.couleurMatiere(); }
+    @Override public void definirCouleurMatiere(Color couleur) { imp_elementAvecMatiere.definirCouleurMatiere(couleur); }
+
     @Override public ObjectProperty<Color> couleurMatiereProperty() { return imp_elementAvecMatiere.couleurMatiereProperty(); }
 
     @Override public void definirTypeSurface(TypeSurface type_surf) { imp_elementAvecMatiere.definirTypeSurface(type_surf); }
@@ -126,7 +130,10 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
     public void translater(Point2D vecteur) {
         position_orientation.set(new PositionEtOrientation(centre().add(vecteur),orientation()));
     }
-
+    @Override
+    public void translaterParCommande(Point2D vecteur) {
+        new CommandeDefinirUnParametrePoint<>(this,centre().add(vecteur),this::centre,this::definirCentre).executer() ;
+    }
 
     public void accepte(VisiteurEnvironnement v) {
         v.visitePrisme(this);
@@ -321,6 +328,18 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
         largeur_base.set(Math.abs(2d*(pos_souris.getX()- xCentre())));
 
         angle_sommet.set(2*Math.toDegrees(Math.abs(Math.atan((pos_souris.getX()- xCentre())/(3*(yCentre() - pos_souris.getY()))))));
+    }
+
+    public void retaillerParCommandePourSourisEn(Point2D pos_souris) {
+        // Si on est sur le point de départ, ne rien faire
+        if (pos_souris.equals(centre()))
+            return ;
+
+        new CommandeDefinirLargeurBaseEtAngleSommetPrisme(this,
+                Math.abs(2d*(pos_souris.getX()- xCentre())),
+                2*Math.toDegrees(Math.abs(Math.atan((pos_souris.getX()- xCentre())/(3*(yCentre() - pos_souris.getY())))))
+        ).executer();
+
     }
 
     @Override

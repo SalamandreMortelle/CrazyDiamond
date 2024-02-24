@@ -235,9 +235,11 @@ public class PanneauSystemeOptiqueCentre {
 
             LOGGER.log(Level.INFO,"Obstacles choisis pour SOC : {0}",obstacles_choisis) ;
 
+            // TODO : definir et appeler plutôt une méthode ajouterObstacleSParCommande dans SystemeOptiqueCentre
             for(Obstacle o : obstacles_choisis) {
 //                o.integrerDansSystemeOptiqueCentre(soc);
 //                integrerObstacle(o);
+
                     soc.ajouterObstacle(o) ;
 
 //                    // Rafraichissement automatique de la liste des obstacles du SOC quand le nom de l'obstacle ajouté change

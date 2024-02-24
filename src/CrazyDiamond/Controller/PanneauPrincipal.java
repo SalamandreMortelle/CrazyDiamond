@@ -179,7 +179,8 @@ public class PanneauPrincipal {
     private Toggle ajout_conique ;
 
     @FXML
-    public Toggle ajout_composition;
+    public Button ajout_composition;
+//    public Toggle ajout_composition;
 
     @FXML
     public Toggle ajout_axe_soc;
@@ -229,7 +230,7 @@ public class PanneauPrincipal {
     private OutilAjoutObstacle outilRectangle;
     private OutilAjoutObstacle outilCercle;
     private OutilAjoutObstacle outilConique;
-    private OutilAjoutObstacle outilComposition;
+    private OutilCreerComposition outilComposition;
     private OutilAjoutSystemeOptiqueCentre outilSystemeOptiqueCentre;
 
 
@@ -463,8 +464,20 @@ public class PanneauPrincipal {
         ajout_cercle.selectedProperty().addListener( new changeListenerOutil(outilCercle) ) ;
         ajout_rectangle.selectedProperty().addListener( new changeListenerOutil(outilRectangle) ) ;
         ajout_conique.selectedProperty().addListener( new changeListenerOutil(outilConique) ) ;
-        ajout_composition.selectedProperty().addListener( new changeListenerOutil(outilComposition) ) ;
         ajout_axe_soc.selectedProperty().addListener( new changeListenerOutil(outilSystemeOptiqueCentre) ) ;
+//        ajout_composition.selectedProperty().addListener( new changeListenerOutil(outilComposition) ) ;
+        ajout_composition.setOnAction(e -> {
+
+            outilComposition.prendre();
+
+//            outil_courant.deposer();
+//            Outil outil_precedent = outil_courant ;
+//            outil_courant = outilComposition ;
+//            outilComposition.prendre();
+//            outilComposition.deposer();
+//            // Reour à l'outil précédent
+//            outil_precedent.prendre();
+        });
 
         lcl_sources = change -> {
             while (change.next()) {
@@ -589,6 +602,9 @@ public class PanneauPrincipal {
         outilCercle = new OutilAjoutObstacle(canvas_environnement) {
             public Obstacle creerObstacle(double x, double y) {
                 return new Cercle(TypeSurface.CONVEXE, x, y, cae.resolution()) ;
+//                CommandeCreerCercle cmd = new CommandeCreerCercle(environnement,TypeSurface.CONVEXE, x, y, cae.resolution()) ;
+//                cmd.executer();
+//                return cmd.cercleCree() ;
             }
         };
         outilConique = new OutilAjoutObstacle(canvas_environnement) {
@@ -596,11 +612,13 @@ public class PanneauPrincipal {
                 return new Conique(TypeSurface.CONVEXE, x, y, 0.0, canvas_environnement.resolution(),1.0) ;
             }
         };
-        outilComposition = new OutilAjoutObstacle(canvas_environnement) {
-            public Obstacle creerObstacle(double x, double y) {
-                return new Composition(Composition.Operateur.UNION) ;
-            }
-        };
+
+        outilComposition = new OutilCreerComposition(canvas_environnement) ;
+        //        outilComposition = new OutilAjoutObstacle(canvas_environnement) {
+//            public Obstacle creerObstacle(double x, double y) {
+//                return new Composition(Composition.Operateur.UNION) ;
+//            }
+//        };
 
         outilSystemeOptiqueCentre = new OutilAjoutSystemeOptiqueCentre(canvas_environnement) ;
     }
@@ -696,6 +714,26 @@ public class PanneauPrincipal {
 
     public void traiterTouchePressee(KeyEvent keyEvent)
     {
+        switch (keyEvent.getCode()) {
+            case Z -> {
+                if (!keyEvent.isControlDown())
+                    break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
+
+                Commande.annulerDerniereCommande();
+
+                keyEvent.consume();
+            }
+            case Y -> {
+                if (!keyEvent.isControlDown())
+                    break ; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
+
+                Commande.retablirCommande();
+
+                keyEvent.consume();
+            }
+
+        }
+
         if (outil_courant!=null)
             outil_courant.traiterTouchePressee(keyEvent);
     }

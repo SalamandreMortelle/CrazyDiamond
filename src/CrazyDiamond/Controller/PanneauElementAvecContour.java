@@ -1,7 +1,11 @@
 package CrazyDiamond.Controller;
 
+import CrazyDiamond.Model.ChangeListenerAvecGarde;
+import CrazyDiamond.Model.CommandeDefinirUnParametre;
 import CrazyDiamond.Model.ElementAvecContour;
 import CrazyDiamond.Model.TraitementSurface;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.RadioButton;
@@ -12,7 +16,7 @@ import javafx.util.StringConverter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-// Controleur du sous-panneau des propriétés du contour d'un obstacle
+// Contrôleur du sous-panneau des propriétés du contour d'un obstacle
 public class PanneauElementAvecContour {
 
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
@@ -25,21 +29,22 @@ public class PanneauElementAvecContour {
     public RadioButton choix_polarisant;
     public Slider slider_orientation_axe_polariseur;
 
-    //    DoubleProperty poourcentage_taux_reflexion ;
     @FXML
     private ColorPicker colorpicker_contour;
 
     public PanneauElementAvecContour() {
-
-//        this.poourcentage_taux_reflexion = new SimpleDoubleProperty(0d) ;
 
     }
 
     public void initialize(ElementAvecContour element_avec_contour) {
 
         // Couleur contour
-        colorpicker_contour.valueProperty().bindBidirectional(element_avec_contour.couleurContourProperty());
+        colorpicker_contour.valueProperty().set(element_avec_contour.couleurContour());
+        element_avec_contour.couleurContourProperty().addListener(new ChangeListenerAvecGarde<>(colorpicker_contour.valueProperty()::set));
+        colorpicker_contour.valueProperty().addListener((observableValue, c_avant, c_apres)
+                -> new CommandeDefinirUnParametre<>(element_avec_contour, c_apres, element_avec_contour::couleurContour, element_avec_contour::definirCouleurContour).executer());
 
+        // Traitement surface
         if (element_avec_contour.traitementSurface()== TraitementSurface.AUCUN)
             choix_aucun.setSelected(true);
         if (element_avec_contour.traitementSurface()==TraitementSurface.ABSORBANT)
@@ -51,17 +56,24 @@ public class PanneauElementAvecContour {
         if (element_avec_contour.traitementSurface()==TraitementSurface.POLARISANT)
             choix_polarisant.setSelected(true);
 
-        slider_taux_reflexion_surface.valueProperty().bindBidirectional(element_avec_contour.tauxReflexionSurfaceProperty());
+        // Taux réflexion surface
+        element_avec_contour.tauxReflexionSurfaceProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteTauxReflexionSurface));
+        slider_taux_reflexion_surface.valueProperty().addListener((observableValue, tr_avant, tr_apres)
+                -> new CommandeDefinirUnParametre<>(element_avec_contour, tr_apres.doubleValue(),
+                element_avec_contour::tauxReflexionSurface,
+                element_avec_contour::definirTauxReflexionSurface
+        ).executer()) ;
+
         slider_taux_reflexion_surface.disableProperty().bind(choix_semi_reflechissant.selectedProperty().not());
 
-        slider_orientation_axe_polariseur.valueProperty().bindBidirectional(element_avec_contour.orientationAxePolariseurProperty());
-        slider_orientation_axe_polariseur.disableProperty().bind(choix_polarisant.selectedProperty().not());
+        // Orientation axe polariseur
+        element_avec_contour.orientationAxePolariseurProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteOrientationAxePolariseur));
+        slider_orientation_axe_polariseur.valueProperty().addListener((observableValue, or_avant, or_apres)
+                -> new CommandeDefinirUnParametre<>(element_avec_contour,or_apres.doubleValue(),
+                element_avec_contour::orientationAxePolariseur,
+                element_avec_contour::definirOrientationAxePolariseur).executer() );
 
-//        slider_taux_reflexion_surface.valueProperty().bindBidirectional(element_avec_contour.tauxReflexionSurfaceProperty());
-//        element_avec_contour.tauxReflexionSurfaceProperty().addListener((observable, oldValue, newValue)->{
-//                poourcentage_taux_reflexion.set(100d*newValue.doubleValue());
-//            LOGGER.log(Level.FINE,"Nouvelle valeur du taux de réflexion : ",newValue) ;
-//        });
+        slider_orientation_axe_polariseur.disableProperty().bind(choix_polarisant.selectedProperty().not());
 
         slider_taux_reflexion_surface.setLabelFormatter(new StringConverter<Double>() {
             @Override
@@ -75,63 +87,43 @@ public class PanneauElementAvecContour {
             }
         });
 
-//        slider_taux_reflexion_surface.valueProperty().bindBidirectional(poourcentage_taux_reflexion);
-
-//        poourcentage_taux_reflexion.addListener((observable,oldValue,newValue)->{
-//            element_avec_contour.tauxReflexionSurfaceProperty().set(newValue.doubleValue()/100d);
-//        });
-
-
-
-        // Ce listener est mono-directionnel Vue > Modèle (mais l'état initial du toggle traitement surface est déjà positionné)
+        // Traitement surface
+        element_avec_contour.traitementSurfaceProperty().addListener( new ChangeListenerAvecGarde<>(this::prendreEnCompteTraitementSurface) ) ;
         choix_traitement_surface.selectedToggleProperty().addListener((observable, oldValue,newValue) -> {
             LOGGER.log(Level.FINE,"Choix traitement surface passe de {0} à {1}", new Object[] {oldValue,newValue}) ;
 
-//            if (newValue== choix_reflechissant && element_avec_matiere.natureMilieu()!= NatureMilieu.REFLECHISSANT)
-//                element_avec_matiere.definirNatureMilieu(NatureMilieu.REFLECHISSANT);
-
             if (newValue==choix_aucun && element_avec_contour.traitementSurface()!= TraitementSurface.AUCUN)
-                element_avec_contour.definirTraitementSurface(TraitementSurface.AUCUN);
+                new CommandeDefinirUnParametre<>(element_avec_contour,TraitementSurface.AUCUN,element_avec_contour::traitementSurface,element_avec_contour::definirTraitementSurface).executer();
 
             if (newValue== choix_absorbant && element_avec_contour.traitementSurface()!= TraitementSurface.ABSORBANT)
-                element_avec_contour.definirTraitementSurface(TraitementSurface.ABSORBANT);
+                new CommandeDefinirUnParametre<>(element_avec_contour,TraitementSurface.ABSORBANT,element_avec_contour::traitementSurface,element_avec_contour::definirTraitementSurface).executer();
 
             if (newValue==choix_reflechissant && element_avec_contour.traitementSurface()!= TraitementSurface.REFLECHISSANT)
-                element_avec_contour.definirTraitementSurface(TraitementSurface.REFLECHISSANT);
+                new CommandeDefinirUnParametre<>(element_avec_contour,TraitementSurface.REFLECHISSANT,element_avec_contour::traitementSurface,element_avec_contour::definirTraitementSurface).executer();
 
             if (newValue==choix_semi_reflechissant && element_avec_contour.traitementSurface()!= TraitementSurface.PARTIELLEMENT_REFLECHISSANT)
-                element_avec_contour.definirTraitementSurface(TraitementSurface.PARTIELLEMENT_REFLECHISSANT);
+                new CommandeDefinirUnParametre<>(element_avec_contour,TraitementSurface.PARTIELLEMENT_REFLECHISSANT,element_avec_contour::traitementSurface,element_avec_contour::definirTraitementSurface).executer();
 
             if (newValue==choix_polarisant && element_avec_contour.traitementSurface()!= TraitementSurface.POLARISANT)
-                element_avec_contour.definirTraitementSurface(TraitementSurface.POLARISANT);
-
-
-
+                new CommandeDefinirUnParametre<>(element_avec_contour,TraitementSurface.POLARISANT,element_avec_contour::traitementSurface,element_avec_contour::definirTraitementSurface).executer();
         });
+    }
 
-        element_avec_contour.traitementSurfaceProperty().addListener( (observableValue, oldValue, newValue) -> {
-            LOGGER.log(Level.FINE,"Traitement surface passe de {0} à {1}", new Object[] {oldValue,newValue}) ;
+    private void prendreEnCompteTraitementSurface(TraitementSurface ts) {
+        switch (ts) {
+            case AUCUN -> choix_aucun.setSelected(true);
+            case ABSORBANT -> choix_absorbant.setSelected(true);
+            case REFLECHISSANT -> choix_reflechissant.setSelected(true);
+            case PARTIELLEMENT_REFLECHISSANT -> choix_semi_reflechissant.setSelected(true);
+            case POLARISANT -> choix_polarisant.setSelected(true);
+        }
+    }
 
-//            if (newValue== NatureMilieu.REFLECHISSANT && choix_nature_milieu.getSelectedToggle()!= choix_reflechissant)
-//                choix_nature_milieu.selectToggle(choix_reflechissant);
+    private void prendreEnCompteOrientationAxePolariseur(Number or) {
+        slider_orientation_axe_polariseur.valueProperty().set(or.doubleValue());
+    }
 
-            if (newValue== TraitementSurface.ABSORBANT && choix_traitement_surface.getSelectedToggle()!= choix_absorbant)
-                choix_traitement_surface.selectToggle(choix_absorbant);
-
-            if (newValue== TraitementSurface.AUCUN  && choix_traitement_surface.getSelectedToggle()!=choix_aucun)
-                choix_traitement_surface.selectToggle(choix_aucun);
-
-            if (newValue== TraitementSurface.REFLECHISSANT  && choix_traitement_surface.getSelectedToggle()!=choix_reflechissant)
-                choix_traitement_surface.selectToggle(choix_reflechissant);
-
-            if (newValue== TraitementSurface.PARTIELLEMENT_REFLECHISSANT  && choix_traitement_surface.getSelectedToggle()!=choix_semi_reflechissant)
-                choix_traitement_surface.selectToggle(choix_semi_reflechissant);
-
-            if (newValue== TraitementSurface.POLARISANT  && choix_traitement_surface.getSelectedToggle()!=choix_polarisant)
-                choix_traitement_surface.selectToggle(choix_polarisant);
-
-        } );
-
-
+    private void prendreEnCompteTauxReflexionSurface(Number tr) {
+        slider_taux_reflexion_surface.valueProperty().set(tr.doubleValue());
     }
 }

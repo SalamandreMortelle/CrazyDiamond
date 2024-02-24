@@ -59,9 +59,13 @@ public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable
     @Override public StringProperty nomProperty() { return imp_nommable.nomProperty(); }
 
     @Override public Color couleurContour() { return imp_elementAvecContour.couleurContour();}
+    @Override public void definirCouleurContour(Color c) { imp_elementAvecContour.definirCouleurContour(c); }
+
     @Override public ObjectProperty<Color> couleurContourProperty() { return imp_elementAvecContour.couleurContourProperty(); }
 
     @Override public Color couleurMatiere() { return imp_elementAvecMatiere.couleurMatiere(); }
+    @Override public void definirCouleurMatiere(Color couleur) { imp_elementAvecMatiere.definirCouleurMatiere(couleur); }
+
     @Override public ObjectProperty<Color> couleurMatiereProperty() { return imp_elementAvecMatiere.couleurMatiereProperty(); }
 
     @Override public void definirTraitementSurface(TraitementSurface traitement_surf) { imp_elementAvecContour.definirTraitementSurface(traitement_surf);}
@@ -117,9 +121,9 @@ public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable
     }
 
     @Override
-    public void retaillerPourSourisEn(Point2D pos_souris) {
-
-    }
+    public void retaillerPourSourisEn(Point2D pos_souris) {}
+    @Override
+    public void retaillerParCommandePourSourisEn(Point2D pos_souris) {}
 
     @Override
     public void accepte(VisiteurEnvironnement v) {
@@ -145,6 +149,7 @@ public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable
 
         throw new IllegalStateException("Composition::contient : operateur inconnu");
     }
+
 
     @Override
     public boolean aSurSaSurface(Point2D p) {
@@ -376,5 +381,19 @@ public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable
         obstacle2.get().convertirDistances(facteur_conversion);
     }
 
+    @Override
+    public void translater(Point2D vecteur) {
+        obstacle1.get().translater(vecteur);
+        obstacle2.get().translater(vecteur);
+    }
 
+    @Override
+    public void translaterParCommande(Point2D vecteur) {
+        ArrayList<Obstacle> obstacles = new ArrayList<>(2) ;
+
+        if (obstacle1!=null) obstacles.add(obstacle1.get()) ;
+        if (obstacle2!=null) obstacles.add(obstacle2.get()) ;
+
+        new CommandeTranslaterObstacles(vecteur, obstacles).executer();
+    }
 }

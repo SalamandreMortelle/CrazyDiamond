@@ -1,6 +1,8 @@
 package CrazyDiamond.Controller;
 
 
+import CrazyDiamond.Model.CommandeDefinirOperateurComposition;
+import CrazyDiamond.Model.CommandeDefinirUnParametre;
 import CrazyDiamond.Model.Composition;
 import javafx.fxml.FXML;
 import javafx.scene.control.RadioButton;
@@ -84,16 +86,16 @@ public class PanneauComposition {
             LOGGER.log(Level.FINE,"Choix operation passe de {0} à {1}", new Object[] {oldValue,newValue}) ;
 
             if (choix_operation.getSelectedToggle()==choix_union)
-                composition.definirOperateur(Composition.Operateur.UNION);
+                definirOperateur(Composition.Operateur.UNION);
 
             if (choix_operation.getSelectedToggle()==choix_intersection)
-                composition.definirOperateur(Composition.Operateur.INTERSECTION);
+                definirOperateur(Composition.Operateur.INTERSECTION);
 
             if (choix_operation.getSelectedToggle()==choix_difference)
-                composition.definirOperateur(Composition.Operateur.DIFFERENCE);
+                definirOperateur(Composition.Operateur.DIFFERENCE);
 
             if (choix_operation.getSelectedToggle()==choix_difference_symetrique)
-                composition.definirOperateur(Composition.Operateur.DIFFERENCE_SYMETRIQUE);
+                definirOperateur(Composition.Operateur.DIFFERENCE_SYMETRIQUE);
         } ) ;
 
         composition.operateurProperty().addListener( (observableValue, oldValue, newValue) -> {
@@ -113,6 +115,11 @@ public class PanneauComposition {
 
         } ) ;
 
+    }
+
+    public void definirOperateur(Composition.Operateur op) {
+        new CommandeDefinirUnParametre<>(composition,op,composition::operateur,composition::definirOperateur).executer();
+//        new CommandeDefinirOperateurComposition(composition,op).executer() ;
     }
 
 }

@@ -45,6 +45,7 @@ public class ConvertisseurDoubleValidant extends StringConverter<Double> {
 
         decimal_format.setDecimalFormatSymbols(dec_symbols);
 
+
     }
 
     @Override
@@ -80,6 +81,11 @@ public class ConvertisseurDoubleValidant extends StringConverter<Double> {
             if (value.length() < 1 || !isDouble(value)) {
                 return valeur_retour_par_defaut;
             }
+
+            // IMPORTANT : Si le formatage de la valeur courante aboutit à la même chaîne que la nouvelle valeur value, on retourne
+            // aussi la valeur actuelle pour ne pas déclencher des mises à jour intempestives de la Value dans les spinners
+            if (valeur_retour_par_defaut!=null && (decimal_format.format(valeur_retour_par_defaut).equals(value)) )
+                return valeur_retour_par_defaut ;
 
             // Perform the requested parsing
             return decimal_format.parse(value).doubleValue();

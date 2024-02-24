@@ -25,12 +25,15 @@ public class OutilsControleur {
         // valueProperty du spinner) => Dans ce cas, la value du Spinner est inchangée (ce qui est une bonne chose)
         // mais le champ texte du Spinner continue d'afficher la valeur invalide. Pour cette raison, il faut remettre
         // à jour le contenu du champ texte quand il n'a plus le focus
+
         if (consumer!=null)
             spinner.getValueFactory().valueProperty().addListener(new ChangeListenerAvecGarde<Double>(consumer)) ;
 
         spinner.getEditor().focusedProperty().addListener((obs, oldVal, newVal) -> {
-            if (!newVal) // Perte du focus => on remet la valeur courante du spinner dans le textfield
+            if (!newVal) {// Perte du focus => on remet la valeur courante du spinner dans le textfield
                 spinner.getEditor().setText(conv.toString(spinner.getValue()));
+//                spinner.getEditor().undo();
+            }
             else // Gain du focus : sélection du contenu
                 Platform.runLater(spinner.getEditor()::selectAll);
         });
@@ -57,9 +60,12 @@ public class OutilsControleur {
         if (consumer!=null)
             spinner.getValueFactory().valueProperty().addListener(new ChangeListenerAvecGarde<Double>(consumer)) ;
 
+
         spinner.getEditor().focusedProperty().addListener((obs, oldVal, newVal) -> {
-            if (!newVal) // Perte du focus => on remet la valeur courante du spinner dans le textfield
+            if (!newVal)  {// Perte du focus => on remet la valeur courante du spinner dans le textfield
                 spinner.getEditor().setText(conv.toString(spinner.getValue()));
+//                spinner.getEditor().undo();
+            }
             else // Gain du focus : sélection du contenu
                 Platform.runLater(spinner.getEditor()::selectAll);
         });

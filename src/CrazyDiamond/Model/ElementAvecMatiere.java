@@ -11,6 +11,7 @@ public interface ElementAvecMatiere {
     ObjectProperty<Color> couleur_matiere_par_defaut_property = new SimpleObjectProperty<>(Color.DARKGREY) ;
 
     public Color couleurMatiere() ;
+    void definirCouleurMatiere(Color couleur);
 
     public ObjectProperty<Color> couleurMatiereProperty() ;
 
@@ -35,5 +36,6 @@ public interface ElementAvecMatiere {
     public double indiceRefraction() ;
 
     public DoubleProperty indiceRefractionProperty() ;
+
 
 }

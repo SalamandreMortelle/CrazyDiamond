@@ -332,6 +332,10 @@ public class Environnement {
         repositionnerObstacleDansSoc(o_a_deplacer, i_pos);
     }
 
+    public void insererObstacleEnDernier(Obstacle o_a_deplacer) {
+        insererObstacleEnPosition(o_a_deplacer,obstacles.size());
+    }
+
     private void repositionnerObstacleDansSoc(Obstacle o_a_deplacer, int i_pos_dans_env) {
         if (o_a_deplacer.appartientASystemeOptiqueCentre()) {
 
@@ -672,6 +676,8 @@ public class Environnement {
             s.convertirDistances(facteur_conversion);
         for (SystemeOptiqueCentre soc : systemes_optiques_centres)
             soc.convertirDistances(facteur_conversion);
+
+        Commande.convertirDistancesHistoriques(facteur_conversion) ;
     }
 
     public boolean rafraichissementAffichagesSuspendu() { return suspendre_rafraichissement_affichages ;}
@@ -693,5 +699,6 @@ public class Environnement {
     public Obstacle obstacle(int rang) {
         return obstacles.get(rang);
     }
+
 }
 

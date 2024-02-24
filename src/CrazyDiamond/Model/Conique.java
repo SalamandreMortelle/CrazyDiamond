@@ -105,6 +105,8 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
     @Override public StringProperty nomProperty() { return imp_nommable.nomProperty(); }
 
     @Override public Color couleurContour() { return imp_elementAvecContour.couleurContour();}
+    @Override public void definirCouleurContour(Color c) { imp_elementAvecContour.definirCouleurContour(c); }
+
     @Override public ObjectProperty<Color> couleurContourProperty() { return imp_elementAvecContour.couleurContourProperty(); }
 
     @Override public void definirTraitementSurface(TraitementSurface traitement_surf) { imp_elementAvecContour.definirTraitementSurface(traitement_surf);}
@@ -125,6 +127,8 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
     }
 
     @Override public Color couleurMatiere() { return imp_elementAvecMatiere.couleurMatiere(); }
+    @Override public void definirCouleurMatiere(Color couleur) { imp_elementAvecMatiere.definirCouleurMatiere(couleur); }
+
     @Override public ObjectProperty<Color> couleurMatiereProperty() { return imp_elementAvecMatiere.couleurMatiereProperty(); }
 
     @Override public void definirTypeSurface(TypeSurface type_surf) { imp_elementAvecMatiere.definirTypeSurface(type_surf); }
@@ -179,7 +183,10 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
     public void translater(Point2D vecteur) {
         position_orientation.set(new PositionEtOrientation(foyer().add(vecteur),orientation()));
     }
-
+    @Override
+    public void translaterParCommande(Point2D vecteur) {
+        new CommandeDefinirUnParametrePoint<>(this,foyer().add(vecteur),this::foyer,this::definirFoyer).executer() ;
+    }
 
     @Override
     public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
@@ -217,6 +224,29 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
             definirAxeFocal(pos_souris.subtract(foyer())) ;
     }
 
+    @Override
+    public void retaillerParCommandePourSourisEn(Point2D pos_souris) {
+        // Si on est sur le centre, ne rien faire
+        if (pos_souris.equals(foyer()))
+            return ;
+
+        // p = e . d (où d est la distance à la directrice de la conique)
+        double d = pos_souris.subtract(foyer()).magnitude() ;
+
+        // On ne peut changer l'orientation (l'axe focal) que si la conique n'appartient pas à un SOC
+        if (!appartientASystemeOptiqueCentre()) {
+
+            new CommandeDefinirParametreEtAxeFocalConique(this,excentricite.get()*d, pos_souris.subtract(foyer())).executer(); ;
+
+//            parametre.set(excentricite.get()*d);
+//            definirAxeFocal(pos_souris.subtract(foyer()));
+        } else {
+            new CommandeDefinirParametreEtAxeFocalConique(this,excentricite.get()*d, axe_focal()).executer();
+//            new CommandeDefinirParametreConique(this,excentricite.get()*d).executer(); ;
+//            parametre.set(excentricite.get()*d);
+        }
+
+    }
     @Override
     public Contour positions_poignees() {
         Contour c_poignees = new Contour(4);

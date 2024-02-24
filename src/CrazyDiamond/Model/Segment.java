@@ -109,6 +109,7 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
     @Override public StringProperty nomProperty() {return imp_nommable.nomProperty();}
 
     @Override public Color couleurContour() {return imp_elementAvecContour.couleurContour();}
+    @Override public void definirCouleurContour(Color c) { imp_elementAvecContour.definirCouleurContour(c); }
 
     @Override public ObjectProperty<Color> couleurContourProperty() {return imp_elementAvecContour.couleurContourProperty();}
 
@@ -181,15 +182,13 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
     public BooleanProperty appartenanceSystemeOptiqueProperty() {return appartenance_systeme_optique_centre ;}
     
     public void translater(Point2D vecteur) {
-
         position_orientation.set(new PositionEtOrientation(centre().add(vecteur),orientation()));
-//        x_centre.set(vecteur.getX()+x_centre.get()) ;
-//        y_centre.set(vecteur.getY()+y_centre.get()) ;
-
-//        segment_support.definirDepartEtArrivee(new Point2D(X1(),Y1()), new Point2D(X2(),Y2()));
-
     }
 
+    @Override
+    public void translaterParCommande(Point2D vecteur) {
+        new CommandeDefinirUnParametrePoint<>(this,centre().add(vecteur),this::centre,this::definirCentre).executer() ;
+    }
     public void accepte(VisiteurEnvironnement v) {
         v.visiteSegment(this);
     }
@@ -262,6 +261,47 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
             rayon_diaphragme.set(Math.min(rayon_diaphragme.get(),longueur.get()));
 
         }
+    }
+
+    @Override
+    public void retaillerParCommandePourSourisEn(Point2D pos_souris) {
+        // Si on est sur le point de départ, ne rien faire
+        if (pos_souris.equals(centre()))
+            return ;
+
+        if (!appartientASystemeOptiqueCentre()) {
+            Point2D centre = centre();
+
+            Point2D vec_centre_pos = pos_souris.subtract(centre);
+//            longueur.set(2d * vec_centre_pos.magnitude());
+//            rayon_diaphragme.set(Math.min(rayon_diaphragme.get(),0.5d*longueur.get()));
+
+            double or = Math.toDegrees(Math.atan2(vec_centre_pos.getY(), vec_centre_pos.getX()));
+
+            if (or - 90d < 0)
+                or += 360d;
+
+//            definirOrientation((or - 90d) % 360d);
+
+            new CommandeDefinirLongueurRayonDiaphragmeEtOrientationSegment(this,
+                    2d * vec_centre_pos.magnitude(),
+                    Math.min(rayon_diaphragme.get(),0.5d*longueur.get()),
+                    (or - 90d) % 360d
+                    ).executer(); ;
+
+        } else { // Le segment est dans un SOC : on ne peut pas en changer l'orientation, mais seulement la longueur
+
+            double nouvelle_longueur = 2*Math.abs(produit_vectoriel_simplifie(segment_support.normale(),pos_souris.subtract(centre()))) ;
+            longueur.set(nouvelle_longueur);
+            rayon_diaphragme.set(Math.min(rayon_diaphragme.get(),longueur.get()));
+
+            new CommandeDefinirLongueurRayonDiaphragmeEtOrientationSegment(this,
+                    nouvelle_longueur,
+                    Math.min(rayon_diaphragme.get(),longueur.get()),
+                    orientation()
+                    ).executer();
+        }
+
     }
 
     @Override

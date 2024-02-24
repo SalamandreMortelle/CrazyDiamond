@@ -1,8 +1,6 @@
 package CrazyDiamond.Controller;
 
-import CrazyDiamond.Model.ChangeListenerAvecGarde;
-import CrazyDiamond.Model.Conique;
-import CrazyDiamond.Model.PositionEtOrientation;
+import CrazyDiamond.Model.*;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -90,151 +88,75 @@ public class PanneauConique  {
             baseContour.setVisible(false);
         }
 
+        // Prise en compte automatique de la position et de l'orientation de la conique
         conique.positionEtOrientationObjectProperty().addListener(new ChangeListenerAvecGarde<PositionEtOrientation>(this::prendreEnComptePositionEtOrientation));
 
-//        conique.axeObjectProperty().addListener(new ChangeListener<PositionEtOrientation>() {
-//            private boolean changement_en_cours = false ;
-//            @Override
-//            public void changed(ObservableValue<? extends PositionEtOrientation> observableValue, PositionEtOrientation old_value, PositionEtOrientation new_value) {
-//                if (!changement_en_cours) {
-//                    try {
-//                        changement_en_cours = true;
-//                        spinner_xfoyer.getValueFactory().valueProperty().set(new_value.position().getX());
-//                        spinner_yfoyer.getValueFactory().valueProperty().set(new_value.position().getY());
-//                        spinner_orientation.getValueFactory().valueProperty().set(new_value.orientation_deg());
-//                        slider_orientation.valueProperty().set(new_value.orientation_deg());
-//                    } finally {
-//                        changement_en_cours = false ;
-//                    }
-//                }
-//            }
-//        });
-
-
-
-
-//        xfoyer_object_property = conique.xFoyerProperty().asObject() ;
-//        spinner_xfoyer.getValueFactory().valueProperty().bindBidirectional(xfoyer_object_property);
-
+        // X Foyer
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_xfoyer, conique.xFoyer(), this::definirXFoyerConique);
         spinner_xfoyer.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_RIGHT_HORIZONTAL) ;
-
-//        spinner_xfoyer.getValueFactory().valueProperty().set(conique.xFoyer());
-//        spinner_xfoyer.getValueFactory().valueProperty().addListener(new ChangeListener<Double>() {
-//            private boolean changement_en_cours = false ; ;
-//
-//            @Override
-//            public void changed(ObservableValue<? extends Double> observableValue, Double old_value, Double new_value) {
-//                if (!changement_en_cours) {
-//                    try {
-//                        changement_en_cours = true ;
-//                        conique.definirFoyer(new Point2D(new_value,conique.yFoyer()));
-//                    } finally {
-//                        changement_en_cours = false ;
-//                    }
-//                }
-//            }
-//        });
-//
-//
-//        spinner_xfoyer.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_RIGHT_HORIZONTAL) ;
-//
-//        canvas.ajustePasEtAffichageSpinnerValueFactoryDistance((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_xfoyer.getValueFactory());
 
         spinner_xfoyer.editableProperty().bind(conique.appartenanceSystemeOptiqueProperty().not()) ;
         spinner_xfoyer.disableProperty().bind(conique.appartenanceSystemeOptiqueProperty()) ;
 
-
-//        yfoyer_object_property = conique.yFoyerProperty().asObject() ;
-//        spinner_yfoyer.getValueFactory().valueProperty().bindBidirectional(yfoyer_object_property);
+        // Y Foyer
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_yfoyer, conique.xFoyer(), this::definirYFoyerConique);
-
-//        spinner_yfoyer.getValueFactory().valueProperty().set(conique.yFoyer());
-//        spinner_yfoyer.getValueFactory().valueProperty().addListener(new ChangeListener<Double>() {
-//            private boolean changement_en_cours = false ; ;
-//
-//            @Override
-//            public void changed(ObservableValue<? extends Double> observableValue, Double old_value, Double new_value) {
-//                if (!changement_en_cours) {
-//                    try {
-//                        changement_en_cours = true ;
-//                        conique.definirFoyer(new Point2D(conique.xFoyer(),new_value));
-//                    } finally {
-//                        changement_en_cours = false ;
-//                    }
-//                }
-//            }
-//        });
-//
-//        canvas.ajustePasEtAffichageSpinnerValueFactoryDistance((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_yfoyer.getValueFactory());
 
         spinner_yfoyer.editableProperty().bind(conique.appartenanceSystemeOptiqueProperty().not()) ;
         spinner_yfoyer.disableProperty().bind(conique.appartenanceSystemeOptiqueProperty()) ;
 
-
         // Orientation
         spinner_orientation.getValueFactory().setWrapAround(true);
 
-        OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation,conique.orientation(),conique::definirOrientation);
-
-//        orientation_object_property = conique.orientationProperty().asObject() ;
-//        spinner_orientation.getValueFactory().valueProperty().bindBidirectional(orientation_object_property);
-//        spinner_orientation.getValueFactory().valueProperty().set(conique.orientation());
-//        spinner_orientation.getValueFactory().valueProperty().addListener(new ChangeListener<Double>() {
-//            private boolean changement_en_cours = false ; ;
-//
-//            @Override
-//            public void changed(ObservableValue<? extends Double> observableValue, Double old_value, Double new_value) {
-//                if (!changement_en_cours) {
-//                    try {
-//                        changement_en_cours = true ;
-//                        conique.definirOrientation(new_value);
-//                    } finally {
-//                        changement_en_cours = false ;
-//                    }
-//                }
-//            }
-//        });
+        OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation,conique.orientation(),this::definirOrientation);
 
         spinner_orientation.editableProperty().bind(conique.appartenanceSystemeOptiqueProperty().not()) ;
         spinner_orientation.disableProperty().bind(conique.appartenanceSystemeOptiqueProperty()) ;
 
-//        slider_orientation.valueProperty().bindBidirectional(conique.orientationProperty());
         slider_orientation.valueProperty().set(conique.orientation());
-        slider_orientation.valueProperty().addListener(new ChangeListener<>() {
-            private boolean changement_en_cours = false ; ;
-
-            @Override
-            public void changed(ObservableValue<? extends Number> observableValue, Number old_value, Number new_value) {
-                if (!changement_en_cours) {
-                    try {
-                        changement_en_cours = true ;
-                        conique.definirOrientation(new_value.doubleValue());
-                    } finally {
-                        changement_en_cours = false ;
-                    }
-                }
-            }
-        });
+        slider_orientation.valueProperty().addListener(new ChangeListenerAvecGarde<>(this::definirOrientation)); ;
 
         slider_orientation.disableProperty().bind(conique.appartenanceSystemeOptiqueProperty()) ;
 
         // Paramètre
-        parametre_object_property = conique.parametreProperty().asObject() ;
-        spinner_parametre.getValueFactory().valueProperty().bindBidirectional(parametre_object_property);
+        conique.parametreProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteParametre));
+        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_parametre, conique.parametre(),this::definirParametre);
 
-        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_parametre, conique.parametre());
-//        canvas.ajustePasEtAffichageSpinnerValueFactoryDistance((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_parametre.getValueFactory());
-
-        excentricite_object_property = conique.excentriciteProperty().asObject() ;
-        spinner_excentricite.getValueFactory().valueProperty().bindBidirectional(excentricite_object_property);
-
-        OutilsControleur.integrerSpinnerDoubleValidant(spinner_excentricite, conique.excentricite(), conique::definirExcentricite);
+        // Excentricité
+        conique.excentriciteProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteExcentricite));
+        OutilsControleur.integrerSpinnerDoubleValidant(spinner_excentricite, conique.excentricite(), this::definirExcentricite);
 
     }
 
-    private void definirXFoyerConique(Double x_f) {conique.definirFoyer(new Point2D(x_f,conique.yFoyer()));}
-    private void definirYFoyerConique(Double y_f) {conique.definirFoyer(new Point2D(conique.xFoyer(),y_f));}
+    private void definirExcentricite(Double nouvelle_excentricite) {
+        new CommandeDefinirUnParametre<>(conique,nouvelle_excentricite,conique::excentricite,conique::definirExcentricite).executer();
+    }
+
+    private void prendreEnCompteExcentricite(Number nouvelle_excentricite) {
+        spinner_excentricite.getValueFactory().valueProperty().set(nouvelle_excentricite.doubleValue());
+    }
+
+    private void definirParametre(Double nouveau_rayon) {
+        new CommandeDefinirUnParametreDoubleDistance<>(conique,nouveau_rayon,conique::parametre,conique::definirParametre).executer() ;
+    }
+
+    private void prendreEnCompteParametre(Number nouveau_parametre) {
+        spinner_parametre.getValueFactory().valueProperty().set(nouveau_parametre.doubleValue());
+    }
+
+    private void definirOrientation(Double or) {
+        new CommandeDefinirUnParametre<>(conique,or,conique::orientation,conique::definirOrientation).executer();
+    }
+    private void definirOrientation(Number or) {
+        new CommandeDefinirUnParametre<>(conique,or.doubleValue(),conique::orientation,conique::definirOrientation).executer();
+    }
+
+    private void definirXFoyerConique(Double x_f) {
+        new CommandeDefinirUnParametrePoint<>(conique,new Point2D(x_f,conique.foyer().getY()),conique::foyer,conique::definirFoyer).executer();
+
+    }
+    private void definirYFoyerConique(Double y_f) {
+        new CommandeDefinirUnParametrePoint<>(conique,new Point2D(conique.foyer().getX(),y_f),conique::foyer,conique::definirFoyer).executer();
+    }
 
     private void prendreEnComptePositionEtOrientation(PositionEtOrientation nouvelle_pos_et_or) {
         spinner_xfoyer.getValueFactory().valueProperty().set(nouvelle_pos_et_or.position().getX());

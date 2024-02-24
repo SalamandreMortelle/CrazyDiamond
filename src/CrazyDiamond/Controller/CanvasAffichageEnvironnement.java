@@ -843,6 +843,27 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         return poignees.comporte_point_proche_de(pclic, tolerance_pointage());
     }
 
+    public Point2D poigneeSelectionObstacleUnique() {
+
+        if (selection().obstacleUnique()==null)
+            return null ;
+
+        Contour poignees = selection().obstacleUnique().positions_poignees() ;
+
+        if (poignees==null)
+            return null ;
+
+        Iterator<Double> itx = poignees.iterateurX();
+        Iterator<Double> ity = poignees.iterateurY();
+
+        double xdep, ydep;
+
+        if (itx.hasNext() && ity.hasNext())
+            return new Point2D(itx.next(),ity.next()) ;
+
+        return null ;
+
+    }
     public boolean poignee_source_pointee_en(Point2D pclic) {
 
         if (selection().sourceUnique()==null)
@@ -1048,7 +1069,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
             SystemeOptiqueCentre soc = environnement.systemeOptiqueCentreContenant(o);
 
             // Si l'obstacle fait partie d'un SOC qui est lui-même sélectionné, ne pas le translater car c'est le SOC
-            // qui va être translaté dans son ensemble
+            // qui va être translaté dans son ensemble.
             if (selection().comprend(soc))
                 return ;
 
@@ -1059,6 +1080,10 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
     }
 
     public void translaterSelection(Point2D tr) {
+
+        if (tr.getX()==0d && tr.getY()==0d)
+            return;
+
         selection().stream_obstacles().forEach(obs -> translaterSiPossible(obs, tr));
         selection().stream_sources().forEach(src -> src.translater(tr));
         selection().stream_socs().forEach(soc -> soc.translater(tr));

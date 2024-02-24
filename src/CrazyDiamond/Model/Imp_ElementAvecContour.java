@@ -10,7 +10,7 @@ public class Imp_ElementAvecContour {
 
 //    private static final Color couleur_contour_par_defaut = Color.BLUE ;
 
-    protected final ObjectProperty<Color> couleurContour;
+    protected final ObjectProperty<Color> couleur_contour;
 
     private final ObjectProperty<TraitementSurface> traitement_surface;
     private final DoubleProperty taux_reflexion_surface;
@@ -23,21 +23,20 @@ public class Imp_ElementAvecContour {
     public Imp_ElementAvecContour(Color couleur_contour, TraitementSurface traitement_surf, double taux_refl_surf, double angle_pol) {
 
         if (couleur_contour == null)
-            this.couleurContour = new SimpleObjectProperty<Color>(ElementAvecContour.couleur_contour_par_defaut_property.getValue()) ;
+            this.couleur_contour = new SimpleObjectProperty<Color>(ElementAvecContour.couleur_contour_par_defaut_property.getValue()) ;
         else
-            this.couleurContour =  new SimpleObjectProperty<Color>(couleur_contour) ;
+            this.couleur_contour =  new SimpleObjectProperty<Color>(couleur_contour) ;
 
         this.traitement_surface = new SimpleObjectProperty<TraitementSurface>(traitement_surf) ;
         this.taux_reflexion_surface = new SimpleDoubleProperty(taux_refl_surf) ;
         this.orientation_axe_polariseur = new SimpleDoubleProperty(angle_pol) ;
     }
 
-    public Color couleurContour() {
-        return couleurContour.get();
-    }
+    public Color couleurContour() { return couleur_contour.get() ;}
+    public void definirCouleurContour(Color c) { couleur_contour.set(c); }
 
     public ObjectProperty<Color> couleurContourProperty() {
-        return couleurContour;
+        return couleur_contour;
     }
 
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
@@ -49,7 +48,7 @@ public class Imp_ElementAvecContour {
     }
 
     public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        couleurContour.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        couleur_contour.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
         traitement_surface.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
         taux_reflexion_surface.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
         orientation_axe_polariseur.addListener((observable, oldValue, newValue) -> { rap.rappel(); });

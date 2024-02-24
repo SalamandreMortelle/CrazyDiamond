@@ -23,7 +23,13 @@ public class OutilSelection extends Outil {
     private boolean retaillage_selection_en_cours = false ;
     private boolean selection_rectangulaire_en_cours;
     private Point2D p_debut_glisser_selection_g;
+
+    // Debut du dernier déplacement du glisser
     private Point2D p_debut_glisser_g;
+    private Point2D position_depart_poignee;
+
+    // Point de départ de tout le glisser
+    private Point2D p_depart_glisser_g;
 
     public OutilSelection(CanvasAffichageEnvironnement cae, JsonMapper jsonMapper) {
         super(cae);
@@ -47,24 +53,33 @@ public class OutilSelection extends Outil {
     public void traiterClicSourisCanvas(MouseEvent me) {
         Point2D pclic = cae.gc_vers_g(me.getX(),me.getY()) ;
 
+        // On n'est pas au départ d'un glisser
+        p_depart_glisser_g = null ;
+
         if (cae.selection().obstacleUnique() != null) {
             if (!retaillage_selection_en_cours ) {
-                if (cae.poignee_obstacle_pointee_en(pclic)) // On commence un re-taillage
+                if (cae.poignee_obstacle_pointee_en(pclic)) { // On commence un re-taillage
                     retaillage_selection_en_cours = true;
+                    position_depart_poignee = cae.poigneeSelectionObstacleUnique() ;
+                    // TODO : mémoriser taille de départ
+                }
             } else { // Re-taillage de sélection était en cours : on le termine
-                cae.selection().obstacleUnique().retaillerSelectionPourSourisEn(pclic);
+                cae.selection().obstacleUnique().retaillerSelectionParCommandePourSourisEn(pclic,position_depart_poignee);
                 retaillage_selection_en_cours = false ;
+                position_depart_poignee = null ;
             }
-        }  else if (cae.selection().sourceUnique() != null) {
+        }
+        // Pas de retaillage possible pour les sources
+        /* else if (cae.selection().sourceUnique() != null) {
             if (!retaillage_selection_en_cours) {
                 if (cae.poignee_source_pointee_en(pclic)) { // On commence un re-taillage
                     retaillage_selection_en_cours = true;
                 }
             } else { // Re-taillage de sélection était en cours : on le termine
-                cae.selection().sourceUnique().retaillerPourSourisEn(pclic);
+                cae.selection().sourceUnique().retaillerSourceParCommandePourSourisEn(pclic);
                 retaillage_selection_en_cours = false ;
             }
-        }
+        } */
 
     }
 
@@ -75,9 +90,11 @@ public class OutilSelection extends Outil {
 
         if (cae.selection().obstacleUnique() !=null && retaillage_selection_en_cours) {
             cae.selection().obstacleUnique().retaillerSelectionPourSourisEn(pos_souris);
-        } else if (cae.selection().sourceUnique() !=null && retaillage_selection_en_cours) {
+        }
+        // Pas de retaillage possible pour les sources
+        /*else if (cae.selection().sourceUnique() !=null && retaillage_selection_en_cours) {
             cae.selection().sourceUnique().retaillerPourSourisEn(pos_souris);
-        } else if (cae.selection().socUnique() !=null && retaillage_selection_en_cours) {
+        }*/ else if (cae.selection().socUnique() !=null && retaillage_selection_en_cours) {
             cae.selection().socUnique().retaillerPourSourisEn(pos_souris);
         }
 
@@ -98,21 +115,28 @@ public class OutilSelection extends Outil {
         SystemeOptiqueCentre   soc_pointe = cae.soc_pointe_en(p_debut_glisser_g) ;
 
         if (!retaillage_selection_en_cours) {
-            if (s_pointee!=null && !cae.selection().comprend(s_pointee)) {
+
+            p_depart_glisser_g = p_debut_glisser_g ;
+
+            if (s_pointee!=null && !cae.selection().comprend(s_pointee)) { // Début du déplacement d'une source
                 cae.selection().definirUnite(cae.environnement().unite());
                 cae.selection().selectionnerUniquement(s_pointee);
                 selection_rectangulaire_en_cours = false ;
-            } else if (o_pointe!=null && !cae.selection().comprend(o_pointe)) {
+            } else if (o_pointe!=null && !cae.selection().comprend(o_pointe)) { // Début du déplacement d'un obstacle
                 cae.selection().definirUnite(cae.environnement().unite());
                 cae.selection().selectionnerUniquement(o_pointe);
                 selection_rectangulaire_en_cours = false ;
-            } else if (soc_pointe!=null && !cae.selection().comprend(soc_pointe)) {
+            } else if (soc_pointe!=null && !cae.selection().comprend(soc_pointe)) { // Début du déplacement d'un SOC
                 cae.selection().definirUnite(cae.environnement().unite());
                 cae.selection().selectionnerUniquement(soc_pointe);
                 selection_rectangulaire_en_cours = false ;
             } else {
 
-                if (s_pointee == null && o_pointe == null && soc_pointe ==null) {
+                // On est soit au début d'une zone de sélection rectangulaire, soit au début du déplacement d'un (ou plusieurs
+                // éléments qui étaient déjà sélectionnés)
+
+                if (s_pointee == null && o_pointe == null && soc_pointe ==null) { // Début d'une zone de sélection rectangulaire
+                    p_depart_glisser_g = null ;
                     cae.selection().vider();
                     selection_rectangulaire_en_cours = true ;
                 }
@@ -158,7 +182,7 @@ public class OutilSelection extends Outil {
             cae.selectionnerParZoneRectangulaire(zone_rect);
         }
         else
-            cae.translaterSelection(v_glisser_g);
+            cae.translaterSelection(v_glisser_g); // Translation intermédiaire partielle, sans création de Commande
 
     }
 
@@ -169,19 +193,32 @@ public class OutilSelection extends Outil {
         if (p_debut_glisser_g==null)
             return;
 
-        Point2D p_fin_glisser_g   = cae.gc_vers_g(mouseEvent.getX(),mouseEvent.getY());
 
-        Point2D v_glisser_g = p_fin_glisser_g.subtract(p_debut_glisser_g) ;
+        // NB : Inutile d'essayer de capter un ultime déplacement, les coordonnées de la souris sont toujours les mêmes
+        // que celles du dernier évènement GlisserSourisCanvas (les deux évènements sont déclenchés au même point)
+//        Point2D p_fin_glisser_g   = cae.gc_vers_g(mouseEvent.getX(),mouseEvent.getY());
+//        Point2D v_glisser_g = p_fin_glisser_g.subtract(p_debut_glisser_g) ;
+//
+//        if (cae.selection().nombreElements() >0 ) {
+//            System.out.println("Translatiooooooooooooon de "+v_glisser_g);
+//            cae.translaterSelection(v_glisser_g);
+//        }
 
-        if (cae.selection().nombreElements() >0 )
-            cae.translaterSelection(v_glisser_g);
+        if (!selection_rectangulaire_en_cours) { // Fin ("arrivée") du glisser
+            Point2D p_arrivee_glisser_g = cae.gc_vers_g(mouseEvent.getX(),mouseEvent.getY());
+            Point2D v_glisser_total_g   = p_arrivee_glisser_g.subtract(p_depart_glisser_g) ;
+            // Enregistrement d'une seule commande correspondant au déplacement résultant global
+            new CommandeTranslaterElements(cae.environnement(),v_glisser_total_g,cae.selection().sources, cae.selection().obstacles, cae.selection().socs).enregistrer();
+        }
 
         cae.selectionnerParZoneRectangulaire(null);
         selection_rectangulaire_en_cours = false ;
+
         this.p_debut_glisser_g = null ;
         this.p_debut_glisser_selection_g = null ;
 
     }
+
 
 
     @Override
@@ -207,28 +244,32 @@ public class OutilSelection extends Outil {
                 if (cae.selection().estVide())
                     break; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
-                cae.translaterSelection(new Point2D(-cae.resolution(), 0.0)) ;
+                translaterSelectionParCommande(new Point2D(-cae.resolution(), 0.0)) ;
+
                 keyEvent.consume();
             }
             case RIGHT ->  {
                 if (cae.selection().estVide())
                     break; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
-                cae.translaterSelection(new Point2D(cae.resolution(),0.0)) ;
+                translaterSelectionParCommande(new Point2D(cae.resolution(),0.0)); ;
+
                 keyEvent.consume();
             }
             case UP -> {
                 if (cae.selection().estVide())
                     break; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
-                cae.translaterSelection(new Point2D(0.0, cae.resolution())) ;
+                translaterSelectionParCommande(new Point2D(0.0, cae.resolution())); ;
+
                 keyEvent.consume();
             }
             case DOWN ->  {
                 if (cae.selection().estVide())
                     break; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
-                cae.translaterSelection(new Point2D(0.0,-cae.resolution())) ;
+                translaterSelectionParCommande(new Point2D(0.0,-cae.resolution())); ;
+
                 keyEvent.consume();
             }
             case A -> {
@@ -312,6 +353,10 @@ public class OutilSelection extends Outil {
 
         }
 
+    }
+
+    private void translaterSelectionParCommande(Point2D vecteur) {
+        new CommandeTranslaterElements(cae.environnement(),vecteur,cae.selection().sources, cae.selection().obstacles, cae.selection().socs).executer();
     }
 
     private void selectionnerTout() {

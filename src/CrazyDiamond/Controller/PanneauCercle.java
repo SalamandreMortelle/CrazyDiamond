@@ -1,7 +1,6 @@
 package CrazyDiamond.Controller;
 
-import CrazyDiamond.Model.Cercle;
-import CrazyDiamond.Model.ChangeListenerAvecGarde;
+import CrazyDiamond.Model.*;
 import javafx.beans.property.ObjectProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
@@ -43,7 +42,7 @@ public class PanneauCercle  {
     private Spinner<Double> spinner_xcentre ;
     // La déclaration de cet attribut est requise pour faire un binding "persistant" entre la variable numérique du modèle
     // et l'ObjectProperty<Double> à l'intérieur du Spinner Value Factory qui encapsule la valueProperty du Spinner. Il
-    // créé une StrongRef qui permet de s'assurer qu'il n'y aura pas de garbage collection intempestif de cet ObjectProperty.
+    // crée une StrongRef qui permet de s'assurer qu'il n'y aura pas de garbage collection intempestif de cet ObjectProperty.
     // Cette obligation vient de la Property du Spinner Value Factory qui est de type ObjectProperty<Double> (ou Integer...)
     // et non de type DoubleProperty comme la Property du modèle, qu'il faut donc convertir avec la méthode asObject et stocker
     // en tant que tel, pour pouvoir réaliser le binding.
@@ -56,6 +55,7 @@ public class PanneauCercle  {
     @FXML
     private Spinner<Double> spinner_rayon ;
     private ObjectProperty<Double> cercle_rayon_object_property; // Attribut requis (cf. supra)
+    private boolean prise_en_compte_rayon;
 
     public PanneauCercle(Cercle c, boolean dans_composition, CanvasAffichageEnvironnement cnv) {
         LOGGER.log(Level.INFO,"Construction du PanneauCercle") ;
@@ -97,18 +97,39 @@ public class PanneauCercle  {
         spinner_ycentre.disableProperty().bind(cercle.appartenanceSystemeOptiqueProperty()) ;
 
         // Rayon
-        cercle_rayon_object_property = cercle.rayonProperty().asObject() ;
-        spinner_rayon.getValueFactory().valueProperty().bindBidirectional(cercle_rayon_object_property);
+        cercle.rayonProperty().addListener(new ChangeListenerAvecGarde<Number>(this::prendreEnCompteRayon));
+        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_rayon, cercle.rayon(),this::definirRayon);
 
-        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_rayon, cercle.rayon());
+//        cercle_rayon_object_property = cercle.rayonProperty().asObject() ;
+//        spinner_rayon.getValueFactory().valueProperty().bindBidirectional(cercle_rayon_object_property);
+
 
     }
+
+    private void definirRayon(Double r) {
+        new CommandeDefinirUnParametreDoubleDistance<>(cercle,r,cercle::rayon,cercle::definirRayon).executer() ;
+//        new CommandeDefinirRayonCercle(cercle,r).executer();
+//        cercle.definirRayon(r);
+    }
+
+    private void prendreEnCompteRayon(Number nouveau_rayon) {
+        spinner_rayon.getValueFactory().valueProperty().set(nouveau_rayon.doubleValue());
+    }
+
 
     private void prendreEnComptePosition(Point2D nouveau_centre) {
-                spinner_xcentre.getValueFactory().valueProperty().set(nouveau_centre.getX());
-                spinner_ycentre.getValueFactory().valueProperty().set(nouveau_centre.getY());
+        spinner_xcentre.getValueFactory().valueProperty().set(nouveau_centre.getX());
+        spinner_ycentre.getValueFactory().valueProperty().set(nouveau_centre.getY());
     }
-    private void definirXCentreCercle(Double x_c) { cercle.definirCentre(new Point2D(x_c,cercle.centre().getY())); }
-    private void definirYCentreCercle(Double y_c) { cercle.definirCentre(new Point2D(cercle.centre().getX(),y_c)); }
+    private void definirXCentreCercle(Double x_c) {
+        new CommandeDefinirUnParametrePoint<>(cercle,new Point2D(x_c,cercle.centre().getY()),cercle::centre,cercle::definirCentre).executer();
+//        new CommandeDefinirPositionCentreCercle(cercle, new Point2D(x_c,cercle.centre().getY())).executer();
+//        cercle.definirCentre(new Point2D(x_c,cercle.centre().getY()));
+    }
+    private void definirYCentreCercle(Double y_c) {
+        new CommandeDefinirUnParametrePoint<>(cercle,new Point2D(cercle.centre().getX(),y_c),cercle::centre,cercle::definirCentre).executer();
+//        new CommandeDefinirPositionCentreCercle(cercle, new Point2D(cercle.centre().getX(),y_c)).executer(); ;
+//        cercle.definirCentre(new Point2D(cercle.centre().getX(),y_c));
+    }
 
 }

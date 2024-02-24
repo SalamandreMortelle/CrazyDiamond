@@ -1,11 +1,12 @@
 package CrazyDiamond.Controller;
 
-import CrazyDiamond.Model.ElementAvecMatiere;
-import CrazyDiamond.Model.NatureMilieu;
-import CrazyDiamond.Model.TypeSurface;
+import CrazyDiamond.Model.*;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.paint.Color;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,9 +35,6 @@ public class PanneauElementAvecMatiere {
     @FXML
     private RadioButton choix_absorbant;
 
-//    @FXML
-//    public RadioButton choix_reflechissant;
-
     @FXML
     private RadioButton choix_transparent ;
 
@@ -47,89 +45,77 @@ public class PanneauElementAvecMatiere {
     public Spinner<Double> spinner_indice_refraction;
     private ObjectProperty<Double> spinner_indice_refraction_object_property; // Attribut requis
 
+    private ElementAvecMatiere element_avec_matiere ;
 
     public void initialize(ElementAvecMatiere element_avec_matiere) {
 
-        // Couleurs
-        colorpicker_matiere.valueProperty().bindBidirectional( element_avec_matiere.couleurMatiereProperty() );
+        this.element_avec_matiere = element_avec_matiere ;
 
-        if (element_avec_matiere.typeSurface() == TypeSurface.CONVEXE)
-            choix_convexe.setSelected(true);
+        // Couleur matière
+        colorpicker_matiere.valueProperty().set(element_avec_matiere.couleurMatiere());
+        element_avec_matiere.couleurMatiereProperty().addListener(new ChangeListenerAvecGarde<>(colorpicker_matiere::setValue));
+//        element_avec_matiere.couleurMatiereProperty().addListener(new ChangeListenerAvecGarde<>(colorpicker_matiere.valueProperty()::set));
+        colorpicker_matiere.valueProperty().addListener((observableValue, c_avant, c_apres)
+                -> new CommandeDefinirUnParametre<>(element_avec_matiere, c_apres, element_avec_matiere::couleurMatiere, element_avec_matiere::definirCouleurMatiere).executer());
 
-        if (element_avec_matiere.typeSurface() == TypeSurface.CONCAVE)
-            choix_concave.setSelected(true);
+        // Indice réfraction
+        element_avec_matiere.indiceRefractionProperty().addListener(new ChangeListenerAvecGarde<Number>(this::prendreEnCompteIndiceRefraction));
+        OutilsControleur.integrerSpinnerDoubleValidant(spinner_indice_refraction, element_avec_matiere.indiceRefraction(), this::definirIndiceRefraction);
 
-        OutilsControleur.integrerSpinnerDoubleValidant(spinner_indice_refraction, element_avec_matiere.indiceRefraction()/*, element_avec_matiere::definirIndiceRefraction*/);
-        spinner_indice_refraction_object_property = element_avec_matiere.indiceRefractionProperty().asObject() ;
-        spinner_indice_refraction.getValueFactory().valueProperty().bindBidirectional(spinner_indice_refraction_object_property);
+        // Convexite
+        element_avec_matiere.typeSurfaceProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteConvexite));
 
-
-        // Ce listener est mono-directionnel Vue > Modèle (mais l'état initial du toggle convexité est déjà positionné)
         choix_convexite.selectedToggleProperty().addListener((observable, oldValue,newValue) -> {
             LOGGER.log(Level.FINE,"Choix convexite passe de {0} à {1}", new Object[] {oldValue,newValue}) ;
 
             if (choix_convexite.getSelectedToggle()==choix_convexe)
-                element_avec_matiere.definirTypeSurface(TypeSurface.CONVEXE);
+                new CommandeDefinirUnParametre<>(element_avec_matiere, TypeSurface.CONVEXE, element_avec_matiere::typeSurface, element_avec_matiere::definirTypeSurface).executer();
+            else if (choix_convexite.getSelectedToggle()==choix_concave)
+                new CommandeDefinirUnParametre<>(element_avec_matiere, TypeSurface.CONCAVE, element_avec_matiere::typeSurface, element_avec_matiere::definirTypeSurface).executer();
 
-            if (choix_convexite.getSelectedToggle()==choix_concave)
-                element_avec_matiere.definirTypeSurface(TypeSurface.CONCAVE);
-
-        });
-
-        element_avec_matiere.typeSurfaceProperty().addListener((observableValue, oldValue, newValue) -> {
-            LOGGER.log(Level.FINE,"Type surface passe de {0} à {1}", new Object[] {oldValue,newValue}) ;
-
-            if (newValue== TypeSurface.CONVEXE && choix_convexite.getSelectedToggle()!=choix_convexe)
-                choix_convexite.selectToggle(choix_convexe);
-
-            if (newValue== TypeSurface.CONCAVE && choix_convexite.getSelectedToggle()!=choix_concave)
-                choix_convexite.selectToggle(choix_concave);
         });
 
         // Nature du milieu
+        element_avec_matiere.natureMilieuProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteNatureMilieu));
+        choix_nature_milieu.selectedToggleProperty().addListener((observable, oldValue,newValue) -> {
+            LOGGER.log(Level.FINE,"Choix nature milieu passe de {0} à {1}", new Object[] {oldValue,newValue}) ;
 
-//        if (element_avec_matiere.natureMilieu() == NatureMilieu.REFLECHISSANT)
-//            choix_reflechissant.setSelected(true);
+            if (newValue== choix_absorbant && element_avec_matiere.natureMilieu()!= NatureMilieu.ABSORBANT)
+                new CommandeDefinirUnParametre<>(element_avec_matiere, NatureMilieu.ABSORBANT, element_avec_matiere::natureMilieu, element_avec_matiere::definirNatureMilieu).executer();
 
-        if (element_avec_matiere.natureMilieu() == NatureMilieu.ABSORBANT)
-            choix_absorbant.setSelected(true);
+            if (newValue==choix_transparent && element_avec_matiere.natureMilieu()!= NatureMilieu.TRANSPARENT)
+                new CommandeDefinirUnParametre<>(element_avec_matiere, NatureMilieu.TRANSPARENT, element_avec_matiere::natureMilieu, element_avec_matiere::definirNatureMilieu).executer();
 
-        if (element_avec_matiere.natureMilieu() == NatureMilieu.TRANSPARENT)
-            choix_transparent.setSelected(true);
-
+        });
 
         label_indice.disableProperty().bind(element_avec_matiere.natureMilieuProperty().isNotEqualTo(NatureMilieu.TRANSPARENT)) ;
         spinner_indice_refraction.disableProperty().bind(element_avec_matiere.natureMilieuProperty().isNotEqualTo(NatureMilieu.TRANSPARENT)) ;
 
+    }
 
-        // Ce listener est mono-directionnel Vue > Modèle (mais l'état initial du toggle nature milieu est déjà positionné)
-        choix_nature_milieu.selectedToggleProperty().addListener((observable, oldValue,newValue) -> {
-            LOGGER.log(Level.FINE,"Choix nature milieu passe de {0} à {1}", new Object[] {oldValue,newValue}) ;
+    private void prendreEnCompteNatureMilieu(NatureMilieu nm) {
+        switch (nm) {
+            case ABSORBANT -> choix_absorbant.setSelected(true);
+            case TRANSPARENT -> choix_transparent.setSelected(true);
+        }
+    }
 
-//            if (newValue== choix_reflechissant && element_avec_matiere.natureMilieu()!= NatureMilieu.REFLECHISSANT)
-//                element_avec_matiere.definirNatureMilieu(NatureMilieu.REFLECHISSANT);
+    private void prendreEnCompteConvexite(TypeSurface ts) {
+        switch (ts) {
+            case CONVEXE -> choix_convexe.setSelected(true);
+            case CONCAVE -> choix_concave.setSelected(true);
+        }
+    }
 
-            if (newValue== choix_absorbant && element_avec_matiere.natureMilieu()!= NatureMilieu.ABSORBANT)
-                element_avec_matiere.definirNatureMilieu(NatureMilieu.ABSORBANT);
+    private void prendreEnCompteIndiceRefraction(Number indice) {
+        spinner_indice_refraction.getValueFactory().valueProperty().set(indice.doubleValue()) ;
+    }
 
-            if (newValue==choix_transparent && element_avec_matiere.natureMilieu()!= NatureMilieu.TRANSPARENT)
-                element_avec_matiere.definirNatureMilieu(NatureMilieu.TRANSPARENT);
-
-        });
-
-        element_avec_matiere.natureMilieuProperty().addListener( (observableValue, oldValue, newValue) -> {
-            LOGGER.log(Level.FINE,"Nature milieu passe de {0} à {1}", new Object[] {oldValue,newValue}) ;
-
-//            if (newValue== NatureMilieu.REFLECHISSANT && choix_nature_milieu.getSelectedToggle()!= choix_reflechissant)
-//                choix_nature_milieu.selectToggle(choix_reflechissant);
-
-            if (newValue== NatureMilieu.ABSORBANT && choix_nature_milieu.getSelectedToggle()!= choix_absorbant)
-                choix_nature_milieu.selectToggle(choix_absorbant);
-
-            if (newValue== NatureMilieu.TRANSPARENT && choix_nature_milieu.getSelectedToggle()!=choix_transparent)
-                choix_nature_milieu.selectToggle(choix_transparent);
-
-        } );
+    private void definirIndiceRefraction(Double indice) {
+        new CommandeDefinirUnParametre<>(element_avec_matiere, indice,
+                element_avec_matiere::indiceRefraction,
+                element_avec_matiere::definirIndiceRefraction
+        ).executer();
 
     }
 

@@ -86,22 +86,15 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
 
     }
     @Override public String id() { return imp_identifiable.id(); }
-
-    @Override
-    public String nom() {
+    @Override public String nom() {
         return imp_nommable.nom();
     }
-
-    @Override
-    public StringProperty nomProperty() {
+    @Override public StringProperty nomProperty() {
         return imp_nommable.nomProperty();
     }
 
-    @Override
-    public Color couleurContour() {
-        return imp_elementAvecContour.couleurContour();
-    }
-
+    @Override public Color couleurContour() {return imp_elementAvecContour.couleurContour();}
+    @Override public void definirCouleurContour(Color c) { imp_elementAvecContour.definirCouleurContour(c); }
     @Override
     public ObjectProperty<Color> couleurContourProperty() {
         return imp_elementAvecContour.couleurContourProperty();
@@ -156,7 +149,7 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
     public Color couleurMatiere() {
         return imp_elementAvecMatiere.couleurMatiere();
     }
-
+    @Override public void definirCouleurMatiere(Color couleur) { imp_elementAvecMatiere.definirCouleurMatiere(couleur); }
     @Override
     public ObjectProperty<Color> couleurMatiereProperty() {
         return imp_elementAvecMatiere.couleurMatiereProperty();
@@ -216,6 +209,10 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
         return elements.get();
     }
 
+    public boolean estVide() {
+        return elements().size()==0 ;
+    }
+
     public void appliquerSurIdentifiable(ConsumerAvecException<Object, IOException> consumer) throws IOException {
         consumer.accept(imp_identifiable);
     }
@@ -230,18 +227,23 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
     }
 
     @Override
-    public void retaillerPourSourisEn(Point2D pos_souris) {
-
+    public Commande commandeCreation(Environnement env) {
+        return new CommandeCreerComposition(env,this) ;
     }
+    @Override
+    public void retaillerPourSourisEn(Point2D pos_souris) {}
+    @Override
+    public void retaillerParCommandePourSourisEn(Point2D pos_souris) {}
 
     @Override
     public void translater(Point2D vecteur) {
-
         for (Obstacle o : elements)
             o.translater(vecteur);
-
     }
-
+    @Override
+    public void translaterParCommande(Point2D vecteur) {
+        new CommandeTranslaterObstacles(vecteur, elements()).executer();
+    }
     @Override
     public void accepte(VisiteurEnvironnement v) {
         v.visiteComposition(this);

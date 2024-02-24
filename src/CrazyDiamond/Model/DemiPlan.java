@@ -52,6 +52,8 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
     @Override public StringProperty nomProperty() { return imp_nommable.nomProperty(); }
 
     @Override public Color couleurContour() { return imp_elementAvecContour.couleurContour();}
+    @Override public void definirCouleurContour(Color c) { imp_elementAvecContour.definirCouleurContour(c); }
+
     @Override public ObjectProperty<Color> couleurContourProperty() { return imp_elementAvecContour.couleurContourProperty(); }
 
     @Override public void definirTraitementSurface(TraitementSurface traitement_surf) { imp_elementAvecContour.definirTraitementSurface(traitement_surf);}
@@ -72,6 +74,8 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
 
 
     @Override public Color couleurMatiere() { return imp_elementAvecMatiere.couleurMatiere(); }
+    @Override public void definirCouleurMatiere(Color couleur) { imp_elementAvecMatiere.definirCouleurMatiere(couleur); }
+
     @Override public ObjectProperty<Color> couleurMatiereProperty() { return imp_elementAvecMatiere.couleurMatiereProperty(); }
 
     @Override public void definirTypeSurface(TypeSurface type_surf) { imp_elementAvecMatiere.definirTypeSurface(type_surf); }
@@ -146,7 +150,10 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
     public void translater(Point2D vecteur) {
         position_orientation.set(new PositionEtOrientation(origine().add(vecteur),orientation()));
     }
-
+    @Override
+    public void translaterParCommande(Point2D vecteur) {
+        new CommandeDefinirUnParametrePoint<>(this,origine().add(vecteur),this::origine,this::definirOrigine).executer() ;
+    }
     @Override
     public boolean contient(Point2D p) {
 
@@ -182,6 +189,13 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
 
     @Override
     public Point2D normale(Point2D p) throws Exception {
+
+        // Pour un demi plan, la normale est la même en tout point
+        return normale() ;
+
+    }
+
+    public Point2D normale() {
         double ori_rad = Math.toRadians(orientation()) ;
 
         Point2D norm = new Point2D(Math.cos(ori_rad),Math.sin(ori_rad)) ;
@@ -392,6 +406,19 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
         if (!appartientASystemeOptiqueCentre())
             definirAxeNormale(pos_souris.subtract(origine()));
 
+    }
+    @Override
+    public void retaillerParCommandePourSourisEn(Point2D pos_souris) {
+        if (pos_souris.equals(origine()))
+            return ;
+
+        if (!appartientASystemeOptiqueCentre())
+            new CommandeDefinirUnParametre<>(this,pos_souris.subtract(origine()),this::normale,this::definirAxeNormale).executer();
+            // NB une normale n'a pas besoin d'être convertie si l'unité de l'environnement change, c'est pour quoi on peut utiliser CommandeDefinirUnParametre (qui ne fait aucune conversion d'unité)
+//            new CommandeDefinirAxeNormaleDemiPlan(this,pos_souris.subtract(origine())).executer();
+
+//        if (!appartientASystemeOptiqueCentre())
+//            definirAxeNormale(pos_souris.subtract(origine()));
     }
 
     @Override

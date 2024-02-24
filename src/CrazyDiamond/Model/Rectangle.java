@@ -62,6 +62,8 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
     @Override public StringProperty nomProperty() { return imp_nommable.nomProperty(); }
 
     @Override public Color couleurContour() { return imp_elementAvecContour.couleurContour();}
+    @Override public void definirCouleurContour(Color c) { imp_elementAvecContour.definirCouleurContour(c); }
+
     @Override public ObjectProperty<Color> couleurContourProperty() { return imp_elementAvecContour.couleurContourProperty(); }
 
     @Override public void definirTraitementSurface(TraitementSurface traitement_surf) { imp_elementAvecContour.definirTraitementSurface(traitement_surf);}
@@ -80,6 +82,8 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
     @Override public double tauxReflexionSurface() {return imp_elementAvecContour.tauxReflexionSurface();}
 
     @Override public Color couleurMatiere() { return imp_elementAvecMatiere.couleurMatiere(); }
+    @Override public void definirCouleurMatiere(Color couleur) { imp_elementAvecMatiere.definirCouleurMatiere(couleur); }
+
     @Override public ObjectProperty<Color> couleurMatiereProperty() { return imp_elementAvecMatiere.couleurMatiereProperty(); }
 
     @Override public void definirTypeSurface(TypeSurface type_surf) { imp_elementAvecMatiere.definirTypeSurface(type_surf); }
@@ -128,7 +132,10 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
     public void translater(Point2D vecteur) {
         position_orientation.set(new PositionEtOrientation(centre().add(vecteur),orientation()));
     }
-
+    @Override
+    public void translaterParCommande(Point2D vecteur) {
+        new CommandeDefinirUnParametrePoint<>(this,centre().add(vecteur),this::centre,this::definirCentre).executer() ;
+    }
 
     public void accepte(VisiteurEnvironnement v) {
         v.visiteRectangle(this);
@@ -310,6 +317,16 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
 
         largeur.set(2d * Math.abs(pos_souris.getX() - xCentre()));
         hauteur.set(2d * Math.abs(pos_souris.getY() - yCentre()));
+    }
+
+    public  void retaillerParCommandePourSourisEn(Point2D pos_souris) {
+        // Si on est sur le point de départ, ne rien faire
+        if (pos_souris.equals(centre()))
+            return ;
+
+        new CommandeDefinirLargeurEtHauteurRectangle(this,
+                2d * Math.abs(pos_souris.getX() - xCentre()),
+                2d * Math.abs(pos_souris.getY() - yCentre()) ).executer(); ;
     }
 
     @Override

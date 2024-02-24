@@ -7,7 +7,7 @@ import javafx.scene.control.ToggleGroup;
 
 import java.util.logging.Logger;
 
-public class PanneauElementSansEpaisseur {
+public class PanneauElementSansEpaisseur { //TODO : Supprimer cette classe inutilisée ?
 
     // Récupération du logger
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );

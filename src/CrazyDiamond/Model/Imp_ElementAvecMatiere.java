@@ -17,7 +17,7 @@ public class Imp_ElementAvecMatiere {
     public Color couleurMatiere() {
         return couleur_matiere.get();
     }
-
+    public void definirCouleurMatiere(Color couleur) {  couleur_matiere.set(couleur); }
     public ObjectProperty<Color> couleurMatiereProperty() {
         return couleur_matiere;
     }

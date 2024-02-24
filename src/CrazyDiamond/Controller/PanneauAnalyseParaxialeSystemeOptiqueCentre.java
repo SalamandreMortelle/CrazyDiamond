@@ -396,7 +396,7 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
             }
 
             Point2D deplacement = soc.direction().multiply(e.getNewValue()-e.getOldValue()) ;
-            intersection.obstacleSurface().translater(deplacement); // Déclenchera un recalcul de la matrice optique qui mettra à jour la valeur de Z affichée dans la table
+            intersection.obstacleSurface().translaterParCommande(deplacement); // Déclenchera un recalcul de la matrice optique qui mettra à jour la valeur de Z affichée dans la table
         });
         col_z.setEditable(true);
 

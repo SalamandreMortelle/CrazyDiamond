@@ -1276,11 +1276,12 @@ public class SystemeOptiqueCentre implements Nommable {
             if (suspendre_repositionnement_obstacles)
                 return ;
 
+//            position_orientation.set(new PositionEtOrientation(nouveau_foyer,orientation()+angle_rot_deg));
+
+            suspendre_calcul_elements_cardinaux = true ;
+
             Point2D delta_pos = newValue.position().subtract(oldValue.position()) ;
             double delta_angle_rot_deg = newValue.orientation_deg()- oldValue.orientation_deg() ;
-
-//            position_orientation.set(new PositionEtOrientation(nouveau_foyer,orientation()+angle_rot_deg));
-            suspendre_calcul_elements_cardinaux = true ;
             for (Obstacle o : obstacles_centres) {
                 o.tournerAutourDe(this.origine(),delta_angle_rot_deg);
                 o.translater(delta_pos);

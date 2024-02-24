@@ -60,11 +60,17 @@ public class Source implements Nommable {
         // TODO
     }
 
+    public void retaillerSelectionPourSourisEn(Point2D position) {
+
+    }
+
     public void translater(Point2D vecteur) {
         position_orientation.set(new PositionEtOrientation(position().add(vecteur),orientation()));
 //        position_x.set(position_x.get()+v_glisser_g.getX());
 //        position_y.set(position_y.get()+v_glisser_g.getY());
     }
+
+
 
 
     public enum TypeSource {

@@ -8,4 +8,7 @@ public interface Nommable {
 
     StringProperty nomProperty() ;
 
+    default void definirNom(String nom) {
+        nomProperty().set(nom);
+    }
 }
