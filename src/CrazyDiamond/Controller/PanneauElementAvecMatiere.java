@@ -2,11 +2,8 @@ package CrazyDiamond.Controller;
 
 import CrazyDiamond.Model.*;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.paint.Color;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,7 +40,6 @@ public class PanneauElementAvecMatiere {
 
     @FXML
     public Spinner<Double> spinner_indice_refraction;
-    private ObjectProperty<Double> spinner_indice_refraction_object_property; // Attribut requis
 
     private ElementAvecMatiere element_avec_matiere ;
 
@@ -54,15 +50,14 @@ public class PanneauElementAvecMatiere {
         // Couleur matière
         colorpicker_matiere.valueProperty().set(element_avec_matiere.couleurMatiere());
         element_avec_matiere.couleurMatiereProperty().addListener(new ChangeListenerAvecGarde<>(colorpicker_matiere::setValue));
-//        element_avec_matiere.couleurMatiereProperty().addListener(new ChangeListenerAvecGarde<>(colorpicker_matiere.valueProperty()::set));
         colorpicker_matiere.valueProperty().addListener((observableValue, c_avant, c_apres)
                 -> new CommandeDefinirUnParametre<>(element_avec_matiere, c_apres, element_avec_matiere::couleurMatiere, element_avec_matiere::definirCouleurMatiere).executer());
 
         // Indice réfraction
-        element_avec_matiere.indiceRefractionProperty().addListener(new ChangeListenerAvecGarde<Number>(this::prendreEnCompteIndiceRefraction));
+        element_avec_matiere.indiceRefractionProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteIndiceRefraction));
         OutilsControleur.integrerSpinnerDoubleValidant(spinner_indice_refraction, element_avec_matiere.indiceRefraction(), this::definirIndiceRefraction);
 
-        // Convexite
+        // Convexité
         element_avec_matiere.typeSurfaceProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteConvexite));
 
         choix_convexite.selectedToggleProperty().addListener((observable, oldValue,newValue) -> {

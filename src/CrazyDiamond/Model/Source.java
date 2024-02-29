@@ -70,7 +70,9 @@ public class Source implements Nommable {
 //        position_y.set(position_y.get()+v_glisser_g.getY());
     }
 
-
+    public Commande commandeCreation(Environnement env) {
+        return new CommandeCreerSource(env,this) ;
+    }
 
 
     public enum TypeSource {
@@ -127,10 +129,12 @@ public class Source implements Nommable {
     private final DoubleProperty angle_champ_electrique;
 
     public DoubleProperty angleChampElectriqueProperty() {return angle_champ_electrique;}
-    public double angleChampElectrique() {return angle_champ_electrique.get() ;}
+    public double angleChampElectrique() { return angle_champ_electrique.get() ;}
+    public void definirAngleChampElectrique(double ang) { angle_champ_electrique.set(ang); }
 
-    public BooleanProperty lumierePolariseeProperty() {return lumiere_polarisee;}
-    public boolean lumierePolarisee() {return lumiere_polarisee.get() ;}
+    public BooleanProperty lumierePolariseeProperty() { return lumiere_polarisee; }
+    public boolean lumierePolarisee() { return lumiere_polarisee.get() ;}
+    public void definirLumierePolarisee(boolean pol) { lumiere_polarisee.set(pol); }
 
     public Environnement environnement() {
         return environnement;
@@ -139,15 +143,14 @@ public class Source implements Nommable {
     public int nombreMaximumRencontresObstacle() {
         return nombre_maximum_rencontres_obstacle.get();
     }
+    public void definirNombreMaximumRencontresObstacle(int nb_m) { nombre_maximum_rencontres_obstacle.set(nb_m) ; }
 
     public IntegerProperty nombreMaximumRencontresObstacleProperty() {
         return nombre_maximum_rencontres_obstacle;
     }
 
-    public int nombreRayons() {
-        return nombre_rayons.get();
-    }
-
+    public int nombreRayons() {return nombre_rayons.get();}
+    public void definirNombreRayons(int nb_r) { nombre_rayons.set(nb_r); }
     public IntegerProperty nombreRayonsProperty() {
         return nombre_rayons;
     }
@@ -175,6 +178,8 @@ public class Source implements Nommable {
     public ObjectProperty<TypeSource> typeProperty() { return type; }
     public ObjectProperty<Color> couleurProperty() { return couleur; }
     public Color couleur() { return couleur.get(); }
+
+    public void definirCouleur(Color c) { couleur.set(c); }
 
     public Point2D[] extremitesProjecteur() {
         Point2D dir = direction() ;
@@ -275,6 +280,10 @@ public class Source implements Nommable {
     }
 
     public void definirDirection(Point2D direction) {
+
+        if (direction == null) {
+            throw new IllegalArgumentException("La direction de la source ne peut pas être null.") ;
+        }
 
         if (direction != null && direction.magnitude()==0.0) {
             throw new IllegalArgumentException("La direction de la source ne peut pas être un vecteur nul.") ;

@@ -14,7 +14,7 @@ public class PanneauCercle  {
 
     // Modèle
     Cercle cercle ;
-    private boolean dans_composition;
+    private final boolean dans_composition;
 
     CanvasAffichageEnvironnement canvas;
 
@@ -40,22 +40,11 @@ public class PanneauCercle  {
 
     @FXML
     private Spinner<Double> spinner_xcentre ;
-    // La déclaration de cet attribut est requise pour faire un binding "persistant" entre la variable numérique du modèle
-    // et l'ObjectProperty<Double> à l'intérieur du Spinner Value Factory qui encapsule la valueProperty du Spinner. Il
-    // crée une StrongRef qui permet de s'assurer qu'il n'y aura pas de garbage collection intempestif de cet ObjectProperty.
-    // Cette obligation vient de la Property du Spinner Value Factory qui est de type ObjectProperty<Double> (ou Integer...)
-    // et non de type DoubleProperty comme la Property du modèle, qu'il faut donc convertir avec la méthode asObject et stocker
-    // en tant que tel, pour pouvoir réaliser le binding.
-    private ObjectProperty<Double> cercle_xcentre_object_property;
-    private SpinnerValueFactory.DoubleSpinnerValueFactory svf_x ;
     @FXML
     private Spinner<Double> spinner_ycentre ;
-    private ObjectProperty<Double> cercle_ycentre_object_property; // Attribut requis (cf. supra)
 
     @FXML
     private Spinner<Double> spinner_rayon ;
-    private ObjectProperty<Double> cercle_rayon_object_property; // Attribut requis (cf. supra)
-    private boolean prise_en_compte_rayon;
 
     public PanneauCercle(Cercle c, boolean dans_composition, CanvasAffichageEnvironnement cnv) {
         LOGGER.log(Level.INFO,"Construction du PanneauCercle") ;
@@ -83,7 +72,7 @@ public class PanneauCercle  {
             baseContour.setVisible(false);
         }
 
-        cercle.centreProperty().addListener(new ChangeListenerAvecGarde<Point2D>(this::prendreEnComptePosition));
+        cercle.centreProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnComptePosition));
 
         // Position X
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_xcentre, cercle.xCentre(), this::definirXCentreCercle);
@@ -97,19 +86,13 @@ public class PanneauCercle  {
         spinner_ycentre.disableProperty().bind(cercle.appartenanceSystemeOptiqueProperty()) ;
 
         // Rayon
-        cercle.rayonProperty().addListener(new ChangeListenerAvecGarde<Number>(this::prendreEnCompteRayon));
+        cercle.rayonProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteRayon));
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_rayon, cercle.rayon(),this::definirRayon);
-
-//        cercle_rayon_object_property = cercle.rayonProperty().asObject() ;
-//        spinner_rayon.getValueFactory().valueProperty().bindBidirectional(cercle_rayon_object_property);
-
 
     }
 
     private void definirRayon(Double r) {
         new CommandeDefinirUnParametreDoubleDistance<>(cercle,r,cercle::rayon,cercle::definirRayon).executer() ;
-//        new CommandeDefinirRayonCercle(cercle,r).executer();
-//        cercle.definirRayon(r);
     }
 
     private void prendreEnCompteRayon(Number nouveau_rayon) {
@@ -123,13 +106,9 @@ public class PanneauCercle  {
     }
     private void definirXCentreCercle(Double x_c) {
         new CommandeDefinirUnParametrePoint<>(cercle,new Point2D(x_c,cercle.centre().getY()),cercle::centre,cercle::definirCentre).executer();
-//        new CommandeDefinirPositionCentreCercle(cercle, new Point2D(x_c,cercle.centre().getY())).executer();
-//        cercle.definirCentre(new Point2D(x_c,cercle.centre().getY()));
     }
     private void definirYCentreCercle(Double y_c) {
         new CommandeDefinirUnParametrePoint<>(cercle,new Point2D(cercle.centre().getX(),y_c),cercle::centre,cercle::definirCentre).executer();
-//        new CommandeDefinirPositionCentreCercle(cercle, new Point2D(cercle.centre().getX(),y_c)).executer(); ;
-//        cercle.definirCentre(new Point2D(cercle.centre().getX(),y_c));
     }
 
 }

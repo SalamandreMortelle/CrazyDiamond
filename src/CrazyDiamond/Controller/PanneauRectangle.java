@@ -1,11 +1,6 @@
 package CrazyDiamond.Controller;
 
-import CrazyDiamond.Model.ChangeListenerAvecGarde;
-import CrazyDiamond.Model.PositionEtOrientation;
-import CrazyDiamond.Model.Rectangle;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
+import CrazyDiamond.Model.*;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.scene.control.*;
@@ -41,36 +36,19 @@ public class PanneauRectangle {
     @FXML
     private PanneauElementAvecMatiere baseMatiereController;
 
-//    CanvasAffichageEnvironnement eg ;
-
-//    @FXML
-//    private TextField textfield_nom ;
-
     @FXML
     private Spinner<Double> spinner_xcentre;
-    // La déclaration de cet attribut est requise pour faire un binding "persistant" entre la variable numérique du modèle
-    // et l'ObjectProperty<Double> à l'intérieur du Spinner Value Factory qui encapsule la valueProperty du Spinner. Il
-    // créé une StrongRef qui permet de s'assurer qu'il n'y aura pas de garbage collection intempestif de cet ObjectProperty.
-    // Cette obligation vient de la Property du Spinner Value Factory qui est de type ObjectProperty<Double> (ou Integer...)
-    // et non de type DoubleProperty comme la Property du modèle, qu'il faut donc convertir avec la méthode asObject et stocker
-    // en tant que tel, pour pouvoir réaliser le binding.
-    private ObjectProperty<Double> rectangle_xcentre_object_property;
-
     @FXML
     private Spinner<Double> spinner_ycentre;
-    private ObjectProperty<Double> rectangle_ycentre_object_property; // Attribut requis (cf. supra)
 
     @FXML
     private Spinner<Double> spinner_largeur;
-    private ObjectProperty<Double> rectangle_largeur_object_property; // Attribut requis (cf. supra)
 
     @FXML
     private Spinner<Double> spinner_hauteur;
-    private ObjectProperty<Double> rectangle_hauteur_object_property; // Attribut requis (cf. supra)
 
     @FXML
     public Spinner<Double> spinner_orientation;
-    private ObjectProperty<Double> orientation_object_property;
     @FXML
     public Slider slider_orientation;
 
@@ -98,146 +76,67 @@ public class PanneauRectangle {
             baseContour.setVisible(false);
         }
 
-        rectangle.positionEtOrientationObjectProperty().addListener(new ChangeListenerAvecGarde<PositionEtOrientation>(this::prendreEnComptePositionEtOrientation));
-
-//        rectangle.axeObjectProperty().addListener(new ChangeListener<PositionEtOrientation>() {
-//            private boolean changement_en_cours = false ;
-//            @Override
-//            public void changed(ObservableValue<? extends PositionEtOrientation> observableValue, PositionEtOrientation old_value, PositionEtOrientation new_value) {
-//                if (!changement_en_cours) {
-//                    try {
-//                        changement_en_cours = true;
-//                        spinner_xcentre.getValueFactory().valueProperty().set(new_value.position().getX());
-//                        spinner_ycentre.getValueFactory().valueProperty().set(new_value.position().getY());
-//                        spinner_orientation.getValueFactory().valueProperty().set(new_value.orientation_deg());
-//                        slider_orientation.valueProperty().set(new_value.orientation_deg());
-//                    } finally {
-//                        changement_en_cours = false ;
-//                    }
-//                }
-//            }
-//        });
+        // Prise en compte automatique de la position et de l'orientation
+        rectangle.positionEtOrientationObjectProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnComptePositionEtOrientation));
 
         // Position Xcentre
-//        rectangle_xcentre_object_property = rectangle.xCentreProperty().asObject() ;
-//        spinner_xcentre.getValueFactory().valueProperty().bindBidirectional(rectangle_xcentre_object_property);
-        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_xcentre, rectangle.xCentre(), this::definirXCentreRectangle);
-
-//        spinner_xcentre.getValueFactory().valueProperty().set(rectangle.xCentre());
-//        spinner_xcentre.getValueFactory().valueProperty().addListener(new ChangeListener<Double>() {
-//            private boolean changement_en_cours = false ; ;
-//
-//            @Override
-//            public void changed(ObservableValue<? extends Double> observableValue, Double old_value, Double new_value) {
-//                if (!changement_en_cours) {
-//                    try {
-//                        changement_en_cours = true ;
-//                        rectangle.definirCentre(new Point2D(new_value,rectangle.yCentre()));
-//                    } finally {
-//                        changement_en_cours = false ;
-//                    }
-//                }
-//            }
-//        });
-
         spinner_xcentre.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_RIGHT_HORIZONTAL) ;
-//        canvas.ajustePasEtAffichageSpinnerValueFactoryDistance((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_xcentre.getValueFactory());
         spinner_xcentre.editableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty().not()) ;
         spinner_xcentre.disableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty()) ;
+        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_xcentre, rectangle.xCentre(), this::definirXCentreRectangle);
 
         // Position Ycentre
-//        rectangle_ycentre_object_property = rectangle.yCentreProperty().asObject() ;
-//        spinner_ycentre.getValueFactory().valueProperty().bindBidirectional(rectangle_ycentre_object_property);
-        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_ycentre, rectangle.yCentre(), this::definirYCentreRectangle);
-
-//        spinner_ycentre.getValueFactory().valueProperty().set(rectangle.yCentre());
-//        spinner_ycentre.getValueFactory().valueProperty().addListener(new ChangeListener<Double>() {
-//            private boolean changement_en_cours = false ; ;
-//
-//            @Override
-//            public void changed(ObservableValue<? extends Double> observableValue, Double old_value, Double new_value) {
-//                if (!changement_en_cours) {
-//                    try {
-//                        changement_en_cours = true ;
-//                        rectangle.definirCentre(new Point2D(rectangle.xCentre(),new_value));
-//                    } finally {
-//                        changement_en_cours = false ;
-//                    }
-//                }
-//            }
-//        });
-
-//        canvas.ajustePasEtAffichageSpinnerValueFactoryDistance((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_ycentre.getValueFactory());
         spinner_ycentre.editableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty().not()) ;
         spinner_ycentre.disableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty()) ;
-
-        // Largeur
-        rectangle_largeur_object_property = rectangle.largeurProperty().asObject() ;
-        spinner_largeur.getValueFactory().valueProperty().bindBidirectional(rectangle_largeur_object_property);
-//        spinner_largeur.getValueFactory().valueProperty().bind(rectangle_largeur_object_property);
-        spinner_largeur.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_RIGHT_HORIZONTAL) ;
-        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_largeur, rectangle.largeur());
-//        canvas.ajustePasEtAffichageSpinnerValueFactoryDistance((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_largeur.getValueFactory());
-
-        // Hauteur
-        rectangle_hauteur_object_property = rectangle.hauteurProperty().asObject() ;
-        spinner_hauteur.getValueFactory().valueProperty().bindBidirectional(rectangle_hauteur_object_property);
-        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_hauteur, rectangle.hauteur());
-//        canvas.ajustePasEtAffichageSpinnerValueFactoryDistance((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_hauteur.getValueFactory());
+        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_ycentre, rectangle.yCentre(), this::definirYCentreRectangle);
 
         // Orientation
         spinner_orientation.getValueFactory().setWrapAround(true);
         spinner_orientation.editableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty().not()) ;
         spinner_orientation.disableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty()) ;
+        OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation,rectangle.orientation(),this::definirOrientation);
 
-//        orientation_object_property = rectangle.orientationProperty().asObject() ;
-//        spinner_orientation.getValueFactory().valueProperty().bindBidirectional(orientation_object_property);
-
-        OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation,rectangle.orientation(),rectangle::definirOrientation);
-
-//        spinner_orientation.getValueFactory().valueProperty().set(rectangle.orientation());
-//        spinner_orientation.getValueFactory().valueProperty().addListener(new ChangeListener<Double>() {
-//            private boolean changement_en_cours = false ; ;
-//
-//            @Override
-//            public void changed(ObservableValue<? extends Double> observableValue, Double old_value, Double new_value) {
-//                if (!changement_en_cours) {
-//                    try {
-//                        changement_en_cours = true ;
-//                        rectangle.definirOrientation(new_value);
-//                    } finally {
-//                        changement_en_cours = false ;
-//                    }
-//                }
-//            }
-//        });
-
-//        slider_orientation.valueProperty().bindBidirectional(rectangle.orientationProperty());
-//        slider_orientation.disableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty()) ;
         slider_orientation.valueProperty().set(rectangle.orientation());
-        slider_orientation.valueProperty().addListener(new ChangeListener<>() {
-            private boolean changement_en_cours = false ; ;
-
-            @Override
-            public void changed(ObservableValue<? extends Number> observableValue, Number old_value, Number new_value) {
-                if (!changement_en_cours) {
-                    try {
-                        changement_en_cours = true ;
-                        rectangle.definirOrientation(new_value.doubleValue());
-                    } finally {
-                        changement_en_cours = false ;
-                    }
-                }
-            }
-        });
-
+        slider_orientation.valueProperty().addListener(new ChangeListenerAvecGarde<>(this::definirOrientation));
         slider_orientation.disableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty()) ;
 
+        // Largeur
+        rectangle.largeurProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteLargeur));
+        spinner_largeur.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_RIGHT_HORIZONTAL) ;
+        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_largeur, rectangle.largeur(),this::definirLargeur);
+
+        // Hauteur
+        rectangle.hauteurProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteHauteur));
+        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_hauteur, rectangle.hauteur(),this::definirHauteur);
 
     }
 
-    private void definirXCentreRectangle(Double x_c) {rectangle.definirCentre(new Point2D(x_c,rectangle.yCentre()));}
-    private void definirYCentreRectangle(Double y_c) {rectangle.definirCentre(new Point2D(rectangle.xCentre(),y_c));}
+    private void definirOrientation(Number or) {
+        new CommandeDefinirUnParametre<>(rectangle,or.doubleValue(),rectangle::orientation,rectangle::definirOrientation).executer();
+    }
+
+    private void definirHauteur(Double h) {
+        new CommandeDefinirUnParametreDoubleDistance<>(rectangle,h,rectangle::hauteur,rectangle::definirHauteur).executer() ;
+    }
+
+    private void prendreEnCompteHauteur(Number l) {
+        spinner_hauteur.getValueFactory().valueProperty().set(l.doubleValue());
+    }
+
+    private void definirLargeur(Double l) {
+        new CommandeDefinirUnParametreDoubleDistance<>(rectangle,l,rectangle::largeur,rectangle::definirLargeur).executer() ;
+    }
+
+    private void prendreEnCompteLargeur(Number l) {
+        spinner_largeur.getValueFactory().valueProperty().set(l.doubleValue());
+    }
+
+    private void definirXCentreRectangle(Double x_c) {
+        new CommandeDefinirUnParametrePoint<>(rectangle,new Point2D(x_c,rectangle.yCentre()),rectangle::centre,rectangle::definirCentre).executer();
+    }
+    private void definirYCentreRectangle(Double y_c) {
+        new CommandeDefinirUnParametrePoint<>(rectangle,new Point2D(rectangle.xCentre(),y_c),rectangle::centre,rectangle::definirCentre).executer();        
+    }
 
     private void prendreEnComptePositionEtOrientation(PositionEtOrientation nouvelle_pos_et_or) {
         spinner_xcentre.getValueFactory().valueProperty().set(nouvelle_pos_et_or.position().getX());

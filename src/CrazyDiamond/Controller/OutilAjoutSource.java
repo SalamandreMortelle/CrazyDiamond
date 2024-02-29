@@ -1,5 +1,6 @@
 package CrazyDiamond.Controller;
 
+import CrazyDiamond.Model.Commande;
 import CrazyDiamond.Model.Source;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
@@ -36,9 +37,10 @@ public class OutilAjoutSource extends OutilPermettantDeplacementZoneVisible {
 
         source_en_cours_ajout.definirDirection(pclic.subtract(source_en_cours_ajout.position()));
 
+        Commande cmd = source_en_cours_ajout.commandeCreation(cae.environnement()) ;
+        cmd.enregistrer() ;
+
         source_en_cours_ajout = null ;
-
-
     }
 
     public void traiterDeplacementSourisCanvas(MouseEvent me) {

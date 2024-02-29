@@ -194,7 +194,7 @@ public interface Obstacle {
      }
 
     void retaillerPourSourisEn(Point2D pos_souris) ;
-    void retaillerParCommandePourSourisEn(Point2D pos_souris) ;
+    void retaillerParCommandePourSourisEn(Point2D pos_souris) ; // TODO : supprimer, ainsi que les 8 implémentations
     default void retaillerSelectionPourSourisEn(Point2D pclic) {
         retaillerPourSourisEn(pclic);
     }

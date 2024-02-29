@@ -1136,6 +1136,8 @@ public class PanneauPrincipal {
 
         Parent nouvelle_racine = null ;
 
+        Commande.effacerHistoriques();
+
         try {
             // Cette injection va récupérer le nouvel environnement depuis l'attribut nouvel_environnement du PanneauPrincipal actuel
             nouvelle_racine = DependencyInjection.load("View/PanneauPrincipal.fxml");
@@ -1190,6 +1192,8 @@ public class PanneauPrincipal {
         if (nouveau_canvas_affichage_environnement==null)
             return;
 
+        Commande.effacerHistoriques();
+
         Parent nouvelle_racine = null ;
 
         try {
@@ -1214,7 +1218,6 @@ public class PanneauPrincipal {
         Stage s = (Stage) nouvelle_racine.getScene().getWindow() ;
         s.setUserData(fichier_a_charger);
         s.setTitle(fichier_a_charger.getName()+" - Crazy Diamond");
-
 
     }
     public void traiterSauvegarderEnvironnement() {

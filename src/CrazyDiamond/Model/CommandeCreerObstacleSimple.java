@@ -26,7 +26,7 @@ public class CommandeCreerObstacleSimple extends Commande {
     protected void convertirDistances(double facteur_conversion) {
 
         // Si l'obstacle fait partie de l'environnement, c'est ce dernier qui se charge d'en convertir les distances ;
-        // sinon (création de l'obstacle a été annulée), il faut le faire ici
+        // sinon (création de l'obstacle a été annulée), il faut le faire ici.
         if (!environnement.obstacles().contains(obstacle_cree))
             obstacle_cree.convertirDistances(facteur_conversion);
     }

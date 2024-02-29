@@ -1,7 +1,5 @@
 package CrazyDiamond.Controller;
 
-
-import CrazyDiamond.Model.CommandeDefinirOperateurComposition;
 import CrazyDiamond.Model.CommandeDefinirUnParametre;
 import CrazyDiamond.Model.Composition;
 import javafx.fxml.FXML;
@@ -16,7 +14,7 @@ public class PanneauComposition {
 
     // Modèle
     Composition composition ;
-    private boolean dans_composition;
+    private final boolean dans_composition;
 
     CanvasAffichageEnvironnement canvas;
 
@@ -28,7 +26,7 @@ public class PanneauComposition {
     @FXML
     private PanneauElementIdentifie baseElementIdentifieController ;
 
-    // Controleurs des sous-panneaux génériques pour les attributs de contour, et de matière
+    // Contrôleurs des sous-panneaux génériques pour les attributs de contour, et de matière
     @FXML
     private VBox baseContour;
     @FXML
@@ -76,10 +74,10 @@ public class PanneauComposition {
         }
 
         switch (composition.operateur()) {
-            case UNION -> {choix_union.setSelected(true);}
-            case INTERSECTION -> {choix_intersection.setSelected(true);}
-            case DIFFERENCE -> {choix_difference.setSelected(true);}
-            case DIFFERENCE_SYMETRIQUE -> {choix_difference_symetrique.setSelected(true);}
+            case UNION -> choix_union.setSelected(true);
+            case INTERSECTION -> choix_intersection.setSelected(true);
+            case DIFFERENCE -> choix_difference.setSelected(true);
+            case DIFFERENCE_SYMETRIQUE -> choix_difference_symetrique.setSelected(true);
         }
 
         choix_operation.selectedToggleProperty().addListener((observable, oldValue,newValue) -> {
@@ -119,7 +117,6 @@ public class PanneauComposition {
 
     public void definirOperateur(Composition.Operateur op) {
         new CommandeDefinirUnParametre<>(composition,op,composition::operateur,composition::definirOperateur).executer();
-//        new CommandeDefinirOperateurComposition(composition,op).executer() ;
     }
 
 }

@@ -29,8 +29,8 @@ public class OutilAjoutObstacle extends OutilPermettantDeplacementZoneVisible {
             return ;
         }
 
-//        obstacle_en_cours_ajout.retaillerPourSourisEn(pclic);
-        obstacle_en_cours_ajout.retaillerParCommandePourSourisEn(pclic);
+        obstacle_en_cours_ajout.retaillerPourSourisEn(pclic);
+//        obstacle_en_cours_ajout.retaillerParCommandePourSourisEn(pclic);
 
         // Enregistrer l'obstacle courant dans l'environnement (si pas déjà fait suite à un mouvement de la souris :
         // cette méthode ne fait rien si la source est déjà ajoutée)

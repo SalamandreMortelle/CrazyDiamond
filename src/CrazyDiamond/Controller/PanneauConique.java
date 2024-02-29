@@ -1,9 +1,6 @@
 package CrazyDiamond.Controller;
 
 import CrazyDiamond.Model.*;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.scene.control.*;
@@ -16,7 +13,7 @@ import java.util.logging.Logger;
 public class PanneauConique  {
 
     Conique conique ;
-    private boolean dans_composition;
+    private final boolean dans_composition;
 
     CanvasAffichageEnvironnement canvas;
 
@@ -29,7 +26,7 @@ public class PanneauConique  {
     @FXML
     private PanneauElementIdentifie baseElementIdentifieController ;
 
-    // Controleurs des sous-panneaux génériques pour les attributs de contour, et de matière
+    // Contrôleurs des sous-panneaux génériques pour les attributs de contour, et de matière
     @FXML
     private VBox baseContour;
     @FXML
@@ -43,28 +40,21 @@ public class PanneauConique  {
     // Contrôles de la vue :
     @FXML
     private Spinner<Double> spinner_xfoyer;
-    private ObjectProperty<Double> xfoyer_object_property;
 
     @FXML
     private Spinner<Double> spinner_yfoyer;
-    private ObjectProperty<Double> yfoyer_object_property;
 
     @FXML
     private Spinner<Double> spinner_parametre;
-    private ObjectProperty<Double> parametre_object_property;
 
     @FXML
     private Spinner<Double> spinner_excentricite;
-    private ObjectProperty<Double> excentricite_object_property;
 
     @FXML
     private Spinner<Double> spinner_orientation;
-    private ObjectProperty<Double> orientation_object_property;
 
     @FXML
     private Slider slider_orientation;
-
-
 
     public PanneauConique(Conique c,boolean dans_composition,CanvasAffichageEnvironnement cnv) {
         LOGGER.log(Level.INFO,"Construction du PanneauConique") ;
@@ -88,33 +78,28 @@ public class PanneauConique  {
             baseContour.setVisible(false);
         }
 
-        // Prise en compte automatique de la position et de l'orientation de la conique
+        // Prise en compte automatique de la position et de l'orientation
         conique.positionEtOrientationObjectProperty().addListener(new ChangeListenerAvecGarde<PositionEtOrientation>(this::prendreEnComptePositionEtOrientation));
 
         // X Foyer
-        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_xfoyer, conique.xFoyer(), this::definirXFoyerConique);
         spinner_xfoyer.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_RIGHT_HORIZONTAL) ;
-
         spinner_xfoyer.editableProperty().bind(conique.appartenanceSystemeOptiqueProperty().not()) ;
         spinner_xfoyer.disableProperty().bind(conique.appartenanceSystemeOptiqueProperty()) ;
+        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_xfoyer, conique.xFoyer(), this::definirXFoyerConique);
 
         // Y Foyer
-        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_yfoyer, conique.xFoyer(), this::definirYFoyerConique);
-
         spinner_yfoyer.editableProperty().bind(conique.appartenanceSystemeOptiqueProperty().not()) ;
         spinner_yfoyer.disableProperty().bind(conique.appartenanceSystemeOptiqueProperty()) ;
+        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_yfoyer, conique.xFoyer(), this::definirYFoyerConique);
 
         // Orientation
         spinner_orientation.getValueFactory().setWrapAround(true);
-
-        OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation,conique.orientation(),this::definirOrientation);
-
         spinner_orientation.editableProperty().bind(conique.appartenanceSystemeOptiqueProperty().not()) ;
         spinner_orientation.disableProperty().bind(conique.appartenanceSystemeOptiqueProperty()) ;
+        OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation,conique.orientation(),this::definirOrientation);
 
         slider_orientation.valueProperty().set(conique.orientation());
-        slider_orientation.valueProperty().addListener(new ChangeListenerAvecGarde<>(this::definirOrientation)); ;
-
+        slider_orientation.valueProperty().addListener(new ChangeListenerAvecGarde<>(this::definirOrientation));
         slider_orientation.disableProperty().bind(conique.appartenanceSystemeOptiqueProperty()) ;
 
         // Paramètre
@@ -124,7 +109,6 @@ public class PanneauConique  {
         // Excentricité
         conique.excentriciteProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteExcentricite));
         OutilsControleur.integrerSpinnerDoubleValidant(spinner_excentricite, conique.excentricite(), this::definirExcentricite);
-
     }
 
     private void definirExcentricite(Double nouvelle_excentricite) {
@@ -143,16 +127,12 @@ public class PanneauConique  {
         spinner_parametre.getValueFactory().valueProperty().set(nouveau_parametre.doubleValue());
     }
 
-    private void definirOrientation(Double or) {
-        new CommandeDefinirUnParametre<>(conique,or,conique::orientation,conique::definirOrientation).executer();
-    }
     private void definirOrientation(Number or) {
         new CommandeDefinirUnParametre<>(conique,or.doubleValue(),conique::orientation,conique::definirOrientation).executer();
     }
 
     private void definirXFoyerConique(Double x_f) {
         new CommandeDefinirUnParametrePoint<>(conique,new Point2D(x_f,conique.foyer().getY()),conique::foyer,conique::definirFoyer).executer();
-
     }
     private void definirYFoyerConique(Double y_f) {
         new CommandeDefinirUnParametrePoint<>(conique,new Point2D(conique.foyer().getX(),y_f),conique::foyer,conique::definirFoyer).executer();

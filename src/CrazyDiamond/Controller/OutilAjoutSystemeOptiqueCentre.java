@@ -1,5 +1,6 @@
 package CrazyDiamond.Controller;
 
+import CrazyDiamond.Model.Commande;
 import CrazyDiamond.Model.SystemeOptiqueCentre;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
@@ -35,6 +36,10 @@ public class OutilAjoutSystemeOptiqueCentre extends OutilPermettantDeplacementZo
             return;
 
         soc_en_cours_ajout.definirDirection(pclic.subtract(soc_en_cours_ajout.origine()));
+
+        Commande cmd = soc_en_cours_ajout.commandeCreation(cae.environnement()) ;
+        cmd.enregistrer() ;
+
 
         soc_en_cours_ajout = null ;
 

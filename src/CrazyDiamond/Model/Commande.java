@@ -10,7 +10,7 @@ public abstract class Commande {
 
     private static boolean retablir_en_cours = false ;
 
-    public static void effacerHistoriqueq() {
+    public static void effacerHistoriques() {
         HistoriqueCommandesExecutees.clear();
         HistoriqueCommandesAnnulees.clear();
     }
@@ -66,7 +66,7 @@ public abstract class Commande {
         HistoriqueCommandesAnnulees.forEach(c -> c.convertirDistances(facteur_conversion));
     }
 
-    protected void convertirDistances(double facteur_conversion) { } ;
+    protected void convertirDistances(double facteur_conversion) { }
 
     public abstract void executer() ;
     public abstract void annuler() ;

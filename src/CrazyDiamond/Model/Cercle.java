@@ -219,7 +219,7 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
             return ;
 
 //        new CommandeDefinirRayonCercle(this,pos_souris.subtract(centre()).magnitude()).executer();
-        new CommandeDefinirUnParametre<>(this,pos_souris.subtract(centre()).magnitude(),this::rayon,this::definirRayon).executer(); ;
+        new CommandeDefinirUnParametreDoubleDistance<>(this,pos_souris.subtract(centre()).magnitude(),this::rayon,this::definirRayon).executer(); ;
     }
 
     @Override

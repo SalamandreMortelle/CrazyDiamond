@@ -193,6 +193,10 @@ public class SystemeOptiqueCentre implements Nommable {
         return environnement ;
     }
 
+    public Commande commandeCreation(Environnement env) {
+        return new CommandeCreerSystemeOptiqueCentre(env,this) ;
+    }
+
 
     public record PositionElement(double z, double hauteur) { }
 
@@ -1539,6 +1543,7 @@ public class SystemeOptiqueCentre implements Nommable {
     public PositionElement lucarneSortie() {return ((z_lucarne_sortie!=null&&z_lucarne_sortie.get()!=null&&r_lucarne_sortie!=null&&r_lucarne_sortie.get()!=null)?new PositionElement(z_lucarne_sortie.get(), r_lucarne_sortie.get()):null) ;}
 
     public Color couleurAxe() { return couleur_axe.get() ; }
+    public void definirCouleurAxe(Color c) { couleur_axe.set(c); }
 
     public ObjectProperty<Color> couleurAxeProperty() { return couleur_axe ;}
 
@@ -1598,9 +1603,9 @@ public class SystemeOptiqueCentre implements Nommable {
         axe.set(new PositionEtOrientation(origine().add(tr),orientation()));
     }
 
-    public Point2D origine() {
-        return axe.get().position();
-    }
+    public Point2D origine() {return axe.get().position();}
+
+    public void definirOrigine(Point2D origine) { axe.set(new PositionEtOrientation(origine,orientation()));  }
 
     public void definirOrientation(double or_deg) {
         axe.set(new PositionEtOrientation(origine(),or_deg));

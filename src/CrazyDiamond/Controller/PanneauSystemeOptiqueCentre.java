@@ -1,9 +1,6 @@
 package CrazyDiamond.Controller;
 
 import CrazyDiamond.Model.*;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -22,7 +19,6 @@ import java.util.logging.Logger;
 
 public class PanneauSystemeOptiqueCentre {
 
-
     // Modèle
     SystemeOptiqueCentre soc ;
 
@@ -39,21 +35,11 @@ public class PanneauSystemeOptiqueCentre {
 
     @FXML
     private Spinner<Double> spinner_xorigine ;
-    // La déclaration de cet attribut est requise pour faire un binding "persistant" entre la variable numérique du modèle
-    // et l'ObjectProperty<Double> à l'intérieur du Spinner Value Factory qui encapsule la valueProperty du Spinner. Il
-    // créé une StrongRef qui permet de s'assurer qu'il n'y aura pas de garbage collection intempestif de cet ObjectProperty.
-    // Cette obligation vient de la Property du Spinner Value Factory qui est de type ObjectProperty<Double> (ou Integer...)
-    // et non de type DoubleProperty comme la Property du modèle, qu'il faut donc convertir avec la méthode asObject et stocker
-    // en tant que tel, pour pouvoir réaliser le binding.
-    private ObjectProperty<Double> soc_xorigine_object_property;
-
     @FXML
     private Spinner<Double> spinner_yorigine ;
-    private ObjectProperty<Double> soc_yorigine_object_property; // Attribut requis (cf. supra)
 
     @FXML
     private Spinner<Double> spinner_orientation;
-    private ObjectProperty<Double> orientation_object_property;
 
     @FXML
     private Slider slider_orientation;
@@ -65,12 +51,6 @@ public class PanneauSystemeOptiqueCentre {
     private ListView<Obstacle> listview_obstacles_centres;
 
     private final ContextMenu menuContextuelObstacleCentre ;
-
-//    public CheckBox checkbox_dioptres;
-//    public CheckBox checkbox_plans_focaux;
-//    public CheckBox checkbox_plans_principaux;
-//    public CheckBox checkbox_plans_nodaux;
-
 
     public PanneauSystemeOptiqueCentre(SystemeOptiqueCentre soc, CanvasAffichageEnvironnement cnv) {
         LOGGER.log(Level.INFO,"Construction du SOC") ;
@@ -93,52 +73,28 @@ public class PanneauSystemeOptiqueCentre {
 
         baseElementIdentifieController.initialize(soc);
 
-        // Position
+        // Prise en compte automatique de la position et de l'orientation        
         soc.axeObjectProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnComptePositionEtOrientation));
-//        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_xorigine,soc.origine().getX());
-        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_xorigine, soc.XOrigine(), this::definirXOrigineSOC);
-//        soc_xorigine_object_property = soc.XOrigineProperty().asObject() ;
-//        spinner_xorigine.getValueFactory().valueProperty().bindBidirectional(soc_xorigine_object_property);
 
+        // Position : X origine
         spinner_xorigine.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_RIGHT_HORIZONTAL) ;
+        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_xorigine, soc.XOrigine(), this::definirXOrigineSOC);
 
-//        canvas.ajustePasEtAffichageSpinnerValueFactoryDistance((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_xorigine.getValueFactory());
-
-//        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_yorigine,soc.origine().getY());
+        // Position : Y origine
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_yorigine, soc.YOrigine(), this::definirYOrigineSOC);
-//        soc_yorigine_object_property = soc.YOrigineProperty().asObject() ;
-//        spinner_yorigine.getValueFactory().valueProperty().bindBidirectional(soc_yorigine_object_property);
-
-//        canvas.ajustePasEtAffichageSpinnerValueFactoryDistance((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_yorigine.getValueFactory());
 
         // Orientation
         spinner_orientation.getValueFactory().setWrapAround(true);
+        OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation,soc.orientation(),this::definirOrientation);
 
-        OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation,soc.orientation(),soc::definirOrientation);
-//        OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation,soc.orientation());
-//        orientation_object_property = soc.orientationProperty().asObject() ;
-//        spinner_orientation.getValueFactory().valueProperty().bindBidirectional(orientation_object_property);
-
-//        slider_orientation.valueProperty().bindBidirectional(soc.orientationProperty());
-        slider_orientation.valueProperty().addListener(new ChangeListener<>() {
-            private boolean changement_en_cours = false ;
-
-            @Override
-            public void changed(ObservableValue<? extends Number> observableValue, Number old_value, Number new_value) {
-                if (!changement_en_cours) {
-                    try {
-                        changement_en_cours = true ;
-                        soc.definirOrientation(new_value.doubleValue());
-                    } finally {
-                        changement_en_cours = false ;
-                    }
-                }
-            }
-        });
-
+        slider_orientation.valueProperty().set(soc.orientation());
+        slider_orientation.valueProperty().addListener(new ChangeListenerAvecGarde<>(this::definirOrientation));
 
         // Couleurs
-        colorpicker_axe.valueProperty().bindBidirectional( soc.couleurAxeProperty() );
+        colorpicker_axe.valueProperty().set(soc.couleurAxe());
+        soc.couleurAxeProperty().addListener(new ChangeListenerAvecGarde<>(colorpicker_axe::setValue));
+        colorpicker_axe.valueProperty().addListener((observableValue, c_avant, c_apres)
+                -> new CommandeDefinirUnParametre<>(soc, c_apres, soc::couleurAxe, soc::definirCouleurAxe).executer());
 
         // Liste des obstacles centrés
         listview_obstacles_centres.setItems(soc.obstacles_centres());
@@ -154,7 +110,7 @@ public class PanneauSystemeOptiqueCentre {
                 } else if (change.wasAdded()) {
                     for (Obstacle oc_ajoute : change.getAddedSubList()) {
                         LOGGER.log(Level.FINE,"Obstacle centré ajouté : {0}",oc_ajoute.nom()) ;
-                        // Rafraichissement auto matique de la listview quand le nom de l'obstacle change
+                        // Rafraichissement automatique de la listview quand le nom de l'obstacle change
                         oc_ajoute.nomProperty().addListener((obs, oldName, newName) -> listview_obstacles_centres.refresh());
                     }
                 }
@@ -182,6 +138,9 @@ public class PanneauSystemeOptiqueCentre {
 
     }
 
+    private void definirOrientation(Number or) {
+        new CommandeDefinirUnParametre<>(soc,or.doubleValue(),soc::orientation,soc::definirOrientation).executer();
+    }
 
 
     public void ajouterObstacle(ActionEvent actionEvent) throws Exception {
@@ -277,8 +236,12 @@ public class PanneauSystemeOptiqueCentre {
 ////        throw new NoSuchMethodException("La méthode integrerDansSystemeOptiqueCentre() n'est pas implémentée par l'Obstacle "+this) ;
 //    }
 
-    private void definirXOrigineSOC(Double x_o) {soc.definirPosition(new Point2D(x_o, soc.YOrigine()));}
-    private void definirYOrigineSOC(Double y_o) {soc.definirPosition(new Point2D(soc.XOrigine(),y_o));}
+    private void definirXOrigineSOC(Double x_o) {
+        new CommandeDefinirUnParametrePoint<>(soc,new Point2D(x_o,soc.origine().getY()),soc::origine,soc::definirOrigine).executer();
+    }
+    private void definirYOrigineSOC(Double y_o) {
+        new CommandeDefinirUnParametrePoint<>(soc,new Point2D(soc.origine().getX(), y_o),soc::origine,soc::definirOrigine).executer();
+    }
 
     private void prendreEnComptePositionEtOrientation(PositionEtOrientation nouvelle_pos_et_or) {
         spinner_xorigine.getValueFactory().valueProperty().set(nouvelle_pos_et_or.position().getX());

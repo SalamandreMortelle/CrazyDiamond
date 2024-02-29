@@ -1,11 +1,6 @@
 package CrazyDiamond.Controller;
 
-import CrazyDiamond.Model.ChangeListenerAvecGarde;
-import CrazyDiamond.Model.PositionEtOrientation;
-import CrazyDiamond.Model.Source;
-import javafx.beans.property.*;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
+import CrazyDiamond.Model.*;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.scene.control.*;
@@ -30,28 +25,18 @@ public class PanneauSource {
 
     @FXML
     private Spinner<Double> spinner_x ;
-    // La déclaration de cet attribut est requise pour faire un binding "persistant" entre la variable numérique du modèle
-    // et l'ObjectProperty<Double> à l'intérieur du Spinner Value Factory qui encapsule la valueProperty du Spinner. Il
-    // créé une StrongRef qui permet de s'assurer qu'il n'y aura pas de garbage collection intempestif de cet ObjectProperty.
-    // Cette obligation vient de la Property du Spinner Value Factory qui est de type ObjectProperty<Double> (ou Integer...)
-    // et non de type DoubleProperty comme la Property du modèle, qu'il faut donc convertir avec la méthode asObject et stocker
-    // en tant que tel, pour pouvoir réaliser le binding.
-    private ObjectProperty<Double> position_x_value_property ;
 
     @FXML
     private Spinner<Double> spinner_y ;
-    private ObjectProperty<Double> position_y_value_property ; // Attribut requis (cf. supra)
 
     @FXML
     private Spinner<Double> spinner_orientation ;
-    private ObjectProperty<Double> orientation_value_property ; // Attribut requis (cf. supra)
 
     @FXML
     private Slider slider_orientation ;
 
     @FXML
     private Spinner<Integer> spinner_nombre_rayons ;
-    private ObjectProperty<Integer> nombre_rayons_value_property ; // Attribut requis (cf. supra)
 
     @FXML
     private ToggleGroup choix_type_source ;
@@ -67,7 +52,6 @@ public class PanneauSource {
 
     @FXML
     private Spinner<Double> spinner_ouverture_pinceau ;
-    private ObjectProperty<Double> ouverture_pinceau_value_property ;
 
     @FXML
     private Slider slider_ouverture_pinceau ;
@@ -77,11 +61,9 @@ public class PanneauSource {
 
     @FXML
     private Spinner<Double> spinner_largeur_projecteur ;
-    private ObjectProperty<Double> largeur_projecteur_value_property ;
 
     @FXML
     private Spinner<Integer> spinner_nombre_reflexions ;
-    private ObjectProperty<Integer> nombre_reflexions_value_property ;
 
     @FXML
     private ColorPicker colorpicker;
@@ -93,7 +75,6 @@ public class PanneauSource {
 
     @FXML
     public Spinner<Double> spinner_orientation_champ_electrique;
-    private ObjectProperty<Double> orientation_champ_electrique_value_property ; // Attribut requis (cf. supra)
     @FXML
     public Slider slider_orientation_champ_electrique;
 
@@ -114,99 +95,59 @@ public class PanneauSource {
 
         baseElementIdentifieController.initialize(source);
 
-        // Lier cette Vue à son Modèle...
+        // Prise en compte automatique de la position et de l'orientation
+        source.positionEtOrientationObjectProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnComptePositionEtOrientation));
 
-//        slider_largeur_projecteur.setMax(Math.max(source.environnement().largeur(),source.environnement().hauteur()));
-//        slider_largeur_projecteur.setMajorTickUnit(slider_largeur_projecteur.getMax()/10);
-
-        // Position
-        source.positionEtOrientationObjectProperty().addListener(new ChangeListenerAvecGarde<PositionEtOrientation>(this::prendreEnComptePositionEtOrientation));
-
-        // Conserver la property du modèle (convertie en ObjectPropery<Double>) dans une variable membre pour garder
-        // une reference forte et éviter que le GC ne supprime le binding de façon intempestive. Idem avec tous les autres spinners...
+        // Position : X centre
         spinner_x.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_RIGHT_HORIZONTAL) ;
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_x, source.xPosition(), this::definirXPositionSource);
-//        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_x,source.position().getX());
-//        position_x_value_property = source.positionXProperty().asObject() ;
-//        spinner_x.getValueFactory().valueProperty().bindBidirectional(position_x_value_property);
-
-
-//        canvas.ajustePasEtAffichageSpinnerValueFactoryDistance((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_x.getValueFactory());
 
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_y, source.yPosition(), this::definirYPositionSource);
-//        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_y,source.position().getY());
-//        position_y_value_property = source.positionYProperty().asObject() ;
-//        spinner_y.getValueFactory().valueProperty().bindBidirectional(position_y_value_property);
-
-//        canvas.ajustePasEtAffichageSpinnerValueFactoryDistance((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_y.getValueFactory());
 
         // Orientation
         spinner_orientation.getValueFactory().setWrapAround(true);
+        OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation,source.orientation(),this::definirOrientation);
 
-        OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation,source.orientation(),source::definirOrientation);
-//        OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation,source.orientation());
-//        orientation_value_property = source.orientationProperty().asObject() ;
-//        spinner_orientation.getValueFactory().valueProperty().bindBidirectional(orientation_value_property);
-
-
-//        slider_orientation.valueProperty().bindBidirectional(source.orientationProperty());
-        slider_orientation.valueProperty().addListener(new ChangeListener<>() {
-            private boolean changement_en_cours = false ; ;
-
-            @Override
-            public void changed(ObservableValue<? extends Number> observableValue, Number old_value, Number new_value) {
-                if (!changement_en_cours) {
-                    try {
-                        changement_en_cours = true ;
-                        source.definirOrientation(new_value.doubleValue());
-                    } finally {
-                        changement_en_cours = false ;
-                    }
-                }
-            }
-        });
-
+        slider_orientation.valueProperty().set(source.orientation());
+        slider_orientation.valueProperty().addListener(new ChangeListenerAvecGarde<>(this::definirOrientation));
 
         // Lumière polarisée
-        checkbox_polarisation.selectedProperty().bindBidirectional(source.lumierePolariseeProperty());
+        source.lumierePolariseeProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteLumierePolarisee));
+        checkbox_polarisation.selectedProperty().addListener(new ChangeListenerAvecGarde<>(this::definirLumierePolarisee));
 
-        // Orientation du champ electrique (si la lumière est polarisée)
+        // Orientation du champ électrique (si la lumière est polarisée)
         label_orientation_champ_electrique.disableProperty().bind(source.lumierePolariseeProperty().not());
         spinner_orientation_champ_electrique.getValueFactory().setWrapAround(true);
         spinner_orientation_champ_electrique.disableProperty().bind(source.lumierePolariseeProperty().not()) ;
 
-        orientation_champ_electrique_value_property = source.angleChampElectriqueProperty().asObject() ;
-        spinner_orientation_champ_electrique.getValueFactory().valueProperty().bindBidirectional(orientation_champ_electrique_value_property);
-        OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation_champ_electrique,source.angleChampElectrique());
+        source.angleChampElectriqueProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteAngleChampElectrique));
+        OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation_champ_electrique,source.angleChampElectrique(),this::definirAngleChampElectrique);
 
-        slider_orientation_champ_electrique.valueProperty().bindBidirectional(source.angleChampElectriqueProperty());
         slider_orientation_champ_electrique.disableProperty().bind(source.lumierePolariseeProperty().not()) ;
-
+        slider_orientation_champ_electrique.valueProperty().addListener(new ChangeListenerAvecGarde<>(this::definirAngleChampElectrique));
 
         // Nb. rayons
-        nombre_rayons_value_property = source.nombreRayonsProperty().asObject() ;
-        spinner_nombre_rayons.getValueFactory().valueProperty().bindBidirectional(nombre_rayons_value_property);
-        OutilsControleur.integrerSpinnerEntierValidant(spinner_nombre_rayons,source.nombreRayons());
+        source.nombreRayonsProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteNombreRayons));
+        OutilsControleur.integrerSpinnerEntierValidant(spinner_nombre_rayons,source.nombreRayons(),this::definirNombreRayons);
 
         // Ouverture pinceau
-        ouverture_pinceau_value_property = source.ouverturePinceauProperty().asObject() ;
-        spinner_ouverture_pinceau.getValueFactory().valueProperty().bindBidirectional(ouverture_pinceau_value_property);
-        OutilsControleur.integrerSpinnerDoubleValidant(spinner_ouverture_pinceau,source.ouverturePinceau());
-        slider_ouverture_pinceau.valueProperty().bindBidirectional(source.ouverturePinceauProperty());
+        source.ouverturePinceauProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteOuverturePinceau));
+        OutilsControleur.integrerSpinnerDoubleValidant(spinner_ouverture_pinceau,source.ouverturePinceau(),this::definirOuverturePinceau);
+        slider_ouverture_pinceau.valueProperty().addListener(new ChangeListenerAvecGarde<>(this::definirOuverturePinceau));
 
         // Largeur projecteur
-        largeur_projecteur_value_property = source.largeurProjecteurProperty().asObject() ;
-        spinner_largeur_projecteur.getValueFactory().valueProperty().bindBidirectional(largeur_projecteur_value_property);
-        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_largeur_projecteur, source.largeurProjecteur());
-//        canvas.ajustePasEtAffichageSpinnerValueFactoryDistance((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_largeur_projecteur.getValueFactory());
+        source.largeurProjecteurProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteLargeurProjecteur));
+        OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_largeur_projecteur, source.largeurProjecteur(),this::definirLargeurProjecteur);
 
         // Nombre reflexions
-        nombre_reflexions_value_property = source.nombreMaximumRencontresObstacleProperty().asObject() ;
-        spinner_nombre_reflexions.getValueFactory().valueProperty().bindBidirectional(nombre_reflexions_value_property);
-        OutilsControleur.integrerSpinnerEntierValidant(spinner_nombre_reflexions,source.nombreMaximumRencontresObstacle());
+        source.nombreMaximumRencontresObstacleProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteNombreMaximumRencontresObstacle));
+        OutilsControleur.integrerSpinnerEntierValidant(spinner_nombre_reflexions,source.nombreMaximumRencontresObstacle(),this::definirNombreMaximumRencontresObstacle);
 
         // Couleur
-        colorpicker.valueProperty().bindBidirectional(source.couleurProperty());
+        colorpicker.valueProperty().set(source.couleur());
+        source.couleurProperty().addListener(new ChangeListenerAvecGarde<>(colorpicker::setValue));
+        colorpicker.valueProperty().addListener((observableValue, c_avant, c_apres)
+                -> new CommandeDefinirUnParametre<>(source, c_apres, source::couleur, source::definirCouleur).executer());
 
         // Sélection, activation et désactivation automatiques des contrôles pinceau
         label_pinceau.disableProperty().bind(source.typeProperty().isNotEqualTo(Source.TypeSource.PINCEAU)) ;
@@ -223,32 +164,86 @@ public class PanneauSource {
         if (source.type()== Source.TypeSource.PROJECTEUR)
             choix_projecteur.setSelected(true);
 
-        // Ce listener est mono-directionnel Vue > Modèle (mais l'état initial du toggle pinceau/projecteur est déjà positionné)
+        source.typeProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteType));
+
         choix_type_source.selectedToggleProperty().addListener((observable, oldValue,newValue) -> {
             LOGGER.log(Level.FINE,"Choix type source passe de {0} à {1}", new Object[] { oldValue,newValue} ) ;
 
             if (choix_type_source.getSelectedToggle()==choix_pinceau)
-                source.definirType(Source.TypeSource.PINCEAU);
+                new CommandeDefinirUnParametre<>(source, Source.TypeSource.PINCEAU,source::type,source::definirType).executer();
 
             if (choix_type_source.getSelectedToggle()==choix_projecteur)
-                source.definirType(Source.TypeSource.PROJECTEUR);
-
+                new CommandeDefinirUnParametre<>(source, Source.TypeSource.PROJECTEUR,source::type,source::definirType).executer();
         });
-
-        source.typeProperty().addListener(((observableValue, oldValue, newValue) -> {
-            LOGGER.log(Level.FINE,"Type source passe de {0} à {1}", new Object[] { oldValue,newValue} ) ;
-
-            if (newValue== Source.TypeSource.PINCEAU && choix_type_source.getSelectedToggle()!=choix_pinceau)
-                choix_type_source.selectToggle(choix_pinceau);
-
-            if (newValue== Source.TypeSource.PROJECTEUR && choix_type_source.getSelectedToggle()!=choix_projecteur)
-                choix_type_source.selectToggle(choix_projecteur);
-        }));
 
     }
 
-    private void definirXPositionSource(Double x_c) {source.definirPosition(new Point2D(x_c,source.position().getY()));}
-    private void definirYPositionSource(Double y_c) {source.definirPosition(new Point2D(source.position().getX(),y_c));}
+    private void prendreEnCompteType(Source.TypeSource ts) {
+        switch (ts) {
+            case PINCEAU -> choix_pinceau.setSelected(true);
+            case PROJECTEUR ->  choix_projecteur.setSelected(true);
+        }
+    }
+
+    private void definirNombreMaximumRencontresObstacle(int nb_m) {
+        new CommandeDefinirUnParametre<>(source,nb_m,source::nombreMaximumRencontresObstacle,source::definirNombreMaximumRencontresObstacle).executer();
+    }
+
+    private void prendreEnCompteNombreMaximumRencontresObstacle(Number n_m) {
+        spinner_nombre_reflexions.getValueFactory().valueProperty().set(n_m.intValue()) ;
+    }
+
+    private void definirLargeurProjecteur(Number larg) {
+        new CommandeDefinirUnParametreDoubleDistance<>(source,larg.doubleValue(),source::largeurProjecteur,source::definirLargeurProjecteur).executer();
+    }
+
+    private void prendreEnCompteLargeurProjecteur(Number larg) {
+        spinner_largeur_projecteur.getValueFactory().valueProperty().set(larg.doubleValue());
+    }
+
+    private void definirOuverturePinceau(Number ouv) {
+        new CommandeDefinirUnParametre<>(source,ouv.doubleValue(),source::ouverturePinceau,source::definirOuverturePinceau).executer();
+    }
+
+    private void prendreEnCompteOuverturePinceau(Number ouv) {
+        spinner_ouverture_pinceau.getValueFactory().valueProperty().set(ouv.doubleValue());
+        slider_ouverture_pinceau.valueProperty().set(ouv.doubleValue());
+    }
+
+    private void prendreEnCompteNombreRayons(Number nb_r) {
+        spinner_nombre_rayons.getValueFactory().valueProperty().set(nb_r.intValue());
+    }
+
+    private void definirNombreRayons(int nb_r) {
+        new CommandeDefinirUnParametre<>(source,nb_r,source::nombreRayons,source::definirNombreRayons).executer();
+    }
+    private void definirAngleChampElectrique(Number ang) {
+        new CommandeDefinirUnParametre<>(source,ang.doubleValue(),source::angleChampElectrique,source::definirAngleChampElectrique).executer();
+    }
+
+    private void prendreEnCompteAngleChampElectrique(Number or) {
+        spinner_orientation_champ_electrique.getValueFactory().valueProperty().set(or.doubleValue());
+        slider_orientation_champ_electrique.valueProperty().set(or.doubleValue());
+    }
+
+    private void definirLumierePolarisee(boolean pol) {
+        new CommandeDefinirUnParametre<>(source,pol,source::lumierePolarisee,source::definirLumierePolarisee).executer() ;
+    }
+
+    private void prendreEnCompteLumierePolarisee(boolean pol) {
+        checkbox_polarisation.setSelected(pol);
+    }
+
+    private void definirOrientation(Number or) {
+        new CommandeDefinirUnParametre<>(source,or.doubleValue(),source::orientation,source::definirOrientation).executer();
+    }
+
+    private void definirXPositionSource(Double x_c) {
+        new CommandeDefinirUnParametrePoint<>(source,new Point2D(x_c,source.yPosition()),source::position,source::definirPosition).executer();
+    }
+    private void definirYPositionSource(Double y_c) {
+        new CommandeDefinirUnParametrePoint<>(source,new Point2D(source.xPosition(),y_c),source::position,source::definirPosition).executer();
+    }
 
     private void prendreEnComptePositionEtOrientation(PositionEtOrientation nouvelle_pos_et_or) {
         spinner_x.getValueFactory().valueProperty().set(nouvelle_pos_et_or.position().getX());
@@ -256,6 +251,5 @@ public class PanneauSource {
         spinner_orientation.getValueFactory().valueProperty().set(nouvelle_pos_et_or.orientation_deg());
         slider_orientation.valueProperty().set(nouvelle_pos_et_or.orientation_deg());
     }
-
 
 }
