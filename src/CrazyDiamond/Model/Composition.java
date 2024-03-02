@@ -9,8 +9,10 @@ import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.function.Predicate;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 
 public class Composition implements Obstacle, Identifiable, Nommable, ElementAvecContour, ElementAvecMatiere {
@@ -266,10 +268,19 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
         operateur.setValue(op);
     }
 
+    /**
+     * Ajoute un obstacle dans la Composition.
+     * NB : Les utilisateurs de cette méthode doivent veiller à retirer l'obstacle de l'environnement avant d'appeler
+     * cette méthode.
+     * @param o : obstacle à ajouter
+     */
     public void ajouterObstacle(Obstacle o) {
 
         if (this.elements.contains(o))
             return;
+
+        // TODO : il faudrait peut-être vérifier si l'obstacle appartient à l'environnement car sinon, il n'y aura pas de notification
+        // des rappels en cas de modification de ses propriétés (car ces rappels sont ajoutés lors de l'ajout de l'obstacle à l'environnement)
 
 //        o.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources); ;
 
@@ -331,12 +342,6 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
         }
 
         return null ;
-
-    }
-
-    public void retirerObstacleParHexHashcode(String obstacle_hex_hashcode) {
-        Predicate<Obstacle> filtre = opo -> ((Integer.toHexString(opo.hashCode())).equals(obstacle_hex_hashcode));
-        elements.removeIf(filtre);
 
     }
 

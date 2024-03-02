@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -19,13 +18,20 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
-import javafx.scene.input.*;
-import javafx.scene.layout.*;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -328,7 +334,14 @@ public class PanneauPrincipal {
                 scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
                 return;
             }
+
+            // Dé-selection d'un éventuel élément déjà sélectionné dans les autres listes/arbres (pour que l'utilisateur
+            // puisse le re-sélectionner et en avoir le détail dans le panneau droit)
+            treeview_obstacles.getSelectionModel().clearSelection();
+            treeview_socs.getSelectionModel().clearSelection();
+
             scrollpane_droit_element_courant.setContent(map_element_panneau_droit.get(new_val));
+
             // Si on est en mode sélection, sélectionner les obstacles dans le canvas
             if (modeCourant()==selection) {
                 canvas_environnement.selection().vider();
@@ -364,7 +377,14 @@ public class PanneauPrincipal {
                 scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
                 return;
             }
+
+            // Dé-selection d'un éventuel élément déjà sélectionné dans les autres listes/arbres (pour que l'utilisateur
+            // puisse le re-sélectionner et en avoir le détail dans le panneau droit)
+            listview_sources.getSelectionModel().clearSelection();
+            treeview_socs.getSelectionModel().clearSelection();
+
             scrollpane_droit_element_courant.setContent(map_element_panneau_droit.get(new_val.getValue()));
+
             // Si on est en mode sélection, sélectionner les obstacles dans le canvas
             if (modeCourant()==selection) {
                 canvas_environnement.selection().vider();
@@ -396,6 +416,12 @@ public class PanneauPrincipal {
                 scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
                 return;
             }
+
+            // Dé-selection d'un éventuel élément déjà sélectionné dans les autres listes/arbres (pour que l'utilisateur
+            // puisse le re-sélectionner et en avoir le détail dans le panneau droit)
+            listview_sources.getSelectionModel().clearSelection();
+            treeview_obstacles.getSelectionModel().clearSelection();
+
             scrollpane_droit_element_courant.setContent(map_element_panneau_droit.get(new_val.getValue().contenu()));
 
             // Si on est en mode sélection, sélectionner l'objet dans le canvas
@@ -487,6 +513,14 @@ public class PanneauPrincipal {
 
                         listview_sources.getSelectionModel().clearSelection();
 
+                        canvas_environnement.selection().retireSource(remitem);
+
+                        map_element_panneau_droit.remove(remitem) ;
+
+                        // NB : inutile de changer le contenu du panneau droit : c'est fait grâce au listener sur
+                        // le focusModelProperty (cf. plus haut dans cette méthode)
+//                        scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
+
                     }
 
                 } else if (change.wasAdded()) {
@@ -519,8 +553,13 @@ public class PanneauPrincipal {
                             tio_a_supprimer.getParent().getChildren().remove(tio_a_supprimer) ;
 
                         treeview_obstacles.getSelectionModel().clearSelection();
-
                         canvas_environnement.selection().retireObstacle(remitem);
+
+                        map_element_panneau_droit.remove(remitem) ;
+                        // NB : inutile de changer le contenu du panneau droit : c'est fait grâce au listener sur
+                        // le focusModelProperty (cf. plus haut dans cette méthode)
+
+//                        scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
 
                     }
                 } else if (change.wasAdded()) {
@@ -551,8 +590,16 @@ public class PanneauPrincipal {
                             tio_a_supprimer.getParent().getChildren().remove(tio_a_supprimer) ;
 
                         treeview_socs.getSelectionModel().clearSelection();
-
                         canvas_environnement.selection().retireSoc(remitem);
+
+                        map_element_panneau_droit.remove(remitem) ;
+
+                        // NB : inutile de changer le contenu du panneau droit : c'est fait grâce au listener sur
+                        // le focusModelProperty (cf. plus haut dans cette méthode)
+//                        scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
+
+                        map_element_panneau_bas.remove(remitem) ;
+                        anchorpane_bas_element_courant.getChildren().clear();
 
                     }
 
@@ -1052,65 +1099,65 @@ public class PanneauPrincipal {
 
     }
 
-    public void traiterCreationComposition() {
-
-        ButtonType okButtonType = new ButtonType(rb.getString("bouton.dialogue.composition.ok"), ButtonBar.ButtonData.OK_DONE);
-        ButtonType annulerButtonType = new ButtonType(rb.getString("bouton.dialogue.composition.annuler"), ButtonBar.ButtonData.CANCEL_CLOSE);
-        Dialog<ArrayList<Obstacle>> boite_dialogue = new Dialog<>() ;
-
-        boite_dialogue.setTitle(rb.getString("titre.dialogue.composition"));
-        boite_dialogue.setHeaderText(rb.getString("invite.dialogue.composition"));
-
-        ObservableList<Obstacle> obstacles_a_proposer =  FXCollections.observableArrayList();
-
-        Iterator<Obstacle> ito =  environnement.iterateur_obstacles() ;
-        while (ito.hasNext()) {
-            Obstacle o = ito.next() ;
-            // Rechercher si l'obstacle o implémente l'interface ElementAvecMatiere car c'est requis pour faire partie d'une composition
-            // S"assurer aussi qu'il ne fait pas partie d'un SOC
-            if (o instanceof ElementAvecMatiere && !o.appartientASystemeOptiqueCentre())
-                obstacles_a_proposer.add( o ) ;
-        }
-
-        ListView<Obstacle> lo = new ListView<>(obstacles_a_proposer) ;
-
-        ScrollPane sp = new ScrollPane(lo) ;
-        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-
-        lo.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-
-        boite_dialogue.getDialogPane().setContent(lo);
-
-        boite_dialogue.setResultConverter( buttonType -> {
-            if (buttonType == okButtonType)
-                return new ArrayList<>(lo.getSelectionModel().getSelectedItems()) ;
-
-            return null ;
-        });
-
-        boite_dialogue.getDialogPane().getButtonTypes().add(okButtonType);
-        boite_dialogue.getDialogPane().getButtonTypes().add(annulerButtonType);
-
-
-        Optional<ArrayList<Obstacle>> op_obstacles_choisis =  boite_dialogue.showAndWait() ;
-        if (op_obstacles_choisis.isPresent()) {
-
-            ArrayList<Obstacle> obstacles_choisis = op_obstacles_choisis.get() ;
-
-            LOGGER.log(Level.INFO,"Obstacles choisis pour composition : {0}",obstacles_choisis) ;
-
-            Composition compo = new Composition(Composition.Operateur.UNION);
-
-            for(Obstacle o : obstacles_choisis) {
-                environnement.retirerObstacle(o);
-                compo.ajouterObstacle(o);
-            }
-
-            environnement.ajouterObstacle(compo);
-        }
-
-
-    }
+//    public void traiterCreationComposition() {
+//
+//        ButtonType okButtonType = new ButtonType(rb.getString("bouton.dialogue.composition.ok"), ButtonBar.ButtonData.OK_DONE);
+//        ButtonType annulerButtonType = new ButtonType(rb.getString("bouton.dialogue.composition.annuler"), ButtonBar.ButtonData.CANCEL_CLOSE);
+//        Dialog<ArrayList<Obstacle>> boite_dialogue = new Dialog<>() ;
+//
+//        boite_dialogue.setTitle(rb.getString("titre.dialogue.composition"));
+//        boite_dialogue.setHeaderText(rb.getString("invite.dialogue.composition"));
+//
+//        ObservableList<Obstacle> obstacles_a_proposer =  FXCollections.observableArrayList();
+//
+//        Iterator<Obstacle> ito =  environnement.iterateur_obstacles() ;
+//        while (ito.hasNext()) {
+//            Obstacle o = ito.next() ;
+//            // Rechercher si l'obstacle o implémente l'interface ElementAvecMatiere car c'est requis pour faire partie d'une composition
+//            // S"assurer aussi qu'il ne fait pas partie d'un SOC
+//            if (o instanceof ElementAvecMatiere && !o.appartientASystemeOptiqueCentre())
+//                obstacles_a_proposer.add( o ) ;
+//        }
+//
+//        ListView<Obstacle> lo = new ListView<>(obstacles_a_proposer) ;
+//
+//        ScrollPane sp = new ScrollPane(lo) ;
+//        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+//
+//        lo.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+//
+//        boite_dialogue.getDialogPane().setContent(lo);
+//
+//        boite_dialogue.setResultConverter( buttonType -> {
+//            if (buttonType == okButtonType)
+//                return new ArrayList<>(lo.getSelectionModel().getSelectedItems()) ;
+//
+//            return null ;
+//        });
+//
+//        boite_dialogue.getDialogPane().getButtonTypes().add(okButtonType);
+//        boite_dialogue.getDialogPane().getButtonTypes().add(annulerButtonType);
+//
+//
+//        Optional<ArrayList<Obstacle>> op_obstacles_choisis =  boite_dialogue.showAndWait() ;
+//        if (op_obstacles_choisis.isPresent()) {
+//
+//            ArrayList<Obstacle> obstacles_choisis = op_obstacles_choisis.get() ;
+//
+//            LOGGER.log(Level.INFO,"Obstacles choisis pour composition : {0}",obstacles_choisis) ;
+//
+//            Composition compo = new Composition(Composition.Operateur.UNION);
+//
+//            for(Obstacle o : obstacles_choisis) {
+//                environnement.supprimerObstacle(o);
+//                compo.ajouterObstacle(o);
+//            }
+//
+//            environnement.ajouterObstacle(compo);
+//        }
+//
+//
+//    }
 
     public void traiterDefinitionParametresEnvironnement() {
         listview_sources.getSelectionModel().clearSelection();

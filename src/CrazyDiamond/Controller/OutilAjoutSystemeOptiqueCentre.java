@@ -76,7 +76,7 @@ public class OutilAjoutSystemeOptiqueCentre extends OutilPermettantDeplacementZo
     public void interrompre() {
         if (soc_en_cours_ajout != null) {
             // On retire le soc courant, [ce qui va rafraichir les chemins et le décor ?]
-            cae.environnement().retirerSystemeOptiqueCentre(soc_en_cours_ajout);
+            cae.environnement().supprimerSystemeOptiqueCentre(soc_en_cours_ajout);
             soc_en_cours_ajout = null;
         }
     }

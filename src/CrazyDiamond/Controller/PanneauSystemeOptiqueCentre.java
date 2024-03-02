@@ -144,75 +144,81 @@ public class PanneauSystemeOptiqueCentre {
 
 
     public void ajouterObstacle(ActionEvent actionEvent) throws Exception {
-        // Afficher dialogue avec la liste des Obstacles ayant une symétrie de révolution
 
+        // Afficher dialogue avec la liste des Obstacles ayant une symétrie de révolution
         ButtonType okButtonType = new ButtonType(rb.getString("bouton.dialogue.soc.ok"), ButtonBar.ButtonData.OK_DONE);
         ButtonType annulerButtonType = new ButtonType(rb.getString("bouton.dialogue.soc.annuler"), ButtonBar.ButtonData.CANCEL_CLOSE);
-        Dialog<ArrayList<Obstacle>> boite_dialogue = new Dialog<>() ;
+        Dialog<ArrayList<Obstacle>> boite_dialogue = new Dialog<>();
 
         boite_dialogue.setTitle(rb.getString("titre.dialogue.composition"));
         boite_dialogue.setHeaderText(rb.getString("invite.dialogue.composition"));
 
-        ObservableList<Obstacle> obstacles_a_proposer =  FXCollections.observableArrayList();
+        ObservableList<Obstacle> obstacles_a_proposer = FXCollections.observableArrayList();
 
-        Iterator<Obstacle> ito =  canvas.environnement().iterateur_obstacles() ;
+        Iterator<Obstacle> ito = canvas.environnement().iterateur_obstacles();
         while (ito.hasNext()) {
-            Obstacle o = ito.next() ;
+            Obstacle o = ito.next();
             // Rechercher si l'obstacle o implémente l'interface ElementAvecMatiere car eux seuls peuvent faire partie d'une composition
-            if ( o.aSymetrieDeRevolution() && !soc.comprend(o) && canvas.environnement().systemeOptiqueCentreContenant(o)==null )
-                obstacles_a_proposer.add( o ) ;
+            if (o.aSymetrieDeRevolution() && !soc.comprend(o) && canvas.environnement().systemeOptiqueCentreContenant(o) == null)
+                obstacles_a_proposer.add(o);
         }
 
-        ListView<Obstacle> lo = new ListView<>(obstacles_a_proposer) ;
+        ListView<Obstacle> lo = new ListView<>(obstacles_a_proposer);
 
         // TODO Limiter la composition à deux objets : proposer deux listview en sélection SINGLE côte à côte (mais
         // interdire de choisir le même objet dans les deux listes... : retirer de la 2ème l'objet sélectionné dans
         // la première, et le remettre si il n'est plus sélectionné dans la première... Mais quid si on sélectionne
         // d'abord dans la 2eme liste, avant la première ??
 
-        ScrollPane sp = new ScrollPane(lo) ;
+        ScrollPane sp = new ScrollPane(lo);
         sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
         lo.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         boite_dialogue.getDialogPane().setContent(lo);
 
-        boite_dialogue.setResultConverter( buttonType -> {
+        boite_dialogue.setResultConverter(buttonType -> {
             if (buttonType == okButtonType)
-                return new ArrayList<>(lo.getSelectionModel().getSelectedItems()) ;
+                return new ArrayList<>(lo.getSelectionModel().getSelectedItems());
 
-            return null ;
+            return null;
         });
 
         boite_dialogue.getDialogPane().getButtonTypes().add(okButtonType);
         boite_dialogue.getDialogPane().getButtonTypes().add(annulerButtonType);
 
-        Optional<ArrayList<Obstacle>> op_obstacles_choisis =  boite_dialogue.showAndWait() ;
+        Optional<ArrayList<Obstacle>> op_obstacles_choisis = boite_dialogue.showAndWait();
         if (op_obstacles_choisis.isPresent()) {
 
-            ArrayList<Obstacle> obstacles_choisis = op_obstacles_choisis.get() ;
+            ArrayList<Obstacle> obstacles_choisis = op_obstacles_choisis.get();
 
-            LOGGER.log(Level.INFO,"Obstacles choisis pour SOC : {0}",obstacles_choisis) ;
+            LOGGER.log(Level.INFO, "Obstacles choisis pour SOC : {0}", obstacles_choisis);
 
-            // TODO : definir et appeler plutôt une méthode ajouterObstacleSParCommande dans SystemeOptiqueCentre
-            for(Obstacle o : obstacles_choisis) {
-//                o.integrerDansSystemeOptiqueCentre(soc);
-//                integrerObstacle(o);
-
-                    soc.ajouterObstacle(o) ;
-
-//                    // Rafraichissement automatique de la liste des obstacles du SOC quand le nom de l'obstacle ajouté change
-//                    ChangeListener<String> listenerNom = (obs, oldName, newName) -> listview_obstacles_centres.refresh();
-//                    o.nomProperty().addListener(listenerNom);
-
-//                environnement.retirerObstacle(o);
-//                compo.ajouterObstacle(o);
-            }
-
-//            environnement.ajouterObstacle(compo);
+            new CommandeAjouterObstaclesDansSystemeOptiqueCentre(soc, obstacles_choisis).executer();
         }
-
     }
+            //            for(Obstacle o : obstacles_choisis) {
+//                soc.ajouterObstacle(o);
+//            }
+
+//            for(Obstacle o : obstacles_choisis) {
+////                o.integrerDansSystemeOptiqueCentre(soc);
+////                integrerObstacle(o);
+//
+//                    soc.ajouterObstacle(o) ;
+//
+////                    // Rafraichissement automatique de la liste des obstacles du SOC quand le nom de l'obstacle ajouté change
+////                    ChangeListener<String> listenerNom = (obs, oldName, newName) -> listview_obstacles_centres.refresh();
+////                    o.nomProperty().addListener(listenerNom);
+//
+////                environnement.supprimerObstacle(o);
+////                compo.ajouterObstacle(o);
+//            }
+//
+////            environnement.ajouterObstacle(compo);
+////        }
+//
+//    }
 
 //    void integrerObstacle(Obstacle o) throws Exception {
 //        if (!o.aSymetrieDeRevolution())

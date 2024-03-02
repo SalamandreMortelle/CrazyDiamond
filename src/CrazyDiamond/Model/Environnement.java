@@ -11,7 +11,6 @@ import javafx.scene.paint.Color;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -326,17 +325,18 @@ public class Environnement {
         repositionnerObstacleDansSoc(o_a_deplacer, i_pos);
     }
 
-    public void insererObstacleEnPosition(Obstacle o_a_deplacer, int i_pos) {
-        obstacles.add(i_pos,o_a_deplacer);
+    public void ajouterObstacleEnPosition(Obstacle o_a_ajouter, int i_pos_dans_env) {
+        if (this.obstacles.contains(o_a_ajouter))
+            return;
 
-        repositionnerObstacleDansSoc(o_a_deplacer, i_pos);
+        o_a_ajouter.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources);
+
+        obstacles.add(i_pos_dans_env,o_a_ajouter);
+
+        repositionnerObstacleDansSoc(o_a_ajouter, i_pos_dans_env);
     }
 
-    public void insererObstacleEnDernier(Obstacle o_a_deplacer) {
-        insererObstacleEnPosition(o_a_deplacer,obstacles.size());
-    }
-
-    private void repositionnerObstacleDansSoc(Obstacle o_a_deplacer, int i_pos_dans_env) {
+    protected void repositionnerObstacleDansSoc(Obstacle o_a_deplacer, int i_pos_dans_env) {
         if (o_a_deplacer.appartientASystemeOptiqueCentre()) {
 
             SystemeOptiqueCentre soc = systemeOptiqueCentreContenant(o_a_deplacer) ;
@@ -354,7 +354,7 @@ public class Environnement {
     }
 
 
-    public void retirerSource(Source s) {
+    public void supprimerSource(Source s) {
 
         // TODO : voir si interet à faire les unbind
 
@@ -362,7 +362,7 @@ public class Environnement {
 
     }
 
-    public void retirerSystemeOptiqueCentre(SystemeOptiqueCentre s) {
+    public void supprimerSystemeOptiqueCentre(SystemeOptiqueCentre s) {
         s.detacherObstacles() ;
 
         systemes_optiques_centres.remove(s) ;
@@ -385,7 +385,7 @@ public class Environnement {
      * S'il appartenait à un SOC, sa référence en est retirée avant qu'il soit supprimé de l'environnement.
      * @param o : obstacle à retirer.
      */
-    public void retirerObstacle(Obstacle o) {
+    public void supprimerObstacle(Obstacle o) {
 
         if (o.appartientAComposition()) {
             Composition comp_contenante = compositionContenant(o);
@@ -398,36 +398,21 @@ public class Environnement {
         if (o.appartientASystemeOptiqueCentre())
             systemeOptiqueCentreContenant(o).retirerObstacleCentre(o);
 
-//        if (o.appartientASystemeOptiqueCentre())
-//            for (SystemeOptiqueCentre soc : systemes_optiques_centres) {
-//                if (soc.contient(o)) {
-//                    soc.retirerObstacleCentre(o);
-//                    break ; // Un Obstacle ne peut appartenir qu'à un SOC
-//                }
-//            }
-
+        // TODO : il faudrait enlever les listeners qui avaient été mis (via Obstacle.ajouterRappelSurChangementTouteProprieteModifiantChemin)
+        // Car le fait d'enlever puis de ré-ajouter un obstacle de l'environnement fait qu'il déclenchera (notifiera) deux fois tous ses rappels
+        // mais il faudrait alors penser à appeler ajouterRappel.. lorsqu'on ajoute cet obstacle dans une composition. Complexe. Plus simple de tolérer
+        // les notifications redondantes.
         obstacles.remove(o) ;
 
         // TODO : ajouter un listener sur la liste des obstacles et appeler illuminerTouteSource lors d'un retrait
 
     }
 
-    public void retirerSourceParHexHashcode(String source_hex_hashcode) {
-        Predicate<Source> filtre = src -> ( (Integer.toHexString(src.hashCode())).equals(source_hex_hashcode) );
-        sources.removeIf(filtre) ;
-    }
-
-    public void retirerObstacleParHexHashcode(String obstacle_hex_hashcode) {
-        Predicate<Obstacle> filtre = opo -> ( (Integer.toHexString(opo.hashCode())).equals(obstacle_hex_hashcode) );
-        obstacles.removeIf(filtre) ;
-
-    }
-
     /**
      *
      * @param p : point pour lequel on cherche un obstacle qui le contient
-     * @return le dernier des Obstacle qui contient le point (dans la liste des obstacles de l'environnement), ou
-     * null si il n'y en a aucun.
+     * @return le dernier des obstacles qui contient le point (dans la liste des obstacles de l'environnement), ou
+     * null s'il n'y en a aucun.
      */
     public Obstacle obstacle_contenant(Point2D p) {
         Iterator<Obstacle> ito = iterateur_obstacles() ;

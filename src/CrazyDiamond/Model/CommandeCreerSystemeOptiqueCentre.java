@@ -20,7 +20,7 @@ public class CommandeCreerSystemeOptiqueCentre extends Commande {
 
     @Override
     public void annuler() {
-        environnement.retirerSystemeOptiqueCentre(soc_cree);
+        environnement.supprimerSystemeOptiqueCentre(soc_cree);
     }
 
     protected void convertirDistances(double facteur_conversion) {

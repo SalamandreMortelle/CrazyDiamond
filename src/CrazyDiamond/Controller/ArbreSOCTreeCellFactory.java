@@ -1,9 +1,7 @@
 package CrazyDiamond.Controller;
 
 import CrazyDiamond.CrazyDiamond;
-import CrazyDiamond.Model.Environnement;
-import CrazyDiamond.Model.Obstacle;
-import CrazyDiamond.Model.SystemeOptiqueCentre;
+import CrazyDiamond.Model.*;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
 import javafx.util.Callback;
@@ -30,8 +28,6 @@ public class ArbreSOCTreeCellFactory implements Callback<TreeView<ElementArbreSO
     @Override
     public TreeCell<ElementArbreSOC> call(TreeView<ElementArbreSOC> socTreeView) {
         TreeCell<ElementArbreSOC> cell = new TreeCell<>() {
-            //protected class TreeCellArbreSoc extends TreeCell<ElementArbreSOC> {
-
             ElementArbreSOC item_courant = null;
 
             @Override
@@ -68,13 +64,16 @@ public class ArbreSOCTreeCellFactory implements Callback<TreeView<ElementArbreSO
 
         ContextMenu menuContextuelSocSupprimer = new ContextMenu();
         MenuItem deleteItemSoc = new MenuItem(rb.getString("supprimer.soc"));
-        deleteItemSoc.setOnAction(event -> environnement.retirerSystemeOptiqueCentre(cell.getItem().soc));
+        deleteItemSoc.setOnAction(event ->
+            new CommandeSupprimerSystemeOptiqueCentre(environnement,cell.getItem().soc).executer()
+        );
         menuContextuelSocSupprimer.getItems().add(deleteItemSoc);
 
         ContextMenu menuContextuelSocRetirerObstacle = new ContextMenu();
         MenuItem retirerItemSoc = new MenuItem(rb.getString("retirer.obstacle.soc"));
-        retirerItemSoc.setOnAction(event -> cell.getTreeItem().getParent().getValue().soc
-                .retirerObstacleCentre(cell.getItem().obstacle));
+        retirerItemSoc.setOnAction(event ->
+            new CommandeRetirerObstaclesDeSystemeOptiqueCentre(cell.getTreeItem().getParent().getValue().soc,cell.getItem().obstacle).executer()
+        );
         menuContextuelSocRetirerObstacle.getItems().add(retirerItemSoc);
 
         cell.itemProperty().addListener((obs,old_val,new_val) -> {
@@ -137,8 +136,7 @@ public class ArbreSOCTreeCellFactory implements Callback<TreeView<ElementArbreSO
 
         SystemeOptiqueCentre soc_cible = el_cible.soc ; // Item sur lequel on a déposé
 
-        // TODO : definir et appeler plutôt une méthode ajouterObstacleParCommande
-        soc_cible.ajouterObstacle(dragged_obs);
+        new CommandeAjouterObstaclesDansSystemeOptiqueCentre(soc_cible,dragged_obs).executer();
 
         event.setDropCompleted(true);
 

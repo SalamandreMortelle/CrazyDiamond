@@ -1,5 +1,6 @@
 package CrazyDiamond.Controller;
 
+import CrazyDiamond.Model.CommandeSupprimerSource;
 import CrazyDiamond.Model.Environnement;
 import CrazyDiamond.Model.Source;
 import javafx.scene.control.ContextMenu;
@@ -63,7 +64,7 @@ public class SourceListCellFactory implements Callback<ListView<Source>, ListCel
         };
         ContextMenu menuContextuelSources = new ContextMenu() ;
         MenuItem deleteItemSource = new MenuItem(rb.getString("supprimer.source"));
-        deleteItemSource.setOnAction(event -> environnement.retirerSource(cell.getItem()));
+        deleteItemSource.setOnAction( event -> new CommandeSupprimerSource(environnement,cell.getItem()).executer() );
         menuContextuelSources.getItems().add(deleteItemSource);
 
         cell.emptyProperty().addListener((obs, wasEmpty, isNowEmpty) -> {

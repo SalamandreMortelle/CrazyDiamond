@@ -252,7 +252,7 @@ public class OutilSelection extends Outil {
                 if (cae.selection().estVide())
                     break; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
-                translaterSelectionParCommande(new Point2D(cae.resolution(),0.0)); ;
+                translaterSelectionParCommande(new Point2D(cae.resolution(),0.0));
 
                 keyEvent.consume();
             }
@@ -260,7 +260,7 @@ public class OutilSelection extends Outil {
                 if (cae.selection().estVide())
                     break; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
-                translaterSelectionParCommande(new Point2D(0.0, cae.resolution())); ;
+                translaterSelectionParCommande(new Point2D(0.0, cae.resolution()));
 
                 keyEvent.consume();
             }
@@ -268,7 +268,7 @@ public class OutilSelection extends Outil {
                 if (cae.selection().estVide())
                     break; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
 
-                translaterSelectionParCommande(new Point2D(0.0,-cae.resolution())); ;
+                translaterSelectionParCommande(new Point2D(0.0,-cae.resolution()));
 
                 keyEvent.consume();
             }
@@ -405,9 +405,9 @@ public class OutilSelection extends Outil {
         // Pour éviter cela, commençons par faire une copie (non profonde) de la sélection.
         ElementsSelectionnes es_copie = new ElementsSelectionnes(es) ;
 
-        es_copie.stream_obstacles().forEach(cae.environnement()::retirerObstacle);
-        es_copie.stream_sources().forEach(cae.environnement()::retirerSource);
-        es_copie.stream_socs().forEach(cae.environnement()::retirerSystemeOptiqueCentre);
+        es_copie.stream_obstacles().forEach(cae.environnement()::supprimerObstacle);
+        es_copie.stream_sources().forEach(cae.environnement()::supprimerSource);
+        es_copie.stream_socs().forEach(cae.environnement()::supprimerSystemeOptiqueCentre);
 
     }
 

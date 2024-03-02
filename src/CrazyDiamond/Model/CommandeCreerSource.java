@@ -20,7 +20,7 @@ public class CommandeCreerSource extends Commande {
 
     @Override
     public void annuler() {
-        environnement.retirerSource(source_cree);
+        environnement.supprimerSource(source_cree);
     }
 
     protected void convertirDistances(double facteur_conversion) {

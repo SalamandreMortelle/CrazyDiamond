@@ -20,7 +20,7 @@ public class CommandeCreerObstacleSimple extends Commande {
 
     @Override
     public void annuler() {
-        environnement.retirerObstacle(obstacle_cree);
+        environnement.supprimerObstacle(obstacle_cree);
     }
 
     protected void convertirDistances(double facteur_conversion) {

@@ -72,7 +72,7 @@ public class OutilAjoutObstacle extends OutilPermettantDeplacementZoneVisible {
     public void interrompre() {
         if (obstacle_en_cours_ajout != null) {
             // On retire l'obstacle courant, ce qui va rafraichir les chemins et le décor
-            cae.environnement().retirerObstacle(obstacle_en_cours_ajout);
+            cae.environnement().supprimerObstacle(obstacle_en_cours_ajout);
             obstacle_en_cours_ajout = null;
         }
     }

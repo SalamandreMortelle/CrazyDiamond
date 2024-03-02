@@ -1,10 +1,7 @@
 package CrazyDiamond.Controller;
 
 import CrazyDiamond.CrazyDiamond;
-import CrazyDiamond.Model.Composition;
-import CrazyDiamond.Model.ElementSansEpaisseur;
-import CrazyDiamond.Model.Environnement;
-import CrazyDiamond.Model.Obstacle;
+import CrazyDiamond.Model.*;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
 import javafx.util.Callback;
@@ -71,7 +68,7 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
 
         ContextMenu menuContextuelObstacles = new ContextMenu() ;
         MenuItem deleteItemObstacle = new MenuItem(rb.getString("supprimer.obstacle")) ;
-        deleteItemObstacle.setOnAction(event -> environnement.retirerObstacle(cell.getItem())) ;
+        deleteItemObstacle.setOnAction(event -> new CommandeSupprimerObstacle(environnement,cell.getItem()).executer()) ;
         menuContextuelObstacles.getItems().add(deleteItemObstacle) ;
         cell.emptyProperty().addListener((obs, wasEmpty, isNowEmpty) -> {
             if (isNowEmpty) {
@@ -81,7 +78,7 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
             }
         });
 
-        cell.setOnDragDetected((MouseEvent event) -> dragDetected(event, cell, obstacleTreeView));
+        cell.setOnDragDetected((MouseEvent event) -> dragDetected(event, cell));
         cell.setOnDragOver((DragEvent event) -> dragOver(event, cell, obstacleTreeView));
         cell.setOnDragDropped((DragEvent event) -> drop(event, cell, obstacleTreeView));
         cell.setOnDragDone((DragEvent event) -> clearDropLocation());
@@ -89,7 +86,7 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
         return cell;
     }
 
-    private void dragDetected(MouseEvent event, TreeCell<Obstacle> treeCell, TreeView<Obstacle> treeView) {
+    private void dragDetected(MouseEvent event, TreeCell<Obstacle> treeCell) {
         draggedItem = treeCell.getTreeItem();
 
         // Seuls les obstacles "libres" (c'est-à-dire ceux qui sont au 1er niveau sous le noeud racine, et qui ne font
@@ -169,20 +166,10 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
         }
 
         Obstacle o_dragged = draggedItem.getValue() ;
-        boolean o_dragged_est_inclus_dans_composition = o_dragged.appartientAComposition() ;
 
         TreeItem<Obstacle> item_cible_depose = treeCell.getTreeItem(); // Item sur lequel on a déposé
 
-//        if (item_cible_depose==null) {
-//            System.out.println("DEPOSE DANS LE VIDE");
-//            environnement.insererObstacleEnDernier(o_dragged);
-//            treeView.getSelectionModel().select(draggedItem);
-//            event.setDropCompleted(true);
-//            return;
-//        }
-
         Obstacle o_cible_depose = (item_cible_depose!=null?item_cible_depose.getValue():null) ;
-
 
         boolean o_cible_depose_est_premier_niveau = (item_cible_depose!=null) && (item_cible_depose.getParent()==treeView.getRoot()) ;
         boolean o_cible_depose_est_composition    = (item_cible_depose!=null) && (o_cible_depose instanceof Composition) ;
@@ -196,36 +183,28 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
                 && (!o_cible_depose_est_premier_niveau || item_cible_depose.isExpanded() || ( ((Composition)o_cible_depose).estVide() ) )
                 && (!(o_dragged instanceof ElementSansEpaisseur)) ) {
             dropZone.setStyle(DROP_HINT_STYLE_DANS);
+
             Composition comp_cible = (Composition) o_cible_depose ;
 
-            if (!o_dragged_est_inclus_dans_composition) // Obstacle glissé non inclus dans une composition
-                environnement.retirerObstacle(draggedItem.getValue()); // On le retire de l'environnement
-            else
-                // On le retire de la composition dont il fait partie
-                environnement.compositionContenant(o_dragged).retirerObstacle(o_dragged);
-
-            comp_cible.ajouterObstacle(draggedItem.getValue());
+            new CommandeAjouterObstacleDansComposition(environnement,comp_cible,o_dragged).executer() ;
         }
         else { // Dépose sur un élément de 1er niveau => Element à positionner au 1er niveau de l'environnement
             if (dropZone!=null) dropZone.setStyle(DROP_HINT_STYLE_APRES);
 
-            int indexCibleInParent = (item_cible_depose!=null?item_cible_depose.getParent().getChildren().indexOf(item_cible_depose): treeView.getRoot().getChildren().size()-1);
-            if (!o_dragged_est_inclus_dans_composition) {
+            int indexCibleInParent = (item_cible_depose!=null?
+                    item_cible_depose.getParent().getChildren().indexOf(item_cible_depose)
+                    :treeView.getRoot().getChildren().size()-1);
+
+            if (!o_dragged.appartientAComposition()) {
                 int indexSourceInParent = (item_cible_depose!=null?item_cible_depose.getParent().getChildren().indexOf(draggedItem):treeView.getRoot().getChildren().indexOf(draggedItem));
 
                 if (indexCibleInParent > indexSourceInParent)
-                    environnement.deplacerObstacleEnPosition(draggedItem.getValue(), indexCibleInParent);
+                    new CommandeDeplacerObstacleEnPosition(environnement,o_dragged,indexCibleInParent).executer();
                 else if (indexCibleInParent < indexSourceInParent)
-                    environnement.deplacerObstacleEnPosition(draggedItem.getValue(), indexCibleInParent + 1);
+                    new CommandeDeplacerObstacleEnPosition(environnement,o_dragged,indexCibleInParent+1).executer();
             }
             else // L'obstacle glissé est inclus dans une composition
-            {
-                // On l'en retire
-                environnement.compositionContenant(o_dragged).retirerObstacle(o_dragged);
-
-                // On le positionne dans l'environnement
-                environnement.insererObstacleEnPosition(draggedItem.getValue(),indexCibleInParent + 1);
-            }
+                new CommandeDeplacerObstacleDeCompositionDansEnvironnement(environnement, o_dragged,indexCibleInParent+1).executer() ;
 
             treeView.getSelectionModel().select(draggedItem);
         }

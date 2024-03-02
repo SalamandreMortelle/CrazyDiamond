@@ -1742,29 +1742,44 @@ public class SystemeOptiqueCentre implements Nommable {
 
     }
 
-    private void positionnerObstacle(Obstacle o)  {
-
+    protected Point2D translationPourAjoutObstacle(Obstacle o) {
         Point2D axe_soc = direction() ;
         Point2D point_sur_axe_revolution = o.pointSurAxeRevolution().subtract(origine()) ;
 
         double distance_algebrique_point_sur_axe_revolution_axe_soc = (point_sur_axe_revolution.getX()*axe_soc.getY()-point_sur_axe_revolution.getY()*axe_soc.getX()) ;
 
         // Peut-être faut-il prendre l'opposé :  à tester...
-        Point2D translation = perpendiculaireDirection().multiply(distance_algebrique_point_sur_axe_revolution_axe_soc) ;
+        return perpendiculaireDirection().multiply(distance_algebrique_point_sur_axe_revolution_axe_soc) ;
+    }
+
+    protected double angleRotationPourAjoutObstacle(Obstacle o) {
+        return (orientation() - o.orientation())%180d ;
+    }
+
+    private void positionnerObstacle(Obstacle o)  {
+
+//        Point2D axe_soc = direction() ;
+//        Point2D point_sur_axe_revolution = o.pointSurAxeRevolution().subtract(origine()) ;
+//
+//        double distance_algebrique_point_sur_axe_revolution_axe_soc = (point_sur_axe_revolution.getX()*axe_soc.getY()-point_sur_axe_revolution.getY()*axe_soc.getX()) ;
+//
+//        // Peut-être faut-il prendre l'opposé :  à tester...
+//        Point2D translation = perpendiculaireDirection().multiply(distance_algebrique_point_sur_axe_revolution_axe_soc) ;
 
         // TODO : il faudrait désactiver les rappels avant de faire cette translation (déclenche d'inutiles recalculs de tous les rayons...)
         // et les réactiver juste après
 
-        o.translater(translation);
+        o.translater(translationPourAjoutObstacle(o));
 
 //        if (!o.estOrientable())
 //            return ;
 
         // Tourner autour du point sur axe translaté (pour gérer les Composition)
 
-        // TODO : à revoir, pour une ellipse, on peut se retrouver avec le périhélie tantot avant l'origine du SOC, et tantot après (le long de l'axe Z)
+        // TODO : à revoir, pour une ellipse, on peut se retrouver avec le périhélie tantôt avant l'origine du SOC, et tantôt après (le long de l'axe Z)
         // or le calcul des z des dioptres (pour l'ellipse) fait l'hypothèse qu'il est toujours avant (cf. Ellipse::extraireDioptresParaxiaux : z_int_min = z_foyer - p/(1+e) )
-        o.tournerAutourDe(o.pointSurAxeRevolution(),(orientation() - o.orientation())%180d);
+//        o.tournerAutourDe(o.pointSurAxeRevolution(),(orientation() - o.orientation())%180d);
+        o.tournerAutourDe(o.pointSurAxeRevolution(),angleRotationPourAjoutObstacle(o));
 //        o.definirOrientation(orientation()) ;
 
 //        throw new NoSuchMethodException("La méthode integrerDansSystemeOptiqueCentre() n'est pas implémentée par l'Obstacle "+this) ;

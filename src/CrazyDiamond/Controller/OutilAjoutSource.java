@@ -73,7 +73,7 @@ public class OutilAjoutSource extends OutilPermettantDeplacementZoneVisible {
     public void interrompre() {
         if (source_en_cours_ajout != null) {
             // On retire la source courante, ce qui va rafraichir les chemins et le décor
-            cae.environnement().retirerSource(source_en_cours_ajout);
+            cae.environnement().supprimerSource(source_en_cours_ajout);
             source_en_cours_ajout = null;
         }
     }

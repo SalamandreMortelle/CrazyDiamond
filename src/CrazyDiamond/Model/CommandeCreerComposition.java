@@ -23,13 +23,13 @@ public class CommandeCreerComposition extends Commande {
         this.environnement = env ;
         this.operateur = composition_deja_cree.operateur() ;
         this.composants = new ArrayList<>(composition_deja_cree.elements().size()) ;
-        composition_deja_cree.elements().forEach(composants::add);
+        this.composants.addAll(composition_deja_cree.elements());
         this.composition_cree = composition_deja_cree ;
     }
 
     @Override
     public void executer() {
-        composants.forEach(environnement::retirerObstacle);
+        composants.forEach(environnement::supprimerObstacle);
         composants.forEach(composition_cree::ajouterObstacle);
         environnement.ajouterObstacle(composition_cree);
         enregistrer();
@@ -39,7 +39,7 @@ public class CommandeCreerComposition extends Commande {
     public void annuler() {
         composants.forEach(composition_cree::retirerObstacle);
         composants.forEach(environnement::ajouterObstacle);
-        environnement.retirerObstacle(composition_cree);
+        environnement.supprimerObstacle(composition_cree);
     }
 
 }

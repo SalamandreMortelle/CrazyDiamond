@@ -3,11 +3,7 @@ package CrazyDiamond.Controller;
 import CrazyDiamond.Model.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Point2D;
-import javafx.scene.Cursor;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -74,7 +70,7 @@ public class OutilCreerComposition extends OutilPermettantDeplacementZoneVisible
             Composition nouvelle_composition = new Composition(Composition.Operateur.UNION);
 
             for(Obstacle o : obstacles_choisis) {
-                cae.environnement().retirerObstacle(o);
+                cae.environnement().supprimerObstacle(o);
                 nouvelle_composition.ajouterObstacle(o);
             }
 
