@@ -1366,11 +1366,18 @@ public class PanneauPrincipal {
             ContextAttributes ca = ContextAttributes.getEmpty() ;
             // Passage d'un environnement hote dans lequel l'ObjectReader va ajouter les éléments importables du fichier
             ca = ca.withSharedAttribute("environnement_hote", environnement) ;
+            ElementsSelectionnes es_importes = new ElementsSelectionnes() ;
+            ca = ca.withSharedAttribute("elements_importes", es_importes) ;
 
             ObjectReader or = jsonMapper.readerFor(Environnement.class).with(ca) ;
             or.readValue(fichier_a_charger,Environnement.class) ;
 
-            // Tentative de sélection des éléments importés : ne marche pas
+            // Passage en mode sélection et sélection des éléments importés
+            selection.setSelected(true);
+//            outil_courant = outilSelection ;
+//            outil_courant.prendre();
+            canvas_environnement.definirSelection(es_importes);
+
 //            if (or.getAttributes().getAttribute("elements_importes")!=null)
 //                canvas_environnement.definirSelection((ElementsSelectionnes) or.getAttributes().getAttribute("elements_importes")) ;
 

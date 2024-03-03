@@ -39,7 +39,7 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
         imp_elementAvecContour = iec;
         imp_elementAvecMatiere = iem;
 
-        this.position_orientation = new SimpleObjectProperty<PositionEtOrientation>(new PositionEtOrientation(new Point2D(x_origine,y_origine),orientation_deg)) ;
+        this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(new Point2D(x_origine,y_origine),orientation_deg)) ;
 
         this.appartenance_composition = new SimpleBooleanProperty(false) ;
         this.appartenance_systeme_optique_centre = new SimpleBooleanProperty(false) ;
@@ -282,6 +282,7 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
         Point2D p_inter1 = boite.premiere_intersection(s) ;
         Point2D p_inter2 = boite.derniere_intersection(s) ;
 
+//        if (p_inter1 != null && p_inter2!=null && Environnement.quasiConfondus(p_inter1,p_inter2))
         if (p_inter1 != null && p_inter1.equals(p_inter2))
             p_inter2 = null ;
 
@@ -290,13 +291,15 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
         Point2D p_inter_opp1 = boite.premiere_intersection(s_opp) ;
         Point2D p_inter_opp2 = boite.derniere_intersection(s_opp) ;
 
+//        if (p_inter_opp1 != null && p_inter_opp2 !=null &&  Environnement.quasiConfondus(p_inter_opp1,p_inter_opp2))
         if (p_inter_opp1 != null && p_inter_opp1.equals(p_inter_opp2))
             p_inter_opp2 = null ;
 
-        ArrayList<Point2D> its = new ArrayList<Point2D>(2) ;
+        ArrayList<Point2D> its = new ArrayList<>(2) ;
 
-        if (boite.aSurSaSurface(origine()))
-            its.add(origine()) ;
+        // Inutile et dangereux
+//        if (boite.aSurSaSurface(origine()))
+//            its.add(origine()) ;
 
         if (p_inter1!=null)
             its.add(p_inter1) ;
@@ -313,7 +316,7 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
         }
 
 
-        // Pas d'intersection ou 1 seul intersection (avec un coin)
+        // Pas d'intersection ou 1 seule intersection (avec un coin)
         if (its.size()<2) {
             if (contient(boite.centre()))
                 contours.ajouterContourMasse(boite.construireContour());
@@ -444,7 +447,7 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
         imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
         imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
 
-        position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
     }
 
     @Override
@@ -453,7 +456,7 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
         imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
         imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
-        position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
     }
 
     @Override

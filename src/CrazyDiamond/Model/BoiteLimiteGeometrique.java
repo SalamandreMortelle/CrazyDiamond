@@ -79,7 +79,7 @@ public class BoiteLimiteGeometrique extends BoundingBox {
     }
 
     /**
-     * Cherche la première ou la dernière intersection d'une *demi-doite* avec la boite.
+     * Cherche la première ou la dernière intersection d'une *demi-droite* avec la boite.
      * Attention : c'est toujours l'intersection avec le demi-droite (d'extension infinie) qui est cherchée et retournée,
      * même si on passe un segment en paramètre.
      * @param dd : la demi-droite

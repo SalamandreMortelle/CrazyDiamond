@@ -17,6 +17,10 @@ public class ElementsSelectionnes {
     ArrayList<Source> sources ;
     ArrayList<SystemeOptiqueCentre> socs ;
 
+    public ElementsSelectionnes() {
+        this(Unite.M) ;
+    }
+
     public ElementsSelectionnes(Unite unite) {
         this.unite = unite ;
         obstacles = new ArrayList<>(1) ;

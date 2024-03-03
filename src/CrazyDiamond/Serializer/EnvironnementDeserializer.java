@@ -33,7 +33,7 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
 
           Environnement e;
 
-          ElementsSelectionnes es_importes = null ;
+          ElementsSelectionnes es_importes = (ElementsSelectionnes) deserializationContext.getAttribute("elements_importes") ;
 
           if (env_hote == null) { // Construction d'un nouvel environnement
               env_node = node ;
@@ -65,7 +65,8 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
 
               facteur_conversion = (unite_importee != null ? unite_importee.valeur : 1d) / env_hote.unite().valeur  ;
 
-              es_importes = new ElementsSelectionnes(unite_importee) ;
+//              es_importes = new ElementsSelectionnes(unite_importee) ;
+              es_importes.definirUnite(unite_importee);
 
               e = env_hote ;
           }
@@ -135,8 +136,8 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
 
         }
 
-        if (env_hote!=null && es_importes!=null)
-            new CommandeImporterElements(env_hote,es_importes).enregistrer();
+        if (env_hote!=null)
+            new CommandeImporterElements(env_hote, es_importes).enregistrer();
 
 //        if (es_importes!=null)
 //            deserializationContext.setAttribute("elements_importes",es_importes) ;
