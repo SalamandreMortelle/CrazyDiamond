@@ -34,7 +34,7 @@ public class ElementsSelectionnesDeserializer extends StdDeserializer<ElementsSe
           if (env_hote==null)
               throw new IOException("Pas d'environnement hôte défini pour la désérialisation des ElementsSelectionnes") ;
 
-          Double facteur_conversion = 1d ;
+          double facteur_conversion = 1d ;
 
           Unite unite_importee = Unite.M ;
 
@@ -108,7 +108,7 @@ public class ElementsSelectionnesDeserializer extends StdDeserializer<ElementsSe
                 }
         }
 
-        return es;
+          return es;
 
     }
 }

@@ -25,14 +25,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 // Cette classe est à la fois la Vue et le Controleur qui permet d'afficher un Environnement dans un Canvas JavaFX
-// redimensionnable et dynamique lié (via des Bindings) à tous les objets (stream_sources+stream_obstacles+stream_socs) de l'Environnement.
+// redimensionnable et dynamique lié (via des Bindings) à tous les objets (sources+obstacles+socs) de l'Environnement.
 public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
     // Modèle
     protected Environnement environnement;
 
     /**
-     * Liste des stream_sources, stream_obstacles et stream_socs sélectionnés dans ce canvas
+     * Liste des sources, obstacles et socs sélectionnés dans ce canvas
      */
     protected ElementsSelectionnes selection ;
 
@@ -262,7 +262,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Initialisation et mise en observation de la liste des obstacles.
 
-        // Intégration des rappels sur les éventuels stream_obstacles déjà présents dans l'environnement (peut arriver si on a chargé l'environnement)
+        // Intégration des rappels sur les éventuels obstacles déjà présents dans l'environnement (peut arriver si on a chargé l'environnement)
         Iterator<Obstacle> ito = environnement.iterateur_obstacles() ;
         while (ito.hasNext())
             ito.next().ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
@@ -288,7 +288,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
             }
         };
 
-        // Enregistrer listener des stream_obstacles
+        // Enregistrer listener des obstacles
         environnement.ajouterListenerListeObstacles(lcl_obstacles);
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -300,18 +300,18 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
             itsoc.next().ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 
 
-        // Détection des stream_socs ajoutés ou supprimés
+        // Détection des socs ajoutés ou supprimés
         //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
-        //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.stream_sources.get(i) */ } }
+        //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
         //                else
         //                  for (Source remitem : change.getRemoved()) { }
         // Il faut un rappel pour redessiner l'axe en cas de changement d'une propriété du SOC, y compris sa matrice de transfert
-        // NB : Si ce rappel se déclenche, il est dommage qu'il y en ait déjà un de déclenché par les stream_obstacles du SOC eux-mêmes, quand on
+        // NB : Si ce rappel se déclenche, il est dommage qu'il y en ait déjà un de déclenché par les obstacles du SOC eux-mêmes, quand on
         // change ses propriétés : il faudrait s'en passer et ne garder que le rappel ci-dessous...
         ListChangeListener<SystemeOptiqueCentre> lcl_socs = change -> {
             while (change.next()) {
                 //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
-                //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.stream_sources.get(i) */ } }
+                //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
                 //                else
                 if (change.wasRemoved()) {
                     //                  for (Source remitem : change.getRemoved()) { }
@@ -326,7 +326,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
                         LOGGER.log(Level.FINER, "Création des liaisons pour le SOC {0}", additem);
 
                         // Il faut un rappel pour redessiner l'axe en cas de changement d'une propriété du SOC, y compris sa matrice de transfert
-                        // NB : Si ce rappel se déclenche, il est dommage qu'il y en ait déjà un de déclenché par les stream_obstacles du SOC eux-mêmes, quand on
+                        // NB : Si ce rappel se déclenche, il est dommage qu'il y en ait déjà un de déclenché par les obstacles du SOC eux-mêmes, quand on
                         // change ses propriétés : il faudrait s'en passer et ne garder que le rappel ci-dessous...
                         additem.ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 

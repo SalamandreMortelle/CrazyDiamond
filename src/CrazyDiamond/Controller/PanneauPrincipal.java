@@ -594,9 +594,11 @@ public class PanneauPrincipal {
 
                         map_element_panneau_droit.remove(remitem) ;
 
-                        // NB : inutile de changer le contenu du panneau droit : c'est fait grâce au listener sur
-                        // le focusModelProperty (cf. plus haut dans cette méthode)
-//                        scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
+                        // NB : il faut aussi changer le contenu du panneau droit : même si c'est fait grâce au listener sur
+                        // le focusModelProperty (cf. plus haut dans cette méthode), si le SOC a été retiré, il disparait
+                        // de la listview des SOCs mais en gardant son focus (pas d'évènement de changement de propriété de focus
+                        // dans ce cas)
+                        scrollpane_droit_element_courant.setContent(panneau_parametres_environnement);
 
                         map_element_panneau_bas.remove(remitem) ;
                         anchorpane_bas_element_courant.getChildren().clear();
@@ -1367,6 +1369,10 @@ public class PanneauPrincipal {
 
             ObjectReader or = jsonMapper.readerFor(Environnement.class).with(ca) ;
             or.readValue(fichier_a_charger,Environnement.class) ;
+
+            // Tentative de sélection des éléments importés : ne marche pas
+//            if (or.getAttributes().getAttribute("elements_importes")!=null)
+//                canvas_environnement.definirSelection((ElementsSelectionnes) or.getAttributes().getAttribute("elements_importes")) ;
 
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE,"Exception lors du chargement du fichier : ",e) ;

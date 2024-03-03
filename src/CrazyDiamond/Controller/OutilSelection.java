@@ -311,7 +311,7 @@ public class OutilSelection extends Outil {
                     content.putString(json);
                     clipboard.setContent(content);
 
-                    supprimerElementsSelectionnes() ;
+                    new CommandeSupprimerElements(cae.environnement(),cae.selection()).executer();
                 }
 
 
@@ -326,17 +326,19 @@ public class OutilSelection extends Outil {
                 ElementsSelectionnes es = null ;
 
                 try {
-                    // Passage d'un environnement hôte dans lequel l'ObjectReader va ajouter les éléments importables du fichier
+                    // Passage d'un environnement hôte dans lequel l'ObjectReader va ajouter les éléments importables du clipboard
                     ContextAttributes ca = ContextAttributes.getEmpty().withSharedAttribute("environnement_hote", cae.environnement()) ;
 
-                    ObjectReader or = jsonMapper.readerFor(ElementsSelectionnes.class).with(ca) ;
+                    ObjectReader or = jsonMapper.readerFor(ElementsSelectionnes.class).with(ca) ; // Déclenche le peuplement de l'environnement
                     if (clipboard.hasContent(format_crazy_diamond_elements))
                         es = or.readValue(clipboard.getContent(format_crazy_diamond_elements).toString(),ElementsSelectionnes.class) ;
                     else if (clipboard.hasString()) // Si le clipboard contient une string, on tente de la parser comme du JSON CrazyDiamond
                         es = or.readValue(clipboard.getString(),ElementsSelectionnes.class) ;
 
-                    if (es!=null)
-                        cae.definirSelection(es) ;
+                    if (es!=null) {
+                        new CommandeImporterElements(cae.environnement(),es).enregistrer();
+                        cae.definirSelection(es);
+                    }
 
                 } catch (Exception e) {
                     LOGGER.log(Level.SEVERE,"Exception lors de la lecture du presse-papier") ;
@@ -346,6 +348,11 @@ public class OutilSelection extends Outil {
                     alert.setContentText(e.getMessage()+System.lineSeparator()+"in :"+System.lineSeparator()+e.getStackTrace()[0].toString());
                     alert.showAndWait();
                 }
+
+                keyEvent.consume();
+            }
+            case DELETE -> {
+                new CommandeSupprimerElements(cae.environnement(),cae.selection()).executer();
 
                 keyEvent.consume();
             }
@@ -394,20 +401,6 @@ public class OutilSelection extends Outil {
         }
 
         return json ;
-
-    }
-
-    private void supprimerElementsSelectionnes() {
-        ElementsSelectionnes es = cae.selection() ;
-
-        // Le retrait des obstacles, sources et socs de l'environnement altère (cf. callbacks ListChangeListener dans
-        // l'Environnement) les éléments sélectionnés que l'on est en train de parcourir, ce qui lèverait une exception.
-        // Pour éviter cela, commençons par faire une copie (non profonde) de la sélection.
-        ElementsSelectionnes es_copie = new ElementsSelectionnes(es) ;
-
-        es_copie.stream_obstacles().forEach(cae.environnement()::supprimerObstacle);
-        es_copie.stream_sources().forEach(cae.environnement()::supprimerSource);
-        es_copie.stream_socs().forEach(cae.environnement()::supprimerSystemeOptiqueCentre);
 
     }
 

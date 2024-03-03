@@ -25,7 +25,7 @@ public class CommandeAjouterObstacleDansComposition extends Commande {
         composition_contenant_obstacle = environnement.compositionContenant(obstacle) ;
         soc_contenant_obstacle = environnement.systemeOptiqueCentreContenant(obstacle) ;
 
-        if (composition_contenant_obstacle == null) {// Obstacle glissé non inclus dans une composition
+        if (composition_contenant_obstacle == null) {// Obstacle non inclus dans une composition ; il est donc directement dans l'environnement
             index_dans_environnement = environnement.indexObstacle(obstacle) ;
             environnement.supprimerObstacle(obstacle); // On le retire de l'environnement
         }

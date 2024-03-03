@@ -1,5 +1,6 @@
 package CrazyDiamond.Serializer;
 
+import CrazyDiamond.Controller.ElementsSelectionnes;
 import CrazyDiamond.Model.*;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -28,9 +29,11 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
           JsonNode env_node;
 
           Environnement env_hote = (Environnement) deserializationContext.getAttribute("environnement_hote") ;
-          Double facteur_conversion = 1d ;
+          double facteur_conversion = 1d ;
 
           Environnement e;
+
+          ElementsSelectionnes es_importes = null ;
 
           if (env_hote == null) { // Construction d'un nouvel environnement
               env_node = node ;
@@ -62,6 +65,8 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
 
               facteur_conversion = (unite_importee != null ? unite_importee.valeur : 1d) / env_hote.unite().valeur  ;
 
+              es_importes = new ElementsSelectionnes(unite_importee) ;
+
               e = env_hote ;
           }
 
@@ -85,15 +90,21 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
 
             for (int i = 0; i < nb_obs; i++) {
                 JsonNode obs_node = liste_obs_node.get(i);
+                Obstacle o_a_ajouter = null;
                 switch (obs_node.get("@type").asText()) {
-                    case "Cercle" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Cercle.class));
-                    case "Conique" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Conique.class));
-                    case "DemiPlan" -> e.ajouterObstacle(mapper.treeToValue(obs_node, DemiPlan.class));
-                    case "Prisme" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Prisme.class));
-                    case "Rectangle" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Rectangle.class));
-                    case "Segment" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Segment.class));
-                    case "Composition" -> e.ajouterObstacle(mapper.treeToValue(obs_node, Composition.class));
+                    case "Cercle" -> o_a_ajouter = mapper.treeToValue(obs_node, Cercle.class);
+                    case "Conique" -> o_a_ajouter = mapper.treeToValue(obs_node, Conique.class);
+                    case "DemiPlan" -> o_a_ajouter = mapper.treeToValue(obs_node, DemiPlan.class);
+                    case "Prisme" -> o_a_ajouter = mapper.treeToValue(obs_node, Prisme.class);
+                    case "Rectangle" -> o_a_ajouter = mapper.treeToValue(obs_node, Rectangle.class);
+                    case "Segment" -> o_a_ajouter = mapper.treeToValue(obs_node, Segment.class);
+                    case "Composition" -> o_a_ajouter = mapper.treeToValue(obs_node, Composition.class);
                 }
+                // Ajout de l'obstacle dans l'environnement, et dans les éléments importés si nécessaire.
+                e.ajouterObstacle(o_a_ajouter);
+                if (es_importes!=null)
+                    es_importes.ajouter(o_a_ajouter);
+
             }
         }
 
@@ -102,7 +113,11 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
             int nb_src = env_node.get("sources").size();
 
             for (int j = 0; j < nb_src; j++) {
-                e.ajouterSource(mapper.treeToValue(env_node.get("sources").get(j), Source.class));
+                Source src_a_ajouter = mapper.treeToValue(env_node.get("sources").get(j), Source.class) ;
+                // Ajout de la source dans l'environnement, et dans les éléments importés si nécessaire.
+                e.ajouterSource(src_a_ajouter);
+                if (es_importes!=null)
+                    es_importes.ajouter(src_a_ajouter);
             }
 
         }
@@ -112,10 +127,19 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
             int nb_soc = env_node.get("systemes_optiques_centres").size();
 
             for (int k = 0; k < nb_soc; k++) {
-                e.ajouterSystemeOptiqueCentre(mapper.treeToValue(env_node.get("systemes_optiques_centres").get(k), SystemeOptiqueCentre.class));
+                SystemeOptiqueCentre soc_a_ajouter = mapper.treeToValue(env_node.get("systemes_optiques_centres").get(k), SystemeOptiqueCentre.class) ;
+                e.ajouterSystemeOptiqueCentre(soc_a_ajouter);
+                if (es_importes!=null)
+                    es_importes.ajouter(soc_a_ajouter);
             }
 
         }
+
+        if (env_hote!=null && es_importes!=null)
+            new CommandeImporterElements(env_hote,es_importes).enregistrer();
+
+//        if (es_importes!=null)
+//            deserializationContext.setAttribute("elements_importes",es_importes) ;
 
         return e;
 

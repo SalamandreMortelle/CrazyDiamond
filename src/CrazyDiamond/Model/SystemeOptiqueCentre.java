@@ -197,6 +197,10 @@ public class SystemeOptiqueCentre implements Nommable {
         return new CommandeCreerSystemeOptiqueCentre(env,this) ;
     }
 
+    public void ajouterObstacles(List<Obstacle> obstacles_a_ajouter) {
+        obstacles_a_ajouter.forEach(this::ajouterObstacle);
+    }
+
 
     public record PositionElement(double z, double hauteur) { }
 

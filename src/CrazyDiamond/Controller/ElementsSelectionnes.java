@@ -101,9 +101,14 @@ public class ElementsSelectionnes {
         if (socs.contains(soc))
             return;
 
-        // On supprime, puis on remet les obstacles afin qu'ils soient dans le même ordre dans les éléments sélectionnés et dans le SOC
-        soc.obstacles_centres().forEach(obstacles::remove);
-        ajouterObstacles(soc.obstacles_centres());
+        // Code problématique (mais finalement inutile car l'ordre des obstacles dans le SOC est déjà garanti (cf. méthode ajouter Obstacle dans la classe SOC)
+//        // On supprime, puis on remet les obstacles afin qu'ils soient dans le même ordre dans les éléments sélectionnés et dans le SOC
+//        soc.obstacles_centres().forEach(obstacles::remove);
+//        ajouterObstacles(soc.obstacles_centres());
+
+        // TODO : Si on devait garantir que les obstacles ajoutés sont positionnés dans le même ordre que dans l'environnement,
+        // il faudrait reprendre le code servant à l'ordonnancement qui se trouve dans la méthode SystemeOptiqueCentre::ajouterObstacle
+        // cela nécessiterait de référencer l'environnement dans un attribut de la classe ElementsSelectionnes
 
         socs.add(soc) ;
     }
