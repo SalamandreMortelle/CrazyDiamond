@@ -68,7 +68,7 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
     @Override public DoubleProperty orientationAxePolariseurProperty() {return imp_elementAvecContour.orientationAxePolariseurProperty() ;}
 
     @Override
-    public Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) throws Exception {
+    public Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) {
         return null ;
     }
 
@@ -410,32 +410,16 @@ public class DemiPlan implements Obstacle, Identifiable, Nommable, ElementAvecCo
             definirAxeNormale(pos_souris.subtract(origine()));
 
     }
-    @Override
-    public void retaillerParCommandePourSourisEn(Point2D pos_souris) {
-        if (pos_souris.equals(origine()))
-            return ;
-
-        if (!appartientASystemeOptiqueCentre())
-            new CommandeDefinirUnParametre<>(this,pos_souris.subtract(origine()),this::normale,this::definirAxeNormale).executer();
-            // NB une normale n'a pas besoin d'être convertie si l'unité de l'environnement change, c'est pour quoi on peut utiliser CommandeDefinirUnParametre (qui ne fait aucune conversion d'unité)
-//            new CommandeDefinirAxeNormaleDemiPlan(this,pos_souris.subtract(origine())).executer();
-
-//        if (!appartientASystemeOptiqueCentre())
-//            definirAxeNormale(pos_souris.subtract(origine()));
-    }
 
     @Override
     public Contour positions_poignees() {
-
-        // Si le demi-plan appartient à un SOC, innutile d'afficher une poignée car on ne peut pas le retailler
+        // Si le demi-plan appartient à un SOC, inutile d'afficher une poignée, car on ne peut pas le retailler
         if (appartientASystemeOptiqueCentre())
             return null ;
 
         Contour c_poignees = new Contour(4);
 
         c_poignees.ajoutePoint(origine().add(Math.cos(Math.toRadians(orientation())), Math.sin(Math.toRadians(orientation())))) ;
-//        c_poignees.ajoutePoint(x_origine.get() + Math.cos(Math.toRadians(orientation.get())),
-//                               y_origine.get() + Math.sin(Math.toRadians(orientation.get())));
 
         return c_poignees;
     }

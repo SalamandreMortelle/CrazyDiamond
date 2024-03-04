@@ -26,7 +26,7 @@ public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable
 
     private static int compteur_composition_deux_obstacles = 0;
 
-    private BooleanProperty appartenance_composition ;
+    private final BooleanProperty appartenance_composition ;
 
     public CompositionDeuxObstacles(Obstacle ob1, Operateur op, Obstacle ob2) throws IllegalArgumentException {
         this(
@@ -45,10 +45,10 @@ public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable
         imp_elementAvecContour = iec ;
         imp_elementAvecMatiere = iem ;
 
-        obstacle1 = new SimpleObjectProperty<Obstacle>(ob1) ;
-        obstacle2 = new SimpleObjectProperty<Obstacle>(ob2) ;
+        obstacle1 = new SimpleObjectProperty<>(ob1) ;
+        obstacle2 = new SimpleObjectProperty<>(ob2) ;
 
-        operateur = new SimpleObjectProperty<Operateur>(op)  ;
+        operateur = new SimpleObjectProperty<>(op)  ;
 
         appartenance_composition = new SimpleBooleanProperty(false) ;
 
@@ -122,8 +122,6 @@ public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable
 
     @Override
     public void retaillerPourSourisEn(Point2D pos_souris) {}
-    @Override
-    public void retaillerParCommandePourSourisEn(Point2D pos_souris) {}
 
     @Override
     public void accepte(VisiteurEnvironnement v) {
@@ -183,24 +181,24 @@ public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable
         boolean est_dans_ob2 = ob2.contient(p) ;
 
         switch (operateur.get().ordinal()) {
-            case 0 :  // UNION
-               if (est_sur_ob1 && !est_dans_ob2) return ob1.normale(p) ;
-               if (est_sur_ob2 && !est_dans_ob1) return ob2.normale(p) ;
-            break ;
-            case 1 : // INTERSECTION
-                if (est_sur_ob1 && est_dans_ob2) return ob1.normale(p) ;
-                if (est_sur_ob2 && est_dans_ob1) return ob2.normale(p) ;
-            break ;
-            case 2 : // DIFFERENCE
-                if (est_sur_ob1 && !est_dans_ob2) return ob1.normale(p) ;
-                if (est_sur_ob2 && est_dans_ob1) return ob2.normale(p).multiply(-1.0) ;
-            break;
-            case 3 : // DIFFERENCE_SYMETRIQUE
-                if (est_sur_ob1 && !est_dans_ob2) return ob1.normale(p) ;
-                if (est_sur_ob2 && !est_dans_ob1) return ob2.normale(p) ;
-                if (est_sur_ob1 && est_dans_ob2) return ob1.normale(p).multiply(-1.0) ;
-                if (est_sur_ob2 && est_dans_ob1) return ob2.normale(p).multiply(-1.0) ;
-            break;
+            case 0 -> {  // UNION
+                if (est_sur_ob1 && !est_dans_ob2) return ob1.normale(p);
+                if (est_sur_ob2 && !est_dans_ob1) return ob2.normale(p);
+            }
+            case 1 -> { // INTERSECTION
+                if (est_sur_ob1 && est_dans_ob2) return ob1.normale(p);
+                if (est_sur_ob2 && est_dans_ob1) return ob2.normale(p);
+            }
+            case 2 -> { // DIFFERENCE
+                if (est_sur_ob1 && !est_dans_ob2) return ob1.normale(p);
+                if (est_sur_ob2 && est_dans_ob1) return ob2.normale(p).multiply(-1.0);
+            }
+            case 3 -> { // DIFFERENCE_SYMETRIQUE
+                if (est_sur_ob1 && !est_dans_ob2) return ob1.normale(p);
+                if (est_sur_ob2 && !est_dans_ob1) return ob2.normale(p);
+                if (est_sur_ob1 && est_dans_ob2) return ob1.normale(p).multiply(-1.0);
+                if (est_sur_ob2 && est_dans_ob1) return ob2.normale(p).multiply(-1.0);
+            }
         }
 
         throw new Exception("Impossible de trouver la normale d'un point qui n'est pas sur la surface de la Composition.");

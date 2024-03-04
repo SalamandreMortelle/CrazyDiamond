@@ -75,7 +75,7 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
     @Override public double orientationAxePolariseur() {return imp_elementAvecContour.orientationAxePolariseur() ;}
     @Override public DoubleProperty orientationAxePolariseurProperty() {return imp_elementAvecContour.orientationAxePolariseurProperty() ;}
     @Override
-    public Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) throws Exception {
+    public Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) {
         return null ;
     }
     @Override public void definirTauxReflexionSurface(double taux_refl) {imp_elementAvecContour.definirTauxReflexionSurface(taux_refl);}
@@ -317,16 +317,6 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
 
         largeur.set(2d * Math.abs(pos_souris.getX() - xCentre()));
         hauteur.set(2d * Math.abs(pos_souris.getY() - yCentre()));
-    }
-
-    public  void retaillerParCommandePourSourisEn(Point2D pos_souris) {
-        // Si on est sur le point de départ, ne rien faire
-        if (pos_souris.equals(centre()))
-            return ;
-
-        new CommandeDefinirLargeurEtHauteurRectangle(this,
-                2d * Math.abs(pos_souris.getX() - xCentre()),
-                2d * Math.abs(pos_souris.getY() - yCentre()) ).executer(); ;
     }
 
     @Override

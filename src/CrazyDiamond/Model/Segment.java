@@ -50,7 +50,7 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
         imp_elementAvecContour = iec;
         imp_elementSansEpaisseur = iese;
 
-        this.position_orientation = new SimpleObjectProperty<PositionEtOrientation>(new PositionEtOrientation(new Point2D(x_centre,y_centre),orientation)) ;
+        this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(new Point2D(x_centre,y_centre),orientation)) ;
 
         this.longueur = new SimpleDoubleProperty(longueur);
         this.rayon_diaphragme = new SimpleDoubleProperty(rayon_diaphragme);
@@ -211,12 +211,12 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
         imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
         imp_elementSansEpaisseur.ajouterRappelSurChangementToutePropriete(rap);
 
-        position_orientation.addListener((observable, oldValue, newValue) -> {rap.rappel();});
+        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
 //        x_centre.addListener((observable, oldValue, newValue) -> {rap.rappel();});
 //        y_centre.addListener((observable, oldValue, newValue) -> {rap.rappel();});
 //        orientation.addListener((observable, oldValue, newValue) -> {rap.rappel();});
-        longueur.addListener((observable, oldValue, newValue) -> {rap.rappel();});
-        rayon_diaphragme.addListener((observable, oldValue, newValue) -> {rap.rappel();});
+        longueur.addListener((observable, oldValue, newValue) -> rap.rappel());
+        rayon_diaphragme.addListener((observable, oldValue, newValue) -> rap.rappel());
 
     }
 
@@ -225,12 +225,12 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
         imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
         imp_elementSansEpaisseur.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
-        position_orientation.addListener((observable, oldValue, newValue) -> {rap.rappel();});
+        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
 //        x_centre.addListener((observable, oldValue, newValue) -> {rap.rappel();});
 //        y_centre.addListener((observable, oldValue, newValue) -> {rap.rappel();});
 //        orientation.addListener((observable, oldValue, newValue) -> {rap.rappel();});
-        longueur.addListener((observable, oldValue, newValue) -> {rap.rappel();});
-        rayon_diaphragme.addListener((observable, oldValue, newValue) -> {rap.rappel();});
+        longueur.addListener((observable, oldValue, newValue) -> rap.rappel());
+        rayon_diaphragme.addListener((observable, oldValue, newValue) -> rap.rappel());
 
     }
 
@@ -263,46 +263,6 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
         }
     }
 
-    @Override
-    public void retaillerParCommandePourSourisEn(Point2D pos_souris) {
-        // Si on est sur le point de départ, ne rien faire
-        if (pos_souris.equals(centre()))
-            return ;
-
-        if (!appartientASystemeOptiqueCentre()) {
-            Point2D centre = centre();
-
-            Point2D vec_centre_pos = pos_souris.subtract(centre);
-//            longueur.set(2d * vec_centre_pos.magnitude());
-//            rayon_diaphragme.set(Math.min(rayon_diaphragme.get(),0.5d*longueur.get()));
-
-            double or = Math.toDegrees(Math.atan2(vec_centre_pos.getY(), vec_centre_pos.getX()));
-
-            if (or - 90d < 0)
-                or += 360d;
-
-//            definirOrientation((or - 90d) % 360d);
-
-            new CommandeDefinirLongueurRayonDiaphragmeEtOrientationSegment(this,
-                    2d * vec_centre_pos.magnitude(),
-                    Math.min(rayon_diaphragme.get(),0.5d*longueur.get()),
-                    (or - 90d) % 360d
-                    ).executer(); ;
-
-        } else { // Le segment est dans un SOC : on ne peut pas en changer l'orientation, mais seulement la longueur
-
-            double nouvelle_longueur = 2*Math.abs(produit_vectoriel_simplifie(segment_support.normale(),pos_souris.subtract(centre()))) ;
-            longueur.set(nouvelle_longueur);
-            rayon_diaphragme.set(Math.min(rayon_diaphragme.get(),longueur.get()));
-
-            new CommandeDefinirLongueurRayonDiaphragmeEtOrientationSegment(this,
-                    nouvelle_longueur,
-                    Math.min(rayon_diaphragme.get(),longueur.get()),
-                    orientation()
-                    ).executer();
-        }
-
-    }
 
     @Override
     public Contour positions_poignees() {
@@ -330,10 +290,7 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
 
         if (Environnement.quasiEgal(x1(), x2())) {
-            if ( Environnement.quasiEgal(p.getX(), x1()) && p.getY() > Math.min(y1(), y2()) && p.getY() < Math.max(y1(), y2()))
-                return true;
-
-            return false;
+            return Environnement.quasiEgal(p.getX(), x1()) && p.getY() > Math.min(y1(), y2()) && p.getY() < Math.max(y1(), y2());
         }
 
         //        if (Environnement.quasiInferieurOuEgal(p.getX(),Math.min(X1(), X2())) || Environnement.quasiInferieurOuEgal( Math.max(X1(),X2()),p.getX()) )

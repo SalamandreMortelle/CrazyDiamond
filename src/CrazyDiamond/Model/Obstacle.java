@@ -194,13 +194,12 @@ public interface Obstacle {
      }
 
     void retaillerPourSourisEn(Point2D pos_souris) ;
-    void retaillerParCommandePourSourisEn(Point2D pos_souris) ; // TODO : supprimer, ainsi que les 8 implémentations
+
     default void retaillerSelectionPourSourisEn(Point2D pclic) {
         retaillerPourSourisEn(pclic);
     }
     default void retaillerSelectionParCommandePourSourisEn(Point2D pclic,Point2D p_depart_poignee) {
         new CommandeDefinirPositionPoigneeObstacleSelection(this,pclic,p_depart_poignee).executer();
-//        retaillerParCommandePourSourisEn(pclic,p_depart_poignee);
     }
     default Contour positions_poignees() { return null ; }
 

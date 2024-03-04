@@ -213,16 +213,6 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
     }
 
     @Override
-    public void retaillerParCommandePourSourisEn(Point2D pos_souris) {
-        // Si on est sur le centre, ne rien faire
-        if (pos_souris.equals(centre()))
-            return ;
-
-//        new CommandeDefinirRayonCercle(this,pos_souris.subtract(centre()).magnitude()).executer();
-        new CommandeDefinirUnParametreDoubleDistance<>(this,pos_souris.subtract(centre()).magnitude(),this::rayon,this::definirRayon).executer(); ;
-    }
-
-    @Override
     public void convertirDistances(double facteur_conversion) {
         definirCentre( centre().multiply(facteur_conversion) ) ;
         definirRayon( rayon()*facteur_conversion);
@@ -313,22 +303,16 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
     public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
 
 
-    /**
-     * @return
-     */
     @Override
     public Double rayonDiaphragmeParDefaut() {
         return rayon();
     }
 
-    /**
-     * @return
-     */
     @Override public double rayonDiaphragmeMaximumConseille() { return rayon() ; }
 
     /**
      * Calcule l'abscisse du centre du cercle par rapport à un axe
-     * @param axe
+     * @param axe : l'axe par rapport auquel on souhaite connaître l'abscisse du centre
      */
     private double ZCentre(PositionEtOrientation axe) {
 

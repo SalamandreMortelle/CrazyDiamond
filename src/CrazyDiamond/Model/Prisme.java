@@ -73,7 +73,7 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
     @Override public double orientationAxePolariseur() {return imp_elementAvecContour.orientationAxePolariseur() ;}
     @Override public DoubleProperty orientationAxePolariseurProperty() {return imp_elementAvecContour.orientationAxePolariseurProperty() ;}
     @Override
-    public Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) throws Exception {
+    public Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) {
         return null ;
     }
 
@@ -330,25 +330,12 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
         angle_sommet.set(2*Math.toDegrees(Math.abs(Math.atan((pos_souris.getX()- xCentre())/(3*(yCentre() - pos_souris.getY()))))));
     }
 
-    public void retaillerParCommandePourSourisEn(Point2D pos_souris) {
-        // Si on est sur le point de départ, ne rien faire
-        if (pos_souris.equals(centre()))
-            return ;
-
-        new CommandeDefinirLargeurBaseEtAngleSommetPrisme(this,
-                Math.abs(2d*(pos_souris.getX()- xCentre())),
-                2*Math.toDegrees(Math.abs(Math.atan((pos_souris.getX()- xCentre())/(3*(yCentre() - pos_souris.getY())))))
-        ).executer();
-
-    }
 
     @Override
     public void retaillerSelectionPourSourisEn(Point2D pos_souris) {
         // Si on est sur le point de départ, ne rien faire
         if (pos_souris.equals(centre()))
             return ;
-//        if (pos_souris.getX()== x_centre.get() && pos_souris.getY()== y_centre.get())
-//            return ;
 
         // Calculer l'écart angulaire entre le sommet H où se trouve la poignée et la position de la souris, par rapport
         // au centre du Prisme

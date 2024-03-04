@@ -234,8 +234,6 @@ public class Composition implements Obstacle, Identifiable, Nommable, ElementAve
     }
     @Override
     public void retaillerPourSourisEn(Point2D pos_souris) {}
-    @Override
-    public void retaillerParCommandePourSourisEn(Point2D pos_souris) {}
 
     @Override
     public void translater(Point2D vecteur) {

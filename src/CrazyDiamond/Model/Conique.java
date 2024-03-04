@@ -28,7 +28,6 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
     @Override
     public Double rayon_polaire(double theta) {
 
-        Point2D foyer = foyer() ;
         double p = parametre.get() ;
         double e = excentricite.get() ;
 
@@ -39,7 +38,7 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
         if (den < 0)
             return null ;
 
-        Double r ;
+        double r ;
 
         if (den == 0.0)
             r = Double.MAX_VALUE ;
@@ -89,7 +88,7 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
         imp_elementAvecContour = iec ;
         imp_elementAvecMatiere = iem ;
 
-        this.position_orientation = new SimpleObjectProperty<PositionEtOrientation>(new PositionEtOrientation(new Point2D(x_foyer,y_foyer),orientation_deg)) ;
+        this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(new Point2D(x_foyer,y_foyer),orientation_deg)) ;
 
         this.parametre = new SimpleDoubleProperty(parametre) ;
         this.excentricite = new SimpleDoubleProperty(excentricite) ;
@@ -193,9 +192,9 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
         imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
         imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
 
-        position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        parametre.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        excentricite.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
+        parametre.addListener((observable, oldValue, newValue) -> rap.rappel());
+        excentricite.addListener((observable, oldValue, newValue) -> rap.rappel());
     }
 
     @Override
@@ -203,9 +202,9 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
         imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
         imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
-        position_orientation.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        parametre.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        excentricite.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
+        parametre.addListener((observable, oldValue, newValue) -> rap.rappel());
+        excentricite.addListener((observable, oldValue, newValue) -> rap.rappel());
     }
 
     @Override
@@ -224,29 +223,6 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
             definirAxeFocal(pos_souris.subtract(foyer())) ;
     }
 
-    @Override
-    public void retaillerParCommandePourSourisEn(Point2D pos_souris) {
-        // Si on est sur le centre, ne rien faire
-        if (pos_souris.equals(foyer()))
-            return ;
-
-        // p = e . d (où d est la distance à la directrice de la conique)
-        double d = pos_souris.subtract(foyer()).magnitude() ;
-
-        // On ne peut changer l'orientation (l'axe focal) que si la conique n'appartient pas à un SOC
-        if (!appartientASystemeOptiqueCentre()) {
-
-            new CommandeDefinirParametreEtAxeFocalConique(this,excentricite.get()*d, pos_souris.subtract(foyer())).executer(); ;
-
-//            parametre.set(excentricite.get()*d);
-//            definirAxeFocal(pos_souris.subtract(foyer()));
-        } else {
-            new CommandeDefinirParametreEtAxeFocalConique(this,excentricite.get()*d, axe_focal()).executer();
-//            new CommandeDefinirParametreConique(this,excentricite.get()*d).executer(); ;
-//            parametre.set(excentricite.get()*d);
-        }
-
-    }
     @Override
     public Contour positions_poignees() {
         Contour c_poignees = new Contour(4);
@@ -836,8 +812,8 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
             return res ;
         }
 
-        double theta_inter_1 = gamma - Math.acos(c/module) ;
-        double theta_inter_2 = gamma + Math.acos(c/module) ;
+//        double theta_inter_1 = gamma - Math.acos(c/module) ;
+//        double theta_inter_2 = gamma + Math.acos(c/module) ;
 
         double[] res = new double [2] ;
 
@@ -901,7 +877,7 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
 
     protected ArrayList<Double> xpoints_sur_conique(double theta_debut, double theta_fin, int nombre_pas_angulaire_par_arc) {
-        ArrayList<Double> xpoints_conique = new ArrayList<Double>() ;
+        ArrayList<Double> xpoints_conique = new ArrayList<>() ;
 
         double pas = (theta_fin-theta_debut) / nombre_pas_angulaire_par_arc ;
 
@@ -926,7 +902,7 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
     }
 
     protected ArrayList<Double> ypoints_sur_conique(double theta_debut,double theta_fin, int nombre_pas_angulaire_par_arc) {
-        ArrayList<Double> ypoints_conique = new ArrayList<Double>() ;
+        ArrayList<Double> ypoints_conique = new ArrayList<>() ;
 
         double pas = (theta_fin-theta_debut) / nombre_pas_angulaire_par_arc ;
 
