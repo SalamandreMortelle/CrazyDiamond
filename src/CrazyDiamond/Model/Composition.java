@@ -5,6 +5,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Point2D;
+import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -13,14 +14,6 @@ import java.util.List;
 import java.util.logging.Level;
 
 public class Composition extends BaseObstacleAvecContourEtMatiere implements Obstacle, Identifiable, Nommable, ElementAvecContour, ElementAvecMatiere {
-
-//    private final Imp_Identifiable imp_identifiable ;
-//    private final Imp_Nommable imp_nommable;
-//    private final Imp_ElementAvecContour imp_elementAvecContour;
-//    private final Imp_ElementAvecMatiere imp_elementAvecMatiere;
-//
-//    private final BooleanProperty appartenance_systeme_optique_centre;
-//    private final BooleanProperty appartenance_composition;
 
     public enum Operateur {
         UNION("UNION"),
@@ -56,154 +49,30 @@ public class Composition extends BaseObstacleAvecContourEtMatiere implements Obs
     private static int compteur_composition = 0;
 
     public Composition(Operateur op) throws IllegalArgumentException {
-
-        this(
-                new Imp_Identifiable(),
-                new Imp_Nommable("Composition " + (++compteur_composition)) ,
-                new Imp_ElementAvecContour(null),
-                new Imp_ElementAvecMatiere(null, null, 1.0, null),
-                op
-        ) ;
-
+        this(null,
+                op,null,null,1.0,null,null) ;
     }
 
-    public Composition(Imp_Identifiable ii,Imp_Nommable ien,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem , Operateur op) throws IllegalArgumentException {
-        super(ii,ien,iec,iem) ;
-
-//        imp_identifiable = ii ;
-//        imp_nommable = ien ;
-//        imp_elementAvecContour = iec;
-//        imp_elementAvecMatiere = iem;
+    public Composition(String nom, Operateur op, TypeSurface type_surface,NatureMilieu nature_milieu, double indice_refraction, Color couleur_matiere, Color couleur_contour) throws IllegalArgumentException {
+        super(nom!=null?nom:"Composition "+(++compteur_composition),
+                type_surface,nature_milieu,indice_refraction,couleur_matiere,couleur_contour);
 
         ObservableList<Obstacle> olo = FXCollections.observableArrayList();
+        elements = new SimpleListProperty<>(olo);
 
+        operateur = new SimpleObjectProperty<>(op);
+    }
+
+
+    public Composition(Imp_Identifiable ii,Imp_Nommable ien,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem, Operateur op) throws IllegalArgumentException {
+        super(ii,ien,iec,iem) ;
+
+        ObservableList<Obstacle> olo = FXCollections.observableArrayList();
         elements = new SimpleListProperty<>(olo);
 
         operateur = new SimpleObjectProperty<>(op);
 
-//        appartenance_systeme_optique_centre = new SimpleBooleanProperty(false);
-//        appartenance_composition = new SimpleBooleanProperty(false);
-
     }
-//    @Override public String id() { return imp_identifiable.id(); }
-//    @Override public String nom() {
-//        return imp_nommable.nom();
-//    }
-//    @Override public StringProperty nomProperty() {
-//        return imp_nommable.nomProperty();
-//    }
-//
-//    @Override public Color couleurContour() {return imp_elementAvecContour.couleurContour();}
-//    @Override public void definirCouleurContour(Color c) { imp_elementAvecContour.definirCouleurContour(c); }
-//    @Override
-//    public ObjectProperty<Color> couleurContourProperty() {
-//        return imp_elementAvecContour.couleurContourProperty();
-//    }
-//
-//    @Override
-//    public ObjectProperty<TraitementSurface> traitementSurfaceProperty() {
-//        return imp_elementAvecContour.traitementSurfaceProperty();
-//    }
-//
-//    @Override
-//    public void definirTraitementSurface(TraitementSurface traitement_surf) {
-//        imp_elementAvecContour.definirTraitementSurface(traitement_surf);
-//    }
-//
-//    @Override
-//    public TraitementSurface traitementSurface() {
-//        return imp_elementAvecContour.traitementSurface();
-//    }
-//
-//    @Override
-//    public DoubleProperty tauxReflexionSurfaceProperty() {
-//        return imp_elementAvecContour.tauxReflexionSurfaceProperty();
-//    }
-//
-//    @Override
-//    public void definirTauxReflexionSurface(double taux_refl) {
-//        imp_elementAvecContour.definirTauxReflexionSurface(taux_refl);
-//    }
-//
-//    @Override
-//    public double tauxReflexionSurface() {
-//        return imp_elementAvecContour.tauxReflexionSurface();
-//    }
-//
-//    @Override
-//    public void definirOrientationAxePolariseur(double angle_pol) {
-//        imp_elementAvecContour.definirOrientationAxePolariseur(angle_pol);
-//    }
-//
-//    @Override
-//    public double orientationAxePolariseur() {
-//        return imp_elementAvecContour.orientationAxePolariseur();
-//    }
-//
-//    @Override
-//    public DoubleProperty orientationAxePolariseurProperty() {
-//        return imp_elementAvecContour.orientationAxePolariseurProperty();
-//    }
-//
-//    @Override
-//    public Color couleurMatiere() {
-//        return imp_elementAvecMatiere.couleurMatiere();
-//    }
-//    @Override public void definirCouleurMatiere(Color couleur) { imp_elementAvecMatiere.definirCouleurMatiere(couleur); }
-//    @Override
-//    public ObjectProperty<Color> couleurMatiereProperty() {
-//        return imp_elementAvecMatiere.couleurMatiereProperty();
-//    }
-//
-//    @Override
-//    public void definirTypeSurface(TypeSurface type_surf) {
-//        imp_elementAvecMatiere.definirTypeSurface(type_surf);
-//    }
-//
-//    @Override
-//    public TypeSurface typeSurface() {
-//        return imp_elementAvecMatiere.typeSurface();
-//    }
-//
-//    @Override
-//    public ObjectProperty<TypeSurface> typeSurfaceProperty() {
-//        return imp_elementAvecMatiere.typeSurfaceProperty();
-//    }
-//
-//    @Override
-//    public void definirNatureMilieu(NatureMilieu nature_mil) {
-//        imp_elementAvecMatiere.definirNatureMilieu(nature_mil);
-//    }
-//
-//    @Override
-//    public NatureMilieu natureMilieu() {
-//        return imp_elementAvecMatiere.natureMilieu();
-//    }
-//
-//    @Override
-//    public ObjectProperty<NatureMilieu> natureMilieuProperty() {
-//        return imp_elementAvecMatiere.natureMilieuProperty();
-//    }
-//
-//    @Override
-//    public void definirIndiceRefraction(double indice_refraction) {
-//        imp_elementAvecMatiere.definirIndiceRefraction(indice_refraction);
-//    }
-//
-//    @Override
-//    public double indiceRefraction() {
-//        return imp_elementAvecMatiere.indiceRefraction();
-//    }
-//
-//    @Override
-//    public DoubleProperty indiceRefractionProperty() {
-//        return imp_elementAvecMatiere.indiceRefractionProperty();
-//    }
-//
-//    @Override
-//    public String toString() {
-//        return nom();
-//    }
 
     public ObservableList<Obstacle> elements() {
         return elements.get();
@@ -212,19 +81,6 @@ public class Composition extends BaseObstacleAvecContourEtMatiere implements Obs
     public boolean estVide() {
         return elements().size()==0 ;
     }
-
-//    public void appliquerSurIdentifiable(ConsumerAvecException<Object, IOException> consumer) throws IOException {
-//        consumer.accept(imp_identifiable);
-//    }
-//    public void appliquerSurNommable(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-//        consumer.accept(imp_nommable);
-//    }
-//    public void appliquerSurElementAvecContour(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-//        consumer.accept(imp_elementAvecContour);
-//    }
-//    public void appliquerSurElementAvecMatiere(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-//        consumer.accept(imp_elementAvecMatiere);
-//    }
 
     @Override
     public Commande commandeCreation(Environnement env) {
@@ -732,8 +588,6 @@ public class Composition extends BaseObstacleAvecContourEtMatiere implements Obs
     @Override
     public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
         super.ajouterRappelSurChangementToutePropriete(rap);
-//        imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
-//        imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
 
         operateur.addListener((observable, oldValue, newValue) -> rap.rappel());
 
@@ -768,8 +622,6 @@ public class Composition extends BaseObstacleAvecContourEtMatiere implements Obs
     @Override
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
         super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-//        imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-//        imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
         operateur.addListener((observable, oldValue, newValue) -> rap.rappel());
 
@@ -917,7 +769,6 @@ public class Composition extends BaseObstacleAvecContourEtMatiere implements Obs
     @Override
     public void definirAppartenanceSystemeOptiqueCentre(boolean b) {
         super.definirAppartenanceSystemeOptiqueCentre(b);
-//        this.appartenance_systeme_optique_centre.set(b);
 
         // Tous les obstacles de la Composition sont concernés aussi (permet de désactiver certains contrôles de ces obstacles
         // dans les vues des panneaux, comme le contrôle de l'orientation)
@@ -925,22 +776,14 @@ public class Composition extends BaseObstacleAvecContourEtMatiere implements Obs
             o.definirAppartenanceSystemeOptiqueCentre(b);
     }
 
-//    @Override
-//    public boolean appartientASystemeOptiqueCentre() {
-//        return this.appartenance_systeme_optique_centre.get();
-//    }
-
     @Override
     public void definirAppartenanceComposition(boolean b) {
         super.definirAppartenanceComposition(b);
-//        this.appartenance_composition.set(b);
 
         for (Obstacle o : elements)
             o.definirAppartenanceComposition(b);
 
     }
-//    @Override
-//    public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
 
     @Override
     public double rayonDiaphragmeMaximumConseille() {
@@ -1188,6 +1031,5 @@ public class Composition extends BaseObstacleAvecContourEtMatiere implements Obs
             o.convertirDistances(facteur_conversion);
 
     }
-
 
 }

@@ -2,6 +2,7 @@ package CrazyDiamond.Model;
 
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
+import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 
 import java.util.ArrayList;
@@ -21,22 +22,19 @@ public class Segment extends BaseObstacleAvecContourSansEpaisseur implements Obs
 
     private static int compteur_segment;
 
-    public Segment(double x_centre, double y_centre, double longueur, double orientation,double rayon_diaphragme) throws IllegalArgumentException {
-        this(
-            new Imp_Identifiable(),
-            new Imp_Nommable("Segment " + (++compteur_segment)),
-            new Imp_ElementAvecContour(null) ,
-            new Imp_ElementSansEpaisseur(null),
-            x_centre,y_centre,longueur,orientation,rayon_diaphragme
-        ) ;
+    public Segment(double x_centre, double y_centre, double longueur, double orientation_deg,double rayon_diaphragme) throws IllegalArgumentException {
+        this(null,x_centre,y_centre,longueur,orientation_deg,rayon_diaphragme,null,null) ;
     }
-    public Segment(Imp_Identifiable ii,Imp_Nommable in,Imp_ElementAvecContour iec, Imp_ElementSansEpaisseur iese,double x_centre, double y_centre, double longueur, double orientation,double rayon_diaphragme) throws IllegalArgumentException {
-        super(ii,in,iec,iese) ;
 
+    public Segment(String nom,  double  x_centre, double y_centre, double longueur, double orientation_deg,double rayon_diaphragme , NatureMilieu nature_milieu, Color couleur_contour) throws IllegalArgumentException {
+        super(nom != null ? nom : "Segment " + (++compteur_segment), nature_milieu, couleur_contour);
+
+        // TODO : A partir d'ici, code dupliqué avec le constructeur qui suit => A factoriser mais on dirait que ce n'est pas possible
+        // les propriétés "final" ne peuvent pas être initialisées dans une sous-fonction du constructeur. Pfff..
         if (longueur==0d)
             throw new IllegalArgumentException("Un segment ne peut pas être de longueur nulle.");
 
-        this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(new Point2D(x_centre,y_centre),orientation)) ;
+        this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(new Point2D(x_centre,y_centre),orientation_deg)) ;
 
         this.longueur = new SimpleDoubleProperty(longueur);
         this.rayon_diaphragme = new SimpleDoubleProperty(rayon_diaphragme);
@@ -44,7 +42,42 @@ public class Segment extends BaseObstacleAvecContourSansEpaisseur implements Obs
         segment_support = new DemiDroiteOuSegment() ;
 
         segment_support.definirDepartEtArrivee(new Point2D(x_centre,y_centre-longueur/2d),new Point2D(x_centre,y_centre+longueur/2d));
-        segment_support.tournerAutourDe(segment_support.milieu(),orientation);
+        segment_support.tournerAutourDe(segment_support.milieu(),orientation_deg);
+
+        this.position_orientation.addListener((observable, oldValue, newValue) -> {
+            segment_support.definirDepartEtArrivee(
+                    new Point2D(newValue.position().getX(),newValue.position().getY()-this.longueur.get()/2d),
+                    new Point2D(newValue.position().getX(),newValue.position().getY()+this.longueur.get()/2d));
+            segment_support.tournerAutourDe(segment_support.milieu(), newValue.orientation_deg()%360d);
+
+        }) ;
+
+        this.longueur.addListener((observable, oldValue, newValue) -> {
+            double demi_l = (newValue.doubleValue())/2d ;
+            segment_support.definirDepartEtArrivee(
+                    segment_support.milieu().add(segment_support.direction().multiply(-demi_l)),
+                    segment_support.milieu().add(segment_support.direction().multiply(+demi_l))
+            );
+        }) ;
+
+    }
+
+    public Segment(Imp_Identifiable ii,Imp_Nommable in,Imp_ElementAvecContour iec, Imp_ElementSansEpaisseur iese,
+                   double x_centre, double y_centre, double longueur, double orientation_deg,double rayon_diaphragme) throws IllegalArgumentException {
+        super(ii,in,iec,iese) ;
+
+        if (longueur==0d)
+            throw new IllegalArgumentException("Un segment ne peut pas être de longueur nulle.");
+
+        this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(new Point2D(x_centre,y_centre),orientation_deg)) ;
+
+        this.longueur = new SimpleDoubleProperty(longueur);
+        this.rayon_diaphragme = new SimpleDoubleProperty(rayon_diaphragme);
+
+        segment_support = new DemiDroiteOuSegment() ;
+
+        segment_support.definirDepartEtArrivee(new Point2D(x_centre,y_centre-longueur/2d),new Point2D(x_centre,y_centre+longueur/2d));
+        segment_support.tournerAutourDe(segment_support.milieu(),orientation_deg);
 
         this.position_orientation.addListener((observable, oldValue, newValue) -> {
             segment_support.definirDepartEtArrivee(
@@ -132,7 +165,6 @@ public class Segment extends BaseObstacleAvecContourSansEpaisseur implements Obs
         position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
         longueur.addListener((observable, oldValue, newValue) -> rap.rappel());
         rayon_diaphragme.addListener((observable, oldValue, newValue) -> rap.rappel());
-
     }
 
     @Override

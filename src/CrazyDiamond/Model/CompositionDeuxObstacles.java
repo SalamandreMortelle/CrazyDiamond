@@ -2,6 +2,7 @@ package CrazyDiamond.Model;
 
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
+import javafx.scene.paint.Color;
 
 import java.util.*;
 
@@ -18,18 +19,20 @@ public class CompositionDeuxObstacles extends BaseObstacleAvecContourEtMatiere i
 
     private static int compteur_composition_deux_obstacles = 0;
 
-    private final BooleanProperty appartenance_composition ;
-
     public CompositionDeuxObstacles(Obstacle ob1, Operateur op, Obstacle ob2) throws IllegalArgumentException {
-        this(
-                new Imp_Identifiable(),
-                new Imp_Nommable("Composition Deux Obstacles " + (++compteur_composition_deux_obstacles)),
-                new Imp_ElementAvecContour(null),
-                new Imp_ElementAvecMatiere(null, null,1.0,null),
-                ob1,op,ob2
-        ) ;
-
+        this(null,ob1,op,ob2,null,null,1.0,null,null) ;
     }
+
+    public CompositionDeuxObstacles(String nom, Obstacle ob1, Operateur op, Obstacle ob2, TypeSurface type_surface, NatureMilieu nature_milieu, double indice_refraction, Color couleur_matiere, Color couleur_contour) throws IllegalArgumentException {
+        super(nom != null ? nom :"Composition Deux Obstacles " + (++compteur_composition_deux_obstacles),
+                type_surface, nature_milieu, indice_refraction, couleur_matiere, couleur_contour);
+
+        obstacle1 = new SimpleObjectProperty<>(ob1) ;
+        obstacle2 = new SimpleObjectProperty<>(ob2) ;
+
+        operateur = new SimpleObjectProperty<>(op)  ;
+    }
+
     public CompositionDeuxObstacles(Imp_Identifiable ii,Imp_Nommable in,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem ,Obstacle ob1, Operateur op, Obstacle ob2) throws IllegalArgumentException {
         super (ii,in,iec,iem) ;
 
@@ -37,9 +40,6 @@ public class CompositionDeuxObstacles extends BaseObstacleAvecContourEtMatiere i
         obstacle2 = new SimpleObjectProperty<>(ob2) ;
 
         operateur = new SimpleObjectProperty<>(op)  ;
-
-        appartenance_composition = new SimpleBooleanProperty(false) ;
-
     }
 
     @Override
@@ -298,11 +298,6 @@ public class CompositionDeuxObstacles extends BaseObstacleAvecContourEtMatiere i
     public void tournerAutourDe(Point2D centre_rot, double angle_rot_deg) {
 
     }
-
-    @Override
-    public void definirAppartenanceComposition(boolean b) {this.appartenance_composition.set(b);}
-    @Override
-    public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
 
     @Override
     public void convertirDistances(double facteur_conversion) {

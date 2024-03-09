@@ -2,6 +2,7 @@ package CrazyDiamond.Model;
 
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
+import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.util.Pair;
 
@@ -14,14 +15,22 @@ public class Prisme extends BaseObstacleAvecContourEtMatiere implements Obstacle
     private static int compteur_prisme;
 
     public Prisme(TypeSurface type_surface, double x_centre, double y_centre, double angle_sommet, double largeur_base, double orientation_deg) throws IllegalArgumentException {
-        this(
-                new Imp_Identifiable(),
-                new Imp_Nommable( "Prisme "+(++compteur_prisme)),
-                new Imp_ElementAvecContour(null),
-                new Imp_ElementAvecMatiere(type_surface,null,1.0,null ),
-                x_centre,y_centre,angle_sommet,largeur_base,orientation_deg
-        ) ;
+        this(null,type_surface,x_centre,y_centre,angle_sommet,largeur_base,orientation_deg,null,1.0,null,null) ;
     }
+
+    public Prisme(String nom, TypeSurface type_surface, double x_centre, double y_centre, double angle_sommet, double largeur_base, double orientation_deg, NatureMilieu nature_milieu, double indice_refraction, Color couleur_matiere, Color couleur_contour) throws IllegalArgumentException {
+        super(nom != null ? nom : "Prisme " + (++compteur_prisme),
+                type_surface, nature_milieu, indice_refraction, couleur_matiere, couleur_contour);
+
+        if (angle_sommet <=0d || largeur_base <=0d)
+            throw new IllegalArgumentException("Un prisme doit avoir un angle au sommet et une largeur de base strictement positifs.") ;
+
+        this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(new Point2D(x_centre,y_centre),orientation_deg)) ;
+
+        this.angle_sommet = new SimpleDoubleProperty(angle_sommet);
+        this.largeur_base = new SimpleDoubleProperty(largeur_base);
+    }
+
     public Prisme(Imp_Identifiable ii,Imp_Nommable in,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem, double x_centre, double y_centre, double angle_sommet, double largeur_base, double orientation_deg) throws IllegalArgumentException {
         super(ii,in,iec,iem) ;
 

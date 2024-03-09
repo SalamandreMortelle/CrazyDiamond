@@ -2,6 +2,7 @@ package CrazyDiamond.Model;
 
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
+import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 
 import java.util.ArrayList;
@@ -59,15 +60,22 @@ public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacl
     private static int compteur_conique = 0 ;
 
     public Conique(TypeSurface type_surface, double x_foyer, double y_foyer, double orientation_deg, double parametre, double excentricite) throws IllegalArgumentException {
-        this(
-                new Imp_Identifiable(),
-                new Imp_Nommable("Conique "+(++compteur_conique)),
-                new Imp_ElementAvecContour(null),
-                new Imp_ElementAvecMatiere(type_surface,null ,1.0,null),
-                x_foyer,y_foyer,orientation_deg,parametre,excentricite
-        ) ;
-
+        this(null,type_surface,x_foyer,y_foyer,orientation_deg,parametre,excentricite,null,1.0,null,null) ;
     }
+
+    public Conique(String nom, TypeSurface type_surface, double x_foyer, double y_foyer, double orientation_deg, double parametre, double excentricite, NatureMilieu nature_milieu, double indice_refraction, Color couleur_matiere, Color couleur_contour) throws IllegalArgumentException {
+        super(nom!=null?nom:"Conique "+(++compteur_conique),
+                type_surface,nature_milieu,indice_refraction,couleur_matiere,couleur_contour);
+
+        if (parametre <= 0 || excentricite <0)
+            throw new IllegalArgumentException("L'excentricité d'une conique doit être positive, et le paramètre strictement positif.");
+
+        this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(new Point2D(x_foyer,y_foyer),orientation_deg)) ;
+
+        this.parametre = new SimpleDoubleProperty(parametre) ;
+        this.excentricite = new SimpleDoubleProperty(excentricite) ;
+    }
+
     public Conique(Imp_Identifiable ii,Imp_Nommable ien,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem , double x_foyer, double y_foyer, double orientation_deg, double parametre, double excentricite) throws IllegalArgumentException {
         super(ii,ien,iec,iem);
 
@@ -78,7 +86,6 @@ public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacl
 
         this.parametre = new SimpleDoubleProperty(parametre) ;
         this.excentricite = new SimpleDoubleProperty(excentricite) ;
-
     }
 
 

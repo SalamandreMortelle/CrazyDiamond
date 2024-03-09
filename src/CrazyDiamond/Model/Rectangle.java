@@ -2,6 +2,7 @@ package CrazyDiamond.Model;
 
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
+import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.util.Pair;
 
@@ -18,14 +19,22 @@ public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obsta
     private static int compteur_rectangle ;
 
     public Rectangle(TypeSurface type_surface, double  x_centre, double y_centre, double largeur, double hauteur, double orientation_deg) throws IllegalArgumentException {
-        this(
-            new Imp_Identifiable(),
-            new Imp_Nommable( "Rectangle "+(++compteur_rectangle)),
-            new Imp_ElementAvecContour(null),
-            new Imp_ElementAvecMatiere(type_surface,null,1.0,null ),
-            x_centre,y_centre,largeur,hauteur,orientation_deg
-        ) ;
+        this(null,type_surface,x_centre,y_centre,largeur,hauteur,orientation_deg,null,1.0,null,null) ;
     }
+
+    public Rectangle(String nom, TypeSurface type_surface, double  x_centre, double y_centre, double largeur, double hauteur, double orientation_deg, NatureMilieu nature_milieu, double indice_refraction, Color couleur_matiere, Color couleur_contour) throws IllegalArgumentException {
+        super(nom != null ? nom :"Rectangle "+(++compteur_rectangle),
+                type_surface, nature_milieu, indice_refraction, couleur_matiere, couleur_contour);
+
+        if (largeur==0d || hauteur==0d)
+            throw new IllegalArgumentException("Un rectangle doit avoir une largeur et une hauteur non nulles.") ;
+
+        this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(new Point2D(x_centre,y_centre),orientation_deg)) ;
+
+        this.largeur = new SimpleDoubleProperty(largeur);
+        this.hauteur = new SimpleDoubleProperty(hauteur);
+    }
+
     public Rectangle(Imp_Identifiable ii,Imp_Nommable in,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem, double  x_centre, double y_centre, double largeur, double hauteur, double orientation_deg) throws IllegalArgumentException {
         super(ii,in,iec,iem) ;
 
@@ -36,7 +45,6 @@ public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obsta
 
         this.largeur = new SimpleDoubleProperty(largeur);
         this.hauteur = new SimpleDoubleProperty(hauteur);
-
     }
 
     @Override

@@ -10,9 +10,10 @@ public abstract class BaseObstacleAvecContour extends BaseObstacle {
     private final Imp_ElementAvecContour imp_elementAvecContour ;
 
 
-    BaseObstacleAvecContour(String nom) {
+    BaseObstacleAvecContour(String nom, Color couleur_contour) {
         super(nom);
-        this.imp_elementAvecContour = new Imp_ElementAvecContour(null) ;
+        this.imp_elementAvecContour = new Imp_ElementAvecContour(couleur_contour) ;
+//        this.imp_elementAvecContour = new Imp_ElementAvecContour(null) ;
     }
 
     BaseObstacleAvecContour(Imp_Identifiable ii, Imp_Nommable in, Imp_ElementAvecContour iac) {

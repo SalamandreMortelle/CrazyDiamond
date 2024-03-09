@@ -2,6 +2,7 @@ package CrazyDiamond.Model;
 
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
+import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 
 import java.util.ArrayList;
@@ -18,23 +19,28 @@ public class Cercle extends BaseObstacleAvecContourEtMatiere implements Obstacle
     public static void razCompteur() { compteur_cercle = 0 ; }
 
     public Cercle(TypeSurface type_surface, double xcentre, double ycentre, double rayon) throws IllegalArgumentException {
-        this(null,type_surface,xcentre,ycentre,rayon);
+        this(null,xcentre,ycentre,rayon,type_surface);
 
     }
 
-    // TODO : en faire un constructeur qui prend tous les paramètres (y compris nom, couleur contour, et couleur matière)
-    public Cercle(String nom,TypeSurface type_surface, double xcentre, double ycentre, double rayon) throws IllegalArgumentException {
+    public Cercle(String nom, double xcentre, double ycentre, double rayon, TypeSurface type_surface) throws IllegalArgumentException {
+        this(nom,type_surface,xcentre,ycentre,rayon,null,1.0,null,null) ;
+    }
 
-        this(
-                new Imp_Identifiable(),
-                new Imp_Nommable( nom!=null?nom:"Cercle "+(++compteur_cercle) ),
-                new Imp_ElementAvecContour(null),
-                new Imp_ElementAvecMatiere(type_surface,null ,1.0,null),
-                xcentre,ycentre,rayon
-        ) ;
+    public Cercle(String nom, TypeSurface type_surface, double xcentre, double ycentre, double rayon, NatureMilieu nature_milieu, double indice_refraction, Color couleur_matiere, Color couleur_contour) throws IllegalArgumentException {
+        super(nom!=null?nom:"Cercle "+(++compteur_cercle),
+                type_surface,nature_milieu,indice_refraction,couleur_matiere,couleur_contour);
+
+        if (rayon <= 0)
+            throw new IllegalArgumentException("Le rayon doit être positif.");
+
+        this.centre = new SimpleObjectProperty<>(new Point2D(xcentre,ycentre)) ;
+        this.rayon = new SimpleDoubleProperty(rayon) ;
 
     }
 
+
+    // Constructeur utilisé par le Deserializer
     public Cercle(Imp_Identifiable ii, Imp_Nommable iei, Imp_ElementAvecContour iac, Imp_ElementAvecMatiere iam, double xcentre, double ycentre, double rayon) throws IllegalArgumentException {
         super(ii,iei,iac,iam);
 
@@ -42,7 +48,6 @@ public class Cercle extends BaseObstacleAvecContourEtMatiere implements Obstacle
             throw new IllegalArgumentException("Le rayon doit être positif.");
 
         this.centre = new SimpleObjectProperty<>(new Point2D(xcentre,ycentre)) ;
-
         this.rayon = new SimpleDoubleProperty(rayon) ;
     }
 

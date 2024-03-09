@@ -10,9 +10,10 @@ public abstract class BaseObstacleAvecContourEtMatiere extends BaseObstacleAvecC
 
     private final Imp_ElementAvecMatiere imp_elementAvecMatiere ;
 
-    BaseObstacleAvecContourEtMatiere(String nom, TypeSurface type_surface) {
-        super(nom);
-        this.imp_elementAvecMatiere = new Imp_ElementAvecMatiere(type_surface,null ,1.0,null) ;
+    BaseObstacleAvecContourEtMatiere(String nom, TypeSurface type_surface,NatureMilieu nature_milieu,double indice_refraction,Color couleur_matiere,Color couleur_contour) {
+        super(nom,couleur_contour);
+        this.imp_elementAvecMatiere = new Imp_ElementAvecMatiere(type_surface,nature_milieu ,indice_refraction,couleur_matiere) ;
+//        this.imp_elementAvecMatiere = new Imp_ElementAvecMatiere(type_surface,null ,1.0,null) ;
     }
 
     BaseObstacleAvecContourEtMatiere(Imp_Identifiable ii, Imp_Nommable in, Imp_ElementAvecContour iac, Imp_ElementAvecMatiere iam) {

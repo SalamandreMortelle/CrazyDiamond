@@ -20,13 +20,6 @@ public class CercleDeserializer extends StdDeserializer<Cercle> {
         super(vc);
     }
 
-    /**
-     * @param jsonParser
-     * @param deserializationContext
-     * @return
-     * @throws IOException
-     * @throws JacksonException
-     */
     @Override
     public Cercle deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JacksonException {
 
@@ -45,8 +38,9 @@ public class CercleDeserializer extends StdDeserializer<Cercle> {
         Imp_ElementAvecContour iec = mapper.treeToValue(cercle_node, Imp_ElementAvecContour.class) ;
         Imp_ElementAvecMatiere iem = mapper.treeToValue(cercle_node, Imp_ElementAvecMatiere.class) ;
 
-        Cercle cercle = new Cercle(ii,iei,iec,iem,cercle_node.get("x_centre").asDouble()*facteur_conversion,cercle_node.get("y_centre").asDouble()*facteur_conversion,cercle_node.get("rayon").asDouble()*facteur_conversion) ;
-
-        return cercle;
+        return new Cercle(ii,iei,iec,iem,
+                cercle_node.get("x_centre").asDouble()*facteur_conversion,
+                cercle_node.get("y_centre").asDouble()*facteur_conversion,
+                cercle_node.get("rayon").asDouble()*facteur_conversion);
     }
 }
