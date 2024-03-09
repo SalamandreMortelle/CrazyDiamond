@@ -9,6 +9,7 @@ public interface VisiteurElementAvecMatiere {
     void visitePrisme(Prisme prisme);
 
     void visiteComposition(Composition c) ;
+
     void visiteCompositionDeuxObstacles(CompositionDeuxObstacles c) ;
 
 

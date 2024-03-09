@@ -2,24 +2,14 @@ package CrazyDiamond.Model;
 
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
-import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.util.Pair;
 
-import java.io.IOException;
-
-public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecContour,ElementAvecMatiere {
-
-    private final Imp_Identifiable imp_identifiable ;
-    private final Imp_Nommable imp_nommable;
-    private final Imp_ElementAvecContour imp_elementAvecContour ;
-    private final Imp_ElementAvecMatiere imp_elementAvecMatiere ;
+public class Prisme extends BaseObstacleAvecContourEtMatiere implements Obstacle, Identifiable, Nommable,ElementAvecContour,ElementAvecMatiere {
 
     private final ObjectProperty<PositionEtOrientation> position_orientation ;
     protected final DoubleProperty angle_sommet;
     protected final DoubleProperty largeur_base;
-
-    private final BooleanProperty appartenance_composition;
 
     private static int compteur_prisme;
 
@@ -33,68 +23,22 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
         ) ;
     }
     public Prisme(Imp_Identifiable ii,Imp_Nommable in,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem, double x_centre, double y_centre, double angle_sommet, double largeur_base, double orientation_deg) throws IllegalArgumentException {
+        super(ii,in,iec,iem) ;
 
         if (angle_sommet <=0d || largeur_base <=0d)
             throw new IllegalArgumentException("Un prisme doit avoir un angle au sommet et une largeur de base strictement positifs.") ;
-
-        imp_identifiable = ii ;
-        imp_nommable = in ;
-        imp_elementAvecContour = iec;
-        imp_elementAvecMatiere = iem;
 
         this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(new Point2D(x_centre,y_centre),orientation_deg)) ;
 
         this.angle_sommet = new SimpleDoubleProperty(angle_sommet);
         this.largeur_base = new SimpleDoubleProperty(largeur_base);
 
-        appartenance_composition = new SimpleBooleanProperty(false) ;
-
     }
 
-    @Override public String id() { return imp_identifiable.id(); }
-
-    @Override public String nom() {  return imp_nommable.nom(); }
-    @Override public StringProperty nomProperty() { return imp_nommable.nomProperty(); }
-
-    @Override public Color couleurContour() { return imp_elementAvecContour.couleurContour();}
-    @Override public void definirCouleurContour(Color c) { imp_elementAvecContour.definirCouleurContour(c); }
-
-    @Override public ObjectProperty<Color> couleurContourProperty() { return imp_elementAvecContour.couleurContourProperty(); }
-
-    @Override public void definirTraitementSurface(TraitementSurface traitement_surf) { imp_elementAvecContour.definirTraitementSurface(traitement_surf);}
-    @Override public TraitementSurface traitementSurface() {return imp_elementAvecContour.traitementSurface() ;}
-    @Override public ObjectProperty<TraitementSurface> traitementSurfaceProperty() {return imp_elementAvecContour.traitementSurfaceProperty() ;}
-    @Override public DoubleProperty tauxReflexionSurfaceProperty() {return imp_elementAvecContour.tauxReflexionSurfaceProperty() ; }
-
-    @Override public void definirTauxReflexionSurface(double taux_refl) {imp_elementAvecContour.definirTauxReflexionSurface(taux_refl);}
-    @Override public double tauxReflexionSurface() {return imp_elementAvecContour.tauxReflexionSurface();}
-
-    @Override public void definirOrientationAxePolariseur(double angle_pol) {imp_elementAvecContour.definirOrientationAxePolariseur(angle_pol);}
-    @Override public double orientationAxePolariseur() {return imp_elementAvecContour.orientationAxePolariseur() ;}
-    @Override public DoubleProperty orientationAxePolariseurProperty() {return imp_elementAvecContour.orientationAxePolariseurProperty() ;}
     @Override
     public Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) {
         return null ;
     }
-
-    @Override public Color couleurMatiere() { return imp_elementAvecMatiere.couleurMatiere(); }
-    @Override public void definirCouleurMatiere(Color couleur) { imp_elementAvecMatiere.definirCouleurMatiere(couleur); }
-
-    @Override public ObjectProperty<Color> couleurMatiereProperty() { return imp_elementAvecMatiere.couleurMatiereProperty(); }
-
-    @Override public void definirTypeSurface(TypeSurface type_surf) { imp_elementAvecMatiere.definirTypeSurface(type_surf); }
-    @Override public TypeSurface typeSurface() { return imp_elementAvecMatiere.typeSurface(); }
-    @Override public ObjectProperty<TypeSurface> typeSurfaceProperty() { return imp_elementAvecMatiere.typeSurfaceProperty(); }
-
-    @Override public void definirNatureMilieu(NatureMilieu nature_mil) { imp_elementAvecMatiere.definirNatureMilieu(nature_mil); }
-    @Override public NatureMilieu natureMilieu() { return imp_elementAvecMatiere.natureMilieu(); }
-    @Override public ObjectProperty<NatureMilieu> natureMilieuProperty() { return imp_elementAvecMatiere.natureMilieuProperty(); }
-
-    @Override public void definirIndiceRefraction(double indice_refraction) { imp_elementAvecMatiere.definirIndiceRefraction(indice_refraction);   }
-    @Override public double indiceRefraction() { return imp_elementAvecMatiere.indiceRefraction(); }
-    @Override public DoubleProperty indiceRefractionProperty() {  return imp_elementAvecMatiere.indiceRefractionProperty(); }
-
-    @Override public String toString() { return nom(); }
 
     public void definirCentre(Point2D centre) {position_orientation.set(new PositionEtOrientation(centre,orientation()));}
 
@@ -103,29 +47,13 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
     public void definirOrientation(double or) {  position_orientation.set(new PositionEtOrientation(centre(),or)); }
 
     public double xCentre() { return centre().getX(); }
-//    public DoubleProperty xCentreProperty() { return x_centre; }
     public double yCentre() { return centre().getY(); }
-//    public DoubleProperty yCentreProperty() { return y_centre; }
     public DoubleProperty angleSommetProperty() { return angle_sommet; }
     public double angleSommet() { return angle_sommet.get(); }
     public DoubleProperty largeurBaseProperty() { return largeur_base; }
     public double largeurBase() { return largeur_base.get(); }
 
-//    public DoubleProperty orientationProperty() { return orientation ;}
     public double orientation() { return position_orientation.get().orientation_deg() ;}
-
-    public void appliquerSurIdentifiable(ConsumerAvecException<Object, IOException> consumer) throws IOException {
-        consumer.accept(imp_identifiable);
-    }
-    public void appliquerSurNommable(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_nommable);
-    }
-    public void appliquerSurElementAvecContour(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_elementAvecContour);
-    }
-    public void appliquerSurElementAvecMatiere(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_elementAvecMatiere);
-    }
 
     public void translater(Point2D vecteur) {
         position_orientation.set(new PositionEtOrientation(centre().add(vecteur),orientation()));
@@ -148,17 +76,10 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
         return couper(boite,true) ;
     }
 
-    @Override
-    public void definirAppartenanceComposition(boolean b) {this.appartenance_composition.set(b);}
-    @Override
-    public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
-
     DemiDroiteOuSegment cote(BordPrisme b) {
-
         if (b == BordPrisme.GAUCHE) return DemiDroiteOuSegment.construireSegment(sommet(Sommet.H),sommet(Sommet.BG)) ;
         if (b == BordPrisme.BAS) return  DemiDroiteOuSegment.construireSegment(sommet(Sommet.BG),sommet(Sommet.BD)) ;
         return DemiDroiteOuSegment.construireSegment(sommet(Sommet.BD),sommet(Sommet.H)) ;
-
     }
 
     @Override
@@ -168,7 +89,6 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
         Point2D nouveau_centre = r.transform(centre()) ;
 
         position_orientation.set(new PositionEtOrientation(nouveau_centre,orientation()+angle_rot_deg));
-
     }
 
     ContoursObstacle couper(BoiteLimiteGeometrique boite, boolean avec_contours_surface) {
@@ -296,8 +216,7 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
 
     @Override
     public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
-        imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
+        super.ajouterRappelSurChangementToutePropriete(rap);
 
         position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
 
@@ -307,8 +226,7 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
 
     @Override
     public void     ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-        imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
+        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
         position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
 
@@ -320,9 +238,6 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
         // Si on est sur le point de départ, ne rien faire
         if (pos_souris.equals(centre()))
             return ;
-
-//        if (pos_souris.getX()== x_centre.get() && pos_souris.getY()== y_centre.get())
-//            return ;
 
         // Calcul de la nouvelle largeur base (angle au sommet est supposé connu et ne change pas)
         largeur_base.set(Math.abs(2d*(pos_souris.getX()- xCentre())));
@@ -354,8 +269,6 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
             nouvelle_orientation += 360d ;
 
         definirOrientation(nouvelle_orientation);
-//        orientation.set(nouvelle_orientation);
-
     }
 
 
@@ -411,7 +324,7 @@ public class Prisme implements Obstacle, Identifiable, Nommable,ElementAvecConto
 
         Point2D[] coins = new Point2D[3] ;
 
-        // On part du sommet Haut , abstraction faite de l'orientation du prisme, et on tourne dans le sens trigo
+        // On part du sommet Haut, abstraction faite de l'orientation du prisme, et on tourne dans le sens trigo
 
         double hauteur = largeur_base.get()/(2*Math.tan(Math.toRadians(angle_sommet.get())/2d)) ;
 

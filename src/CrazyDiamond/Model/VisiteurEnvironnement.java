@@ -17,6 +17,8 @@ public interface VisiteurEnvironnement {
     void visiteComposition(Composition c) ;
     void visiteCompositionDeuxObstacles(CompositionDeuxObstacles c) ;
 
+    default void visiteGroupe(Groupe g) { }
+
     void visiteSystemeOptiqueCentre(SystemeOptiqueCentre soc) ;
 
     default void avantVisiteSystemesOptiquesCentres() { }

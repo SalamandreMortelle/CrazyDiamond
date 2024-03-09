@@ -5,21 +5,18 @@ import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Affine;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Source implements Nommable {
+public class Source extends BaseElementNommable implements Nommable {
 
     // Récupération du logger
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
     private static final int nombre_rayons_par_defaut = 1 ;
     private static final int nombre_max_obstacles_rencontres_par_defaut = 7 ;
-
-    private final Imp_Nommable imp_nommable;
 
     private static int compteur_source ;
 
@@ -28,10 +25,6 @@ public class Source implements Nommable {
     protected Environnement environnement ;
 
     private final ObjectProperty<PositionEtOrientation> position_orientation ;
-//    protected final DoubleProperty position_x ;
-//    protected final DoubleProperty position_y ;
-//
-//    protected final DoubleProperty orientation;
 
     protected final IntegerProperty nombre_maximum_rencontres_obstacle;
 
@@ -41,11 +34,6 @@ public class Source implements Nommable {
     protected ArrayList<CheminLumiere> chemins ;
 
     public static Property<Color> couleurParDefautProperty() { return couleur_par_defaut_property ; }
-
-    @Override
-    public String nom() {  return imp_nommable.nom(); }
-    @Override
-    public StringProperty nomProperty() { return imp_nommable.nomProperty(); }
 
     public Contour positions_poignees() {
             Contour c_poignees = new Contour(1) ;
@@ -66,8 +54,6 @@ public class Source implements Nommable {
 
     public void translater(Point2D vecteur) {
         position_orientation.set(new PositionEtOrientation(position().add(vecteur),orientation()));
-//        position_x.set(position_x.get()+v_glisser_g.getX());
-//        position_y.set(position_y.get()+v_glisser_g.getY());
     }
 
     public Commande commandeCreation(Environnement env) {
@@ -171,9 +157,6 @@ public class Source implements Nommable {
         return largeur_projecteur;
     }
 
-//    public DoubleProperty positionXProperty() { return position_x; }
-//    public DoubleProperty positionYProperty() { return position_y; }
-//    public DoubleProperty orientationProperty() { return orientation; }
     public double orientation() { return position_orientation.get().orientation_deg(); }
     public ObjectProperty<TypeSource> typeProperty() { return type; }
     public ObjectProperty<Color> couleurProperty() { return couleur; }
@@ -191,9 +174,7 @@ public class Source implements Nommable {
         res[1] = position().add(vect_perp.multiply(0.5d*largeurProjecteur())) ;
 
         return res ;
-
     }
-
 
     public Source(Environnement environnement, Point2D position, double orientation, TypeSource type , int nb_rayons, Color couleur) {
         this(environnement,position, orientation,type,nb_rayons,couleur,false,0d,nombre_max_obstacles_rencontres_par_defaut) ;
@@ -208,9 +189,7 @@ public class Source implements Nommable {
 
     }
     public Source(Environnement environnement, Imp_Nommable iei, Point2D position, double orientation_deg, TypeSource type, int nb_rayons, double ouverture_pinceau, double largeur_projecteur, Color couleur, boolean lumiere_polarisee, double angle_champ_electrique, int nombre_max_obstacles_rencontres) {
-
-        imp_nommable = iei ;
-//        imp_elementIdentifie = new Imp_ElementIdentifie( "Source "+(++compteur_source)) ;
+        super(iei);
 
         if (environnement == null)
             throw new IllegalArgumentException("Une source doit appartenir à un environnement.") ;
@@ -241,7 +220,6 @@ public class Source implements Nommable {
 
         this.lumiere_polarisee = new SimpleBooleanProperty(lumiere_polarisee) ;
         this.angle_champ_electrique = new SimpleDoubleProperty(angle_champ_electrique) ;
-
     }
 
     public Source(Environnement environnement, Point2D position, double orientation, TypeSource type) {
@@ -250,12 +228,6 @@ public class Source implements Nommable {
 
     public Source(Environnement environnement, Point2D position, double orientation, TypeSource type , int nb_rayons) {
         this(environnement,position, orientation,type,nb_rayons,couleur_par_defaut_property.getValue()) ;
-    }
-
-    @Override public String toString() { return nom(); }
-
-    public void appliquerSurNommable(ConsumerAvecException<Object, IOException> consumer) throws IOException {
-        consumer.accept(imp_nommable);
     }
 
     public void accepte(VisiteurEnvironnement v) {
@@ -267,7 +239,6 @@ public class Source implements Nommable {
     }
 
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-
         position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
         nombre_maximum_rencontres_obstacle.addListener((observable, oldValue, newValue) -> rap.rappel());
         nombre_rayons.addListener((observable, oldValue, newValue) -> rap.rappel());

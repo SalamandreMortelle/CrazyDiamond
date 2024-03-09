@@ -2,20 +2,13 @@ package CrazyDiamond.Model;
 
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
-import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.util.Pair;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecContour,ElementAvecMatiere {
-
-    private final Imp_Identifiable imp_identifiable ;
-    private final Imp_Nommable imp_nommable;
-    private final Imp_ElementAvecContour imp_elementAvecContour ;
-    private final Imp_ElementAvecMatiere imp_elementAvecMatiere ;
+public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obstacle, Identifiable, Nommable,ElementAvecContour,ElementAvecMatiere {
 
     private final ObjectProperty<PositionEtOrientation> position_orientation ;
 
@@ -23,9 +16,6 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
     protected final DoubleProperty hauteur ;
 
     private static int compteur_rectangle ;
-
-    private final BooleanProperty appartenance_composition;
-    private final BooleanProperty appartenance_systeme_optique_centre;
 
     public Rectangle(TypeSurface type_surface, double  x_centre, double y_centre, double largeur, double hauteur, double orientation_deg) throws IllegalArgumentException {
         this(
@@ -37,70 +27,22 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
         ) ;
     }
     public Rectangle(Imp_Identifiable ii,Imp_Nommable in,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem, double  x_centre, double y_centre, double largeur, double hauteur, double orientation_deg) throws IllegalArgumentException {
+        super(ii,in,iec,iem) ;
 
         if (largeur==0d || hauteur==0d)
             throw new IllegalArgumentException("Un rectangle doit avoir une largeur et une hauteur non nulles.") ;
-
-        imp_identifiable = ii ;
-        imp_nommable = in ;
-        imp_elementAvecContour = iec;
-        imp_elementAvecMatiere = iem;
 
         this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(new Point2D(x_centre,y_centre),orientation_deg)) ;
 
         this.largeur = new SimpleDoubleProperty(largeur);
         this.hauteur = new SimpleDoubleProperty(hauteur);
 
-        this.appartenance_composition = new SimpleBooleanProperty(false) ;
-        this.appartenance_systeme_optique_centre = new SimpleBooleanProperty(false) ;
-
     }
 
-    @Override public String id() { return imp_identifiable.id(); }
-
-    @Override public String nom() {  return imp_nommable.nom(); }
-    @Override public StringProperty nomProperty() { return imp_nommable.nomProperty(); }
-
-    @Override public Color couleurContour() { return imp_elementAvecContour.couleurContour();}
-    @Override public void definirCouleurContour(Color c) { imp_elementAvecContour.definirCouleurContour(c); }
-
-    @Override public ObjectProperty<Color> couleurContourProperty() { return imp_elementAvecContour.couleurContourProperty(); }
-
-    @Override public void definirTraitementSurface(TraitementSurface traitement_surf) { imp_elementAvecContour.definirTraitementSurface(traitement_surf);}
-    @Override public TraitementSurface traitementSurface() {return imp_elementAvecContour.traitementSurface() ;}
-    @Override public ObjectProperty<TraitementSurface> traitementSurfaceProperty() {return imp_elementAvecContour.traitementSurfaceProperty() ;}
-    @Override public DoubleProperty tauxReflexionSurfaceProperty() {return imp_elementAvecContour.tauxReflexionSurfaceProperty() ; }
-
-    @Override public void definirOrientationAxePolariseur(double angle_pol) {imp_elementAvecContour.definirOrientationAxePolariseur(angle_pol);}
-    @Override public double orientationAxePolariseur() {return imp_elementAvecContour.orientationAxePolariseur() ;}
-    @Override public DoubleProperty orientationAxePolariseurProperty() {return imp_elementAvecContour.orientationAxePolariseurProperty() ;}
     @Override
     public Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) {
         return null ;
     }
-    @Override public void definirTauxReflexionSurface(double taux_refl) {imp_elementAvecContour.definirTauxReflexionSurface(taux_refl);}
-    @Override public double tauxReflexionSurface() {return imp_elementAvecContour.tauxReflexionSurface();}
-
-    @Override public Color couleurMatiere() { return imp_elementAvecMatiere.couleurMatiere(); }
-    @Override public void definirCouleurMatiere(Color couleur) { imp_elementAvecMatiere.definirCouleurMatiere(couleur); }
-
-    @Override public ObjectProperty<Color> couleurMatiereProperty() { return imp_elementAvecMatiere.couleurMatiereProperty(); }
-
-    @Override public void definirTypeSurface(TypeSurface type_surf) { imp_elementAvecMatiere.definirTypeSurface(type_surf); }
-    @Override public TypeSurface typeSurface() { return imp_elementAvecMatiere.typeSurface(); }
-    @Override public ObjectProperty<TypeSurface> typeSurfaceProperty() { return imp_elementAvecMatiere.typeSurfaceProperty(); }
-
-    @Override public void definirNatureMilieu(NatureMilieu nature_mil) { imp_elementAvecMatiere.definirNatureMilieu(nature_mil); }
-    @Override public NatureMilieu natureMilieu() { return imp_elementAvecMatiere.natureMilieu(); }
-    @Override public ObjectProperty<NatureMilieu> natureMilieuProperty() { return imp_elementAvecMatiere.natureMilieuProperty(); }
-
-    @Override public void definirIndiceRefraction(double indice_refraction) { imp_elementAvecMatiere.definirIndiceRefraction(indice_refraction);   }
-    @Override public double indiceRefraction() { return imp_elementAvecMatiere.indiceRefraction(); }
-    @Override public DoubleProperty indiceRefractionProperty() {  return imp_elementAvecMatiere.indiceRefractionProperty(); }
-
-    public BooleanProperty appartenanceSystemeOptiqueProperty() {return appartenance_systeme_optique_centre ;}
-
-    @Override public String toString() { return nom(); }
 
     public void definirCentre(Point2D centre) {position_orientation.set(new PositionEtOrientation(centre,orientation()));}
 
@@ -115,19 +57,6 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
     public ObjectProperty<PositionEtOrientation> positionEtOrientationObjectProperty() {
         return position_orientation ;
     }
-    public void appliquerSurIdentifiable(ConsumerAvecException<Object, IOException> consumer) throws IOException {
-        consumer.accept(imp_identifiable);
-    }
-    public void appliquerSurNommable(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_nommable);
-    }
-    public void appliquerSurElementAvecContour(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_elementAvecContour);
-    }
-    public void appliquerSurElementAvecMatiere(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_elementAvecMatiere);
-    }
-
 
     public void translater(Point2D vecteur) {
         position_orientation.set(new PositionEtOrientation(centre().add(vecteur),orientation()));
@@ -152,9 +81,9 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
 
     DemiDroiteOuSegment cote(BordRectangle b) {
 
-        if (b== BordRectangle.HAUT) return DemiDroiteOuSegment.construireSegment(coin(Coin.HD),coin(Coin.HG)) ;
-        if (b== BordRectangle.GAUCHE) return  DemiDroiteOuSegment.construireSegment(coin(Coin.HG),coin(Coin.BG)) ;
-        if (b== BordRectangle.BAS) return DemiDroiteOuSegment.construireSegment(coin(Coin.BG),coin(Coin.BD)) ;
+        if (b==BordRectangle.HAUT) return DemiDroiteOuSegment.construireSegment(coin(Coin.HD),coin(Coin.HG)) ;
+        if (b==BordRectangle.GAUCHE) return  DemiDroiteOuSegment.construireSegment(coin(Coin.HG),coin(Coin.BG)) ;
+        if (b==BordRectangle.BAS) return DemiDroiteOuSegment.construireSegment(coin(Coin.BG),coin(Coin.BD)) ;
 
         return DemiDroiteOuSegment.construireSegment(coin(Coin.BD),coin(Coin.HD)) ;
 
@@ -290,8 +219,7 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
 
     @Override
     public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
-        imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
+        super.ajouterRappelSurChangementToutePropriete(rap);
 
         position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
 
@@ -301,8 +229,7 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
 
     @Override
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-        imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
+        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
         position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
 
@@ -531,15 +458,11 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
 
         return cherche_intersection_avec_demidroite_ou_segment(r.supportGeometrique(),mode) ;
 
-//        System.out.println("Intersection du rayon "+r+" avec rectangle "+this+" : "+inte);
     }
 
     public Point2D cherche_intersection_avec_demidroite_ou_segment(DemiDroiteOuSegment dd_ou_s, ModeRecherche mode) {
 
         Point2D[] intersections = cherche_toutes_intersections_avec_demidroite_ou_segment(dd_ou_s) ;
-
-//        int n = intersections.length;
-//        System.out.println(n+" intersections avec "+this+" : "+(n>0?intersections[0]:"-")+" , "+(n>1?intersections[1]:"-"));
 
         if (intersections.length == 0)
             return null ;
@@ -657,13 +580,11 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
         Point2D nouveau_centre = r.transform(centre()) ;
 
         position_orientation.set(new PositionEtOrientation(nouveau_centre,orientation()+angle_rot_deg));
-
     }
 
     @Override
     public void definirOrientation(double orientation_deg)  {
         position_orientation.set(new PositionEtOrientation(centre(),orientation_deg));
-//        this.orientation.set(orientation_deg);
     }
 
     @Override
@@ -675,16 +596,6 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
     public double orientation()  {
         return position_orientation.get().orientation_deg() ;
     }
-
-    @Override
-    public void definirAppartenanceSystemeOptiqueCentre(boolean b) {this.appartenance_systeme_optique_centre.set(b);}
-    @Override
-    public boolean appartientASystemeOptiqueCentre() {return this.appartenance_systeme_optique_centre.get() ;}
-
-    @Override
-    public void definirAppartenanceComposition(boolean b) {this.appartenance_composition.set(b);}
-    @Override
-    public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
 
     @Override
     public Double rayonDiaphragmeParDefaut() {
@@ -735,6 +646,5 @@ public class Rectangle implements Obstacle, Identifiable, Nommable,ElementAvecCo
         largeur.set(largeur()*facteur_conversion);
         hauteur.set(hauteur()*facteur_conversion);
     }
-
 
 }

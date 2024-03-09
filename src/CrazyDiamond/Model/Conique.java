@@ -2,28 +2,19 @@ package CrazyDiamond.Model;
 
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
-import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Conique quelconque (ellipse, parabole ou hyperbole) dont l'axe foxal fait un angle arbitraire avec l'axe X.
+ * Conique quelconque (ellipse, parabole ou hyperbole) dont l'axe focal fait un angle arbitraire avec l'axe X.
  * Dans le cas d'une hyperbole (excentricité e > 1), seule la branche la plus proche du foyer est prise en compte.
  * La branche pour laquelle r(theta) est négatif est ignorée.
  */
-public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecContour,ElementAvecMatiere,ObstaclePolaire {
-    private final Imp_Identifiable imp_identifiable ;
-    private final Imp_Nommable imp_nommable;
-    private final Imp_ElementAvecContour imp_elementAvecContour ;
-    private final Imp_ElementAvecMatiere imp_elementAvecMatiere ;
+public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacle, Identifiable, Nommable,ElementAvecContour,ElementAvecMatiere,ObstaclePolaire {
 
     private final ObjectProperty<PositionEtOrientation> position_orientation ;
-
-    private final BooleanProperty appartenance_systeme_optique_centre;
-    private final BooleanProperty appartenance_composition ;
 
     @Override
     public Double rayon_polaire(double theta) {
@@ -62,7 +53,6 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
     }
 
 
-
     protected final DoubleProperty parametre;
     protected final DoubleProperty excentricite;
 
@@ -78,85 +68,23 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
         ) ;
 
     }
-    public Conique(Imp_Identifiable ii,Imp_Nommable in,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem , double x_foyer, double y_foyer, double orientation_deg, double parametre, double excentricite) throws IllegalArgumentException {
+    public Conique(Imp_Identifiable ii,Imp_Nommable ien,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem , double x_foyer, double y_foyer, double orientation_deg, double parametre, double excentricite) throws IllegalArgumentException {
+        super(ii,ien,iec,iem);
 
         if (parametre <= 0 || excentricite <0)
             throw new IllegalArgumentException("L'excentricité d'une conique doit être positive, et le paramètre strictement positif.");
-
-        imp_identifiable = ii ;
-        imp_nommable = in ;
-        imp_elementAvecContour = iec ;
-        imp_elementAvecMatiere = iem ;
 
         this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(new Point2D(x_foyer,y_foyer),orientation_deg)) ;
 
         this.parametre = new SimpleDoubleProperty(parametre) ;
         this.excentricite = new SimpleDoubleProperty(excentricite) ;
 
-        this.appartenance_systeme_optique_centre = new SimpleBooleanProperty(false) ;
-        this.appartenance_composition = new SimpleBooleanProperty(false);
-
     }
 
-    @Override public String id() { return imp_identifiable.id(); }
-
-    @Override public String nom() {  return imp_nommable.nom(); }
-    @Override public StringProperty nomProperty() { return imp_nommable.nomProperty(); }
-
-    @Override public Color couleurContour() { return imp_elementAvecContour.couleurContour();}
-    @Override public void definirCouleurContour(Color c) { imp_elementAvecContour.definirCouleurContour(c); }
-
-    @Override public ObjectProperty<Color> couleurContourProperty() { return imp_elementAvecContour.couleurContourProperty(); }
-
-    @Override public void definirTraitementSurface(TraitementSurface traitement_surf) { imp_elementAvecContour.definirTraitementSurface(traitement_surf);}
-    @Override public TraitementSurface traitementSurface() {return imp_elementAvecContour.traitementSurface() ;}
-    @Override public ObjectProperty<TraitementSurface> traitementSurfaceProperty() {return imp_elementAvecContour.traitementSurfaceProperty() ;}
-
-    @Override public DoubleProperty tauxReflexionSurfaceProperty() {return imp_elementAvecContour.tauxReflexionSurfaceProperty() ; }
-    @Override public void definirTauxReflexionSurface(double taux_refl) {imp_elementAvecContour.definirTauxReflexionSurface(taux_refl);}
-    @Override public double tauxReflexionSurface() {return imp_elementAvecContour.tauxReflexionSurface();}
-
-    @Override public void definirOrientationAxePolariseur(double angle_pol) {imp_elementAvecContour.definirOrientationAxePolariseur(angle_pol);}
-    @Override public double orientationAxePolariseur() {return imp_elementAvecContour.orientationAxePolariseur() ;}
-    @Override public DoubleProperty orientationAxePolariseurProperty() {return imp_elementAvecContour.orientationAxePolariseurProperty() ;}
 
     @Override
     public Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) throws Exception {
         return (direction.dotProduct(normale(pt_sur_surface))<=0d?parametre.get():-parametre.get()) *(typeSurface()==TypeSurface.CONVEXE?1d:-1d);
-    }
-
-    @Override public Color couleurMatiere() { return imp_elementAvecMatiere.couleurMatiere(); }
-    @Override public void definirCouleurMatiere(Color couleur) { imp_elementAvecMatiere.definirCouleurMatiere(couleur); }
-
-    @Override public ObjectProperty<Color> couleurMatiereProperty() { return imp_elementAvecMatiere.couleurMatiereProperty(); }
-
-    @Override public void definirTypeSurface(TypeSurface type_surf) { imp_elementAvecMatiere.definirTypeSurface(type_surf); }
-    @Override public TypeSurface typeSurface() { return imp_elementAvecMatiere.typeSurface(); }
-    @Override public ObjectProperty<TypeSurface> typeSurfaceProperty() { return imp_elementAvecMatiere.typeSurfaceProperty(); }
-
-    @Override public void definirNatureMilieu(NatureMilieu nature_mil) { imp_elementAvecMatiere.definirNatureMilieu(nature_mil); }
-    @Override public NatureMilieu natureMilieu() { return imp_elementAvecMatiere.natureMilieu(); }
-    @Override public ObjectProperty<NatureMilieu> natureMilieuProperty() { return imp_elementAvecMatiere.natureMilieuProperty(); }
-
-    @Override public void definirIndiceRefraction(double indice_refraction) { imp_elementAvecMatiere.definirIndiceRefraction(indice_refraction);   }
-    @Override public double indiceRefraction() { return imp_elementAvecMatiere.indiceRefraction(); }
-    @Override public DoubleProperty indiceRefractionProperty() {  return imp_elementAvecMatiere.indiceRefractionProperty(); }
-
-    public BooleanProperty appartenanceSystemeOptiqueProperty() {return appartenance_systeme_optique_centre ;}
-
-    @Override public String toString() { return nom(); }
-
-    public void appliquerSurIdentifiable(ConsumerAvecException<Object, IOException> consumer) throws IOException {
-        consumer.accept(imp_identifiable);
-    }
-    public void appliquerSurNommable(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_nommable);
-    }
-    public void appliquerSurElementAvecContour(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_elementAvecContour);
-    }
-    public void appliquerSurElementAvecMatiere(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_elementAvecMatiere);
     }
 
     public void definirParametre(double p) {
@@ -172,10 +100,8 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
         if (axe_f.getY()>=0)
             position_orientation.set(new PositionEtOrientation(foyer(),angle_deg));
-//            orientation.set(angle_deg);
         else
             position_orientation.set(new PositionEtOrientation(foyer(),360d-angle_deg));
-//        orientation.set(360-angle_deg);
     }
 
     @Override
@@ -189,8 +115,7 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
     @Override
     public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
-        imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
+        super.ajouterRappelSurChangementToutePropriete(rap);
 
         position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
         parametre.addListener((observable, oldValue, newValue) -> rap.rappel());
@@ -199,8 +124,7 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
     @Override
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-        imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
+        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
         position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
         parametre.addListener((observable, oldValue, newValue) -> rap.rappel());
@@ -247,10 +171,8 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
     }
 
     public double xFoyer() { return position_orientation.get().position().getX() ; }
-//    public DoubleProperty xFoyerProperty() { return x_foyer ;}
 
     public double yFoyer() { return position_orientation.get().position().getY() ; }
-//    public DoubleProperty yFoyerProperty() { return y_foyer ;}
 
     public double  excentricite() { return excentricite.get() ;}
     public DoubleProperty excentriciteProperty() { return excentricite ;}
@@ -957,15 +879,6 @@ public class Conique implements Obstacle, Identifiable, Nommable,ElementAvecCont
     public double orientation()  {
         return position_orientation.get().orientation_deg() ;
     }
-
-    @Override
-    public void definirAppartenanceSystemeOptiqueCentre(boolean b) {this.appartenance_systeme_optique_centre.set(b);}
-    @Override
-    public boolean appartientASystemeOptiqueCentre() {return this.appartenance_systeme_optique_centre.get() ;}
-    @Override
-    public void definirAppartenanceComposition(boolean b) {this.appartenance_composition.set(b);}
-    @Override
-    public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
 
     @Override
     public Double rayonDiaphragmeParDefaut() {

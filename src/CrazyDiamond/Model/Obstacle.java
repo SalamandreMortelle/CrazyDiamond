@@ -47,6 +47,7 @@ public interface Obstacle {
     default Obstacle obstacle_avec_id(String obs_id) { return id().equals(obs_id)?this:null ; }
 
     default Composition composition_contenant(Obstacle o) { return null ; }
+    default Groupe groupe_contenant(Obstacle o) { return null ; }
 
     Point2D normale(Point2D p) throws Exception ;
 
@@ -81,6 +82,7 @@ public interface Obstacle {
     default boolean appartientASystemeOptiqueCentre() { return false; }
 
     void definirAppartenanceComposition(boolean b) ;
+    void definirAppartenanceGroupe(boolean b) ;
     boolean appartientAComposition() ;
 
     /**

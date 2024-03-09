@@ -2,31 +2,20 @@ package CrazyDiamond.Model;
 
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
-import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecContour,ElementAvecMatiere,ObstaclePolaire {
-
-    private final Imp_Identifiable imp_identifiable ;
-    private final Imp_Nommable imp_nommable;
-    private final Imp_ElementAvecContour imp_elementAvecContour ;
-    private final Imp_ElementAvecMatiere imp_elementAvecMatiere ;
+public class Cercle extends BaseObstacleAvecContourEtMatiere implements Obstacle, Identifiable, Nommable,ElementAvecContour,ElementAvecMatiere,ObstaclePolaire  {
 
     private final ObjectProperty<Point2D> centre ;
 
     protected DoubleProperty rayon;
 
-    private final BooleanProperty appartenance_composition ;
-    private final BooleanProperty appartenance_systeme_optique_centre ;
     private static int compteur_cercle = 0 ;
 
     public static void razCompteur() { compteur_cercle = 0 ; }
-
-
 
     public Cercle(TypeSurface type_surface, double xcentre, double ycentre, double rayon) throws IllegalArgumentException {
         this(null,type_surface,xcentre,ycentre,rayon);
@@ -46,81 +35,20 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
 
     }
 
-
-    public Cercle(Imp_Identifiable ii, Imp_Nommable iei, Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem, double xcentre, double ycentre, double rayon) throws IllegalArgumentException {
+    public Cercle(Imp_Identifiable ii, Imp_Nommable iei, Imp_ElementAvecContour iac, Imp_ElementAvecMatiere iam, double xcentre, double ycentre, double rayon) throws IllegalArgumentException {
+        super(ii,iei,iac,iam);
 
         if (rayon <= 0)
             throw new IllegalArgumentException("Le rayon doit être positif.");
 
-        imp_identifiable = ii ;
-        imp_nommable = iei ;
-        imp_elementAvecContour = iec ;
-        imp_elementAvecMatiere = iem ;
-
         this.centre = new SimpleObjectProperty<>(new Point2D(xcentre,ycentre)) ;
 
         this.rayon = new SimpleDoubleProperty(rayon) ;
-
-        this.appartenance_composition = new SimpleBooleanProperty(false) ;
-        this.appartenance_systeme_optique_centre = new SimpleBooleanProperty(false) ;
-
     }
-
-    @Override public String id() { return imp_identifiable.id(); }
-
-    @Override public String nom() {  return imp_nommable.nom(); }
-    @Override public StringProperty nomProperty() { return imp_nommable.nomProperty(); }
-
-    @Override public Color couleurContour() { return imp_elementAvecContour.couleurContour(); }
-    @Override public void definirCouleurContour(Color c) { imp_elementAvecContour.definirCouleurContour(c); }
-    @Override public ObjectProperty<Color> couleurContourProperty() { return imp_elementAvecContour.couleurContourProperty(); }
-
-    @Override public void definirTraitementSurface(TraitementSurface traitement_surf) { imp_elementAvecContour.definirTraitementSurface(traitement_surf);}
-    @Override public TraitementSurface traitementSurface() {return imp_elementAvecContour.traitementSurface() ;}
-    @Override public DoubleProperty tauxReflexionSurfaceProperty() {return imp_elementAvecContour.tauxReflexionSurfaceProperty() ; }
-
-    @Override public ObjectProperty<TraitementSurface> traitementSurfaceProperty() {return imp_elementAvecContour.traitementSurfaceProperty() ;}
-    @Override public void definirTauxReflexionSurface(double taux_refl) {imp_elementAvecContour.definirTauxReflexionSurface(taux_refl);}
-    @Override public double tauxReflexionSurface() {return imp_elementAvecContour.tauxReflexionSurface();}
-
-    @Override public void definirOrientationAxePolariseur(double angle_pol) {imp_elementAvecContour.definirOrientationAxePolariseur(angle_pol);}
-    @Override public double orientationAxePolariseur() {return imp_elementAvecContour.orientationAxePolariseur() ;}
-    @Override public DoubleProperty orientationAxePolariseurProperty() {return imp_elementAvecContour.orientationAxePolariseurProperty() ;}
 
     @Override
     public Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) throws Exception {
         return (direction.dotProduct(normale(pt_sur_surface))<=0d?rayon():-rayon())*(typeSurface()==TypeSurface.CONVEXE?1d:-1d) ;
-    }
-
-    @Override public Color couleurMatiere() { return imp_elementAvecMatiere.couleurMatiere(); }
-    @Override public void definirCouleurMatiere(Color couleur) { imp_elementAvecMatiere.definirCouleurMatiere(couleur); }
-    @Override public ObjectProperty<Color> couleurMatiereProperty() { return imp_elementAvecMatiere.couleurMatiereProperty(); }
-
-    @Override public void definirTypeSurface(TypeSurface type_surf) { imp_elementAvecMatiere.definirTypeSurface(type_surf); }
-    @Override public TypeSurface typeSurface() { return imp_elementAvecMatiere.typeSurface(); }
-    @Override public ObjectProperty<TypeSurface> typeSurfaceProperty() { return imp_elementAvecMatiere.typeSurfaceProperty(); }
-
-    @Override public void definirNatureMilieu(NatureMilieu nature_mil) { imp_elementAvecMatiere.definirNatureMilieu(nature_mil); }
-    @Override public NatureMilieu natureMilieu() { return imp_elementAvecMatiere.natureMilieu(); }
-    @Override public ObjectProperty<NatureMilieu> natureMilieuProperty() { return imp_elementAvecMatiere.natureMilieuProperty(); }
-
-    @Override public void definirIndiceRefraction(double indice_refraction) { imp_elementAvecMatiere.definirIndiceRefraction(indice_refraction);   }
-    @Override public double indiceRefraction() { return imp_elementAvecMatiere.indiceRefraction(); }
-    @Override public DoubleProperty indiceRefractionProperty() {  return imp_elementAvecMatiere.indiceRefractionProperty(); }
-
-    @Override public String toString() { return nom(); }
-
-    public void appliquerSurIdentifiable(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_identifiable);
-    }
-    public void appliquerSurNommable(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_nommable);
-    }
-    public void appliquerSurElementAvecContour(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_elementAvecContour);
-    }
-    public void appliquerSurElementAvecMatiere(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_elementAvecMatiere);
     }
 
     public void definirCentre(Point2D c) {
@@ -183,9 +111,7 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
 
     @Override
     public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-
-        imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
-        imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
+        super.ajouterRappelSurChangementToutePropriete(rap);
 
         centre.addListener((observable, oldValue, newValue) -> rap.rappel());
         rayon.addListener((observable, oldValue, newValue) -> rap.rappel());
@@ -194,9 +120,7 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
 
     @Override
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-
-        imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-        imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
+        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
         centre.addListener((observable, oldValue, newValue) -> rap.rappel());
         rayon.addListener((observable, oldValue, newValue) -> rap.rappel());
@@ -209,7 +133,6 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
             return ;
 
         definirRayon(pos_souris.subtract(centre()).magnitude());
-
     }
 
     @Override
@@ -291,16 +214,6 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
     public void definirOrientation(double orientation_deg)  {
         // Rien à faire : un cercle est invariant par rotation autour de son centre
     }
-
-    @Override
-    public void definirAppartenanceSystemeOptiqueCentre(boolean b) {this.appartenance_systeme_optique_centre.set(b);}
-    @Override
-    public boolean appartientASystemeOptiqueCentre() {return this.appartenance_systeme_optique_centre.get() ;}
-
-    @Override
-    public void definirAppartenanceComposition(boolean b) {this.appartenance_composition.set(b);}
-    @Override
-    public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
 
 
     @Override
@@ -766,7 +679,4 @@ public class Cercle implements Obstacle, Identifiable, Nommable,ElementAvecConto
         return ypoints_cercle ;
     }
 
-    public BooleanProperty appartenanceSystemeOptiqueProperty() {return appartenance_systeme_optique_centre ;}
-
 }
-

@@ -1,19 +1,11 @@
 package CrazyDiamond.Model;
 
-
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
-import javafx.scene.paint.Color;
 
-import java.io.IOException;
 import java.util.*;
 
-public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable, ElementAvecContour, ElementAvecMatiere {
-
-    private final Imp_Identifiable imp_identifiable ;
-    private final Imp_Nommable imp_nommable;
-    private final Imp_ElementAvecContour imp_elementAvecContour;
-    private final Imp_ElementAvecMatiere imp_elementAvecMatiere;
+public class CompositionDeuxObstacles extends BaseObstacleAvecContourEtMatiere implements Obstacle, Identifiable,Nommable, ElementAvecContour, ElementAvecMatiere {
 
     enum Operateur { UNION, INTERSECTION , DIFFERENCE, DIFFERENCE_SYMETRIQUE }
 
@@ -39,11 +31,7 @@ public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable
 
     }
     public CompositionDeuxObstacles(Imp_Identifiable ii,Imp_Nommable in,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem ,Obstacle ob1, Operateur op, Obstacle ob2) throws IllegalArgumentException {
-
-        imp_identifiable = ii ;
-        imp_nommable = in ;
-        imp_elementAvecContour = iec ;
-        imp_elementAvecMatiere = iem ;
+        super (ii,in,iec,iem) ;
 
         obstacle1 = new SimpleObjectProperty<>(ob1) ;
         obstacle2 = new SimpleObjectProperty<>(ob2) ;
@@ -53,32 +41,6 @@ public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable
         appartenance_composition = new SimpleBooleanProperty(false) ;
 
     }
-    @Override public String id() { return imp_identifiable.id(); }
-
-    @Override public String nom() {  return imp_nommable.nom(); }
-    @Override public StringProperty nomProperty() { return imp_nommable.nomProperty(); }
-
-    @Override public Color couleurContour() { return imp_elementAvecContour.couleurContour();}
-    @Override public void definirCouleurContour(Color c) { imp_elementAvecContour.definirCouleurContour(c); }
-
-    @Override public ObjectProperty<Color> couleurContourProperty() { return imp_elementAvecContour.couleurContourProperty(); }
-
-    @Override public Color couleurMatiere() { return imp_elementAvecMatiere.couleurMatiere(); }
-    @Override public void definirCouleurMatiere(Color couleur) { imp_elementAvecMatiere.definirCouleurMatiere(couleur); }
-
-    @Override public ObjectProperty<Color> couleurMatiereProperty() { return imp_elementAvecMatiere.couleurMatiereProperty(); }
-
-    @Override public void definirTraitementSurface(TraitementSurface traitement_surf) { imp_elementAvecContour.definirTraitementSurface(traitement_surf);}
-    @Override public TraitementSurface traitementSurface() {return imp_elementAvecContour.traitementSurface() ;}
-    @Override public ObjectProperty<TraitementSurface> traitementSurfaceProperty() {return imp_elementAvecContour.traitementSurfaceProperty() ;}
-
-    @Override public DoubleProperty tauxReflexionSurfaceProperty() {return imp_elementAvecContour.tauxReflexionSurfaceProperty() ; }
-    @Override public void definirTauxReflexionSurface(double taux_refl) {imp_elementAvecContour.definirTauxReflexionSurface(taux_refl);}
-    @Override public double tauxReflexionSurface() {return imp_elementAvecContour.tauxReflexionSurface();}
-
-    @Override public void definirOrientationAxePolariseur(double angle_pol) {imp_elementAvecContour.definirOrientationAxePolariseur(angle_pol);}
-    @Override public double orientationAxePolariseur() {return imp_elementAvecContour.orientationAxePolariseur() ;}
-    @Override public DoubleProperty orientationAxePolariseurProperty() {return imp_elementAvecContour.orientationAxePolariseurProperty() ;}
 
     @Override
     public Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) throws Exception {
@@ -92,32 +54,6 @@ public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable
 
         return (direction.dotProduct(normale(pt_sur_surface))<=0d?
                 obst.courbureRencontreeAuSommet(pt_sur_surface,direction):-obst.courbureRencontreeAuSommet(pt_sur_surface,direction)) ;
-    }
-    @Override public void definirTypeSurface(TypeSurface type_surf) { imp_elementAvecMatiere.definirTypeSurface(type_surf); }
-    @Override public TypeSurface typeSurface() { return imp_elementAvecMatiere.typeSurface(); }
-    @Override public ObjectProperty<TypeSurface> typeSurfaceProperty() { return imp_elementAvecMatiere.typeSurfaceProperty(); }
-
-    @Override public void definirNatureMilieu(NatureMilieu nature_mil) { imp_elementAvecMatiere.definirNatureMilieu(nature_mil); }
-    @Override public NatureMilieu natureMilieu() { return imp_elementAvecMatiere.natureMilieu(); }
-    @Override public ObjectProperty<NatureMilieu> natureMilieuProperty() { return imp_elementAvecMatiere.natureMilieuProperty(); }
-
-    @Override public void definirIndiceRefraction(double indice_refraction) { imp_elementAvecMatiere.definirIndiceRefraction(indice_refraction);   }
-    @Override public double indiceRefraction() { return imp_elementAvecMatiere.indiceRefraction(); }
-    @Override public DoubleProperty indiceRefractionProperty() {  return imp_elementAvecMatiere.indiceRefractionProperty(); }
-
-    @Override public String toString() { return nom(); }
-
-    public void appliquerSurIdentifiable(ConsumerAvecException<Object, IOException> consumer) throws IOException {
-        consumer.accept(imp_identifiable);
-    }
-    public void appliquerSurNommable(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_nommable);
-    }
-    public void appliquerSurElementAvecContour(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_elementAvecContour);
-    }
-    public void appliquerSurElementAvecMatiere(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_elementAvecMatiere);
     }
 
     @Override
@@ -333,12 +269,9 @@ public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable
 
     @Override
     public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+        super.ajouterRappelSurChangementToutePropriete(rap);
 
-        imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
-        imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
-
-
-        operateur.addListener((observable, oldValue, newValue) -> {rap.rappel(); });
+        operateur.addListener((observable, oldValue, newValue) -> rap.rappel());
 
         obstacle1.get().ajouterRappelSurChangementToutePropriete(rap);
         obstacle2.get().ajouterRappelSurChangementToutePropriete(rap);
@@ -349,11 +282,9 @@ public class CompositionDeuxObstacles implements Obstacle, Identifiable,Nommable
 
     @Override
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
+        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
-        imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-        imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-
-        operateur.addListener((observable, oldValue, newValue) -> {rap.rappel(); });
+        operateur.addListener((observable, oldValue, newValue) -> rap.rappel());
 
         obstacle1.get().ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
         obstacle2.get().ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);

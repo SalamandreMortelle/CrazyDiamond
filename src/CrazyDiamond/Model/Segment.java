@@ -2,19 +2,12 @@ package CrazyDiamond.Model;
 
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
-import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecContour,ElementSansEpaisseur {
-
-    private final Imp_Identifiable imp_identifiable ;
-    private final Imp_Nommable imp_nommable;
-    private final Imp_ElementAvecContour imp_elementAvecContour;
-    private final Imp_ElementSansEpaisseur imp_elementSansEpaisseur;
+public class Segment extends BaseObstacleAvecContourSansEpaisseur implements Obstacle, Identifiable, Nommable,ElementAvecContour,ElementSansEpaisseur {
 
     // Orientation est celle de la normale au segment (0° = segment vertical)
     private final ObjectProperty<PositionEtOrientation> position_orientation ;
@@ -28,9 +21,6 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
     private static int compteur_segment;
 
-    private final BooleanProperty appartenance_composition;
-    private final BooleanProperty appartenance_systeme_optique_centre;
-
     public Segment(double x_centre, double y_centre, double longueur, double orientation,double rayon_diaphragme) throws IllegalArgumentException {
         this(
             new Imp_Identifiable(),
@@ -41,22 +31,15 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
         ) ;
     }
     public Segment(Imp_Identifiable ii,Imp_Nommable in,Imp_ElementAvecContour iec, Imp_ElementSansEpaisseur iese,double x_centre, double y_centre, double longueur, double orientation,double rayon_diaphragme) throws IllegalArgumentException {
+        super(ii,in,iec,iese) ;
 
         if (longueur==0d)
             throw new IllegalArgumentException("Un segment ne peut pas être de longueur nulle.");
-
-        imp_identifiable = ii ;
-        imp_nommable = in ;
-        imp_elementAvecContour = iec;
-        imp_elementSansEpaisseur = iese;
 
         this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(new Point2D(x_centre,y_centre),orientation)) ;
 
         this.longueur = new SimpleDoubleProperty(longueur);
         this.rayon_diaphragme = new SimpleDoubleProperty(rayon_diaphragme);
-
-        this.appartenance_composition = new SimpleBooleanProperty(false) ;
-        this.appartenance_systeme_optique_centre = new SimpleBooleanProperty(false) ;
 
         segment_support = new DemiDroiteOuSegment() ;
 
@@ -79,8 +62,6 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
             );
         }) ;
 
-
-
     }
 
     @Override
@@ -89,49 +70,15 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
         Point2D nouveau_centre = r.transform(centre()) ;
 
-//        x_centre.set(nouveau_centre.getX());
-//        y_centre.set(nouveau_centre.getY());
-//
-//        orientation.set(orientation.get()+angle_rot_deg);
-
         position_orientation.set(new PositionEtOrientation(nouveau_centre,orientation()+angle_rot_deg));
     }
 
     public Point2D centre() { return position_orientation.get().position() ; }
 
-    @Override public String id() { return imp_identifiable.id(); }
-
-
-    @Override public String nom() {return imp_nommable.nom();}
-
-    @Override public String toString() { return nom(); }
-
-    @Override public StringProperty nomProperty() {return imp_nommable.nomProperty();}
-
-    @Override public Color couleurContour() {return imp_elementAvecContour.couleurContour();}
-    @Override public void definirCouleurContour(Color c) { imp_elementAvecContour.definirCouleurContour(c); }
-
-    @Override public ObjectProperty<Color> couleurContourProperty() {return imp_elementAvecContour.couleurContourProperty();}
-
-    @Override public void definirTraitementSurface(TraitementSurface traitement_surf) { imp_elementAvecContour.definirTraitementSurface(traitement_surf);}
-    @Override public TraitementSurface traitementSurface() {return imp_elementAvecContour.traitementSurface() ;}
-    @Override public ObjectProperty<TraitementSurface> traitementSurfaceProperty() {return imp_elementAvecContour.traitementSurfaceProperty() ;}
-    @Override public DoubleProperty tauxReflexionSurfaceProperty() {return imp_elementAvecContour.tauxReflexionSurfaceProperty() ; }
-
-    @Override public void definirOrientationAxePolariseur(double angle_pol) {imp_elementAvecContour.definirOrientationAxePolariseur(angle_pol);}
-    @Override public double orientationAxePolariseur() {return imp_elementAvecContour.orientationAxePolariseur() ;}
-    @Override public DoubleProperty orientationAxePolariseurProperty() {return imp_elementAvecContour.orientationAxePolariseurProperty() ;}
     @Override
     public Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) throws Exception {
         return null ;
     }
-
-    @Override public void definirTauxReflexionSurface(double taux_refl) {imp_elementAvecContour.definirTauxReflexionSurface(taux_refl);}
-    @Override public double tauxReflexionSurface() {return imp_elementAvecContour.tauxReflexionSurface();}
-
-    @Override public void definirNatureMilieu(NatureMilieu nature_mil) { imp_elementSansEpaisseur.definirNatureMilieu(nature_mil); }
-    @Override public NatureMilieu natureMilieu() { return imp_elementSansEpaisseur.natureMilieu(); }
-    @Override public ObjectProperty<NatureMilieu> natureMilieuProperty() { return imp_elementSansEpaisseur.natureMilieuProperty(); }
 
     public double x1() {
         return segment_support.depart().getX();
@@ -150,21 +97,12 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
     }
     public Point2D arrivee() { return segment_support.arrivee(); }
 
-    public double x1Pupille() {return centre().add(segment_support.direction().multiply(-rayon_diaphragme.get())).getX() ; }
-    public double y1Pupille() {return centre().add(segment_support.direction().multiply(-rayon_diaphragme.get())).getY() ; }
     public Point2D departPupille() {return centre().add(segment_support.direction().multiply(-rayon_diaphragme.get()));}
 
-    public double x2Pupille() {return centre().add(segment_support.direction().multiply(rayon_diaphragme.get())).getX() ; }
-    public double y2Pupille() {return centre().add(segment_support.direction().multiply(rayon_diaphragme.get())).getY() ; }
     public Point2D arriveePupille() {return centre().add(segment_support.direction().multiply(rayon_diaphragme.get()));}
 
-//    public DoubleProperty xCentreProperty() {
-//        return x_centre;
-//    }
     public double xCentre() { return  centre().getX() ; }
-//    public DoubleProperty yCentreProperty() {
-//        return y_centre;
-//    }
+
     public double yCentre() { return  centre().getY() ; }
 
     public DoubleProperty longueurProperty() {
@@ -172,15 +110,9 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
     }
     public double longueur() { return  longueur.get() ; }
 
-//    public DoubleProperty orientationProperty() {
-//        return orientation;
-//    }
     public DoubleProperty rayonDiaphragmeProperty() {return rayon_diaphragme;}
     public double rayonDiaphragme() { return  rayon_diaphragme.get() ; }
 
-
-    public BooleanProperty appartenanceSystemeOptiqueProperty() {return appartenance_systeme_optique_centre ;}
-    
     public void translater(Point2D vecteur) {
         position_orientation.set(new PositionEtOrientation(centre().add(vecteur),orientation()));
     }
@@ -193,28 +125,11 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
         v.visiteSegment(this);
     }
 
-    public void appliquerSurIdentifiable(ConsumerAvecException<Object, IOException> consumer) throws IOException {
-        consumer.accept(imp_identifiable);
-    }
-    public void appliquerSurNommable(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_nommable);
-    }
-    public void appliquerSurElementAvecContour(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_elementAvecContour);
-    }
-    public void appliquerSurElementSansEpaisseur(ConsumerAvecException<Object,IOException> consumer) throws IOException {
-        consumer.accept(imp_elementSansEpaisseur);
-    }
-
     @Override
     public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
-        imp_elementSansEpaisseur.ajouterRappelSurChangementToutePropriete(rap);
+        super.ajouterRappelSurChangementToutePropriete(rap);
 
         position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
-//        x_centre.addListener((observable, oldValue, newValue) -> {rap.rappel();});
-//        y_centre.addListener((observable, oldValue, newValue) -> {rap.rappel();});
-//        orientation.addListener((observable, oldValue, newValue) -> {rap.rappel();});
         longueur.addListener((observable, oldValue, newValue) -> rap.rappel());
         rayon_diaphragme.addListener((observable, oldValue, newValue) -> rap.rappel());
 
@@ -222,16 +137,12 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
     @Override
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-        imp_elementSansEpaisseur.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
+        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
         position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
-//        x_centre.addListener((observable, oldValue, newValue) -> {rap.rappel();});
-//        y_centre.addListener((observable, oldValue, newValue) -> {rap.rappel();});
-//        orientation.addListener((observable, oldValue, newValue) -> {rap.rappel();});
+
         longueur.addListener((observable, oldValue, newValue) -> rap.rappel());
         rayon_diaphragme.addListener((observable, oldValue, newValue) -> rap.rappel());
-
     }
 
     @Override
@@ -288,7 +199,6 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
     @Override
     public boolean aSurSaSurface(Point2D p) {
 
-
         if (Environnement.quasiEgal(x1(), x2())) {
             return Environnement.quasiEgal(p.getX(), x1()) && p.getY() > Math.min(y1(), y2()) && p.getY() < Math.max(y1(), y2());
         }
@@ -338,17 +248,6 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
     public Point2D normale(Point2D p) throws Exception {
 
         return segment_support.normale() ;
-
-//        Point2D ab = (new Point2D(x2.get(), y2.get())).subtract(new Point2D(x1.get(), y1.get()));
-//        Point2D normale = (new Point2D(-ab.getY(), ab.getX())).normalize();
-//
-//        if (normale.getY() < 0)
-//            return normale.multiply(-1.0);
-//
-//        if (normale.getY() == 0 && normale.getX() > 0)
-//            return normale.multiply(-1.0);
-//
-//        return normale;
     }
 
     @Override
@@ -360,7 +259,6 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
         return resultats;
     }
-
 
     @Override
     public Point2D cherche_intersection(Rayon r, ModeRecherche mode) {
@@ -374,86 +272,6 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
 
         return res ;
 
-
-    }
-
-    public Point2D cherche_intersection_old(Rayon r, ModeRecherche mode) {
-        if (aSurSaSurface(r.depart()))
-            return null ;
-
-        double xinter ;
-        double yinter ;
-
-        // Segment vertical
-        if (x1() == x2()) {
-
-            // Rayon vertical ?
-            if (r.direction().getX() == 0)
-                return null ;
-
-            double aprime = r.direction().getY() / r.direction().getX() ;
-
-            xinter = x1() ;
-            yinter = aprime*(x1() - r.depart().getX()) + r.depart().getY() ;
-
-            if ( (Math.min(y1(), y2()) > yinter) || (yinter > Math.max(y1(), y2())) )
-                return null ;
-
-            if (r.direction().getX()>0 && xinter < r.depart().getX())
-                return null ;
-
-            if (r.direction().getX()<0 && xinter > r.depart().getX())
-                return null ;
-
-            return new Point2D(xinter, yinter) ;
-        }
-
-        // Rayon vertical
-        if (r.direction().getX()==0) {
-            if ( (r.depart().getX()<Math.min(x1(), x2())) || (r.depart().getX()>Math.max(x1(), x2())) )
-                return null ;
-
-            double a      = (y2()- y1())/(x2()- x1()) ;
-            yinter = a*(r.depart().getX() - x1()) + y1() ;
-
-            if (r.direction().getY()>0 && yinter < r.depart().getY())
-                return null ;
-
-            if (r.direction().getY()<0 && yinter > r.depart().getY())
-                return null ;
-
-            return new Point2D(r.depart().getX(),yinter) ;
-
-        }
-
-        double aprime = r.direction().getY() / r.direction().getX() ;
-        double a      = (y2()- y1())/(x2()- x1()) ;
-
-        if (a==aprime) // Rayon parallèle au segment
-            return null ;
-
-        // Cas général : segment non vertical, et rayon non vertical, rayon et segment non parallèles
-
-        xinter = ( a* x1() - aprime * r.depart().getX() + ( r.depart().getY() - y1() ) ) / ( a - aprime ) ;
-        yinter = a*(xinter - x1()) + y1() ;
-
-
-        if (xinter<Math.min(x1(), x2()) || xinter>Math.max(x1(), x2()) )
-            return null ;
-
-        if (r.direction().getX()>0 && xinter< r.depart().getX())
-            return null ;
-
-        if (r.direction().getX()<0 && xinter> r.depart().getX())
-            return null ;
-
-        if (r.direction().getY()>0 && yinter< r.depart().getY())
-            return null ;
-
-        if (r.direction().getY()<0 && yinter> r.depart().getY())
-            return null ;
-
-        return new Point2D(xinter,yinter) ;
     }
 
     public boolean aSymetrieDeRevolution() {return true ;}
@@ -484,26 +302,10 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
     }
 
     @Override
-    public void definirAppartenanceSystemeOptiqueCentre(boolean b) {this.appartenance_systeme_optique_centre.set(b);}
-    @Override
-    public boolean appartientASystemeOptiqueCentre() {return this.appartenance_systeme_optique_centre.get() ;}
-
-    @Override
-    public void definirAppartenanceComposition(boolean b) {this.appartenance_composition.set(b);}
-    @Override
-    public boolean appartientAComposition() {return this.appartenance_composition.get() ;}
-
-    /**
-     * @return
-     */
-    @Override
     public boolean aUneProprieteDiaphragme() {
         return true ;
     }
 
-    /**
-     * @return
-     */
     @Override
     public ObjectProperty<Double> diaphragmeProperty() {
         if (pupille_object==null)
@@ -511,9 +313,6 @@ public class Segment implements Obstacle, Identifiable, Nommable,ElementAvecCont
         return pupille_object ;
     }
 
-    /**
-     * @param diaph_max_conseille
-     */
     @Override
     public void forcerRayonDiaphragmeMaximumConseille(Double diaph_max_conseille) {
         if (diaph_max_conseille!=null)

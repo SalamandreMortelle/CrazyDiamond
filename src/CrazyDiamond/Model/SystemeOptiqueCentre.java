@@ -8,7 +8,6 @@ import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Affine;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -16,11 +15,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-public class SystemeOptiqueCentre implements Nommable {
-
+public class SystemeOptiqueCentre extends BaseElementNommable implements Nommable {
     private final Environnement environnement;
-    private final Imp_Nommable imp_nommable;
-
     private final ObjectProperty<PositionEtOrientation> axe;
 
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
@@ -1240,8 +1236,7 @@ public class SystemeOptiqueCentre implements Nommable {
     }
 
     public SystemeOptiqueCentre(Environnement env, Imp_Nommable iei , Point2D origine, double orientation_deg) {
-
-        imp_nommable = iei ;
+        super(iei);
 
         tous_les_soc.add(this) ;
 
@@ -1520,18 +1515,6 @@ public class SystemeOptiqueCentre implements Nommable {
 
     }
 
-    @Override
-    public String nom() {
-        return imp_nommable.nom();
-    }
-
-    @Override
-    public StringProperty nomProperty() {
-        return imp_nommable.nomProperty();
-    }
-
-    @Override public String toString() { return nom(); }
-
     public Point2D Origine() { return axe.get().position() ;}
     public double XOrigine() { return axe.get().position().getX() ;}
     public double YOrigine() { return axe.get().position().getY() ;}
@@ -1570,10 +1553,6 @@ public class SystemeOptiqueCentre implements Nommable {
         }
 
         return resultat ;
-    }
-
-    public void appliquerSurNommable(ConsumerAvecException<Object, IOException> consumer) throws IOException {
-        consumer.accept(imp_nommable);
     }
 
     public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
@@ -1850,7 +1829,6 @@ public class SystemeOptiqueCentre implements Nommable {
         convertirObjectDoubleProperty(z_plan_nodal_1,facteur_conversion);
         convertirObjectDoubleProperty(z_plan_nodal_2,facteur_conversion);
 
-
         for (DioptreParaxial d : dioptres)
             d.convertirDistances(facteur_conversion) ;
 
@@ -1900,7 +1878,6 @@ public class SystemeOptiqueCentre implements Nommable {
 
         convertirObjectDoubleProperty(z_lucarne_sortie,facteur_conversion);
         convertirObjectDoubleProperty(r_lucarne_sortie,facteur_conversion);
-
     }
 
     private void convertirDoubleProperty(DoubleProperty dp, double facteur_conversion) {
@@ -1909,6 +1886,5 @@ public class SystemeOptiqueCentre implements Nommable {
     private void convertirObjectDoubleProperty(ObjectProperty<Double> opd, double facteur_conversion) {
          if (opd.get()!=null) opd.set(opd.get()*facteur_conversion);
     }
-
 
 }
