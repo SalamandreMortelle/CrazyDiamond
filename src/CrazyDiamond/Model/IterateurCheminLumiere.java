@@ -13,15 +13,16 @@ public class IterateurCheminLumiere implements Iterator<CheminLumiere> {
 
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
 
+    // TODO : Remplacer par Deque : plus efficace (Stack<> est obsolète)
     private Stack<CheminLumiere> traversee ;
 
     public IterateurCheminLumiere(CheminLumiere ch_racine) {
         if (ch_racine==null)
             throw new IllegalArgumentException("Un IterateurCheminLumiere ne peut être construit sur un CheminLumiere 'null'") ;
 
-         traversee = new Stack<CheminLumiere>() ;
+         traversee = new Stack<>() ;
 
-        traiteRayonsTransmis(ch_racine); ;
+        traiteRayonsTransmis(ch_racine) ;
     }
 
     private void traiteRayonsTransmis(CheminLumiere ch_courant) {
@@ -54,7 +55,7 @@ public class IterateurCheminLumiere implements Iterator<CheminLumiere> {
         CheminLumiere ch_courant = traversee.pop() ;
 
         if (ch_courant.chemin_rayon_reflechi != null)
-            traiteRayonsTransmis(ch_courant.chemin_rayon_reflechi);
+            traiteRayonsTransmis(ch_courant.chemin_rayon_reflechi); // Ajout dans traversee de tous les rayons transmis fils du rayon réfléchi
 
 //        return ch_courant.rayon ;
         return ch_courant ;

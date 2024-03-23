@@ -29,17 +29,17 @@ public class CommandeCreerComposition extends Commande {
 
     @Override
     public void executer() {
-        composants.forEach(environnement::supprimerObstacle);
+        composants.forEach(environnement::supprimerObstacleALaRacine);
         composants.forEach(composition_cree::ajouterObstacle);
-        environnement.ajouterObstacle(composition_cree);
+        environnement.ajouterObstacleALaRacine(composition_cree);
         enregistrer();
     }
 
     @Override
     public void annuler() {
         composants.forEach(composition_cree::retirerObstacle);
-        composants.forEach(environnement::ajouterObstacle);
-        environnement.supprimerObstacle(composition_cree);
+        composants.forEach(environnement::ajouterObstacleALaRacine);
+        environnement.supprimerObstacleALaRacine(composition_cree);
     }
 
 }

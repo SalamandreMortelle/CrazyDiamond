@@ -90,7 +90,7 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
     @FXML private Label grandissement_longitudinal;
 
     @FXML private ToggleButton toggle_montrer_dioptres;
-    @FXML private TableView table_intersections;
+    @FXML private TableView<RencontreDioptreParaxial> table_intersections;
     @FXML private  TableColumn<RencontreDioptreParaxial,Number> col_numero;
     @FXML private  TableColumn<RencontreDioptreParaxial,Double> col_z;
     @FXML private  TableColumn<RencontreDioptreParaxial,Double> col_r_courbure;
@@ -376,7 +376,7 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         // Faire les bindings du tableau des intersections
         table_intersections.setItems(soc.dioptresRencontres());
 
-        col_numero.setCellValueFactory(column-> new ReadOnlyObjectWrapper<Number>(table_intersections.getItems().indexOf(column.getValue())+1)) ;
+        col_numero.setCellValueFactory(column-> new ReadOnlyObjectWrapper<>(table_intersections.getItems().indexOf(column.getValue()) + 1)) ;
 
         StringBinding affiche_label_z_dioptre = new StringBinding() {
             { super.bind(canvas.environnement().uniteProperty()) ;}
@@ -396,7 +396,14 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
             }
 
             Point2D deplacement = soc.direction().multiply(e.getNewValue()-e.getOldValue()) ;
-            intersection.obstacleSurface().translaterParCommande(deplacement); // Déclenchera un recalcul de la matrice optique qui mettra à jour la valeur de Z affichée dans la table
+//            intersection.obstacleSurface().translaterParCommande(deplacement); // Déclenchera un recalcul de la matrice optique qui mettra à jour la valeur de Z affichée dans la table
+            Obstacle obs_reel_a_deplacer = intersection.obstacleSurface() ;
+            Groupe grp_a_deplacer = canvas.environnement().groupeRacine().plus_grand_groupe_solidaire_contenant(obs_reel_a_deplacer) ;
+            if (grp_a_deplacer!=null)
+                grp_a_deplacer.translaterParCommande(deplacement);
+            else
+                obs_reel_a_deplacer.translaterParCommande(deplacement);
+
         });
         col_z.setEditable(true);
 

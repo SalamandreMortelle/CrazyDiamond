@@ -6,23 +6,52 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Point2D;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 
 public class Groupe extends BaseObstacle implements Obstacle, Identifiable, Nommable {
 
     private final ListProperty<Obstacle> elements;
+    private final BooleanProperty elements_solidaires ;
 
     private static int compteur_groupe = 0;
 
+    private final ArrayList<ListChangeListener<Obstacle>> observateurs_des_elements ;
+
+    private final ListChangeListener<Obstacle> lcl_reconstruction_listes_obstacles = change -> {
+        while (change.next()) {
+
+            if (change.wasRemoved()) {
+                LOGGER.log(Level.FINER, "Obstacle supprimé du groupe");
+                construireListesObstacles();
+            } else if (change.wasAdded()) {
+                construireListesObstacles();
+//                for (Obstacle additem : change.getAddedSubList()) {
+//                    LOGGER.log(Level.FINER, "Obstacle ajouté dans le groupe : {0}", additem);
+//                }
+            }
+
+        }
+    };
+    private ArrayList<Obstacle> liste_obstacles_reels;
+    private ArrayList<Obstacle> liste_obstacles;
+
+
     public Groupe() throws IllegalArgumentException {
 
+        this("Groupe " + (++compteur_groupe)) ;
+//        this(
+//                new Imp_Identifiable(),
+//                new Imp_Nommable("Groupe " + (++compteur_groupe))
+//        ) ;
+
+    }
+
+    public Groupe(String nom) throws IllegalArgumentException {
         this(
                 new Imp_Identifiable(),
-                new Imp_Nommable("Groupe " + (++compteur_groupe))
+                new Imp_Nommable(nom)
         ) ;
-
     }
 
     public Groupe(Imp_Identifiable ii, Imp_Nommable in) throws IllegalArgumentException {
@@ -31,15 +60,285 @@ public class Groupe extends BaseObstacle implements Obstacle, Identifiable, Nomm
         ObservableList<Obstacle> olo = FXCollections.observableArrayList();
         elements = new SimpleListProperty<>(olo);
 
+        this.elements_solidaires = new SimpleBooleanProperty(true) ;
+
+        this.observateurs_des_elements = new ArrayList<>(1) ;
+
+        this.liste_obstacles = new ArrayList<>(1) ;
+        this.liste_obstacles.add(this) ;
+        this.liste_obstacles_reels = new ArrayList<>(0) ;
+
+        this.ajouterListChangeListenerDesGroupes(lcl_reconstruction_listes_obstacles);
     }
 
     public ObservableList<Obstacle> elements() {
         return elements.get();
     }
+    public int indexObstacleALaRacine(Obstacle o) {
+        return elements().indexOf(o) ;
+    }
+
+    public Composition compositionContenant(Obstacle o) {
+        for (Obstacle ob  : liste_obstacles_reels) {
+            if (ob instanceof Composition && ob.comprend(o))
+                return ob.composition_contenant(o);
+        }
+
+        return null ;
+    }
+
+    public Groupe sousGroupeContenant(Obstacle o) {
+        for (Obstacle ob  : elements()) {
+            if (ob instanceof Groupe && ob.comprend(o))
+                return ob.groupe_contenant(o);
+        }
+
+        return null ;
+    }
+
+    /**
+     * Retourne le groupe qui contient directement (au premier niveau) l'obstacle o, c'est-à-dire le plus petit groupe
+     * contenant l'obstacle o
+     * @param o
+     * @return
+     */
+    public Groupe groupe_contenant(Obstacle o) {
+        for (Obstacle ob : elements) {
+            if (ob.comprend(o)) {
+                Groupe g_cont = ob.groupe_contenant(o);
+                return (g_cont!=null?g_cont:this) ;
+            }
+        }
+
+        return null ;
+    }
+
+    public Groupe plus_grand_groupe_solidaire_contenant(Obstacle obs_reel) {
+
+        // On extrait la liste (du plus englobant jusqu'au plus petit) des groupes qui contiennent obs_reel
+        List<Groupe> groupes = groupes_contenant(obs_reel) ;
+
+        // On parcourt ces groupes à l'envers : du plus petit au plus englobant
+        ListIterator<Groupe> itr = groupes.listIterator(groupes.size()) ;
+
+        Groupe resultat = null ;
+
+        while (itr.hasPrevious()) {
+            Groupe g = itr.previous() ;
+            if (g.elementsSolidaires())  // Tant que les éléments du groupe sont solidaires, on peut poursuivre la recherche au niveau supérieur
+                resultat = g ;
+            else
+                return resultat;
+        }
+
+        return resultat ;
+    }
+
+    public List<Groupe> groupes_contenant(Obstacle o) {
+
+        ArrayList<Groupe> resultat = new ArrayList<>(1) ;
+
+        cherche_prochain_groupe_contenant(o,resultat);
+
+        return resultat ;
+    }
+
+    private void cherche_prochain_groupe_contenant(Obstacle o, List<Groupe> l) {
+        for (Obstacle ob : elements) {
+            if ( (ob instanceof Groupe) && ob.comprend(o)) {
+                l.add((Groupe)ob) ;
+                ((Groupe)ob).cherche_prochain_groupe_contenant(o,l);
+            }
+        }
+
+    }
+
+
+
+
+    /**
+     * Retourne le premier groupe contenant l'obstacle o
+     * @param o
+     * @return
+     */
+    public Groupe premier_groupe_contenant(Obstacle o) {
+        for (Obstacle ob : elements) {
+            if (ob.comprend(o)) {
+                return ( (ob instanceof Groupe) ? (Groupe) ob : null ) ;
+            }
+        }
+
+        return null ;
+    }
+
+    @Override
+    public boolean estReel() {return false;}
+
+    public boolean elementsSolidaires() { return elements_solidaires.getValue() ; }
+    public BooleanProperty elementsSolidairesProperty() { return elements_solidaires ; }
+
+    @Override
+    public boolean peutContenirObstaclesFils() { return true ;}
+    @Override
+    public boolean contientObstaclesFils() { return elements.size()>0 ;}
+    @Override
+    public List<Obstacle> obstaclesFils() { return elements ; }
+
+    public Iterable<Obstacle> iterableParcoursEnLargeur() {
+        return () -> new GroupeIterator(this, true);
+    }
+    public Iterator<Obstacle> iterateurParcoursEnLargeur() {
+        return new GroupeIterator(this, true);
+    }
+
+    public Iterable<Obstacle> iterableObstaclesDepuisArrierePlan() {
+        // Le parcours des groupes et obstacles en profondeur correspond à un parcours de l'arrière-plan vers le premier plan de l'Environnement
+        return () -> new GroupeIterator(this, false);
+    }
+
+    public Iterator<Obstacle> iterateurObstaclesDepuisArrierePlan() {
+        // Le parcours des groupes et obstacles en profondeur correspond à un parcours de l'arrière-plan vers le premier plan de l'Environnement
+        return new GroupeIterator(this, false);
+    }
+
+    public void definirElementsSolidaires(boolean solidaires) {
+        elements_solidaires.set(solidaires);
+    }
+
+    /**
+     * Ajoute un ListChangeListener sur le groupe et sur tous ses sous-groupes et sous-compositions.
+     * Tout ajout ou retrait d'un élément dans le groupe ou dans un de ses sous-groupes ou sous-compositions déclenchera
+     * le listener.
+     * De plus, lorsqu'un nouvel obstacle sera ajouté dans le Groupe, les listeners déjà enregistrés lui seront
+     * automatiquement ajoutés (cf . {link #ajouterObstacleALaRacine}).
+     * Si le listener a déjà été ajouté, rien n'est fait.
+     * @param lcl_o le listener à ajouter
+     */
+    public void ajouterListChangeListener(ListChangeListener<Obstacle> lcl_o) {
+        if (observateurs_des_elements.contains(lcl_o)) // Observateur déjà enregistré : ne rien faire
+            return;
+
+        elements.addListener(lcl_o);
+        observateurs_des_elements.add(lcl_o);
+
+        for (Obstacle o : elements) {
+            if (o instanceof Groupe) // Détection des changements qui interviennent dans les groupes
+                ((Groupe)o).ajouterListChangeListener(lcl_o);
+            else if (o instanceof Composition) {// Détection des changements qui interviennent dans les compositions
+                ((Composition) o).ajouterListChangeListener(lcl_o);
+            }
+        }
+
+    }
+
+    private void ajouterListChangeListenerDesGroupes(ListChangeListener<Obstacle> lcl_o) {
+
+        elements.addListener(lcl_o);
+
+        for (Obstacle o : elements) {
+            if (o instanceof Groupe) // Détection des changements qui interviennent dans les groupes
+                ((Groupe)o).ajouterListChangeListenerDesGroupes(lcl_o);
+        }
+
+    }
+
+    public void enleverListChangeListener(ListChangeListener<Obstacle> lcl_o) {
+        if (!observateurs_des_elements.contains(lcl_o)) // Observateur pas enregistré : rien à faire
+            return;
+
+        for (Obstacle o : elements) {
+            if (o instanceof Groupe) // Détection des changements qui interviennent dans les groupes
+                ((Groupe)o).enleverListChangeListener(lcl_o);
+            else if (o instanceof Composition) // Détection des changements qui interviennent dans les compositions
+                ((Composition)o).enleverListChangeListener(lcl_o);
+        }
+
+        elements.removeListener(lcl_o);
+        observateurs_des_elements.remove(lcl_o);
+    }
+
+    /**
+     * Enleve le ListChangeListener passé en paramètre des groupes
+     * @param lcl_o
+     */
+    private void enleverListChangeListenerDesGroupes(ListChangeListener<Obstacle> lcl_o) {
+        for (Obstacle o : elements) {
+            if (o instanceof Groupe) // Détection des changements qui interviennent dans les groupes
+                ((Groupe)o).enleverListChangeListenerDesGroupes(lcl_o);
+        }
+
+        elements.removeListener(lcl_o);
+    }
+
+    public void enleverTousLesListChangeListeners() {
+        for (ListChangeListener<Obstacle> lcl_o : observateurs_des_elements) {
+            for (Obstacle o : elements) {
+                if (o instanceof Groupe) // Détection des changements qui interviennent dans les groupes
+                    ((Groupe)o).enleverListChangeListener(lcl_o);
+                else if (o instanceof Composition) // Détection des changements qui interviennent dans les compositions
+                    ((Composition)o).enleverListChangeListener(lcl_o);
+            }
+            elements.removeListener(lcl_o);
+//            observateurs_des_elements.remove(lcl_o);
+        }
+        observateurs_des_elements.clear();
+    }
+
+    public int nombreObstaclesPremierNiveau() {
+        return elements.size() ;
+    }
+
+    public Iterator<Obstacle> iterateurPremierNiveau() {
+        return elements.iterator() ;
+    }
+
+    private void construireListesObstacles() {
+        liste_obstacles_reels = new ArrayList<>(2*nombreObstaclesPremierNiveau()) ;
+        liste_obstacles       = new ArrayList<>(2*nombreObstaclesPremierNiveau()) ;
+
+        Iterable<Obstacle> it_obs = iterableObstaclesDepuisArrierePlan() ;
+        for (Obstacle o : it_obs) {
+            liste_obstacles.add(o) ;
+            if (o.estReel())
+                liste_obstacles_reels.add(o) ;
+        }
+
+    }
+
+
+
+    /**
+     * Iterateur sur les objets réels du groupe, depuis l'arrière-plan vers le premier plan.
+     * @return l'itérateur
+     */
+    Iterator<Obstacle> iterateurObstaclesReelsEnProfondeur() {
+        // DONE: Optimisation possible pour cette méthode et la suivante (iterateurInverseObstaclesReelsDepuisPremierPlan):
+        // Faire de liste_obstacles_reels un attribut privé de la classe et le construire uniquement quand on ajoute ou
+        // enlève un obstacle du groupe (ajouterObstacleALaRacine/retirerObstacle). NB : Il faut aussi ajouter, récursivement, un
+        // ListChangeListener spécifique pour déclencher la reconstruction quand on ajoute ou enlève des obstacles d'un
+        // sous-groupe, via ajouterListChangeListenerSurGroupesUniquement.
+//        List<Obstacle> liste_obstacles_reels = construireListeObstaclesReels() ;
+        return liste_obstacles_reels.iterator() ;
+    }
+    public Iterable<Obstacle> iterableObstaclesReelsDepuisArrierePlan() {
+        // Le parcours des groupes et obstacles en profondeur correspond à un parcours de l'arrière-plan vers l'avant-plan de l'Environnement
+        return this::iterateurObstaclesReelsEnProfondeur;
+    }
+    /**
+     * Iterateur sur les objets réels du groupe, depuis le premier plan vers l'arrière-plan.
+     * @return l'itérateur
+     */
+    ListIterator<Obstacle> iterateurInverseObstaclesReelsDepuisPremierPlan() {
+//        List<Obstacle> liste_obstacles_reels = construireListeObstaclesReels() ;
+        return liste_obstacles_reels.listIterator(liste_obstacles_reels.size()) ;
+    }
+
 
     public boolean estVide() {
         return elements().size()==0 ;
     }
+    public int taille() {return elements.size();}
+    public Obstacle obstacle(int index) {return elements.get(index) ;}
 
 
     @Override
@@ -64,7 +363,7 @@ public class Groupe extends BaseObstacle implements Obstacle, Identifiable, Nomm
     }
 
     /**
-     * Ajoute un obstacle dans Groupe.
+     * Ajoute un obstacle au premier niveau du Groupe, à la suite des autres (donc au premier plan).
      * NB : Les utilisateurs de cette méthode doivent veiller à retirer l'obstacle de l'environnement avant d'appeler
      * cette méthode.
      * @param o : obstacle à ajouter
@@ -74,7 +373,7 @@ public class Groupe extends BaseObstacle implements Obstacle, Identifiable, Nomm
         if (this.elements.contains(o))
             return;
 
-        // TODO : il faudrait peut-être vérifier si l'obstacle appartient à l'environnement car sinon, il n'y aura pas de notification
+        // TODO : il faudrait peut-être vérifier si l'obstacle o appartient à l'environnement car sinon, il n'y aura pas de notification
         // des rappels en cas de modification de ses propriétés (car ces rappels sont ajoutés lors de l'ajout de l'obstacle à l'environnement)
 
 //        o.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources); ;
@@ -82,6 +381,14 @@ public class Groupe extends BaseObstacle implements Obstacle, Identifiable, Nomm
         this.elements.add(o);
 
         o.definirAppartenanceGroupe(true);
+
+        if (o instanceof Groupe grp) {
+            grp.ajouterListChangeListenerDesGroupes(lcl_reconstruction_listes_obstacles);
+            observateurs_des_elements.forEach(grp::ajouterListChangeListener);
+        }
+        else if (o instanceof Composition comp) {
+            observateurs_des_elements.forEach(comp::ajouterListChangeListener);
+        }
 
     }
 
@@ -92,20 +399,29 @@ public class Groupe extends BaseObstacle implements Obstacle, Identifiable, Nomm
 
         o.definirAppartenanceGroupe(false);
 
-    }
-
-    public void ajouterListenerListeObstacles(ListChangeListener<Obstacle> lcl_o) {
-        elements.addListener(lcl_o);
-
-        //Il faut aussi détecter les changements qui interviennent dans les sous-groupes
-        for (Obstacle o : elements) {
-            if (o.getClass() == Groupe.class) {
-                Groupe grp = (Groupe) o ;
-                grp.ajouterListenerListeObstacles(lcl_o) ;
-            }
-
+        if (o instanceof Groupe) {
+            Groupe grp = (Groupe) o ;
+            grp.enleverListChangeListenerDesGroupes(lcl_reconstruction_listes_obstacles);
+            observateurs_des_elements.forEach(grp::enleverListChangeListener);
         }
+        else if (o instanceof Composition comp) {
+            observateurs_des_elements.forEach(comp::enleverListChangeListener);
+        }
+
     }
+
+//    public void ajouterListChangeListenerObstacles(ListChangeListener<Obstacle> lcl_o) {
+//        elements.addListener(lcl_o);
+//
+//        //Il faut aussi détecter les changements qui interviennent dans les sous-groupes
+//        for (Obstacle o : elements) {
+//            if (o.getClass() == Groupe.class) {
+//                Groupe grp = (Groupe) o ;
+//                grp.ajouterListChangeListenerObstacles(lcl_o) ;
+//            }
+//
+//        }
+//    }
     @Override
     public boolean comprend(Obstacle o) {
 
@@ -273,7 +589,9 @@ public class Groupe extends BaseObstacle implements Obstacle, Identifiable, Nomm
 
             }
         };
-        elements.addListener(lcl_elements);
+//        elements.addListener(lcl_elements);
+        // Ajout récursif du rappel dans tous les sous-groupes et dans toutes les sous-compositions
+        ajouterListChangeListener(lcl_elements);
 
     }
 
@@ -283,8 +601,31 @@ public class Groupe extends BaseObstacle implements Obstacle, Identifiable, Nomm
         for (Obstacle o : elements)
             o.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
-        // TODO : Voir s'il ne faudrait pas mettre en place un ListChangeListener sur les éléments comme dans
+        // DONE : Il faut aussi mettre en place un ListChangeListener sur les éléments comme dans
         //  ajouterRappelSurChangementToutePropriete ci-dessus.
+        // Dans un groupe, il faut aussi mettre en observation la liste de ses éléments pour réagir aux ajouts
+        // et aux suppressions d'éléments
+        ListChangeListener<Obstacle> lcl_elements = change -> {
+            while (change.next()) {
+
+                if (change.wasRemoved()) {
+                    LOGGER.log(Level.FINER, "Obstacle supprimé du groupe");
+                    rap.rappel();
+
+                } else if (change.wasAdded()) {
+
+                    for (Obstacle additem : change.getAddedSubList()) {
+                        LOGGER.log(Level.FINER, "Obstacle ajouté dans le groupe : {0}", additem);
+                        rap.rappel();
+
+                    }
+                }
+
+            }
+        };
+        // Ajout récursif du rappel dans tous les sous-groupes et dans toutes les sous-compositions
+        ajouterListChangeListener(lcl_elements);
+
     }
 
     @Override
@@ -313,7 +654,7 @@ public class Groupe extends BaseObstacle implements Obstacle, Identifiable, Nomm
         Obstacle o_prec = null;
         Double direction_commune = null;
 
-        for (Obstacle o : elements) {
+        for (Obstacle o : iterableObstaclesReelsDepuisArrierePlan()) {
 
             // Si un des éléments de la Composition n'est pas centrable, la Composition ne l'est pas.
             // Il pourrait théoriquement l'être, par exemple si l'obstacle non centrable est exclu de la Composition
@@ -723,5 +1064,33 @@ public class Groupe extends BaseObstacle implements Obstacle, Identifiable, Nomm
 
     }
 
+
+    public boolean obstaclesReelsComprennent(Obstacle o) {
+        return liste_obstacles_reels.contains(o) ;
+    }
+    public boolean obstaclesComprennent(Obstacle o) {
+        return liste_obstacles.contains(o) ;
+    }
+
+    public boolean estALaRacine(Obstacle o) {
+        return elements().contains(o) ;
+    }
+    public void deplacerObstacleEnPositionALaRacine(Obstacle o_a_deplacer, int i_pos) {
+        if (!estALaRacine(o_a_deplacer))
+            throw new IllegalCallerException("Tentative de déplacer un élément qui n'est pas à la racine") ;
+
+        elements().remove(o_a_deplacer) ;
+        elements.add(i_pos,o_a_deplacer);
+    }
+
+    public void ajouterObstacleEnPosition(Obstacle o_a_ajouter, int i_pos_dans_env) {
+        if (estALaRacine(o_a_ajouter))
+            return;
+
+        // Inutile, ce listener se rajoute tout seul quand on ajoute un obstacle à la liste des éléments
+//        o_a_ajouter.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources);
+
+        elements().add(i_pos_dans_env,o_a_ajouter);
+    }
 
 }

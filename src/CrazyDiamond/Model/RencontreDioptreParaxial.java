@@ -246,7 +246,7 @@ public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*
 
         // Si l'obstacle a "nativement" une propriété diaphragme, inutile de déclencher un calcul des éléments
         // cardinaux en cas de changement de cette dernière : c'est déjà pris en charge par le rappel sur changement
-        // de toute propriété lorsque l'obstacle a été ajouté au SOC (cf. SystemeOptiqueCentre::ajouterObstacle)
+        // de toute propriété lorsque l'obstacle a été ajouté au SOC (cf. SystemeOptiqueCentre::ajouterObstacleALaRacine)
         if (!obstacleSurface().aUneProprieteDiaphragme()) {
             this.r_diaphragme.addListener((observable, oldValue, newValue) -> soc.calculeElementsCardinaux());
         }

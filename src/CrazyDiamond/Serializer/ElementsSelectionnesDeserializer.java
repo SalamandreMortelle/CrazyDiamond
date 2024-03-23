@@ -34,7 +34,7 @@ public class ElementsSelectionnesDeserializer extends StdDeserializer<ElementsSe
           if (env_hote==null)
               throw new IOException("Pas d'environnement hôte défini pour la désérialisation des ElementsSelectionnes") ;
 
-          double facteur_conversion = 1d ;
+          double facteur_conversion;
 
           Unite unite_importee = Unite.M ;
 
@@ -78,7 +78,7 @@ public class ElementsSelectionnesDeserializer extends StdDeserializer<ElementsSe
                     case "Composition" -> o_a_ajouter = mapper.treeToValue(obs_node, Composition.class);
                 }
                 // Ajout de l'obstacle dans l'environnement, et dans les éléments sélectionnés
-                env_hote.ajouterObstacle(o_a_ajouter);
+                env_hote.ajouterObstacleALaRacine(o_a_ajouter);
                 es.ajouter(o_a_ajouter);
             }
         }

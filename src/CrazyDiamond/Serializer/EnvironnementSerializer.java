@@ -17,12 +17,6 @@ public class EnvironnementSerializer extends StdSerializer<Environnement> {
         super(Environnement.class);
     }
 
-    /**
-     * @param environnement
-     * @param jsonGenerator
-     * @param serializerProvider
-     * @throws IOException
-     */
     @Override
     public void serialize(Environnement environnement, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
 
@@ -39,10 +33,10 @@ public class EnvironnementSerializer extends StdSerializer<Environnement> {
           jsonGenerator.writeStringField("commentaire", environnement.commentaire());
 
         // Obstacles
-        if (environnement.nombreObstacles()>0) {
+        if (environnement.nombreObstaclesPremierNiveau()>0) {
             jsonGenerator.writeArrayFieldStart("obstacles");
 
-            Iterator<Obstacle> ito = environnement.iterateur_obstacles();
+            Iterator<Obstacle> ito = environnement.iterateur_obstacles_premier_niveau();
             while (ito.hasNext()) {
                 jsonGenerator.writeObject(ito.next());
             }

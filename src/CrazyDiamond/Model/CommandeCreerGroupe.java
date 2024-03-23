@@ -26,17 +26,17 @@ public class CommandeCreerGroupe extends Commande {
 
     @Override
     public void executer() {
-        elements.forEach(environnement::supprimerObstacle);
+        elements.forEach(environnement::supprimerObstacleALaRacine);
         elements.forEach(groupe_cree::ajouterObstacle);
-        environnement.ajouterObstacle(groupe_cree);
+        environnement.ajouterObstacleALaRacine(groupe_cree);
         enregistrer();
     }
 
     @Override
     public void annuler() {
         elements.forEach(groupe_cree::retirerObstacle);
-        elements.forEach(environnement::ajouterObstacle);
-        environnement.supprimerObstacle(groupe_cree);
+        elements.forEach(environnement::ajouterObstacleALaRacine);
+        environnement.supprimerObstacleALaRacine(groupe_cree);
     }
 
 }

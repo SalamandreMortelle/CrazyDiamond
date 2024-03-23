@@ -189,6 +189,9 @@ public class PanneauPrincipal {
 //    public Toggle ajout_composition;
 
     @FXML
+    public Button ajout_groupe;
+
+    @FXML
     public Toggle ajout_axe_soc;
 
 
@@ -219,7 +222,8 @@ public class PanneauPrincipal {
             Map.entry(Rectangle.class, "View/PanneauRectangle.fxml"),
             Map.entry(Cercle.class, "View/PanneauCercle.fxml"),
             Map.entry(Conique.class, "View/PanneauConique.fxml"),
-            Map.entry(Composition.class, "View/PanneauComposition.fxml")
+            Map.entry(Composition.class, "View/PanneauComposition.fxml"),
+            Map.entry(Groupe.class, "View/PanneauGroupe.fxml")
     );
 
     private Source source_en_attente_de_panneau ;
@@ -237,6 +241,8 @@ public class PanneauPrincipal {
     private OutilAjoutObstacle outilCercle;
     private OutilAjoutObstacle outilConique;
     private OutilCreerComposition outilComposition;
+
+    private OutilCreerGroupe outilGroupe;
     private OutilAjoutSystemeOptiqueCentre outilSystemeOptiqueCentre;
 
 
@@ -359,18 +365,18 @@ public class PanneauPrincipal {
         treeview_obstacles.setCellFactory(new ObstacleTreeCellFactory(environnement));
 
         // TreeView exige un objet racine (qu'on ne montrera pas) : créons donc un objet caché, qui n'est pas dans l'environnement
-        Obstacle ob_racine = new Cercle(TypeSurface.CONVEXE,0,0,1.0) ;
-        Cercle.razCompteur() ;
+//        Obstacle ob_racine = new Cercle(TypeSurface.CONVEXE,0,0,1.0) ;
+//        Cercle.razCompteur() ;
+        Iterator<Obstacle> ito = environnement.iterateur_obstacles() ;
+        Obstacle ob_racine = ito.next() ; // Le premier élément de l'environnement est le groupe racine
 
         treeview_obstacles.setShowRoot(false);
         treeview_obstacles.setRoot(new TreeItem<>(ob_racine));
         treeview_obstacles.getRoot().setExpanded(true);
 
         // Intégration dans la vue des éventuels obstacles déjà présents dans l'environnement (peut arriver si on a chargé l'environnement)
-        environnement.obstacles().forEach(o->integrerObstacleDansVue(o,treeview_obstacles.getRoot()));
-//        Iterator<Obstacle> ito = environnement.iterateur_obstacles() ;
-//        while (ito.hasNext())
-//            integrerObstacleDansVue(ito.next(),treeview_obstacles.getRoot());
+        ito.forEachRemaining(o->integrerObstacleDansVue(o,treeview_obstacles.getRoot()));
+//        environnement.obstacles().forEach(o->integrerObstacleDansVue(o,treeview_obstacles.getRoot()));
 
         treeview_obstacles.focusModelProperty().getValue().focusedItemProperty().addListener( (obs,old_val,new_val) -> {
             if (new_val == null) {
@@ -505,6 +511,10 @@ public class PanneauPrincipal {
 //            outil_precedent.prendre();
         });
 
+        ajout_groupe.setOnAction( e -> {
+            outilGroupe.prendre();
+        });
+
         lcl_sources = change -> {
             while (change.next()) {
                 if (change.wasRemoved()) {
@@ -577,7 +587,7 @@ public class PanneauPrincipal {
             }
         };
 
-        environnement.ajouterListenerListeObstacles(lcl_obstacles);
+        environnement.ajouterListChangeListenerObstacles(lcl_obstacles);
 
         lcl_socs = change -> {
             while (change.next()) {
@@ -669,6 +679,8 @@ public class PanneauPrincipal {
 //            }
 //        };
 
+        outilGroupe = new OutilCreerGroupe(canvas_environnement) ;
+
         outilSystemeOptiqueCentre = new OutilAjoutSystemeOptiqueCentre(canvas_environnement) ;
     }
 
@@ -730,6 +742,11 @@ public class PanneauPrincipal {
         Callable<?> controleurPanneauCompositionFactory = () -> new PanneauComposition((Composition) obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
 
         DependencyInjection.addInjectionMethod(PanneauComposition.class, controleurPanneauCompositionFactory) ;
+
+        Callable<?> controleurPanneauGroupeFactory = () -> new PanneauGroupe((Groupe) obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
+
+        DependencyInjection.addInjectionMethod(PanneauGroupe.class, controleurPanneauGroupeFactory) ;
+
 
         Callable<?> controleurPanneauSystemeOptiqueCentre = () -> new PanneauSystemeOptiqueCentre(soc_en_attente_de_panneau, canvas_environnement);
 
@@ -949,21 +966,26 @@ public class PanneauPrincipal {
 
     protected void integrerObstacleDansVue(Obstacle o, TreeItem<Obstacle> parent) {
 
-        creerPanneauSimplePourObstacle(o, parent != treeview_obstacles.getRoot()) ;
+//        creerPanneauSimplePourObstacle(o, parent != treeview_obstacles.getRoot()) ;
+        creerPanneauSimplePourObstacle(o, o.appartientAComposition()) ;
 
         TreeItem<Obstacle> tio = ajouterItemDansTreeItem(parent,o);
 
-        if (o.getClass()==Composition.class) {
+        if (o instanceof Composition) {
             ObservableList<Obstacle> obstacles = ((Composition) o).elements() ;
 
             obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
-            observerElementsDeComposition(tio, obstacles);
+            observerElementsDeCompositionOuGroupe(tio, obstacles);
+        } else if (o instanceof Groupe) {
+            ObservableList<Obstacle> obstacles = ((Groupe) o).elements() ;
 
+            obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
+            observerElementsDeCompositionOuGroupe(tio, obstacles);
         }
 
     }
 
-    private void observerElementsDeComposition(TreeItem<Obstacle> tio, ObservableList<Obstacle> obstacles) {
+    private void observerElementsDeCompositionOuGroupe(TreeItem<Obstacle> tio, ObservableList<Obstacle> obstacles) {
         obstacles.addListener((ListChangeListener<Obstacle>) c -> {
             while (c.next()) {
                 if (c.wasAdded()) {
@@ -971,7 +993,7 @@ public class PanneauPrincipal {
                     List<? extends Obstacle> o_ajoutes = c.getAddedSubList() ;
 
                     for (Obstacle o_a : o_ajoutes) {
-                        integrerObstacleDansVue(o_a, tio);
+                        integrerObstacleDansVue(o_a, tio,c.getFrom());
                     }
 
                 }
@@ -992,14 +1014,19 @@ public class PanneauPrincipal {
 
         TreeItem<Obstacle> tio = ajouterItemDansTreeItem(parent,o,i_pos);
 
-        if (o.getClass()==Composition.class) {
+        if (o instanceof Composition) {
             ObservableList<Obstacle> obstacles = ((Composition) o).elements() ;
 
             obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
-            observerElementsDeComposition(tio, obstacles);
+            observerElementsDeCompositionOuGroupe(tio, obstacles);
 //            for (Obstacle oi : obstacles) {
 //                integrerObstacleDansVue(oi,tio);
 //            }
+        } else if (o instanceof Groupe) {
+            ObservableList<Obstacle> obstacles = ((Groupe) o).elements() ;
+
+            obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
+            observerElementsDeCompositionOuGroupe(tio, obstacles);
         }
 
     }
@@ -1051,7 +1078,7 @@ public class PanneauPrincipal {
 
         label_droit.setText(sb);
 
-        Obstacle obs = canvas_environnement.obstacle_pointe_en(pos_souris) ;
+        Obstacle obs = canvas_environnement.obstacleReelPointeAuPremierPlan(pos_souris) ;
         if (obs!=null) {
             label_gauche.setText(obs.nom() + " (" + obs.natureMilieu().toString().toLowerCase() + (obs.natureMilieu() == NatureMilieu.TRANSPARENT ? " n=" + obs.indiceRefraction()+")":")"));
         } else {
@@ -1151,11 +1178,11 @@ public class PanneauPrincipal {
 //            Composition compo = new Composition(Composition.Operateur.UNION);
 //
 //            for(Obstacle o : obstacles_choisis) {
-//                environnement.supprimerObstacle(o);
-//                compo.ajouterObstacle(o);
+//                environnement.supprimerObstacleALaRacine(o);
+//                compo.ajouterObstacleALaRacine(o);
 //            }
 //
-//            environnement.ajouterObstacle(compo);
+//            environnement.ajouterObstacleALaRacine(compo);
 //        }
 //
 //

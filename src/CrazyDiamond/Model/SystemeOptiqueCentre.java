@@ -146,6 +146,32 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     private boolean nouveau_h_image_apres_conversion_a_prendre_compte = false;
     private Double nouveau_h_image_apres_conversion = null ;
 
+
+    private class IterateurObstaclesCentresReels implements Iterator<Obstacle> {
+        private final Iterator<Obstacle> it_obstacles_reels ;
+        public IterateurObstaclesCentresReels() {
+
+            ArrayList<Obstacle> obstacles_centres_reels = new ArrayList<>(obstacles_centres.size()) ;
+
+            for (Obstacle oc : obstacles_centres) {
+                if (oc instanceof Groupe) {
+                    for (Obstacle o_reel : ((Groupe) oc).iterableObstaclesReelsDepuisArrierePlan()) {
+                        obstacles_centres_reels.add(o_reel) ;
+                    }
+                } else
+                    obstacles_centres_reels.add(oc) ;
+            }
+
+            it_obstacles_reels = obstacles_centres_reels.iterator() ;
+        }
+
+        @Override public boolean hasNext() {return it_obstacles_reels.hasNext() ;}
+
+        @Override public Obstacle next() {return it_obstacles_reels.next() ;
+        }
+    }
+
+
     public void definirPosition(Point2D pos) { axe.set(new PositionEtOrientation(pos,orientation()));}
 
     public void definirZObjet(double z) { z_objet.set(z) ; }
@@ -1135,12 +1161,13 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
         ArrayList<DioptreParaxial> resultat = new ArrayList<>(2*obstacles_centres.size()) ;
 
-        Iterator<Obstacle> itoc = obstacles_centres.iterator() ;
+//        Iterator<Obstacle> itoc = obstacles_centres.iterator() ;
+        Iterator<Obstacle> itoc = new IterateurObstaclesCentresReels() ;
 
-        if (itoc.hasNext()) // Les dioptres de l'obstacle le plus en arrière sont a priori, tous visibles
+        if (itoc.hasNext()) // Les dioptres de l'obstacle le plus en arrière sont supposés initialement tous visibles
             resultat.addAll(itoc.next().dioptresParaxiaux(axe())) ;
 
-        // Itération sur les stream_obstacles centrés suivants, qui sont classés de l'arrière-plan vers l'avant plan
+        // Itération sur les obstacles centrés suivants, qui sont classés de l'arrière-plan vers l'avant plan
         while (itoc.hasNext()) {
 
             Obstacle oc = itoc.next() ;

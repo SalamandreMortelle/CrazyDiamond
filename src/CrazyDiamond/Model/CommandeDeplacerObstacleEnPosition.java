@@ -25,7 +25,7 @@ public class CommandeDeplacerObstacleEnPosition extends Commande {
     }
 
     private void memoriserEtatInitial() {
-        this.position_initiale = environnement.indexObstacle(obstacle) ;
+        this.position_initiale = environnement.indexObstacleALaRacine(obstacle) ;
     }
 
     @Override
@@ -34,14 +34,14 @@ public class CommandeDeplacerObstacleEnPosition extends Commande {
 
         // NB : cette méthode se charge aussi de repositionner l'obstacle correctement à l'intérieur de son éventuel soc
         // d'appartenance.
-        environnement.deplacerObstacleEnPosition(obstacle, position_cible) ;
+        environnement.deplacerObstacleEnPositionALaRacine(obstacle, position_cible) ;
 
         enregistrer();
     }
 
     @Override
     public void annuler() {
-        environnement.deplacerObstacleEnPosition(obstacle, position_initiale) ;
+        environnement.deplacerObstacleEnPositionALaRacine(obstacle, position_initiale) ;
     }
 
 }

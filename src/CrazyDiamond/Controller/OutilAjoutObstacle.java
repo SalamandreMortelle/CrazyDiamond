@@ -34,7 +34,7 @@ public class OutilAjoutObstacle extends OutilPermettantDeplacementZoneVisible {
 
         // Enregistrer l'obstacle courant dans l'environnement (si pas déjà fait suite à un mouvement de la souris :
         // cette méthode ne fait rien si la source est déjà ajoutée)
-        cae.environnement().ajouterObstacle(obstacle_en_cours_ajout);
+        cae.environnement().ajouterObstacleALaRacine(obstacle_en_cours_ajout);
 
         Commande cmd = obstacle_en_cours_ajout.commandeCreation(cae.environnement()) ;
         cmd.enregistrer() ;
@@ -54,7 +54,7 @@ public class OutilAjoutObstacle extends OutilPermettantDeplacementZoneVisible {
             obstacle_en_cours_ajout.retaillerPourSourisEn(pos_souris);
 
             // Ajouter l'obstacle dans l'environnement, si pas déjà fait (cette méthode ne fait rien si l'obstacle est déjà ajouté)
-            cae.environnement().ajouterObstacle(obstacle_en_cours_ajout);
+            cae.environnement().ajouterObstacleALaRacine(obstacle_en_cours_ajout);
 
             // TODO : à mettre dans l'eventListener sur l'ajout d'obstacles au niveau de Panneau principal
 //            treeview_obstacles.getSelectionModel().select(chercheItemDansTreeItem(obstacle_en_cours_ajout,treeview_obstacles.getRoot()));
@@ -72,7 +72,7 @@ public class OutilAjoutObstacle extends OutilPermettantDeplacementZoneVisible {
     public void interrompre() {
         if (obstacle_en_cours_ajout != null) {
             // On retire l'obstacle courant, ce qui va rafraichir les chemins et le décor
-            cae.environnement().supprimerObstacle(obstacle_en_cours_ajout);
+            cae.environnement().supprimerObstacleALaRacine(obstacle_en_cours_ajout);
             obstacle_en_cours_ajout = null;
         }
     }

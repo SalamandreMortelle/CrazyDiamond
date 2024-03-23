@@ -256,7 +256,7 @@ public class Source extends BaseElementNommable implements Nommable {
             throw new IllegalArgumentException("La direction de la source ne peut pas être null.") ;
         }
 
-        if (direction != null && direction.magnitude()==0.0) {
+        if (direction.magnitude() == 0.0) {
             throw new IllegalArgumentException("La direction de la source ne peut pas être un vecteur nul.") ;
         }
 
@@ -356,7 +356,7 @@ public class Source extends BaseElementNommable implements Nommable {
                     lancer_rayon_si_possible(position,direction);
                 } else { // Pinceau avec plus d'un rayon
 
-                    Obstacle obs_contenant = environnement.dernier_obstacle_contenant(position) ;
+                    Obstacle obs_contenant = environnement.obstacleReelAuPremierPlanContenant(position) ;
 
                     if (!peut_emettre_depuis_point_dans_obstacle(obs_contenant,position))
                         return ;
@@ -424,7 +424,7 @@ public class Source extends BaseElementNommable implements Nommable {
     }
     private Rayon creer_rayon_si_possible(Point2D pos, Point2D dir) {
 
-        Obstacle obs_contenant = environnement.dernier_obstacle_contenant(pos) ;
+        Obstacle obs_contenant = environnement.obstacleReelAuPremierPlanContenant(pos) ;
 
         if (!peut_emettre_depuis_point_dans_obstacle(obs_contenant,pos))
             return null ;
@@ -440,7 +440,7 @@ public class Source extends BaseElementNommable implements Nommable {
     }
     private boolean peut_emettre_depuis(Point2D point) {
 
-        Obstacle obs_contenant = environnement.dernier_obstacle_contenant(point) ;
+        Obstacle obs_contenant = environnement.obstacleReelAuPremierPlanContenant(point) ;
 
         if (obs_contenant == null)
             return true ;
@@ -483,9 +483,9 @@ public class Source extends BaseElementNommable implements Nommable {
     /**
      * Complete le CheminLumiere chemin avec le rayon r (dont seuls le départ et la direction sont initialement renseignés) et ses rayons
      * réfléchis et transmis
-     * @param chemin
-     * @param r
-     * @param nombre_obstacles_rencontres
+     * @param chemin : chemin à compléter
+     * @param r : rayon à ajouter
+     * @param nombre_obstacles_rencontres : le nombre d'obstacles rencontrés
      */
     protected void calculerCheminDuRayon(CheminLumiere chemin, Rayon r, int nombre_obstacles_rencontres) {
 
@@ -502,7 +502,7 @@ public class Source extends BaseElementNommable implements Nommable {
         // de la zone visible
         double distance_inter_la_plus_proche = Double.MAX_VALUE ;
 
-        Iterator<Obstacle> ito = environnement.iterateur_obstacles() ;
+        Iterator<Obstacle> ito = environnement.iterateur_obstacles_reels() ;
 
         // Lister toutes les intersections du rayon avec les stream_obstacles qui sont dans l'environnement (càd visibles)
         while (ito.hasNext()) {
@@ -539,7 +539,7 @@ public class Source extends BaseElementNommable implements Nommable {
 
             // Ajouter un rayon infini (qui n'a pas de point d'arrivée) pour terminer le chemin
 
-            Obstacle obs_traverse = environnement.dernier_obstacle_contenant(r.depart().add(r.direction())) ;
+            Obstacle obs_traverse = environnement.obstacleReelAuPremierPlanContenant(r.depart().add(r.direction())) ;
 
             r.indice_milieu_traverse = ((obs_traverse==null)?environnement.indiceRefraction():obs_traverse.indiceRefraction()) ;
             // NB : si r est le rayon de départ émis par la source, un indice refraction avait déjà été défini (dans Source::illuminer)
@@ -557,7 +557,7 @@ public class Source extends BaseElementNommable implements Nommable {
         // Sinon, faire de cette intersection le point d'arrivée du rayon
         r.definirArrivee(p_inter_le_plus_proche);
 
-        Obstacle obs_traverse = environnement.dernier_obstacle_contenant(r.depart().midpoint(p_inter_le_plus_proche)) ;
+        Obstacle obs_traverse = environnement.obstacleReelAuPremierPlanContenant(r.depart().midpoint(p_inter_le_plus_proche)) ;
         r.indice_milieu_traverse = (obs_traverse!=null?obs_traverse.indiceRefraction():environnement.indiceRefraction()) ;
         // TODO (optimisation) : les deux lignes précédentes font qu'il ne sert à rien d'avoir défini au préalable l'indice du milieu
         //  traversé par le rayon r, comme on le fait dans le cas où le rayon r est un rayon source (PhenomeneOrigine==EMISSION_SOURCE).

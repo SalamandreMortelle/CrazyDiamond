@@ -1,9 +1,6 @@
 package CrazyDiamond.Controller;
 
-import CrazyDiamond.Model.Obstacle;
-import CrazyDiamond.Model.Source;
-import CrazyDiamond.Model.SystemeOptiqueCentre;
-import CrazyDiamond.Model.Unite;
+import CrazyDiamond.Model.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -38,7 +35,11 @@ public class ElementsSelectionnes {
 
     public void selectionnerUniquement(Obstacle o) {
         vider();
-        obstacles.add(o) ;
+        if (o instanceof Groupe grp) {
+            for (Obstacle og : grp.iterableObstaclesReelsDepuisArrierePlan())
+                obstacles.add(og) ;
+        } else
+            obstacles.add(o) ;
     }
 
     /**
@@ -49,8 +50,18 @@ public class ElementsSelectionnes {
      * @param a_ajouter : l'obstacle à ajouter
      */
     public void ajouter(Obstacle a_ajouter) {
-        if (!obstacles.contains(a_ajouter))
+        if (obstacles.contains(a_ajouter))
+            return;
+
+        if (a_ajouter instanceof Groupe grp) {
+            for (Obstacle og : grp.iterableObstaclesReelsDepuisArrierePlan()) {
+                if (!obstacles.contains(og))
+                    obstacles.add(og);
+            }
+        } else
             obstacles.add(a_ajouter) ;
+
+
 
 //        if (!a_ajouter.appartientASystemeOptiqueCentre())
 //            obstacles.add(a_ajouter) ;
@@ -111,7 +122,7 @@ public class ElementsSelectionnes {
 //        ajouterObstacles(soc.obstacles_centres());
 
         // TODO : Si on devait garantir que les obstacles ajoutés sont positionnés dans le même ordre que dans l'environnement,
-        // il faudrait reprendre le code servant à l'ordonnancement qui se trouve dans la méthode SystemeOptiqueCentre::ajouterObstacle
+        // il faudrait reprendre le code servant à l'ordonnancement qui se trouve dans la méthode SystemeOptiqueCentre::ajouterObstacleALaRacine
         // cela nécessiterait de référencer l'environnement dans un attribut de la classe ElementsSelectionnes
 
         socs.add(soc) ;

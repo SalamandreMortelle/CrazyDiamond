@@ -1,24 +1,23 @@
 package CrazyDiamond.Model;
 
-public class CommandeAjouterObstacleDansComposition extends Commande {
+public class CommandeAjouterObstacleDansGroupe extends Commande {
 
     // Le récepteur de la commande
     Environnement environnement ;
-    Composition composition;
+    Groupe groupe;
 
     // Paramètre
     Obstacle obstacle;
 
     // Etat initial
     int index_dans_environnement = -1 ;
-    Composition composition_contenant_obstacle = null ;
-
     Groupe groupe_contenant_obstacle = null ;
+    Composition composition_contenant_obstacle = null;
     SystemeOptiqueCentre soc_contenant_obstacle = null ;
 
-    public CommandeAjouterObstacleDansComposition(Environnement environnement, Composition composition, Obstacle obs_a_ajouter) {
+    public CommandeAjouterObstacleDansGroupe(Environnement environnement, Groupe groupe, Obstacle obs_a_ajouter) {
         this.environnement = environnement ;
-        this.composition = composition ;
+        this.groupe = groupe ;
         this.obstacle = obs_a_ajouter ;
     }
 
@@ -40,7 +39,7 @@ public class CommandeAjouterObstacleDansComposition extends Commande {
                 groupe_contenant_obstacle.retirerObstacle(obstacle); // On le retire du groupe dont il fait partie
         }
 
-        composition.ajouterObstacle(obstacle);
+        groupe.ajouterObstacle(obstacle);
 
         enregistrer();
     }
@@ -48,7 +47,7 @@ public class CommandeAjouterObstacleDansComposition extends Commande {
     @Override
     public void annuler() {
 
-        composition.retirerObstacle(obstacle);
+        groupe.retirerObstacle(obstacle);
 
         // On commence par remettre l'obstacle dans son SOC d'origine, afin que l'appel à ajouterObstacleEnPositionALaRacine qui suit
         // se charge de le repositionner à sa bonne place dans le SOC

@@ -19,8 +19,6 @@ import java.util.logging.Logger;
 // à condition qu'ils soient infinis.
 public interface Obstacle {
 
-
-
     enum ModeRecherche { PREMIERE, DERNIERE }
 
     // Récupération du logger
@@ -84,6 +82,7 @@ public interface Obstacle {
     void definirAppartenanceComposition(boolean b) ;
     void definirAppartenanceGroupe(boolean b) ;
     boolean appartientAComposition() ;
+    boolean appartientAGroupe() ;
 
     /**
      * Pour un obstacle avec symétrie de révolution, calcule les positions et retourne les propriétés (courbures,
@@ -117,6 +116,19 @@ public interface Obstacle {
     default void forcerRayonDiaphragmeMaximumConseille(Double diaph_max_conseille) {
         // Par défaut, ne rien faire
     }
+
+    /**
+     * Indique si l'obstacle est réel, c'est-à-dire s'il a une existence physique dans l'Environnement, doit apparaître
+     * dans celui-ci, et peut agir sur la propagation de la lumière. Par exemple, un Groupe (cf. cette classe) n'est pas
+     * un obstacle réel, mais un simple conteneur logique de plusieurs Obstacles.
+     * @return true si l'obstacle est réel, false sinon.
+     */
+    default boolean estReel() {return true ;}
+
+    default boolean peutContenirObstaclesFils() { return false ;}
+    default boolean contientObstaclesFils() { return false ;}
+
+    default List<Obstacle> obstaclesFils() { return null ; }
 
     default boolean estReflechissant() {
         return (traitementSurface() == TraitementSurface.REFLECHISSANT
@@ -207,7 +219,7 @@ public interface Obstacle {
 
     void translater(Point2D vecteur) ;
     void translaterParCommande(Point2D vecteur) ;
-    default boolean est_tres_proche_de(Point2D pt,double tolerance) { return false ; }
+    default boolean estTresProcheDe(Point2D pt, double tolerance) { return false ; }
 
     void convertirDistances(double facteur_conversion) ;
 

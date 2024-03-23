@@ -9,7 +9,6 @@ import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.ListIterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,7 +38,9 @@ public class Environnement {
     protected final StringProperty commentaire ;
 
     protected final DoubleProperty indice_refraction ;
-    private final ListProperty<Obstacle> obstacles ;
+
+//    private final ListProperty<Obstacle> obstacles ;
+    private final ObjectProperty<Groupe> groupe_racine_obstacles;
     private final ListProperty<Source> sources ;
     private final ListProperty<SystemeOptiqueCentre> systemes_optiques_centres ;
 
@@ -74,8 +75,10 @@ public class Environnement {
 
         this.commentaire = new SimpleStringProperty("") ;
 
-        ObservableList<Obstacle> olo = FXCollections.observableArrayList() ;
-        obstacles = new SimpleListProperty<>(olo);
+
+        groupe_racine_obstacles = new SimpleObjectProperty<>(new Groupe("Groupe racine"));
+//      ObservableList<Obstacle> olo = FXCollections.observableArrayList() ;
+//      obstacles = new SimpleListProperty<>(olo);
 
         ObservableList<Source> ols = FXCollections.observableArrayList() ;
         sources   = new SimpleListProperty<>(ols);
@@ -114,7 +117,7 @@ public class Environnement {
 //        };
 
         // Si des obstacles sont ajoutés ou supprimés, il faut recalculer les tracés des rayons des sources
-        ListChangeListener<Obstacle>  lcl_obstacles = change -> {
+        ListChangeListener<Obstacle>  lcl_obstacles_pour_illumination = change -> {
             while (change.next()) {
 
                 if (change.wasRemoved()) {
@@ -133,10 +136,16 @@ public class Environnement {
             }
         };
 
-        obstacles.addListener(lcl_obstacles);
+//        obstacles.addListener(lcl_obstacles);
+
+        // Ajoute le listener dans les obstacles de 1er niveau et, récursivement, dans tous les sous-groupes, et dans toutes les compositions
+        groupeRacine().ajouterListChangeListener(lcl_obstacles_pour_illumination);
 
     }
 
+    public Groupe groupeRacine() {
+        return groupe_racine_obstacles.getValue() ;
+    }
     public Unite unite() { return (prochaine_unite==null?unite.get():prochaine_unite) ;}
 
     public ObjectProperty<Unite> uniteProperty() {return unite ;}
@@ -160,15 +169,19 @@ public class Environnement {
 
         v.avantVisiteEnvironnement(this);
 
-        Iterator<Obstacle> ito = obstacles.iterator() ;
+//        Iterator<Obstacle> ito = obstacles.iterator() ;
+        // Parcours en profondeur des obstacles : de l'arrière-plan vers l'avant plan
+        Iterable<Obstacle> ito = groupeRacine().iterableObstaclesDepuisArrierePlan() ;
         Iterator<Source>   its = sources.iterator() ;
         Iterator<SystemeOptiqueCentre> itsoc = systemes_optiques_centres.iterator() ;
 
         // Parcours des obstacles
         v.avantVisiteObstacles();
 
-        while (ito.hasNext())
-            ito.next().accepte(v);
+        for (Obstacle o : ito)
+            o.accepte(v);
+//        while (ito.hasNext())
+//            ito.next().accepte(v);
 
         v.apresVisiteObstacles();
 
@@ -195,38 +208,69 @@ public class Environnement {
         sources.addListener(lcl_s);
     }
 
-    public void ajouterListenerListeObstacles(ListChangeListener<Obstacle> lcl_o) {
-        obstacles.addListener(lcl_o);
+    public void ajouterListChangeListenerObstacles(ListChangeListener<Obstacle> lcl_o) {
+//        groupe_racine_obstacles.addListener(lcl_o);
+        groupeRacine().ajouterListChangeListener(lcl_o);
 
-        //Il faut aussi détecter les changements qui interviennent dans les compositions
-        for (Obstacle o : obstacles) {
-            if (o.getClass() == Composition.class) {
-                Composition comp = (Composition) o ;
-                comp.ajouterListenerListeObstacles(lcl_o) ;
-            }
+//        //Il faut aussi détecter les changements qui interviennent dans les compositions
+//        for (Obstacle o : groupe_racine_obstacles) {
+//            if (o.getClass() == Composition.class) {
+//                Composition comp = (Composition) o ;
+//                comp.ajouterListChangeListener(lcl_o) ;
+//            }
+//        }
 
-        }
     }
 
+    public void enleverListChangeListenerObstacles(ListChangeListener<Obstacle> lcl_o) {
+        groupeRacine().enleverListChangeListener(lcl_o);
+    }
+    public void enleverTousLesListChangeListenersObstacles() {
+        groupeRacine().enleverTousLesListChangeListeners();
+    }
     public void ajouterListenerListeSystemesOptiquesCentres(ListChangeListener<SystemeOptiqueCentre> lcl_soc) {
         systemes_optiques_centres.addListener(lcl_soc);
     }
 
     public int nombreSources() { return sources.size(); }
-    public int nombreObstacles() { return obstacles.size(); }
+//    public int nombreObstacles() { return obstacles.size(); }
+    public int nombreObstaclesPremierNiveau() { return groupeRacine().nombreObstaclesPremierNiveau(); }
     public int nombreSystemesOptiquesCentres() { return systemes_optiques_centres.size(); }
 
 
+    /**
+     * Iterateur retournant tous les obstacles de l'environnement, réels ou non (hormis les Obstacles inclus dans les
+     * Compositions) en commençant par l'arrière-plan et jusqu'au premier-plan.
+     * @return : l'itérateur
+     */
     public Iterator<Obstacle> iterateur_obstacles() {
-        return obstacles.iterator() ;
+//        return groupe_racine_obstacles.iterator() ;
+        return groupeRacine().iterateurObstaclesDepuisArrierePlan() ;
     }
 
-    public ListIterator<Obstacle> iterateur_liste_obstacles_sur_fin() {
-        return obstacles.listIterator(obstacles.size()) ;
+    public Iterator<Obstacle> iterateur_obstacles_reels() {
+//        return groupe_racine_obstacles.iterator() ;
+        return groupeRacine().iterateurObstaclesReelsEnProfondeur() ;
     }
 
-    public int indexObstacle(Obstacle o) {
-        return obstacles.indexOf(o) ;
+    public ListIterator<Obstacle> iterateur_inverse_liste_obstacles_reels() {
+//        return obstacles.listIterator(obstacles.size()) ;
+        return groupeRacine().iterateurInverseObstaclesReelsDepuisPremierPlan() ;
+    }
+
+    public Iterator<Obstacle> iterateur_obstacles_premier_niveau() {
+//        return groupe_racine_obstacles.iterator() ;
+        return groupeRacine().iterateurPremierNiveau() ;
+    }
+
+    public boolean obstaclesReelsComprennent(Obstacle o) {
+        return groupeRacine().obstaclesReelsComprennent(o) ;
+    }
+    public boolean obstaclesComprennent(Obstacle o) {
+        return groupeRacine().obstaclesComprennent(o) ;
+    }
+    public int indexObstacleALaRacine(Obstacle o) {
+        return groupeRacine().indexObstacleALaRacine(o) ;
     }
 
     public ObservableList<Source> sources() {
@@ -285,58 +329,86 @@ public class Environnement {
     }
 
     public Composition compositionContenant(Obstacle o) {
-        for (Obstacle ob  : obstacles) {
-            if (ob.getClass() == Composition.class && ob.comprend(o))
-                    return ob.composition_contenant(o);
-        }
-
-        return null ;
+        return groupeRacine().compositionContenant(o) ;
+//        for (Obstacle ob  : groupe_racine_obstacles) {
+//            if (ob.getClass() == Composition.class && ob.comprend(o))
+//                    return ob.composition_contenant(o);
+//        }
+//
+//        return null ;
+    }
+    public Groupe groupeContenant(Obstacle o) {
+        return groupeRacine().sousGroupeContenant(o) ;
     }
 
 
-    public Source derniereSource() {
-        if (sources.size()>0)
-            return sources.get(sources.size()-1) ;
+//    public Source derniereSource() {
+//        if (sources.size()>0)
+//            return sources.get(sources.size()-1) ;
+//
+//        return null ;
+//    }
 
-        return null ;
-    }
+    public void ajouterObstacleALaRacine(Obstacle o) {
 
-    public void ajouterObstacle(Obstacle o) {
-
-        if (this.obstacles.contains(o))
+        if (groupeRacine().comprend(o))
             return;
+//        if (this.groupe_racine_obstacles.contains(o))
+//            return;
 
-        o.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources);
+        // A VERIFIER :  a priori inutile les éléments du groupe racine sont déjà surveillés par lcl_illumination ; cf. ligne 143
+//        o.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources);
 
-        this.obstacles.add(o);
+        groupeRacine().ajouterObstacle(o);
+        // Tous les ListChangeListeners déjà définis sur le groupe racine sont automatiquement appliqués à l'Obstacle
+        // ajouté et à ses éventuels fils grâce à l'appel ci-dessus.
 
-       // TODO ajouter un listener sur la liste des obstacles et appeler illuminerTouteSource lors d'un ajout
+//        this.groupe_racine_obstacles.add(o);
+
+       // TODO ajouter un listener sur la liste des obstacles et appeler illuminerTouteSource lors d'un ajout => inutile c'est automatique dans l'objet Groupe
 
     }
 
-    public List<Obstacle> obstacles() {
-        return obstacles ;
-    }
+//    public List<Obstacle> obstacles() {
+//        return groupe_racine_obstacles;
+//    }
 
-    public void deplacerObstacleEnPosition(Obstacle o_a_deplacer, int i_pos) {
-        obstacles.remove(o_a_deplacer);
-        obstacles.add(i_pos,o_a_deplacer);
+
+
+    public void deplacerObstacleEnPositionALaRacine(Obstacle o_a_deplacer, int i_pos) {
+        if (!groupeRacine().estALaRacine(o_a_deplacer))
+            return;
+//        groupe_racine_obstacles.remove(o_a_deplacer);
+//        groupe_racine_obstacles.add(i_pos,o_a_deplacer);
+
+        groupeRacine().deplacerObstacleEnPositionALaRacine(o_a_deplacer,i_pos);
 
         repositionnerObstacleDansSoc(o_a_deplacer, i_pos);
+        // TODO : Ligne précédente à revoir car ne marche que quand les SOCs ne contiennent que des obstacles à la racine
+        // A remplacer à terme par qqh comme :
+        // repositionnerObstacleDansSoc(o_a_deplacer,groupeRacine().indexParmiObstaclesReels(o_a_deplacer));
+
     }
 
-    public void ajouterObstacleEnPosition(Obstacle o_a_ajouter, int i_pos_dans_env) {
-        if (this.obstacles.contains(o_a_ajouter))
+    public void ajouterObstacleEnPositionALaRacine(Obstacle o_a_ajouter, int i_pos_dans_env) {
+        if (groupeRacine().estALaRacine(o_a_ajouter))
             return;
-
-        o_a_ajouter.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources);
-
-        obstacles.add(i_pos_dans_env,o_a_ajouter);
+//        if (this.groupe_racine_obstacles.contains(o_a_ajouter))
+//            return;
+//
+//        o_a_ajouter.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources);
+//
+//        groupe_racine_obstacles.add(i_pos_dans_env,o_a_ajouter);
+        groupeRacine().ajouterObstacleEnPosition(o_a_ajouter,i_pos_dans_env);
 
         repositionnerObstacleDansSoc(o_a_ajouter, i_pos_dans_env);
+        // TODO : Ligne précédente à revoir car ne marche que quand les SOCs ne contiennent que des obstacles à la racine
+        // A remplacer à terme par qqh comme :
+        // repositionnerObstacleDansSoc(o_a_deplacer,groupeRacine().indexParmiObstaclesReels(o_a_ajouter));
     }
 
     protected void repositionnerObstacleDansSoc(Obstacle o_a_deplacer, int i_pos_dans_env) {
+
         if (o_a_deplacer.appartientASystemeOptiqueCentre()) {
 
             SystemeOptiqueCentre soc = systemeOptiqueCentreContenant(o_a_deplacer) ;
@@ -346,12 +418,12 @@ public class Environnement {
         }
     }
 
-    public Obstacle dernierObstacle() {
-        if (obstacles.size()>0)
-            return obstacles.get(obstacles.size()-1) ;
-
-        return null ;
-    }
+//    public Obstacle dernierObstacle() {
+//        if (groupe_racine_obstacles.size()>0)
+//            return groupe_racine_obstacles.get(groupe_racine_obstacles.size()-1) ;
+//
+//        return null ;
+//    }
 
 
     public void supprimerSource(Source s) {
@@ -385,7 +457,7 @@ public class Environnement {
      * S'il appartenait à un SOC, sa référence en est retirée avant qu'il soit supprimé de l'environnement.
      * @param o : obstacle à retirer.
      */
-    public void supprimerObstacle(Obstacle o) {
+    public void supprimerObstacleALaRacine(Obstacle o) {
 
         if (o.appartientAComposition()) {
             Composition comp_contenante = compositionContenant(o);
@@ -394,6 +466,15 @@ public class Environnement {
             if (comp_contenante.appartientASystemeOptiqueCentre())
                 o.definirAppartenanceSystemeOptiqueCentre(false);
         }
+        // TODO: gérer le retrait d'un obstacle qui appartient à un sous-groupe
+//        else if (o.appartientAGroupe()) { // Attention : tous les obtacles de l'environnement appartiennent au groupe Racine...
+//            Groupe grp_contenant = groupeContenant(o);
+//
+//            grp_contenant.retirerObstacle(o) ;
+//            if (grp_contenant.appartientASystemeOptiqueCentre())
+//                o.definirAppartenanceSystemeOptiqueCentre(false);
+//        }
+
 
         if (o.appartientASystemeOptiqueCentre())
             systemeOptiqueCentreContenant(o).retirerObstacleCentre(o);
@@ -402,9 +483,11 @@ public class Environnement {
         // Car le fait d'enlever puis de ré-ajouter un obstacle de l'environnement fait qu'il déclenchera (notifiera) deux fois tous ses rappels
         // mais il faudrait alors penser à appeler ajouterRappel.. lorsqu'on ajoute cet obstacle dans une composition. Complexe. Plus simple de tolérer
         // les notifications redondantes.
-        obstacles.remove(o) ;
+//        groupe_racine_obstacles.remove(o) ;
+        groupeRacine().retirerObstacle(o);
 
-        // TODO : ajouter un listener sur la liste des obstacles et appeler illuminerTouteSource lors d'un retrait
+        // TODO : ajouter un listener sur la liste des obstacles et appeler illuminerTouteSource lors d'un retrait => INUTILE c'est automatique lors
+        // du retrait du groupe racine car un lcl_illumination a été ajouté par l'environnement lors de l'ajout de l'obstacle
 
     }
 
@@ -415,7 +498,7 @@ public class Environnement {
      * null s'il n'y en a aucun.
      */
     public Obstacle obstacle_contenant(Point2D p) {
-        Iterator<Obstacle> ito = iterateur_obstacles() ;
+        Iterator<Obstacle> ito = iterateur_obstacles_reels() ;
 
         // Verifier que le point de départ du rayon n'est pas dans un obstacle
         // TODO : supprimer le test ci-dessous quand la refraction sera gérée (le point de départ pourra être dans un obstacle)
@@ -430,14 +513,14 @@ public class Environnement {
         return null ;
     }
 
-    public Obstacle dernier_obstacle_contenant(Point2D p) {
-        ListIterator<Obstacle> ito = iterateur_liste_obstacles_sur_fin() ;
+    public Obstacle obstacleReelAuPremierPlanContenant(Point2D p) {
+        ListIterator<Obstacle> ito = iterateur_inverse_liste_obstacles_reels() ;
 
         // Verifier que le point de départ du rayon n'est pas dans un obstacle
         // TODO : supprimer le test ci-dessous quand la refraction sera gérée (le point de départ pourra être dans un obstacle)
         while (ito.hasPrevious()) {
             Obstacle o = ito.previous() ;
-            if (o.contient(p)) {
+            if (o.estReel() && o.contient(p)) {
                 LOGGER.log(Level.FINEST,"Le point de départ du rayon est dans l'obstacle {0}",o) ;
                 return o;
             }
@@ -445,14 +528,29 @@ public class Environnement {
 
         return null ;
     }
-    public Obstacle dernier_obstacle_tres_proche(Point2D p, double tolerance) {
-        ListIterator<Obstacle> ito = iterateur_liste_obstacles_sur_fin()  ;
+
+    public Obstacle obstacle_a_selectionner(Point2D p) {
+
+        // On commence par chercher l'obstacle réel qui se trouve au premier plan au point p
+        Obstacle obs_reel = obstacleReelAuPremierPlanContenant(p) ;
+
+        if (obs_reel==null)
+            return null ;
+
+        return groupeRacine().plus_grand_groupe_solidaire_contenant(obs_reel);
+
+    }
+
+
+
+    public Obstacle obstacleReelAuPremierPlanTresProcheDe(Point2D p, double tolerance) {
+        ListIterator<Obstacle> ito = iterateur_inverse_liste_obstacles_reels()  ;
 
         // Verifier que le point de départ du rayon n'est pas dans un obstacle
         // TODO : supprimer le test ci-dessous quand la refraction sera gérée (le point de départ pourra être dans un obstacle)
         while (ito.hasPrevious()) {
             Obstacle o = ito.previous() ;
-            if (o.est_tres_proche_de(p,tolerance)) {
+            if (o.estTresProcheDe(p,tolerance)) {
                 LOGGER.log(Level.FINEST,"Point très proche de l'obstacle {0}",o) ;
                 return o;
             }
@@ -493,14 +591,14 @@ public class Environnement {
 
     /**
      *
-     * @param p : point pour lequel on cherche un obstacle qui le contient autre que l'obstacle o
+     * @param p : point pour lequel on cherche un obstacle qui le contient autre que l'obstacle obs
      * @param obs : l'obstacle a exclure des résultats
-     * @return un Obstacle autre que obs qui contient le point (le dernier trouvé dans la liste des obstacles de l'environnement),
-     * ou null si il n'y en a aucun.
+     * @return un Obstacle différent de obs qui contient le point (le dernier trouvé dans la liste des obstacles de l'environnement),
+     * ou null s'il n'y en a aucun.
      */
     public Obstacle autre_obstacle_contenant(Point2D p, Obstacle obs) {
         //Iterator<Obstacle> ito = iterateur_obstacles() ;
-        ListIterator<Obstacle> ito = iterateur_liste_obstacles_sur_fin() ;
+        ListIterator<Obstacle> ito = iterateur_inverse_liste_obstacles_reels() ;
 
 //        Obstacle resultat = null ;
 
@@ -537,7 +635,7 @@ public class Environnement {
     public Obstacle obstacle_emergence_dans_soc(Rayon r, Point2D p_rencontre_dioptre,Obstacle obs_rencontre, SystemeOptiqueCentre soc) throws Exception {
 
         // On parcourt les obstacles depuis la fin jusqu'au début pour tenir compte de la précédence sur l'axe Z (Z-order)
-        ListIterator<Obstacle> ito = iterateur_liste_obstacles_sur_fin();
+        ListIterator<Obstacle> ito = iterateur_inverse_liste_obstacles_reels();
 
         while (ito.hasPrevious()) {
             Obstacle o = ito.previous();
@@ -593,14 +691,16 @@ public class Environnement {
     }
 
     /**
-     * Recherche parmi tous les obstacles de l'environnement, y compris ceux qui font partie de compositions, si l'un
+     * Recherche parmi tous les obstacles de l'environnement, y compris ceux qui font partie de compositions,
+     * et y compris parmi les groupes si l'un
      * d'entre eux porte l'identifiant obs_id, et le retourne.
      * @param obs_id : identifiant d'obstacle recherché
      * @return l'obstacle trouvé, ou 'null' sinon.
      */
     public Obstacle obstacle(String obs_id) {
 
-        for (Obstacle o : obstacles) {
+//        for (Obstacle o : groupe_racine_obstacles) {
+        for (Obstacle o : groupeRacine().iterableObstaclesDepuisArrierePlan()) {
 
             Obstacle o_trouve = o.obstacle_avec_id(obs_id) ;
 
@@ -655,7 +755,8 @@ public class Environnement {
 
     }
     private void convertirDistances(double facteur_conversion) {
-        for (Obstacle o : obstacles)
+//        for (Obstacle o : groupe_racine_obstacles)
+        for (Obstacle o : groupeRacine().iterableObstaclesReelsDepuisArrierePlan())
             o.convertirDistances(facteur_conversion);
         for (Source s : sources)
             s.convertirDistances(facteur_conversion);
@@ -673,17 +774,22 @@ public class Environnement {
 
     public void ajouterElements(ElementsSelectionnes es) {
         es.stream_sources().forEach(this::ajouterSource);
-        es.stream_obstacles().forEach(this::ajouterObstacle);
+        es.stream_obstacles().forEach(this::ajouterObstacleALaRacine);
         es.stream_socs().forEach(this::ajouterSystemeOptiqueCentre);
     }
 
     public int rang(Obstacle o) {
-        return obstacles.indexOf(o);
+//        return groupe_racine_obstacles.indexOf(o);
+        return groupeRacine().indexObstacleALaRacine(o);
     }
 
     public Obstacle obstacle(int rang) {
-        return obstacles.get(rang);
+//        return groupe_racine_obstacles.get(rang);
+        return groupeRacine().obstacle(rang) ;
     }
 
+    public boolean estALaRacine(Obstacle o) {
+        return groupeRacine().estALaRacine(o);
+    }
 }
 

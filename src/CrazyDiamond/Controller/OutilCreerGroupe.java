@@ -1,6 +1,7 @@
 package CrazyDiamond.Controller;
 
-import CrazyDiamond.Model.*;
+import CrazyDiamond.Model.Groupe;
+import CrazyDiamond.Model.Obstacle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.*;
@@ -12,34 +13,33 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class OutilCreerComposition extends OutilPermettantDeplacementZoneVisible {
+public class OutilCreerGroupe extends OutilPermettantDeplacementZoneVisible {
 
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("CrazyDiamond") ;
-    public OutilCreerComposition(CanvasAffichageEnvironnement cae) {
+    public OutilCreerGroupe(CanvasAffichageEnvironnement cae) {
         super(cae);
     }
 
     public void prendre() {
-        ButtonType okButtonType = new ButtonType(rb.getString("bouton.dialogue.composition.ok"), ButtonBar.ButtonData.OK_DONE);
-        ButtonType annulerButtonType = new ButtonType(rb.getString("bouton.dialogue.composition.annuler"), ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType okButtonType = new ButtonType(rb.getString("bouton.dialogue.groupe.ok"), ButtonBar.ButtonData.OK_DONE);
+        ButtonType annulerButtonType = new ButtonType(rb.getString("bouton.dialogue.groupe.annuler"), ButtonBar.ButtonData.CANCEL_CLOSE);
         Dialog<ArrayList<Obstacle>> boite_dialogue = new Dialog<>() ;
 
-        boite_dialogue.setTitle(rb.getString("titre.dialogue.composition"));
-        boite_dialogue.setHeaderText(rb.getString("invite.dialogue.composition"));
+        boite_dialogue.setTitle(rb.getString("titre.dialogue.groupe"));
+        boite_dialogue.setHeaderText(rb.getString("invite.dialogue.groupe"));
 
         ObservableList<Obstacle> obstacles_a_proposer =  FXCollections.observableArrayList();
 
-        // Seuls les obstacles de premier niveau peuvent faire partie d'une Composition
+        // Pour éviter des complications, seuls les obstacles de premier niveau sont proposés pour ajout au Groupe
+        // Exemple de complication : si l'utilisateur choisissait un Groupe et l'un de ses sous-groupes dans la liste, que
+        // devons-nous faire ?? Idem s'il choisit une Composition et l'une de ses sous-compositions
         Iterator<Obstacle> ito =  cae.environnement().iterateur_obstacles_premier_niveau() ;
-        while (ito.hasNext()) {
-            Obstacle o = ito.next() ;
-            // Rechercher si l'obstacle o implémente l'interface ElementAvecMatiere car c'est requis pour faire partie d'une composition
-            // S'assurer aussi qu'il ne fait pas partie d'un SOC
-            if (o instanceof ElementAvecMatiere && !o.appartientASystemeOptiqueCentre())
-                obstacles_a_proposer.add( o ) ;
-        }
+        ito.forEachRemaining(obstacles_a_proposer::add);
+//        while (ito.hasNext())
+//            obstacles_a_proposer.add( ito.next() ) ;
+
 
         ListView<Obstacle> lo = new ListView<>(obstacles_a_proposer) ;
 
@@ -68,16 +68,17 @@ public class OutilCreerComposition extends OutilPermettantDeplacementZoneVisible
 
             LOGGER.log(Level.INFO,"Obstacles choisis pour composition : {0}",obstacles_choisis) ;
 
-            Composition nouvelle_composition = new Composition(Composition.Operateur.UNION);
+            Groupe nouveau_groupe = new Groupe() ;
+
 
             for(Obstacle o : obstacles_choisis) {
                 cae.environnement().supprimerObstacleALaRacine(o);
-                nouvelle_composition.ajouterObstacle(o);
+                nouveau_groupe.ajouterObstacle(o);
             }
 
-            cae.environnement().ajouterObstacleALaRacine(nouvelle_composition);
+            cae.environnement().ajouterObstacleALaRacine(nouveau_groupe);
 
-            nouvelle_composition.commandeCreation(cae.environnement()).enregistrer();
+            nouveau_groupe.commandeCreation(cae.environnement()).enregistrer();
 //            new CommandeCreerComposition(cae.environnement(),compo).enregistrer();
         }
 

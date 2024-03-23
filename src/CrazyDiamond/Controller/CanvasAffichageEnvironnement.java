@@ -289,7 +289,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         };
 
         // Enregistrer listener des obstacles
-        environnement.ajouterListenerListeObstacles(lcl_obstacles);
+        environnement.ajouterListChangeListenerObstacles(lcl_obstacles);
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Initialisation et mise en observation de la liste des SOCs.
@@ -827,7 +827,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         }
     }
 
-    public boolean poignee_obstacle_pointee_en(Point2D pclic) {
+    public boolean poigneeOstacleDeSelectionPointeeEn(Point2D pclic) {
 
         if (selection().obstacleUnique()==null)
             return false ;
@@ -855,8 +855,6 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
         Iterator<Double> itx = poignees.iterateurX();
         Iterator<Double> ity = poignees.iterateurY();
-
-        double xdep, ydep;
 
         if (itx.hasNext() && ity.hasNext())
             return new Point2D(itx.next(),ity.next()) ;
@@ -973,18 +971,27 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         return environnement;
     }
 
-    public Obstacle obstacle_pointe_en(Point2D pt_g) {
+    public Obstacle obstacleReelPointeAuPremierPlan(Point2D pt_g) {
 
-        if (poignee_obstacle_pointee_en(pt_g))
+        if (poigneeOstacleDeSelectionPointeeEn(pt_g))
             return selection().obstacleUnique() ;
 
-        Obstacle obs = environnement.dernier_obstacle_contenant(pt_g) ;
+        Obstacle obs = environnement.obstacleReelAuPremierPlanContenant(pt_g) ;
 
         if (obs == null)
-            obs = environnement.dernier_obstacle_tres_proche(pt_g, tolerance_pointage());
+            obs = environnement.obstacleReelAuPremierPlanTresProcheDe(pt_g, tolerance_pointage());
+
 
         return obs ;
 
+    }
+    public Obstacle obstaclePointeASelectionner(Point2D pt_g) {
+
+        Obstacle obs_reel = obstacleReelPointeAuPremierPlan(pt_g) ;
+
+        Groupe grp_appartenance = environnement.groupeRacine().plus_grand_groupe_solidaire_contenant(obs_reel) ;
+
+        return (grp_appartenance!=null?grp_appartenance:obs_reel) ;
     }
 
     public Source source_pointee_en(Point2D pt_g) {
@@ -1098,10 +1105,14 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         selection().vider();
         selection().definirUnite(environnement().unite()) ;
 
-        // Sélection des obstacles s'ils rencontrent la zone de sélection
+        // Sélection des obstacles (ou groupes d'obstacles solidaires) s'ils rencontrent la zone de sélection
         visiteur_affichage.streamObstaclesVisibles().forEach(obstacle -> {
-            if(visiteur_affichage.contoursVisiblesObstacle(obstacle).intersecte(zone_rect))
-                selection().ajouter(obstacle);
+            if(visiteur_affichage.contoursVisiblesObstacle(obstacle).intersecte(zone_rect)) {
+
+                Groupe grp_appartenance = environnement.groupeRacine().plus_grand_groupe_solidaire_contenant(obstacle);
+
+                selection().ajouter(grp_appartenance != null ? grp_appartenance : obstacle);
+            }
         }) ;
 
         // Sélection des sources

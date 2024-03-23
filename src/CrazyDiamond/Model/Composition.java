@@ -48,6 +48,7 @@ public class Composition extends BaseObstacleAvecContourEtMatiere implements Obs
 
     private static int compteur_composition = 0;
 
+    final private ArrayList<ListChangeListener<Obstacle>> observateurs_des_elements ;
     public Composition(Operateur op) throws IllegalArgumentException {
         this(null,
                 op,null,null,1.0,null,null) ;
@@ -61,6 +62,8 @@ public class Composition extends BaseObstacleAvecContourEtMatiere implements Obs
         elements = new SimpleListProperty<>(olo);
 
         operateur = new SimpleObjectProperty<>(op);
+
+        this.observateurs_des_elements = new ArrayList<>(1) ;
     }
 
 
@@ -72,6 +75,7 @@ public class Composition extends BaseObstacleAvecContourEtMatiere implements Obs
 
         operateur = new SimpleObjectProperty<>(op);
 
+        this.observateurs_des_elements = new ArrayList<>(1) ;
     }
 
     public ObservableList<Obstacle> elements() {
@@ -124,12 +128,15 @@ public class Composition extends BaseObstacleAvecContourEtMatiere implements Obs
      * Ajoute un obstacle dans la Composition.
      * NB : Les utilisateurs de cette méthode doivent veiller à retirer l'obstacle de l'environnement avant d'appeler
      * cette méthode.
-     * @param o : obstacle à ajouter
+     * @param o : obstacle à ajouter, qui ne peut pas être un Groupe
      */
     public void ajouterObstacle(Obstacle o) {
 
         if (this.elements.contains(o))
             return;
+
+        if (o instanceof Groupe)
+            throw new IllegalCallerException("Un Groupe ne peut pas être ajouté dans une Composition.");
 
         // TODO : il faudrait peut-être vérifier si l'obstacle appartient à l'environnement car sinon, il n'y aura pas de notification
         // des rappels en cas de modification de ses propriétés (car ces rappels sont ajoutés lors de l'ajout de l'obstacle à l'environnement)
@@ -151,18 +158,48 @@ public class Composition extends BaseObstacleAvecContourEtMatiere implements Obs
 
     }
 
-    public void ajouterListenerListeObstacles(ListChangeListener<Obstacle> lcl_o) {
+    public void ajouterListChangeListener(ListChangeListener<Obstacle> lcl_o) {
+        if (observateurs_des_elements.contains(lcl_o))
+            return;
+
         elements.addListener(lcl_o);
+        observateurs_des_elements.add(lcl_o);
 
         //Il faut aussi détecter les changements qui interviennent dans les sous-compositions
         for (Obstacle o : elements) {
-            if (o.getClass() == Composition.class) {
-                Composition comp = (Composition) o ;
-                comp.ajouterListenerListeObstacles(lcl_o) ;
-            }
-
+            if (o instanceof Composition)
+                ((Composition) o).ajouterListChangeListener(lcl_o) ;
         }
     }
+
+    public void enleverListChangeListener(ListChangeListener<Obstacle> lcl_o) {
+        if (!observateurs_des_elements.contains(lcl_o)) // Observateur pas enregistré : rien à faire
+            return;
+
+        elements.removeListener(lcl_o);
+        observateurs_des_elements.remove(lcl_o);
+
+        for (Obstacle o : elements) {
+            if (o instanceof Composition) // Détection des changements qui interviennent dans les compositions
+                ((Composition)o).enleverListChangeListener(lcl_o);
+        }
+
+    }
+
+    public void enleverTousLesListChangeListeners() {
+        for (ListChangeListener<Obstacle> lcl_o : observateurs_des_elements) {
+            for (Obstacle o : elements) {
+                if (o instanceof Composition) // Détection des changements qui interviennent dans les compositions
+                    ((Composition)o).enleverListChangeListener(lcl_o);
+            }
+            elements.removeListener(lcl_o);
+//            observateurs_des_elements.remove(lcl_o);
+        }
+        observateurs_des_elements.clear();
+    }
+
+
+
     @Override
     public boolean comprend(Obstacle o) {
 
@@ -591,12 +628,12 @@ public class Composition extends BaseObstacleAvecContourEtMatiere implements Obs
 
         operateur.addListener((observable, oldValue, newValue) -> rap.rappel());
 
-        for (Obstacle o : elements) {
+        for (Obstacle o : elements) { // Ajout récursif du rappel dans tous les sous-obstacles de la Composition
             o.ajouterRappelSurChangementToutePropriete(rap);
         }
 
-        // Dans une composition, il faut aussi mettre en observation la liste de ses éléments pour réagir aux ajouts
-        // et aux suppressions d'éléments
+        // Dans une composition, il faut aussi mettre en observation, récursivement, les liste de ses éléments pour réagir
+        // aux ajouts et aux suppressions d'éléments dans les sous-compositions de tous les niveaux.
         ListChangeListener<Obstacle> lcl_elements = change -> {
             while (change.next()) {
 
@@ -615,7 +652,9 @@ public class Composition extends BaseObstacleAvecContourEtMatiere implements Obs
 
             }
         };
-        elements.addListener(lcl_elements);
+//        elements.addListener(lcl_elements);
+        // Ajout récursif du rappel dans toutes les sous-compositions
+        ajouterListChangeListener(lcl_elements);
 
     }
 
@@ -627,6 +666,27 @@ public class Composition extends BaseObstacleAvecContourEtMatiere implements Obs
 
         for (Obstacle o : elements)
             o.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
+
+        ListChangeListener<Obstacle> lcl_elements = change -> {
+            while (change.next()) {
+
+                if (change.wasRemoved()) {
+                    LOGGER.log(Level.FINER, "Obstacle supprimé de composition");
+                    rap.rappel();
+
+                } else if (change.wasAdded()) {
+
+                    for (Obstacle additem : change.getAddedSubList()) {
+                        LOGGER.log(Level.FINER, "Obstacle ajouté dans la composition : {0}", additem);
+                        rap.rappel();
+
+                    }
+                }
+
+            }
+        };
+        // Ajout récursif du rappel dans toutes les sous-compositions
+        ajouterListChangeListener(lcl_elements);
 
     }
 

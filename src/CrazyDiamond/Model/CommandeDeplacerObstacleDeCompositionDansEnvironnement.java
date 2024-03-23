@@ -37,7 +37,7 @@ public class CommandeDeplacerObstacleDeCompositionDansEnvironnement extends Comm
         composition.retirerObstacle(obstacle);
 
         // On le positionne dans l'environnement, à la position souhaitée
-        environnement.ajouterObstacleEnPosition(obstacle,position);
+        environnement.ajouterObstacleEnPositionALaRacine(obstacle,position);
 
         enregistrer();
     }
@@ -45,7 +45,7 @@ public class CommandeDeplacerObstacleDeCompositionDansEnvironnement extends Comm
     @Override
     public void annuler() {
 
-        environnement.supprimerObstacle(obstacle);
+        environnement.supprimerObstacleALaRacine(obstacle);
 
         composition.ajouterObstacle(obstacle);
 

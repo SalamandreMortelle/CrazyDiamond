@@ -150,12 +150,13 @@ public class PanneauSystemeOptiqueCentre {
         ButtonType annulerButtonType = new ButtonType(rb.getString("bouton.dialogue.soc.annuler"), ButtonBar.ButtonData.CANCEL_CLOSE);
         Dialog<ArrayList<Obstacle>> boite_dialogue = new Dialog<>();
 
-        boite_dialogue.setTitle(rb.getString("titre.dialogue.composition"));
-        boite_dialogue.setHeaderText(rb.getString("invite.dialogue.composition"));
+        boite_dialogue.setTitle(rb.getString("titre.dialogue.soc"));
+        boite_dialogue.setHeaderText(rb.getString("invite.dialogue.soc"));
 
         ObservableList<Obstacle> obstacles_a_proposer = FXCollections.observableArrayList();
 
-        Iterator<Obstacle> ito = canvas.environnement().iterateur_obstacles();
+        // Seuls les obstacles de premier niveau sont proposés dans la modale de création
+        Iterator<Obstacle> ito = canvas.environnement().iterateur_obstacles_premier_niveau();
         while (ito.hasNext()) {
             Obstacle o = ito.next();
             // Rechercher si l'obstacle o implémente l'interface ElementAvecMatiere car eux seuls peuvent faire partie d'une composition
@@ -198,24 +199,24 @@ public class PanneauSystemeOptiqueCentre {
         }
     }
             //            for(Obstacle o : obstacles_choisis) {
-//                soc.ajouterObstacle(o);
+//                soc.ajouterObstacleALaRacine(o);
 //            }
 
 //            for(Obstacle o : obstacles_choisis) {
 ////                o.integrerDansSystemeOptiqueCentre(soc);
 ////                integrerObstacle(o);
 //
-//                    soc.ajouterObstacle(o) ;
+//                    soc.ajouterObstacleALaRacine(o) ;
 //
 ////                    // Rafraichissement automatique de la liste des obstacles du SOC quand le nom de l'obstacle ajouté change
 ////                    ChangeListener<String> listenerNom = (obs, oldName, newName) -> listview_obstacles_centres.refresh();
 ////                    o.nomProperty().addListener(listenerNom);
 //
-////                environnement.supprimerObstacle(o);
-////                compo.ajouterObstacle(o);
+////                environnement.supprimerObstacleALaRacine(o);
+////                compo.ajouterObstacleALaRacine(o);
 //            }
 //
-////            environnement.ajouterObstacle(compo);
+////            environnement.ajouterObstacleALaRacine(compo);
 ////        }
 //
 //    }

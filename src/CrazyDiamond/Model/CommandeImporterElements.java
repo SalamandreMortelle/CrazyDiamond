@@ -58,7 +58,7 @@ public class CommandeImporterElements extends Commande {
         // mémoriser les listes d'objets de chaque SOC.
 //        memoriserEtatInitial();
 
-        elements_a_importer.stream_obstacles().forEach(environnement::ajouterObstacle);
+        elements_a_importer.stream_obstacles().forEach(environnement::ajouterObstacleALaRacine);
 
         elements_a_importer.stream_sources().forEach(environnement::ajouterSource);
 
@@ -85,7 +85,7 @@ public class CommandeImporterElements extends Commande {
 
     @Override
     public void annuler() {
-        elements_a_importer.stream_obstacles().forEach(environnement::supprimerObstacle); // Altère les socs qui contenaient les obstacles supprimés
+        elements_a_importer.stream_obstacles().forEach(environnement::supprimerObstacleALaRacine); // Altère les socs qui contenaient les obstacles supprimés
         elements_a_importer.stream_sources().forEach(environnement::supprimerSource);
         elements_a_importer.stream_socs().forEach(environnement::supprimerSystemeOptiqueCentre);
     }
@@ -95,7 +95,7 @@ public class CommandeImporterElements extends Commande {
         Iterator<Obstacle> it_obs = elements_a_importer.iterateur_obstacles();
         while (it_obs.hasNext()) {
             Obstacle obstacle = it_obs.next();
-            if (!environnement.obstacles().contains(obstacle) && !obstacle.appartientAComposition())
+            if (!environnement.obstaclesComprennent(obstacle) && !obstacle.appartientAComposition())
                 obstacle.convertirDistances(facteur_conversion);
         }
 

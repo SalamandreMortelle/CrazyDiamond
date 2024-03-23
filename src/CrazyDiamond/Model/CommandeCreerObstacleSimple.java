@@ -14,20 +14,21 @@ public class CommandeCreerObstacleSimple extends Commande {
 
     @Override
     public void executer() {
-        environnement.ajouterObstacle(obstacle_cree);
+        environnement.ajouterObstacleALaRacine(obstacle_cree);
         enregistrer();
     }
 
     @Override
     public void annuler() {
-        environnement.supprimerObstacle(obstacle_cree);
+        environnement.supprimerObstacleALaRacine(obstacle_cree);
     }
 
     protected void convertirDistances(double facteur_conversion) {
 
         // Si l'obstacle fait partie de l'environnement, c'est ce dernier qui se charge d'en convertir les distances ;
         // sinon (création de l'obstacle a été annulée), il faut le faire ici.
-        if (!environnement.obstacles().contains(obstacle_cree))
+//        if (!environnement.obstacles().contains(obstacle_cree))
+        if (!environnement.obstaclesComprennent(obstacle_cree))
             obstacle_cree.convertirDistances(facteur_conversion);
     }
 

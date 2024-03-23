@@ -18,7 +18,7 @@ public class OutilSelection extends Outil {
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
     static protected final DataFormat format_crazy_diamond_elements = new DataFormat("application/crazy-diamond.elements");
 
-    JsonMapper jsonMapper ;
+    private final JsonMapper jsonMapper ;
     
     private boolean retaillage_selection_en_cours = false ;
     private boolean selection_rectangulaire_en_cours;
@@ -58,7 +58,7 @@ public class OutilSelection extends Outil {
 
         if (cae.selection().obstacleUnique() != null) {
             if (!retaillage_selection_en_cours ) {
-                if (cae.poignee_obstacle_pointee_en(pclic)) { // On commence un re-taillage
+                if (cae.poigneeOstacleDeSelectionPointeeEn(pclic)) { // On commence un re-taillage
                     retaillage_selection_en_cours = true;
                     position_depart_poignee = cae.poigneeSelectionObstacleUnique() ;
                     // TODO : mémoriser taille de départ
@@ -110,7 +110,7 @@ public class OutilSelection extends Outil {
 //        Source s_avant = cae.selection().sourceUnique();
 //        SystemeOptiqueCentre soc_avant = cae.selection().socUnique() ;
 
-        Obstacle o_pointe  = cae.obstacle_pointe_en(p_debut_glisser_g) ;
+        Obstacle o_pointe  = cae.obstaclePointeASelectionner(p_debut_glisser_g) ;
         Source   s_pointee = cae.source_pointee_en(p_debut_glisser_g) ;
         SystemeOptiqueCentre   soc_pointe = cae.soc_pointe_en(p_debut_glisser_g) ;
 
@@ -371,7 +371,8 @@ public class OutilSelection extends Outil {
         cae.selection().vider();
         cae.selection().definirUnite(cae.environnement().unite()) ;
 
-        Iterator<Obstacle> ito = cae.environnement().iterateur_obstacles() ;
+//        Iterator<Obstacle> ito = cae.environnement().iterateur_obstacles() ;
+        Iterator<Obstacle> ito = cae.environnement().iterateur_obstacles_reels() ;
         while (ito.hasNext())
             cae.selection().ajouter(ito.next());
 

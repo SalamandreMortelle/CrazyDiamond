@@ -24,24 +24,24 @@ public class CommandeSupprimerObstacle extends Commande {
 
         memoriserEtatInitial();
 
-        environnement.supprimerObstacle(obstacle);
+        environnement.supprimerObstacleALaRacine(obstacle);
 
         enregistrer();
     }
 
     private void memoriserEtatInitial() {
-        index_dans_environnement = environnement.indexObstacle(obstacle) ;
+        index_dans_environnement = environnement.indexObstacleALaRacine(obstacle) ;
         composition_contenant_obstacle = obstacle.appartientAComposition()?environnement.compositionContenant(obstacle):null ;
         soc_contenant_obstacle = obstacle.appartientASystemeOptiqueCentre()?environnement.systemeOptiqueCentreContenant(obstacle):null ;
     }
 
     @Override
     public void annuler() {
-        // On commence par remettre l'obstacle dans son SOC d'origine, afin que l'appel à ajouterObstacleEnPosition qui suit
+        // On commence par remettre l'obstacle dans son SOC d'origine, afin que l'appel à ajouterObstacleEnPositionALaRacine qui suit
         // se charge de le repositionner à sa bonne place dans le SOC
         if (soc_contenant_obstacle!=null)
             soc_contenant_obstacle.ajouterObstacle(obstacle);
-        environnement.ajouterObstacleEnPosition(obstacle,index_dans_environnement);
+        environnement.ajouterObstacleEnPositionALaRacine(obstacle,index_dans_environnement);
         if (composition_contenant_obstacle!=null)
             composition_contenant_obstacle.ajouterObstacle(obstacle);
     }
@@ -49,7 +49,7 @@ public class CommandeSupprimerObstacle extends Commande {
     protected void convertirDistances(double facteur_conversion) {
         // Si l'obstacle fait partie de l'environnement, c'est ce dernier qui se charge d'en convertir les coordonnées ;
         // sinon (suppression de l'obstacle a été rétablie), il faut le faire ici.
-        if (!environnement.obstacles().contains(obstacle) && !obstacle.appartientAComposition())
+        if (!environnement.obstaclesComprennent(obstacle) && !obstacle.appartientAComposition())
             obstacle.convertirDistances(facteur_conversion);
     }
 

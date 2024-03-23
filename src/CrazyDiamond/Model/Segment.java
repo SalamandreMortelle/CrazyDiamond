@@ -251,7 +251,7 @@ public class Segment extends BaseObstacleAvecContourSansEpaisseur implements Obs
     }
 
     @Override
-    public boolean est_tres_proche_de(Point2D p,double tolerance) {
+    public boolean estTresProcheDe(Point2D p, double tolerance) {
 
         if (p.getX()+tolerance <Math.min(x1(), x2()))
             return false;
