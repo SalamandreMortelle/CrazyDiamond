@@ -39,13 +39,10 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
 
     }
 
-//    private final ListProperty<Obstacle> elements;
-
     private final ObjectProperty<Operateur> operateur;
 
     private static int compteur_composition = 0;
 
-//    final private ArrayList<ListChangeListener<Obstacle>> observateurs_des_elements ;
     public Composition(Operateur op) throws IllegalArgumentException {
         this(null,
                 op,null,null,1.0,null,null) ;
@@ -55,33 +52,15 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
         super(nom!=null?nom:"Composition "+(++compteur_composition),
                 type_surface,nature_milieu,indice_refraction,couleur_matiere,couleur_contour);
 
-//        ObservableList<Obstacle> olo = FXCollections.observableArrayList();
-//        elements = new SimpleListProperty<>(olo);
-
         operateur = new SimpleObjectProperty<>(op);
-
-//        this.observateurs_des_elements = new ArrayList<>(1) ;
     }
 
 
     public Composition(Imp_Identifiable ii,Imp_Nommable ien,Imp_ElementComposite ic,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem, Operateur op) throws IllegalArgumentException {
         super(ii,ien,ic,iec,iem) ;
 
-//        ObservableList<Obstacle> olo = FXCollections.observableArrayList();
-//        elements = new SimpleListProperty<>(olo);
-
         operateur = new SimpleObjectProperty<>(op);
-
-//        this.observateurs_des_elements = new ArrayList<>(1) ;
     }
-
-//    public ObservableList<Obstacle> elements() {
-//        return elements.get();
-//    }
-
-//    public boolean estVide() {
-//        return elements().size()==0 ;
-//    }
 
     @Override
     public Commande commandeCreation(Environnement env) {
@@ -90,15 +69,7 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
     @Override
     public void retaillerPourSourisEn(Point2D pos_souris) {}
 
-//    @Override
-//    public void translater(Point2D vecteur) {
-//        for (Obstacle o : elements)
-//            o.translater(vecteur);
-//    }
-//    @Override
-//    public void translaterParCommande(Point2D vecteur) {
-//        new CommandeTranslaterObstacles(vecteur, elements()).executer();
-//    }
+
     @Override
     public void accepte(VisiteurEnvironnement v) {
         v.visiteComposition(this);
@@ -133,90 +104,20 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
 
         super.ajouterObstacle(o);
 
-//        if (this.elements.contains(o))
-//            return;
-//
+        if (this.elements().contains(o))
+            return;
+
 //        // TODO : il faudrait peut-être vérifier si l'obstacle appartient à l'environnement car sinon, il n'y aura pas de notification
 //        // des rappels en cas de modification de ses propriétés (car ces rappels sont ajoutés lors de l'ajout de l'obstacle à l'environnement)
-//
-////        o.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources); ;
-//
-//        this.elements.add(o);
 
         o.definirAppartenanceComposition(true);
-
     }
 
     public void retirerObstacle(Obstacle o) {
         super.retirerObstacle(o);
-//        elements.remove(o);
 
         o.definirAppartenanceComposition(false);
-
     }
-
-//    public void ajouterListChangeListener(ListChangeListener<Obstacle> lcl_o) {
-//        if (observateurs_des_elements.contains(lcl_o))
-//            return;
-//
-//        elements.addListener(lcl_o);
-//        observateurs_des_elements.add(lcl_o);
-//
-//        //Il faut aussi détecter les changements qui interviennent dans les sous-compositions
-//        for (Obstacle o : elements) {
-//            if (o instanceof Composition)
-//                ((Composition) o).ajouterListChangeListener(lcl_o) ;
-//        }
-//    }
-
-//    public void enleverListChangeListener(ListChangeListener<Obstacle> lcl_o) {
-//        if (!observateurs_des_elements.contains(lcl_o)) // Observateur pas enregistré : rien à faire
-//            return;
-//
-//        elements.removeListener(lcl_o);
-//        observateurs_des_elements.remove(lcl_o);
-//
-//        for (Obstacle o : elements) {
-//            if (o instanceof Composition) // Détection des changements qui interviennent dans les compositions
-//                ((Composition)o).enleverListChangeListener(lcl_o);
-//        }
-//
-//    }
-
-//    public void enleverTousLesListChangeListeners() {
-//        for (ListChangeListener<Obstacle> lcl_o : observateurs_des_elements) {
-//            for (Obstacle o : elements) {
-//                if (o instanceof Composition) // Détection des changements qui interviennent dans les compositions
-//                    ((Composition)o).enleverListChangeListener(lcl_o);
-//            }
-//            elements.removeListener(lcl_o);
-////            observateurs_des_elements.remove(lcl_o);
-//        }
-//        observateurs_des_elements.clear();
-//    }
-
-//    @Override
-//    public boolean comprend(Obstacle o) {
-//
-//        for (Obstacle ob : elements) {
-//            if (ob.comprend(o))
-//                return true ;
-//        }
-//
-//        return Obstacle.super.comprend(o);
-//    }
-
-//    @Override
-//    public Obstacle obstacle_avec_id(String obs_id) {
-//
-//        for (Obstacle ob : elements) {
-//            Obstacle o_trouve = ob.obstacle_avec_id(obs_id) ;
-//            if (o_trouve!=null)
-//                return o_trouve ;
-//        }
-//
-//        return Obstacle.super.obstacle_avec_id(obs_id);
-//    }
 
     public Composition composition_contenant(Obstacle o) {
         for (Obstacle ob : elements()) {
@@ -380,11 +281,7 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
                         est_sur_une_surface = true;
 
                 }
-
                 return est_sur_une_surface;
-
-//                return ((ob1.aSurSaSurface(p) && (!ob2.contient(p))) || (ob2.aSurSaSurface(p) && (!ob1.contient(p)))
-//                        || (ob1.aSurSaSurface(p) && ob2.contient(p)) || (ob2.aSurSaSurface(p) && ob1.contient(p)));
             }
         }
 
@@ -493,15 +390,6 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
 
     @Override
     public Point2D normale(Point2D p) throws Exception {
-//        Obstacle ob1 = obstacle1.get() ;
-//        Obstacle ob2 = obstacle2.get() ;
-//
-//        boolean est_sur_ob1 = ob1.aSurSaSurface(p) ;
-//        boolean est_sur_ob2 = ob2.aSurSaSurface(p) ;
-//
-//        boolean est_dans_ob1 = ob1.contient(p) ;
-//        boolean est_dans_ob2 = ob2.contient(p) ;
-
         // Identification de l'obstacle sur la surface duquel se trouve le point
         Obstacle obst = estSurSurfaceDe(p);
 
@@ -537,18 +425,6 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
 
         ArrayList<Point2D> resultats = new ArrayList<>(2 * elements().size());
 
-        // A priori, pas besoin de la classe Intersection (pas besoin de savoir quel obstacle est rencontré à chaque intersection)
-        //ArrayList<Intersection> liste_intersections = new ArrayList<>(2* obstacles.size()) ;
-        //ArrayList<Point2D> liste_intersections = new ArrayList<>(2* elements.size()) ;
-
-
-//        for (Obstacle o : obstacles) {
-//            ArrayList<Point2D> intersections_o = o.cherche_toutes_intersections(r) ;
-//
-//            for (Point2D p : intersections_o)
-//                liste_intersections.add(new Intersection(p,o)) ;
-//        }
-
         for (Obstacle o : elements()) {
             ArrayList<Point2D> intersections_o = o.cherche_toutes_intersections(r);
 
@@ -574,27 +450,9 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
 
         };
 
-
-//        Comparator<Intersection> comparateur = (i1, i2) -> {
-//
-//            double distance_i1_depart = i1.point.subtract(r.depart).magnitude() ;
-//            double distance_i2_depart = i2.point.subtract(r.depart).magnitude() ;
-//
-//            return Double.compare(distance_i1_depart, distance_i2_depart);
-//
-//        } ;
-
-//        liste_intersections.sort(comparateur);
         resultats.sort(comparateur);
 
-//        // On ne garde que les points qui sont sur la surface de la composition
-//        for (Intersection i : liste_intersections) {
-//            if (aSurSaSurface(i.point))
-//                resultats.add(i.point) ;
-//        }
-
         return resultats;
-
     }
 
     @Override
@@ -621,193 +479,17 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
         super.ajouterRappelSurChangementToutePropriete(rap);
 
         operateur.addListener((observable, oldValue, newValue) -> rap.rappel());
-
-//        for (Obstacle o : elements) { // Ajout récursif du rappel dans tous les sous-obstacles de la Composition
-//            o.ajouterRappelSurChangementToutePropriete(rap);
-//        }
-//
-//        // Dans une composition, il faut aussi mettre en observation, récursivement, les liste de ses éléments pour réagir
-//        // aux ajouts et aux suppressions d'éléments dans les sous-compositions de tous les niveaux.
-//        ListChangeListener<Obstacle> lcl_elements = change -> {
-//            while (change.next()) {
-//
-//                if (change.wasRemoved()) {
-//                    LOGGER.log(Level.FINER, "Obstacle supprimé de composition");
-//                    rap.rappel();
-//
-//                } else if (change.wasAdded()) {
-//
-//                    for (Obstacle additem : change.getAddedSubList()) {
-//                        LOGGER.log(Level.FINER, "Obstacle ajouté dans la composition : {0}", additem);
-//                        rap.rappel();
-//
-//                    }
-//                }
-//
-//            }
-//        };
-////        elements.addListener(lcl_elements);
-//        // Ajout récursif du rappel dans toutes les sous-compositions
-//        ajouterListChangeListener(lcl_elements);
-
     }
 
     @Override
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
+
         super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
         operateur.addListener((observable, oldValue, newValue) -> rap.rappel());
-
-//        for (Obstacle o : elements)
-//            o.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-//
-//        ListChangeListener<Obstacle> lcl_elements = change -> {
-//            while (change.next()) {
-//
-//                if (change.wasRemoved()) {
-//                    LOGGER.log(Level.FINER, "Obstacle supprimé de composition");
-//                    rap.rappel();
-//
-//                } else if (change.wasAdded()) {
-//
-//                    for (Obstacle additem : change.getAddedSubList()) {
-//                        LOGGER.log(Level.FINER, "Obstacle ajouté dans la composition : {0}", additem);
-//                        rap.rappel();
-//
-//                    }
-//                }
-//
-//            }
-//        };
-//        // Ajout récursif du rappel dans toutes les sous-compositions
-//        ajouterListChangeListener(lcl_elements);
-
     }
 
 
-//    @Override
-//    public boolean aSymetrieDeRevolution() {
-//
-//        Obstacle o_prec = null;
-//        Double direction_commune = null;
-//
-//        for (Obstacle o : elements) {
-//
-//            // Si un des éléments de la Composition n'est pas centrable, la Composition ne l'est pas.
-//            // Il pourrait théoriquement l'être, par exemple si l'obstacle non centrable est exclu de la Composition
-//            // par le jeu des intersections ou des différences avec les autres obstacles, mais nous ne voulons pas
-//            // rentrer ces cas particuliers qui n'ont que peu d'intérêt : ce genre de situation n'apparait ni dans les
-//            // lentilles ni dans les objectifs nous semble-t-il.
-//            if (!o.aSymetrieDeRevolution())
-//                return false;
-//
-//            if (o_prec != null) {
-//
-//                if (o_prec.aUneOrientation() && o.aUneOrientation()) {
-//                    if ((o_prec.orientation() % 180d) != (o.orientation() % 180d))
-//                        return false;
-//                }
-//
-//                // Cas où o_prec.pointSurAxeRevolution() et o.pointSurAxeRevolution() sont confondus : rien à controler
-//                if (o_prec.pointSurAxeRevolution().equals(o.pointSurAxeRevolution()))
-//                    continue;
-//
-//                DemiDroiteOuSegment seg = DemiDroiteOuSegment.construireSegment(o_prec.pointSurAxeRevolution(), o.pointSurAxeRevolution());
-//
-//                double nouvelle_direction_commune = seg.angle() % 180d;
-//
-//                if (o_prec.aUneOrientation()) {
-//                    if (!Environnement.quasiEgal((o_prec.orientation() % 180d), nouvelle_direction_commune))
-//                        //                    if ((o_prec.orientation() % 180d) != (seg.angle() % 180d))
-//                        return false;
-//                } else if (o.aUneOrientation()) {
-//                    if (!Environnement.quasiEgal((o.orientation() % 180d), nouvelle_direction_commune))
-//                        //                        if ((o.orientation() % 180d) != (seg.angle() % 180d))
-//                        return false;
-//                }
-//
-//                //                if (direction_commune!=null && direction_commune!=nouvelle_direction_commune)
-//                if (direction_commune != null && !Environnement.quasiEgal(direction_commune, nouvelle_direction_commune))
-//                    return false;
-//
-//                direction_commune = nouvelle_direction_commune;
-//            }
-//            o_prec = o;
-//        }
-//        return true;
-//    }
-
-//    @Override
-//    public Point2D pointSurAxeRevolution() {
-//        return ((elements.size() > 0 && aSymetrieDeRevolution()) ? elements.get(0).pointSurAxeRevolution() : null);
-//    }
-
-//    @Override
-//    public boolean estOrientable() {
-//        return true;
-//    }
-
-//    @Override
-//    public void definirOrientation(double orientation_deg) {
-//
-//        if (elements.size() == 0)
-//            return;
-//
-//        if (!aSymetrieDeRevolution())
-//            return;
-//
-//        // On oriente le premier élément
-//        double delta_ori = orientation_deg - elements.get(0).orientation();
-//        elements.get(0).definirOrientation(orientation_deg);
-//
-//        // Les éléments suivants doivent rester à même distance du premier, rotation par rapport au "centre" (=point sur axe révolution) du premier
-//        Point2D centre_rot = elements.get(0).pointSurAxeRevolution();
-//
-//
-//        for (int i = 1; i < elements.size(); i++) {
-//            Obstacle o = elements.get(i);
-//            o.tournerAutourDe(centre_rot, delta_ori);
-//        }
-//
-//    }
-
-//    @Override
-//    public void tournerAutourDe(Point2D centre_rot, double angle_rot_deg) {
-//
-//        for (Obstacle o : elements)
-//            o.tournerAutourDe(centre_rot, angle_rot_deg);
-//
-//    }
-
-//    @Override
-//    public double orientation() {
-//
-//        if (elements.size() == 0) return 0d;
-//
-//        Obstacle o_prec = null;
-//
-//        for (Obstacle o : elements) {
-//
-//            if (o_prec != null) {
-//
-//                // Cas où o_prec.pointSurAxeRevolution() et o.pointSurAxeRevolution() sont confondus : rien à controler
-//                if (o_prec.pointSurAxeRevolution().equals(o.pointSurAxeRevolution()))
-//                    continue;
-//
-//                DemiDroiteOuSegment seg = DemiDroiteOuSegment.construireSegment(o_prec.pointSurAxeRevolution(), o.pointSurAxeRevolution());
-//
-////                double nouvelle_direction_commune = seg.angle() ;
-//
-//                return seg.angle();
-//            }
-//
-//            o_prec = o;
-//        }
-//
-//        // Si tous les élements avaient même centre, ou si il n'y avait qu'un élement, on retourne l'orientation du premier
-//        return elements.get(0).orientation();
-////        return Obstacle.super.orientation();
-//    }
 
     @Override
     public Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) throws Exception {
@@ -819,25 +501,6 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
 
         return obst.courbureRencontreeAuSommet(pt_sur_surface, direction);
     }
-
-//    @Override
-//    public void definirAppartenanceSystemeOptiqueCentre(boolean b) {
-//        super.definirAppartenanceSystemeOptiqueCentre(b);
-//
-//        // Tous les obstacles de la Composition sont concernés aussi (permet de désactiver certains contrôles de ces obstacles
-//        // dans les vues des panneaux, comme le contrôle de l'orientation)
-//        for (Obstacle o : elements)
-//            o.definirAppartenanceSystemeOptiqueCentre(b);
-//    }
-
-//    @Override
-//    public void definirAppartenanceComposition(boolean b) {
-//        super.definirAppartenanceComposition(b);
-//
-//        for (Obstacle o : elements)
-//            o.definirAppartenanceComposition(b);
-//
-//    }
 
     @Override
     public double rayonDiaphragmeMaximumConseille() {
@@ -1032,10 +695,7 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
                     }
                 }
             }
-
-
         }
-
 
         //  On peut se retrouver avec des dioptres qui sont "confondus" (même Z, même Rc algébrique) que l'on peut
         //  "fusionner" en mettant à jour de façon cohérente les indices avant/après (et en tenant compte de la présence
@@ -1044,8 +704,6 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
         // complique inutilement les calculs de la matrice de transfert optique, et de toutes les propriétés optiques du SOC
 
         return fusionneDioptres(resultat) ;
-//        return resultat ;
-
     }
 
      private List<DioptreParaxial> fusionneDioptres(List<DioptreParaxial> liste_dioptres) {
@@ -1078,13 +736,5 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
         return resultat_fusionne ;
 
     }
-
-//    @Override
-//    public void convertirDistances(double facteur_conversion) {
-//
-//        for (Obstacle o : elements)
-//            o.convertirDistances(facteur_conversion);
-//
-//    }
 
 }
