@@ -76,7 +76,7 @@ public class Environnement {
         this.commentaire = new SimpleStringProperty("") ;
 
 
-        groupe_racine_obstacles = new SimpleObjectProperty<>(new Groupe("Groupe racine"));
+        groupe_racine_obstacles = new SimpleObjectProperty<>(new Groupe("Groupe racine",false));
 //      ObservableList<Obstacle> olo = FXCollections.observableArrayList() ;
 //      obstacles = new SimpleListProperty<>(olo);
 

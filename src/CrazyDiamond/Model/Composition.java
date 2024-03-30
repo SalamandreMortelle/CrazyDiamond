@@ -102,10 +102,10 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
         if (o instanceof Groupe)
             throw new IllegalCallerException("Un Groupe ne peut pas être ajouté dans une Composition.");
 
-        super.ajouterObstacle(o);
-
         if (this.elements().contains(o))
             return;
+
+        super.ajouterObstacle(o);
 
 //        // TODO : il faudrait peut-être vérifier si l'obstacle appartient à l'environnement car sinon, il n'y aura pas de notification
 //        // des rappels en cas de modification de ses propriétés (car ces rappels sont ajoutés lors de l'ajout de l'obstacle à l'environnement)

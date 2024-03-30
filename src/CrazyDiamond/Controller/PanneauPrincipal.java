@@ -371,8 +371,10 @@ public class PanneauPrincipal {
         // TreeView exige un objet racine (qu'on ne montrera pas) : créons donc un objet caché, qui n'est pas dans l'environnement
 //        Obstacle ob_racine = new Cercle(TypeSurface.CONVEXE,0,0,1.0) ;
 //        Cercle.razCompteur() ;
-        Iterator<Obstacle> ito = environnement.iterateur_obstacles() ;
-        Obstacle ob_racine = ito.next() ; // Le premier élément de l'environnement est le groupe racine
+//        Iterator<Obstacle> ito = environnement.iterateur_obstacles() ;
+        Iterator<Obstacle> ito = environnement.iterateur_obstacles_premier_niveau() ;
+//        Obstacle ob_racine = ito.next() ; // Le premier élément de l'environnement est le groupe racine
+        Obstacle ob_racine = environnement.groupeRacine() ; // Le premier élément de l'environnement est le groupe racine
 
         treeview_obstacles.setShowRoot(false);
         treeview_obstacles.setRoot(new TreeItem<>(ob_racine));

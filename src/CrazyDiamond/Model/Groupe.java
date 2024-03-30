@@ -32,26 +32,29 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
     private ArrayList<Obstacle> liste_obstacles;
 
 
-    public Groupe() throws IllegalArgumentException {
-        this("Groupe " + (++compteur_groupe)) ;
+    public Groupe(boolean solidaire) throws IllegalArgumentException {
+        this("Groupe " + (++compteur_groupe),solidaire) ;
     }
 
-    public Groupe(String nom) throws IllegalArgumentException {
+    public Groupe(String nom,boolean solidaire) throws IllegalArgumentException {
         this(
                 new Imp_Identifiable(),
                 new Imp_Nommable(nom),
-                new Imp_ElementComposite()
+                new Imp_ElementComposite(),
+                solidaire
         ) ;
     }
 
-    public Groupe(Imp_Identifiable ii, Imp_Nommable in,Imp_ElementComposite ic) throws IllegalArgumentException {
+    public Groupe(Imp_Identifiable ii, Imp_Nommable in,Imp_ElementComposite ic,boolean solidaire) throws IllegalArgumentException {
         super(ii,in,ic);
 
-        this.elements_solidaires = new SimpleBooleanProperty(true) ;
+        this.elements_solidaires = new SimpleBooleanProperty(solidaire) ;
 
-        this.liste_obstacles = new ArrayList<>(1) ;
-        this.liste_obstacles.add(this) ;
-        this.liste_obstacles_reels = new ArrayList<>(0) ;
+//        this.liste_obstacles = new ArrayList<>(1) ;
+//        this.liste_obstacles.add(this) ;
+//        this.liste_obstacles_reels = new ArrayList<>(0) ;
+
+        construireListesObstacles();
 
         this.ajouterListChangeListenerDesGroupes(lcl_reconstruction_listes_obstacles);
     }
@@ -266,10 +269,10 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
      */
     public void ajouterObstacle(Obstacle o) {
 
-        super.ajouterObstacle(o);
-
         if (this.elements().contains(o))
             return;
+
+        super.ajouterObstacle(o);
 
         if (o instanceof Groupe grp) {
             grp.ajouterListChangeListenerDesGroupes(lcl_reconstruction_listes_obstacles);

@@ -22,7 +22,11 @@ public class GroupeSerializer extends StdSerializer<Groupe> {
 
         groupe.appliquerSurIdentifiable(jsonGenerator::writeObject);
         groupe.appliquerSurNommable(jsonGenerator::writeObject);
+
+        jsonGenerator.writeBooleanField ("elements_solidaires",groupe.elementsSolidaires());
+
         groupe.appliquerSurElementComposite(jsonGenerator::writeObject);
+
 
         jsonGenerator.writeEndObject();
 

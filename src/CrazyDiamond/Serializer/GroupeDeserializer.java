@@ -24,12 +24,14 @@ public class GroupeDeserializer extends StdDeserializer<Groupe> {
 
         final ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
 
-        final JsonNode composition_node = mapper.readTree(jsonParser);
+        final JsonNode groupe_node = mapper.readTree(jsonParser);
 
-        Imp_Identifiable ii = mapper.treeToValue(composition_node, Imp_Identifiable.class) ;
-        Imp_Nommable iei = mapper.treeToValue(composition_node, Imp_Nommable.class) ;
-        Imp_ElementComposite ic = mapper.treeToValue(composition_node, Imp_ElementComposite.class) ;
+        Imp_Identifiable ii = mapper.treeToValue(groupe_node, Imp_Identifiable.class) ;
+        Imp_Nommable iei = mapper.treeToValue(groupe_node, Imp_Nommable.class) ;
+        Imp_ElementComposite ic = mapper.treeToValue(groupe_node, Imp_ElementComposite.class) ;
 
-        return new Groupe(ii,iei,ic);
+        boolean elements_solidaires = groupe_node.get("elements_solidaires").asBoolean();
+
+        return new Groupe(ii,iei,ic,elements_solidaires);
     }
 }

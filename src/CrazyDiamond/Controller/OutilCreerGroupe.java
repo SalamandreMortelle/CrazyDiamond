@@ -66,9 +66,9 @@ public class OutilCreerGroupe extends OutilPermettantDeplacementZoneVisible {
 
             ArrayList<Obstacle> obstacles_choisis = op_obstacles_choisis.get() ;
 
-            LOGGER.log(Level.INFO,"Obstacles choisis pour composition : {0}",obstacles_choisis) ;
+            LOGGER.log(Level.INFO,"Obstacles choisis pour groupe : {0}",obstacles_choisis) ;
 
-            Groupe nouveau_groupe = new Groupe() ;
+            Groupe nouveau_groupe = new Groupe(true) ;
 
 
             for(Obstacle o : obstacles_choisis) {

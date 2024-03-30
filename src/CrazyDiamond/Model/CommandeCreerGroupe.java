@@ -14,7 +14,7 @@ public class CommandeCreerGroupe extends Commande {
     public CommandeCreerGroupe(Environnement env) {
         this.environnement = env ;
         this.elements = new ArrayList<>(2) ;
-        groupe_cree = new Groupe() ;
+        groupe_cree = new Groupe(true) ;
     }
 
     public CommandeCreerGroupe(Environnement env, Groupe groupe_deja_cree) {
