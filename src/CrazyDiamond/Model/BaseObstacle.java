@@ -27,6 +27,10 @@ public abstract class BaseObstacle extends BaseElementNommable {
 
     public String id() { return imp_identifiable.id(); }
 
+    public Obstacle obstacle_avec_id(String obs_id) {
+        return id().equals(obs_id)?(Obstacle)this:null ;
+    }
+
     public void appliquerSurIdentifiable(ConsumerAvecException<Object, IOException> consumer) throws IOException {
         consumer.accept(imp_identifiable);
     }

@@ -1,25 +1,25 @@
 package CrazyDiamond.Model;
 
-import javafx.beans.property.*;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.scene.paint.Color;
 
 import java.io.IOException;
 
-public abstract class BaseObstacleAvecContour extends BaseObstacle {
+public class BaseObstacleCompositeAvecContour extends BaseObstacleComposite {
 
     private final Imp_ElementAvecContour imp_elementAvecContour ;
 
-
-    BaseObstacleAvecContour(String nom, Color couleur_contour) {
+    BaseObstacleCompositeAvecContour(String nom,Color couleur_contour) {
         super(nom);
         this.imp_elementAvecContour = new Imp_ElementAvecContour(couleur_contour) ;
-//        this.imp_elementAvecContour = new Imp_ElementAvecContour(null) ;
     }
 
-    BaseObstacleAvecContour(Imp_Identifiable ii, Imp_Nommable in, Imp_ElementAvecContour iac) {
-        super(ii, in);
+    BaseObstacleCompositeAvecContour(Imp_Identifiable ii, Imp_Nommable in, Imp_ElementComposite ic, Imp_ElementAvecContour iac) {
+        super(ii, in, ic);
         this.imp_elementAvecContour = iac ;
     }
+
 
     public Color couleurContour() { return imp_elementAvecContour.couleurContour(); }
     public void definirCouleurContour(Color c) { imp_elementAvecContour.definirCouleurContour(c); }
@@ -37,15 +37,18 @@ public abstract class BaseObstacleAvecContour extends BaseObstacle {
     public double orientationAxePolariseur() {return imp_elementAvecContour.orientationAxePolariseur() ;}
     public DoubleProperty orientationAxePolariseurProperty() {return imp_elementAvecContour.orientationAxePolariseurProperty() ;}
 
-    public void appliquerSurElementAvecContour(ConsumerAvecException<Object,IOException> consumer) throws IOException {
+    public void appliquerSurElementAvecContour(ConsumerAvecException<Object, IOException> consumer) throws IOException {
         consumer.accept(imp_elementAvecContour);
     }
 
     public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+        super.ajouterRappelSurChangementToutePropriete(rap);
         imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
     }
 
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
+        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
         imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
     }
 }
+

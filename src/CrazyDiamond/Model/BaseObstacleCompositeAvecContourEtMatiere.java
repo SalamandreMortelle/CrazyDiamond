@@ -6,18 +6,17 @@ import javafx.scene.paint.Color;
 
 import java.io.IOException;
 
-public abstract class BaseObstacleAvecContourEtMatiere extends BaseObstacleAvecContour {
+public class BaseObstacleCompositeAvecContourEtMatiere extends BaseObstacleCompositeAvecContour {
 
     private final Imp_ElementAvecMatiere imp_elementAvecMatiere ;
 
-    BaseObstacleAvecContourEtMatiere(String nom, TypeSurface type_surface,NatureMilieu nature_milieu,double indice_refraction,Color couleur_matiere,Color couleur_contour) {
-        super(nom,couleur_contour);
+    BaseObstacleCompositeAvecContourEtMatiere(String nom, TypeSurface type_surface,NatureMilieu nature_milieu,double indice_refraction,Color couleur_matiere,Color couleur_contour) {
+        super(nom, couleur_contour);
         this.imp_elementAvecMatiere = new Imp_ElementAvecMatiere(type_surface,nature_milieu ,indice_refraction,couleur_matiere) ;
-//        this.imp_elementAvecMatiere = new Imp_ElementAvecMatiere(type_surface,null ,1.0,null) ;
     }
 
-    BaseObstacleAvecContourEtMatiere(Imp_Identifiable ii, Imp_Nommable in, Imp_ElementAvecContour iac, Imp_ElementAvecMatiere iam) {
-        super(ii, in, iac);
+    BaseObstacleCompositeAvecContourEtMatiere(Imp_Identifiable ii, Imp_Nommable in, Imp_ElementComposite ic, Imp_ElementAvecContour iac,Imp_ElementAvecMatiere iam) {
+        super(ii, in, ic, iac);
         this.imp_elementAvecMatiere = iam ;
     }
 
@@ -37,7 +36,7 @@ public abstract class BaseObstacleAvecContourEtMatiere extends BaseObstacleAvecC
     public double indiceRefraction() { return imp_elementAvecMatiere.indiceRefraction(); }
     public DoubleProperty indiceRefractionProperty() {  return imp_elementAvecMatiere.indiceRefractionProperty(); }
 
-    public void appliquerSurElementAvecMatiere(ConsumerAvecException<Object,IOException> consumer) throws IOException {
+    public void appliquerSurElementAvecMatiere(ConsumerAvecException<Object, IOException> consumer) throws IOException {
         consumer.accept(imp_elementAvecMatiere);
     }
 
@@ -50,4 +49,5 @@ public abstract class BaseObstacleAvecContourEtMatiere extends BaseObstacleAvecC
         super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap) ;
         imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
     }
+
 }

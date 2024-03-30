@@ -99,6 +99,7 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
                     case "Prisme" -> o_a_ajouter = mapper.treeToValue(obs_node, Prisme.class);
                     case "Rectangle" -> o_a_ajouter = mapper.treeToValue(obs_node, Rectangle.class);
                     case "Segment" -> o_a_ajouter = mapper.treeToValue(obs_node, Segment.class);
+                    case "Groupe" -> o_a_ajouter = mapper.treeToValue(obs_node, Groupe.class);
                     case "Composition" -> o_a_ajouter = mapper.treeToValue(obs_node, Composition.class);
                 }
                 // Ajout de l'obstacle dans l'environnement, et dans les éléments importés si nécessaire.

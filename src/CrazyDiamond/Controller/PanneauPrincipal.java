@@ -55,6 +55,7 @@ public class PanneauPrincipal {
 
         simpleModule.addSerializer(Imp_Identifiable.class, new Imp_IdentifiableSerializer());
         simpleModule.addSerializer(Imp_Nommable.class, new Imp_NommableSerializer());
+        simpleModule.addSerializer(Imp_ElementComposite.class, new Imp_ElementCompositeSerializer());
         simpleModule.addSerializer(Imp_ElementAvecContour.class, new Imp_ElementAvecContourSerializer());
         simpleModule.addSerializer(Imp_ElementAvecMatiere.class, new Imp_ElementAvecMatiereSerializer());
         simpleModule.addSerializer(Imp_ElementSansEpaisseur.class, new Imp_ElementSansEpaisseurSerializer());
@@ -65,6 +66,7 @@ public class PanneauPrincipal {
         simpleModule.addSerializer(Prisme.class, new PrismeSerializer());
         simpleModule.addSerializer(Rectangle.class, new RectangleSerializer());
         simpleModule.addSerializer(Segment.class, new SegmentSerializer());
+        simpleModule.addSerializer(Groupe.class, new GroupeSerializer());
         simpleModule.addSerializer(Composition.class, new CompositionSerializer());
 
         simpleModule.addSerializer(Source.class, new SourceSerializer());
@@ -83,6 +85,7 @@ public class PanneauPrincipal {
 
         simpleModule.addDeserializer(Imp_Identifiable.class, new Imp_IdentifiableDeserializer());
         simpleModule.addDeserializer(Imp_Nommable.class, new Imp_NommableDeserializer());
+        simpleModule.addDeserializer(Imp_ElementComposite.class, new Imp_ElementCompositeDeserializer());
         simpleModule.addDeserializer(Imp_ElementAvecContour.class, new Imp_ElementAvecContourDeserializer());
         simpleModule.addDeserializer(Imp_ElementAvecMatiere.class, new Imp_ElementAvecMatiereDeserializer());
         simpleModule.addDeserializer(Imp_ElementSansEpaisseur.class, new Imp_ElementSansEpaisseurDeserializer());
@@ -93,6 +96,7 @@ public class PanneauPrincipal {
         simpleModule.addDeserializer(Prisme.class, new PrismeDeserializer());
         simpleModule.addDeserializer(Rectangle.class, new RectangleDeserializer());
         simpleModule.addDeserializer(Segment.class, new SegmentDeserializer());
+        simpleModule.addDeserializer(Groupe.class, new GroupeDeserializer());
         simpleModule.addDeserializer(Composition.class, new CompositionDeserializer());
 
         simpleModule.addDeserializer(Source.class, new SourceDeserializer());
@@ -511,9 +515,7 @@ public class PanneauPrincipal {
 //            outil_precedent.prendre();
         });
 
-        ajout_groupe.setOnAction( e -> {
-            outilGroupe.prendre();
-        });
+        ajout_groupe.setOnAction( e -> outilGroupe.prendre());
 
         lcl_sources = change -> {
             while (change.next()) {

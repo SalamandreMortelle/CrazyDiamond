@@ -29,12 +29,12 @@ public abstract class BaseObstacleAvecContourSansEpaisseur extends BaseObstacleA
         consumer.accept(imp_elementSansEpaisseur);
     }
 
-    protected void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
         super.ajouterRappelSurChangementToutePropriete(rap);
         imp_elementSansEpaisseur.ajouterRappelSurChangementToutePropriete(rap);
     }
 
-    protected void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
+    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
         super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
         imp_elementSansEpaisseur.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
     }

@@ -42,7 +42,9 @@ public interface Obstacle {
 
     default boolean comprend(Obstacle o) { return this.equals(o) ; }
 
-    default Obstacle obstacle_avec_id(String obs_id) { return id().equals(obs_id)?this:null ; }
+    Obstacle obstacle_avec_id(String obs_id) ;
+
+//    default Obstacle obstacle_avec_id(String obs_id) { return id().equals(obs_id)?this:null ; }
 
     default Composition composition_contenant(Obstacle o) { return null ; }
     default Groupe groupe_contenant(Obstacle o) { return null ; }
@@ -239,7 +241,6 @@ public interface Obstacle {
      * @param o : l'Obstacle qui réfléchit le rayon incident
      * @param r : le Rayon incident
      * @return le Rayon réfléchi
-     * @throws Exception
      */
      static Rayon rayonReflechiTotal(Obstacle o, Rayon r) throws Exception {
 
