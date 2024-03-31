@@ -8,6 +8,8 @@ public class CommandeCreerGroupe extends Commande {
     Environnement environnement ;
     Groupe groupe_cree;
 
+    // TODO : Mémoriser les parents et les positions dans le parent de chaque element ajouté dans le groupe, pour pouvoir
+    // remettre à sa place d'origine
     // Paramètres de la commande
     ArrayList<Obstacle> elements;
 
@@ -26,7 +28,7 @@ public class CommandeCreerGroupe extends Commande {
 
     @Override
     public void executer() {
-        elements.forEach(environnement::supprimerObstacleALaRacine);
+        elements.forEach(environnement::supprimerObstacle);
         elements.forEach(groupe_cree::ajouterObstacle);
         environnement.ajouterObstacleALaRacine(groupe_cree);
         enregistrer();

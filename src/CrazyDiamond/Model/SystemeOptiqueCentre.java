@@ -189,14 +189,15 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
     public void definirMontrerDioptres(boolean md) { montrer_dioptres.set(md); }
 
-    public void deplacerObstacle(Obstacle o_a_deplacer, int i_pos_dans_env) {
+    public void deplacerObstacle(Obstacle o_a_deplacer, int i_pos_parmi_obstacles_reels_de_env) {
         obstacles_centres.remove(o_a_deplacer) ;
 
         int i_pos_cible_dans_soc = -1 ;
 
-        for (Obstacle oc : obstacles_centres) {
-            if (environnement.rang(oc)>i_pos_dans_env) {
-                i_pos_cible_dans_soc = obstacles_centres.indexOf(oc) ;
+        for (Obstacle oc : obstacles_centres) { // Parcours des obstacles centrés
+            if (environnement.indexParmiObstaclesReels(oc)>i_pos_parmi_obstacles_reels_de_env) {
+                // On s'arrête sur le premier qui a un index supérieur à la position de l'objet déplacé parmi les obstacles réels de l'env
+                i_pos_cible_dans_soc = obstacles_centres.indexOf(oc) ; // On va insérer l'obstacle déplacé à sa place
                 break ;
             }
         }
@@ -741,7 +742,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
                         RencontreDioptreParaxial d_ouv     = dioptres_rencontres.get(index_diaphragme_ouverture) ;
                         RencontreDioptreParaxial d_ouv_bis = dioptres_rencontres.get(index_diaphragme_ouverture_bis) ;
-                        // Il peut arriver que les index trouvés ne soient pas les mêmes, mais qu'ils correspondent tous
+                        // Il peut arriver que les indexALaRacine trouvés ne soient pas les mêmes, mais qu'ils correspondent tous
                         // deux à des diaphragmes identiques, c'est à dire de même position et de même rayon suite à
                         // des erreurs d'arrondi. Dans ce cas pas d'alerte.
                         if (!Environnement.quasiEgal(d_ouv.z(),d_ouv_bis.z())
@@ -1727,14 +1728,14 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
                 positionnerObstacle(o);
 
-                // Insertion de l'objet à sa place compte tenu de son rang dans l'environnement (après les objets de
-                // rang inférieur et avant ceux de rang supérieur).
-                if (obstacles_centres.size()==0 || environnement.rang(o)>environnement.rang(obstacles_centres.get(obstacles_centres.size()-1))) {
+                // Insertion de l'objet à sa place compte tenu de son indexParmiObstaclesReels dans l'environnement (après les objets de
+                // indexParmiObstaclesReels inférieur et avant ceux de indexParmiObstaclesReels supérieur).
+                if (obstacles_centres.size()==0 || environnement.indexParmiObstaclesReels(o)>environnement.indexParmiObstaclesReels(obstacles_centres.get(obstacles_centres.size()-1))) {
                     obstacles_centres.add(o) ;
                 } else {
 
                     for (int i=0 ; i<obstacles_centres.size(); ++i) {
-                        if (environnement.rang(o)<environnement.rang(obstacles_centres.get(i))) {
+                        if (environnement.indexParmiObstaclesReels(o)<environnement.indexParmiObstaclesReels(obstacles_centres.get(i))) {
                             obstacles_centres.add(i,o) ;
                             break;
                         }

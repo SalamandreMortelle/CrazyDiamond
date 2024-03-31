@@ -59,6 +59,10 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
     public Composition(Imp_Identifiable ii,Imp_Nommable ien,Imp_ElementComposite ic,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem, Operateur op) throws IllegalArgumentException {
         super(ii,ien,ic,iec,iem) ;
 
+        // Cette composition est le parent de tous ses éléments
+        for (Obstacle o : ic.elements())
+            o.definirParent(this);
+
         operateur = new SimpleObjectProperty<>(op);
     }
 

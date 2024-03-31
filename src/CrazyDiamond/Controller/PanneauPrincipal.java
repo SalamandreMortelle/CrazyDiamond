@@ -581,11 +581,20 @@ public class PanneauPrincipal {
                     for (Obstacle additem : change.getAddedSubList()) {
                         LOGGER.log(Level.FINE, "Obstacle ajouté : {0}", additem.nom());
 
-                        if (environnement.rang(additem) >= 0) // additem fait partie des obstacles de l'environnement (1er niveau)
-                            integrerObstacleDansVue(additem, treeview_obstacles.getRoot(), environnement.rang(additem));
-//                        else { // additem fait partie d'une Composition / Ne rien faire (NDLR : reste à comprendre pourquoi, mais ça semble fonctionner comme ça...)
-// TODO : Comprendre pourquoi ça fonctionne :-)
-//                        }
+                        if (environnement.indexDansParent(additem) >= 0) { // additem fait partie des obstacles de l'environnement (1er niveau)
+
+                            // Recherche du TreeItem parent de l'obstacle ajouté
+                            TreeItem<Obstacle> item_parent_de_obstacle_ajoute = chercheItemDansTreeItem((Obstacle) additem.parent(),treeview_obstacles.getRoot()) ;
+//                            TreeItem<Obstacle> item_parent_de_obstacle_ajoute
+//                                    = chercherTreeItemDeObstacleSousTreeItem((Obstacle) additem.parent(), treeview_obstacles.getRoot());
+
+//                            integrerObstacleDansVue(additem, treeview_obstacles.getRoot(), environnement.indexDansParent(additem));
+                            integrerObstacleDansVue(additem, item_parent_de_obstacle_ajoute, environnement.indexDansParent(additem));
+                        }
+////                        else { // additem fait partie d'une Composition / Ne rien faire (NDLR : reste à comprendre pourquoi, mais ça semble fonctionner comme ça...)
+//// TODO : Comprendre pourquoi ça fonctionne :-)
+////                        }
+
                     }
                 }
             }
@@ -634,6 +643,22 @@ public class PanneauPrincipal {
 
         environnement.ajouterListenerListeSystemesOptiquesCentres(lcl_socs);
 
+    }
+
+    private TreeItem<Obstacle> chercherTreeItemDeObstacleSousTreeItem(Obstacle item,TreeItem<Obstacle> ti) {
+
+        // A-t-on trouvé le bon item ?
+        if (ti.getValue()==item)
+            return ti ;
+
+        // Sinon, chercher parmi les enfants
+        for (TreeItem<Obstacle> tic : ti.getChildren()) {
+            TreeItem<Obstacle> resultat = chercherTreeItemDeObstacleSousTreeItem(item,tic) ;
+            if (resultat != null)
+                return resultat ;
+        }
+
+        return null ;
     }
 
     private void creerOutils() {
@@ -931,11 +956,11 @@ public class PanneauPrincipal {
 
     }
 
-    protected <IT> TreeItem<IT> ajouterItemDansTreeItem(TreeItem<IT> parent, IT it_a_ajouter, int i_pos) {
+    protected <IT> TreeItem<IT> ajouterItemDansTreeItem(TreeItem<IT> parent, IT it_a_ajouter, int i_pos_dans_parent) {
 
         TreeItem<IT> tio = new TreeItem<>(it_a_ajouter) ;
 
-        parent.getChildren().add(i_pos,tio) ;
+        parent.getChildren().add(i_pos_dans_parent,tio) ;
 
         return tio ;
 
@@ -975,17 +1000,54 @@ public class PanneauPrincipal {
 
         TreeItem<Obstacle> tio = ajouterItemDansTreeItem(parent,o);
 
-        if (o instanceof Composition) {
-            ObservableList<Obstacle> obstacles = ((Composition) o).elements() ;
-
+        // Instanciation du sous-arbre des obstacles déjà présents sous l'Obstacle o
+        if (o instanceof BaseObstacleComposite boc) {
+            List<Obstacle> obstacles = boc.elements() ;
             obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
-            observerElementsDeCompositionOuGroupe(tio, obstacles);
-        } else if (o instanceof Groupe) {
-            ObservableList<Obstacle> obstacles = ((Groupe) o).elements() ;
-
-            obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
-            observerElementsDeCompositionOuGroupe(tio, obstacles);
         }
+
+//        if (o instanceof Composition) {
+//            ObservableList<Obstacle> obstacles = ((Composition) o).elements() ;
+//
+//            obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
+//            observerElementsDeCompositionOuGroupe(tio, obstacles);
+//        } else if (o instanceof Groupe) {
+//            ObservableList<Obstacle> obstacles = ((Groupe) o).elements() ;
+//
+//            obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
+//            observerElementsDeCompositionOuGroupe(tio, obstacles);
+//        }
+
+    }
+
+    protected void integrerObstacleDansVue(Obstacle o, TreeItem<Obstacle> parent, int i_pos) {
+
+        creerPanneauSimplePourObstacle(o, parent != treeview_obstacles.getRoot()) ;
+
+        TreeItem<Obstacle> tio = ajouterItemDansTreeItem(parent,o,i_pos);
+
+        // Instanciation du sous-arbre des obstacles déjà présents sous l'Obstacle o
+        if (o instanceof BaseObstacleComposite boc) {
+            List<Obstacle> obstacles = boc.elements() ;
+            int i_pos_dans_composite =0 ;
+            for (Obstacle o_dans_composite : obstacles)
+                integrerObstacleDansVue(o_dans_composite,tio,i_pos_dans_composite++);
+        }
+
+//        if (o instanceof Composition) {
+//            ObservableList<Obstacle> obstacles = ((Composition) o).elements() ;
+//
+//            obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
+//            observerElementsDeCompositionOuGroupe(tio, obstacles);
+////            for (Obstacle oi : obstacles) {
+////                integrerObstacleDansVue(oi,tio);
+////            }
+//        } else if (o instanceof Groupe) {
+//            ObservableList<Obstacle> obstacles = ((Groupe) o).elements() ;
+//
+//            obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
+//            observerElementsDeCompositionOuGroupe(tio, obstacles);
+//        }
 
     }
 
@@ -1012,31 +1074,12 @@ public class PanneauPrincipal {
         });
     }
 
-    protected void integrerObstacleDansVue(Obstacle o, TreeItem<Obstacle> parent, int i_pos) {
-
-        creerPanneauSimplePourObstacle(o, parent != treeview_obstacles.getRoot()) ;
-
-        TreeItem<Obstacle> tio = ajouterItemDansTreeItem(parent,o,i_pos);
-
-        if (o instanceof Composition) {
-            ObservableList<Obstacle> obstacles = ((Composition) o).elements() ;
-
-            obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
-            observerElementsDeCompositionOuGroupe(tio, obstacles);
-//            for (Obstacle oi : obstacles) {
-//                integrerObstacleDansVue(oi,tio);
-//            }
-        } else if (o instanceof Groupe) {
-            ObservableList<Obstacle> obstacles = ((Groupe) o).elements() ;
-
-            obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
-            observerElementsDeCompositionOuGroupe(tio, obstacles);
-        }
-
-    }
 
 
     private <IT> TreeItem<IT> chercheItemDansTreeItem(IT o_a_trouver, TreeItem<IT> tio) {
+
+        if (tio.getValue() ==o_a_trouver)
+            return tio ;
 
         TreeItem<IT> resultat = null ;
 

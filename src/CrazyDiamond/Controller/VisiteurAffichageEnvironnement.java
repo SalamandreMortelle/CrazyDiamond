@@ -654,7 +654,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     @Override
     public void visiteComposition(Composition c) {
 
-        if (c.elements().size()==0)
+        if (c.estVide())
             return ;
 
         GraphicsContext gc = cae.gc_affichage() ;

@@ -49,6 +49,9 @@ public interface Obstacle {
     default Composition composition_contenant(Obstacle o) { return null ; }
     default Groupe groupe_contenant(Obstacle o) { return null ; }
 
+    BaseObstacleComposite parent() ;
+    void definirParent(BaseObstacleComposite p) ;
+
     Point2D normale(Point2D p) throws Exception ;
 
     Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) throws Exception;

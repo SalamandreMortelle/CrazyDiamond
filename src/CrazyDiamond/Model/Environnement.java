@@ -118,22 +118,22 @@ public class Environnement {
 
         // Si des obstacles sont ajoutés ou supprimés, il faut recalculer les tracés des rayons des sources
         ListChangeListener<Obstacle>  lcl_obstacles_pour_illumination = change -> {
-            while (change.next()) {
-
-                if (change.wasRemoved()) {
-                    //                  for (Source remitem : change.getRemoved()) { }
-                    LOGGER.log(Level.FINE,"Détection de la suppression d'un obstacle") ;
-                    illuminerToutesSources();
-                } else if (change.wasAdded()) {
-                    LOGGER.log(Level.FINE,"Détection de l'ajout d'un obstacle") ;
-//                    for (Obstacle additem : change.getAddedSubList()) {
-//                        System.out.println("ENV : Obstacle ajouté : " + additem);
-//                        additem.ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
-//                    }
-                    illuminerToutesSources();
-                }
-
-            }
+            illuminerToutesSources();
+//            while (change.next()) {
+//
+//                if (change.wasRemoved()) {
+//                    //                  for (Source remitem : change.getRemoved()) { }
+//                    LOGGER.log(Level.FINE,"Détection de la suppression d'un obstacle") ;
+//                    illuminerToutesSources();
+//                } else if (change.wasAdded()) {
+//                    LOGGER.log(Level.FINE,"Détection de l'ajout d'un obstacle") ;
+////                    for (Obstacle additem : change.getAddedSubList()) {
+////                        System.out.println("ENV : Obstacle ajouté : " + additem);
+////                        additem.ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
+////                    }
+//                    illuminerToutesSources();
+//                }
+//            }
         };
 
 //        obstacles.addListener(lcl_obstacles);
@@ -449,6 +449,22 @@ public class Environnement {
 
         while (its.hasNext())
             its.next().illuminer();
+    }
+
+
+    /**
+     * Supprime l'obstacle o de l'Environnement, qu'il fasse partie d'un Groupe (le Groupe Racine ou un sous-groupe), ou
+     * d'une Composition. S'il faisait partie d'n SOC, il en est retiré
+     * @param o : l'obstacle à supprimer
+     */
+    public void supprimerObstacle(Obstacle o) {
+
+        // Si l'obstacle appartient à un SOC, on l'en retire
+        if (o.appartientASystemeOptiqueCentre())
+            systemeOptiqueCentreContenant(o).retirerObstacleCentre(o);
+
+        // On le retire de son parent (Groupe ou Composition)
+        o.parent().retirerObstacle(o);
     }
 
     /**
@@ -778,14 +794,21 @@ public class Environnement {
         es.stream_socs().forEach(this::ajouterSystemeOptiqueCentre);
     }
 
-    public int rang(Obstacle o) {
-//        return groupe_racine_obstacles.indexOf(o);
-        return groupeRacine().indexObstacleALaRacine(o);
+    public int indexDansParent(Obstacle o) {
+        return o.parent().indexALaRacine(o) ;
+//        return groupeRacine().indexParmiObstaclesReels(o) ;
+//        return groupeRacine().indexObstacleALaRacine(o);
     }
 
-    public Obstacle obstacle(int rang) {
-//        return groupe_racine_obstacles.get(rang);
-        return groupeRacine().obstacle(rang) ;
+    public int indexParmiObstaclesReels(Obstacle o) {
+        return groupeRacine().indexParmiObstaclesReels(o) ;
+//        return groupeRacine().indexObstacleALaRacine(o);
+    }
+
+
+    public Obstacle obstacle(int index_a_la_racine) {
+//        return groupe_racine_obstacles.get(indexDansParent);
+        return groupeRacine().obstacle(index_a_la_racine) ;
     }
 
     public boolean estALaRacine(Obstacle o) {

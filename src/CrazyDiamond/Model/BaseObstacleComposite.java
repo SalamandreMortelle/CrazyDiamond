@@ -6,6 +6,7 @@ import javafx.geometry.Point2D;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 
 public abstract class BaseObstacleComposite extends BaseObstacle {
 
@@ -21,11 +22,18 @@ public abstract class BaseObstacleComposite extends BaseObstacle {
         this.imp_elementComposite = ic ;
     }
 
-    public ObservableList<Obstacle> elements() { return imp_elementComposite.elements(); }
+    protected ObservableList<Obstacle> elementsObservables() { return imp_elementComposite.elementsObservalbes(); }
+    public List<Obstacle> elements() { return imp_elementComposite.elements(); }
     public boolean estVide() {return imp_elementComposite.estVide();}
 
-    public void ajouterObstacle(Obstacle o) { imp_elementComposite.ajouterObstacle(o);}
-    public void retirerObstacle(Obstacle o) { imp_elementComposite.retirerObstacle(o);}
+    public void ajouterObstacle(Obstacle o) {
+        o.definirParent(this); // On commence par définir le parent (sinon problème)
+        imp_elementComposite.ajouterObstacle(o);
+    }
+    public void retirerObstacle(Obstacle o) {
+        imp_elementComposite.retirerObstacle(o);
+        o.definirParent(null);
+    }
 
     public boolean comprend(Obstacle o) {return (imp_elementComposite.comprend(o) || this.equals(o)) ;}
     public Obstacle obstacle_avec_id(String obs_id) {
@@ -47,7 +55,8 @@ public abstract class BaseObstacleComposite extends BaseObstacle {
 
     public Iterator<Obstacle> iterateurPremierNiveau() {return imp_elementComposite.iterateurPremierNiveau();}
 
-    public Obstacle obstacle(int index) {return imp_elementComposite.obstacle(index); }
+    public Obstacle obstacle(int index_a_la_racine) {return imp_elementComposite.obstacle(index_a_la_racine); }
+    public int indexALaRacine(Obstacle o) { return imp_elementComposite.index(o); }
 
     public void translater(Point2D vecteur) { imp_elementComposite.translater(vecteur);}
 
@@ -83,8 +92,9 @@ public abstract class BaseObstacleComposite extends BaseObstacle {
     public void deplacerObstacleEnPositionALaRacine(Obstacle o_a_deplacer, int i_pos) {
         imp_elementComposite.deplacerObstacleEnPositionALaRacine(o_a_deplacer,i_pos);
     }
-    public void ajouterObstacleEnPosition(Obstacle o_a_ajouter, int i_pos_dans_env) {
-        imp_elementComposite.ajouterObstacleEnPosition(o_a_ajouter,i_pos_dans_env);
+    public void ajouterObstacleEnPosition(Obstacle o_a_ajouter, int i_pos) {
+        o_a_ajouter.definirParent(this); // On commence par définir le parent (sinon problème)
+        imp_elementComposite.ajouterObstacleEnPosition(o_a_ajouter,i_pos);
     }
 
     public void appliquerSurElementComposite(ConsumerAvecException<Object, IOException> consumer) throws IOException {

@@ -9,6 +9,7 @@ import javafx.geometry.Point2D;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,15 +31,15 @@ public class Imp_ElementComposite {
 
     }
 
-    public ObservableList<Obstacle> elements() {
-        return elements.get();
-    }
+    protected ObservableList<Obstacle> elementsObservalbes() {return elements.get();}
+    public List<Obstacle> elements() {return elements.get();}
 
     public boolean estVide() {
         return elements.size()==0 ;
     }
 
     public Obstacle obstacle(int index) {return elements.get(index) ;}
+    public int index(Obstacle o) { return elements.indexOf(o) ;}
 
     public void ajouterObstacle(Obstacle o) {
 
@@ -57,6 +58,29 @@ public class Imp_ElementComposite {
         }
 
     }
+
+    public void ajouterObstacleEnPosition(Obstacle o_a_ajouter, int i_pos_a_la_racine) {
+        if (estALaRacine(o_a_ajouter))
+            return;
+
+        // Inutile, ce listener se rajoute tout seul quand on ajoute un obstacle à la liste des éléments
+//        o_a_ajouter.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources);
+
+        elements().add(i_pos_a_la_racine,o_a_ajouter);
+
+        if (o_a_ajouter instanceof BaseObstacleComposite boc) {
+            observateurs_des_elements.forEach(boc::ajouterListChangeListener);
+        }
+    }
+
+    public void deplacerObstacleEnPositionALaRacine(Obstacle o_a_deplacer, int i_pos) {
+        if (!estALaRacine(o_a_deplacer))
+            throw new IllegalCallerException("Tentative de déplacer un élément qui n'est pas à la racine") ;
+
+        elements().remove(o_a_deplacer) ;
+        elements.add(i_pos,o_a_deplacer);
+    }
+
 
     public void retirerObstacle(Obstacle o) {
         elements.remove(o);
@@ -341,23 +365,6 @@ public class Imp_ElementComposite {
 
     public boolean estALaRacine(Obstacle o) {
         return elements.contains(o) ;
-    }
-    public void deplacerObstacleEnPositionALaRacine(Obstacle o_a_deplacer, int i_pos) {
-        if (!estALaRacine(o_a_deplacer))
-            throw new IllegalCallerException("Tentative de déplacer un élément qui n'est pas à la racine") ;
-
-        elements().remove(o_a_deplacer) ;
-        elements.add(i_pos,o_a_deplacer);
-    }
-
-    public void ajouterObstacleEnPosition(Obstacle o_a_ajouter, int i_pos_dans_env) {
-        if (estALaRacine(o_a_ajouter))
-            return;
-
-        // Inutile, ce listener se rajoute tout seul quand on ajoute un obstacle à la liste des éléments
-//        o_a_ajouter.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources);
-
-        elements().add(i_pos_dans_env,o_a_ajouter);
     }
 
 

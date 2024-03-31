@@ -30,6 +30,7 @@ public class GroupeDeserializer extends StdDeserializer<Groupe> {
         Imp_Nommable iei = mapper.treeToValue(groupe_node, Imp_Nommable.class) ;
         Imp_ElementComposite ic = mapper.treeToValue(groupe_node, Imp_ElementComposite.class) ;
 
+
         boolean elements_solidaires = groupe_node.get("elements_solidaires").asBoolean();
 
         return new Groupe(ii,iei,ic,elements_solidaires);

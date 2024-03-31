@@ -13,6 +13,8 @@ public abstract class BaseObstacle extends BaseElementNommable {
     private final BooleanProperty appartenance_systeme_optique_centre ;
     private final BooleanProperty appartenance_groupe;
 
+    private BaseObstacleComposite parent;
+
     BaseObstacle(String nom) {
         this(new Imp_Identifiable(),new Imp_Nommable(nom)) ;
     }
@@ -26,6 +28,9 @@ public abstract class BaseObstacle extends BaseElementNommable {
     }
 
     public String id() { return imp_identifiable.id(); }
+
+    public BaseObstacleComposite parent() { return parent ;}
+    public void definirParent(BaseObstacleComposite p) { this.parent = p ;}
 
     public Obstacle obstacle_avec_id(String obs_id) {
         return id().equals(obs_id)?(Obstacle)this:null ;

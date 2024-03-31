@@ -19,8 +19,8 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
     private static final String DROP_HINT_STYLE_DANS = "-fx-border-color: #eea82f; -fx-border-width: 1 1 1 1; -fx-padding: 3 3 1 3";
 
     private final Environnement environnement ;
-    private TreeCell<Obstacle> dropZone;
-    private TreeItem<Obstacle> draggedItem;
+    private TreeCell<Obstacle> drop_zone;
+    private TreeItem<Obstacle> dragged_item;
 
 
     public ObstacleTreeCellFactory(Environnement env) {
@@ -87,7 +87,7 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
     }
 
     private void dragDetected(MouseEvent event, TreeCell<Obstacle> treeCell) {
-        draggedItem = treeCell.getTreeItem();
+        dragged_item = treeCell.getTreeItem();
 
         // Seuls les obstacles "libres" (c'est-à-dire ceux qui sont au 1er niveau sous le noeud racine, et qui ne font
         // donc pas partie d'une Composition) peuvent être déplacés.
@@ -97,7 +97,7 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
         Dragboard db = treeCell.startDragAndDrop(TransferMode.MOVE);
 
         ClipboardContent content = new ClipboardContent();
-        content.put(CrazyDiamond.FORMAT_OBSTACLE_ID,draggedItem.getValue().id()) ;
+        content.put(CrazyDiamond.FORMAT_OBSTACLE_ID, dragged_item.getValue().id()) ;
         db.setContent(content);
         db.setDragView(treeCell.snapshot(null, null));
         event.consume();
@@ -109,10 +109,10 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
         TreeItem<Obstacle> item_survole = treeCell.getTreeItem();
 
         // can't drop on itself
-        if (draggedItem == null || item_survole == draggedItem) return;
+        if (dragged_item == null || item_survole == dragged_item) return;
 //        if (draggedItem == null || item_survole == null || item_survole == draggedItem) return;
 
-        Obstacle o_dragged = draggedItem.getValue() ;
+        Obstacle o_dragged = dragged_item.getValue() ;
 
         if (item_survole!=null) {
             Obstacle o_survole = item_survole.getValue();
@@ -120,36 +120,48 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
             boolean o_survole_est_composition = o_survole instanceof Composition;
             boolean o_survole_est_groupe = o_survole instanceof Groupe;
 
-//            if (!o_survole_est_premier_niveau && !o_survole_est_composition) return;
-            // On peut déposer partout, sauf à une place précise dans une Composition (càd à sur un obstacle d'une composition)
-            if (!o_survole_est_composition && o_survole.appartientAComposition())
-                return ;
+//            // On peut déposer partout, sauf à une place précise dans une Composition (càd à sur un obstacle d'une composition)
+//            if (!o_survole_est_composition && o_survole.appartientAComposition())
+//                return ;
 
             // On ne peut pas déplacer une Composition dans une de ses sous-compositions
-            if ((o_dragged instanceof Composition) && o_survole_est_composition && o_dragged.comprend(o_survole))
-                return;
-            // On ne peut pas déplacer un Groupe dans une de ses sous-groupes
-            if ((o_dragged instanceof Groupe) && o_survole_est_groupe && o_dragged.comprend(o_survole))
-                return;
-            // On ne peut pas déplacer un Groupe dans une Composition
-            if ((o_dragged instanceof Groupe) && (o_survole_est_composition || o_survole.appartientAComposition()))
+            if ((o_dragged instanceof Composition) /*&& o_survole_est_composition*/ && o_dragged.comprend(o_survole))
                 return;
 
-            // On ne peut pas mettre un ElementSansEpaisseur dans une Composition
-            if (o_survole_est_composition && item_survole.isExpanded() && (o_dragged instanceof ElementSansEpaisseur))
+            // On ne peut pas déplacer un Groupe dans une de ses sous-groupes
+            if ((o_dragged instanceof Groupe) /*&& o_survole_est_groupe*/ && o_dragged.comprend(o_survole))
+                return;
+
+//            // On ne peut pas déplacer un Groupe dans une Composition
+//            if ((o_dragged instanceof Groupe) && (o_survole_est_composition || o_survole.appartientAComposition()))
+//                return;
+            // On ne peut pas déplacer un Groupe dans une Composition
+            if ((o_dragged instanceof Groupe)
+                    && ( ( o_survole_est_composition && (item_survole.isExpanded() || ((Composition)o_survole).estVide()) ) // Dépose sur une Composition
+                    || (o_survole!=null && o_survole.parent() instanceof Composition))) // Ou dans une composition
+                return;
+
+            //            // On ne peut pas mettre un ElementSansEpaisseur dans une Composition
+//            if (o_survole_est_composition && item_survole.isExpanded() && (o_dragged instanceof ElementSansEpaisseur))
+//                return;
+            // On ne peut pas mettre un ElementSansEpaisseur sur une Composition ou après l'un des éléments qui en fait partie
+            if ((o_dragged instanceof ElementSansEpaisseur)
+                    && ( (o_survole_est_composition && (item_survole.isExpanded()|| ((Composition)o_survole).estVide())) // Dépose sur une Composition
+                    || (o_survole!=null && o_survole.parent() instanceof Composition) ) // Ou dans une composition
+            )
                 return;
 
             // ignore if this is the root ; inutile car le treeitem racine existe mais n'est pas affiché
-            if (draggedItem.getParent() == null) {
+            if (dragged_item.getParent() == null) {
                 clearDropLocation();
                 return;
             }
 
             event.acceptTransferModes(TransferMode.MOVE);
 
-            if (!Objects.equals(dropZone, treeCell)) {
+            if (!Objects.equals(drop_zone, treeCell)) {
                 clearDropLocation();
-                this.dropZone = treeCell;
+                this.drop_zone = treeCell;
 
                 // Dépose dans une sous-composition ou dans une composition de 1er niveau qui est déployée ou qui est vide => on peut déposer dedans
                 // De plus, on ne peut pas ajouter un Groupe dans une Composition
@@ -161,12 +173,12 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
                         && ( item_survole.isExpanded() || (((Groupe) o_survole).estVide()))
                        )
                 )
-                    dropZone.setStyle(DROP_HINT_STYLE_DANS);
+                    drop_zone.setStyle(DROP_HINT_STYLE_DANS);
                 else
-                    dropZone.setStyle(DROP_HINT_STYLE_APRES);
+                    drop_zone.setStyle(DROP_HINT_STYLE_APRES);
 
             }
-        } else { // Item survole est vide : cela veut dire qu'on déposera à la fin de la liste des obstaces de 1er niveau
+        } else { // Item survole est vide : cela veut dire qu'on déposera à la fin de la liste des obstacles de 1er niveau
 
             event.acceptTransferModes(TransferMode.MOVE);
         }
@@ -180,80 +192,129 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
             return;
         }
 
-        Obstacle o_dragged = draggedItem.getValue() ;
+        Obstacle o_dragged = dragged_item.getValue() ;
 
         TreeItem<Obstacle> item_cible_depose = treeCell.getTreeItem(); // Item sur lequel on a déposé
 
         Obstacle o_cible_depose = (item_cible_depose!=null?item_cible_depose.getValue():null) ;
 
-        boolean o_cible_depose_est_premier_niveau = (item_cible_depose!=null) && (item_cible_depose.getParent()==treeView.getRoot()) ;
         boolean o_cible_depose_est_composition    = (item_cible_depose!=null) && (o_cible_depose instanceof Composition) ;
         boolean o_cible_depose_est_groupe = (item_cible_depose!=null) && (o_cible_depose instanceof Groupe) ;
+        Obstacle o_racine = treeView.getRoot().getValue() ;
 
         // On ne peut pas déplacer une Composition dans une de ses sous-compositions
-        if ( (o_dragged instanceof Composition) && o_cible_depose_est_composition && o_dragged.comprend(o_cible_depose))
+        if ( (o_dragged instanceof Composition) /*&& o_cible_depose_est_composition*/ && o_dragged.comprend(o_cible_depose))
             return;
         // On ne peut pas déplacer un Groupe dans un de ses sous-groupes
-        if ((o_dragged instanceof Groupe) && o_cible_depose_est_groupe && o_dragged.comprend(o_cible_depose))
+        if ((o_dragged instanceof Groupe) /* && o_cible_depose_est_groupe */ && o_dragged.comprend(o_cible_depose))
             return;
         // On ne peut pas déplacer un Groupe dans une Composition
-        if ((o_dragged instanceof Groupe) && (o_cible_depose_est_composition || o_cible_depose.appartientAComposition()))
+        if ((o_dragged instanceof Groupe)
+                && ( ( o_cible_depose_est_composition && (item_cible_depose.isExpanded() || ((Composition)o_cible_depose).estVide()) )
+                 || (o_cible_depose!=null && o_cible_depose.parent() instanceof Composition)))
             return;
 
-        // Dépose dans une sous-composition ou dans une composition de 1er niveau qui est déployée ou qui est vide => ajout dans cette composition
+        // On ne peut pas mettre un ElementSansEpaisseur sur une Composition ou après l'un des éléments qui en fait partie
+        if ( (o_dragged instanceof ElementSansEpaisseur)
+                && ( (o_cible_depose_est_composition && (item_cible_depose.isExpanded() || ((Composition)o_cible_depose).estVide()) ) // Dépose sur une Composition
+                  || (o_cible_depose !=null && o_cible_depose.parent() instanceof Composition) ) // Ou dans une composition
+                 )
+            return ;
+
+        // Dépose directe sur une composition ou sur un groupe de 1er niveau qui est déployée ou qui est vide => ajout dans cette composition
         // De plus, on ne peut pas ajouter un Groupe dans une Composition
-        if (o_cible_depose_est_composition
-                && (!o_cible_depose_est_premier_niveau || item_cible_depose.isExpanded() || ( ((Composition)o_cible_depose).estVide() ) )
+        if ( (o_cible_depose_est_composition
+                && (item_cible_depose.isExpanded() || ( ((Composition)o_cible_depose).estVide() ) )
                 && (!(o_dragged instanceof ElementSansEpaisseur))
-                && (!(o_dragged instanceof Groupe)) ) {
+                && (!(o_dragged instanceof Groupe)) ) // Cette dernière condition est inutile, on a déjà bloqué la dépose d'un Groupe dans un Composition
+        || ( o_cible_depose_est_groupe
+                && ( item_cible_depose.isExpanded() || (((Groupe) o_cible_depose).estVide()) )) ){
 
-            dropZone.setStyle(DROP_HINT_STYLE_DANS);
+            drop_zone.setStyle(DROP_HINT_STYLE_DANS);
 
-            Composition comp_cible = (Composition) o_cible_depose ;
+            // o_cible_depose sera le nouveau parent
+            BaseObstacleComposite boc_cible = (BaseObstacleComposite) o_cible_depose ;
 
-            new CommandeAjouterObstacleDansComposition(environnement,comp_cible,o_dragged).executer() ;
-        } else if ( o_cible_depose_est_groupe
-                    && ( item_cible_depose.isExpanded() || (((Groupe) o_cible_depose).estVide()) )) {
-            dropZone.setStyle(DROP_HINT_STYLE_DANS);
+            int indexSourceInParent = o_dragged.parent().indexALaRacine(o_dragged) ;
 
-            Groupe grp_cible = (Groupe) o_cible_depose ;
+            // Pos Cible = dernière position
+            int indexCibleInParent = ((BaseObstacleComposite) o_cible_depose).nombreObstaclesPremierNiveau()-1 ;
 
-            // Ajout en dernière position
-            new CommandeAjouterObstacleDansGroupe(environnement,grp_cible,o_dragged).executer() ;
+//                    (item_cible_depose!=null?
+//                    item_cible_depose.getParent().getChildren().indexOf(item_cible_depose)
+//                    :treeView.getRoot().getChildren().size()-1);
+
+            if (o_cible_depose!=o_dragged.parent()) // Déplacement vers un parent (composite) distinct
+                new CommandeDeplacerObstacleDansComposite(environnement,o_dragged, o_cible_depose,indexCibleInParent+1).executer();
+            else { // Déplacement à l'intérieur d'un même parent, au même niveau
+                if (indexCibleInParent > indexSourceInParent) // Pos Cible est forcément >= pos source car on vise la dernière position (si = ne rien faire, l'obstacle est déjà à sa place cible)
+                    new CommandeDeplacerObstacleDansComposite(environnement, o_dragged, o_cible_depose, indexCibleInParent).executer();
+//                else if (indexCibleInParent < indexSourceInParent)
+//                    new CommandeDeplacerObstacleDansComposite(environnement, o_dragged, o_cible_depose.parent(), indexCibleInParent + 1).executer();
+            }
+//            Composition comp_cible = (Composition) o_cible_depose ;
+//
+//            new CommandeAjouterObstacleDansComposition(environnement,comp_cible,o_dragged).executer() ;
+//
+//            Groupe grp_cible = (Groupe) o_cible_depose ;
+//
+//            // Ajout en dernière position
+//            new CommandeAjouterObstacleDansGroupe(environnement,grp_cible,o_dragged).executer() ;
 
         }
-        else if (o_cible_depose==null || environnement.estALaRacine(o_cible_depose)) { // Dépose sur un élément de 1er niveau => Element à positionner au 1er niveau de l'environnement
-            if (dropZone!=null) dropZone.setStyle(DROP_HINT_STYLE_APRES);
+        else //  Dépose dans un groupe ou un sous-groupe, à une position précise càd qu'on ne dépose pas sur la racine [o_cible_depose n'est ni un groupe expanded ni une composition]
+            /* if (o_cible_depose==null || environnement.estALaRacine(o_cible_depose))*/ { // Dépose sur un élément de 1er niveau => Element à positionner au 1er niveau de l'environnement
+            if (drop_zone !=null)
+                drop_zone.setStyle(DROP_HINT_STYLE_APRES);
+
+            int indexSourceInParent = o_dragged.parent().indexALaRacine(o_dragged) ;
 
             int indexCibleInParent = (item_cible_depose!=null?
                     item_cible_depose.getParent().getChildren().indexOf(item_cible_depose)
                     :treeView.getRoot().getChildren().size()-1);
 
-//            if (!o_dragged.appartientAComposition() && !o_dragged.appartientAGroupe()) { // Déplacement d'un obstacle de premier niveau
-            if (environnement.estALaRacine(o_dragged)) { // Déplacement d'un obstacle de premier niveau
-                int indexSourceInParent = (item_cible_depose!=null?item_cible_depose.getParent().getChildren().indexOf(draggedItem):treeView.getRoot().getChildren().indexOf(draggedItem));
+            Obstacle o_parent_cible = (item_cible_depose!=null?item_cible_depose.getParent().getValue():o_racine) ;
 
-                if (indexCibleInParent > indexSourceInParent)
-                    new CommandeDeplacerObstacleEnPosition(environnement,o_dragged,indexCibleInParent).executer();
+            if ((o_cible_depose!=null && o_cible_depose.parent()!=o_dragged.parent())
+                           || (o_cible_depose==null && o_racine !=o_dragged.parent() )) // L'obstacle déplacé n'a pas le même parent que l'obstacle cible après lequel on veut insérer l'objet
+                new CommandeDeplacerObstacleDansComposite(environnement,o_dragged,o_parent_cible,indexCibleInParent+1).executer();
+            else { // Déplacement à l'intérieur d'un même parent, au même niveau
+                  if (indexCibleInParent > indexSourceInParent)
+                    new CommandeDeplacerObstacleDansComposite(environnement,o_dragged,o_parent_cible,indexCibleInParent).executer();
                 else if (indexCibleInParent < indexSourceInParent)
-                    new CommandeDeplacerObstacleEnPosition(environnement,o_dragged,indexCibleInParent+1).executer();
+                    new CommandeDeplacerObstacleDansComposite(environnement,o_dragged,o_parent_cible,indexCibleInParent+1).executer();
             }
-            else {
-                if (o_dragged.appartientAComposition())// L'obstacle glissé est inclus dans une composition
-                    new CommandeDeplacerObstacleDeCompositionDansEnvironnement(environnement, o_dragged, indexCibleInParent + 1).executer();
-                else // L'obstacle glissé est dans un groupe
-                    new CommandeDeplacerObstacleDeGroupeDansEnvironnement(environnement, o_dragged, indexCibleInParent + 1).executer();
-            }
-            treeView.getSelectionModel().select(draggedItem);
-        } else { // Dépose à une position précise dans un sous-groupe
 
-            // TODO : NYI
-
+////            if (!o_dragged.appartientAComposition() && !o_dragged.appartientAGroupe()) { // Déplacement d'un obstacle de premier niveau
+//            if (environnement.estALaRacine(o_dragged)) { // Déplacement d'un obstacle de premier niveau
+////                int indexSourceInParent = (item_cible_depose!=null?item_cible_depose.getParent().getChildren().indexOf(dragged_item):treeView.getRoot().getChildren().indexOf(dragged_item));
+////                  int indexSourceInParent = o_dragged.parent().indexALaRacine(o_dragged) ;
+//
+//                if (indexCibleInParent > indexSourceInParent)
+//                    new CommandeDeplacerObstacleEnPosition(environnement,o_dragged,indexCibleInParent).executer();
+//                else if (indexCibleInParent < indexSourceInParent)
+//                    new CommandeDeplacerObstacleEnPosition(environnement,o_dragged,indexCibleInParent+1).executer();
+//            }
+//            else { // Déplacement d'un obstacle qui n'est pas au premier niveau
+//                new CommandeDeplacerObstacleDansComposite(environnement,o_dragged,o_cible_depose.parent(),indexCibleInParent).executer();
+////                if (indexCibleInParent > indexSourceInParent)
+////                    new CommandeDeplacerObstacleDansComposite(environnement,o_dragged,o_cible_depose.parent(),indexCibleInParent).executer();
+////                else if (indexCibleInParent < indexSourceInParent)
+////                    new CommandeDeplacerObstacleDansComposite(environnement,o_dragged,o_cible_depose.parent(),indexCibleInParent+1).executer();
+//
+////                if (o_dragged.appartientAComposition())// L'obstacle glissé est inclus dans une composition
+////                    new CommandeDeplacerObstacleDeCompositionDansEnvironnement(environnement, o_dragged, indexCibleInParent + 1).executer();
+////                else // L'obstacle glissé est dans un groupe
+////                    new CommandeDeplacerObstacleDeGroupeDansEnvironnement(environnement, o_dragged, indexCibleInParent + 1).executer();
+//            }
+            treeView.getSelectionModel().select(dragged_item);
+//        } else { // Dépose à une position précise dans un sous-groupe
+//            // TODO : NYI
         }
         event.setDropCompleted(true);
     }
 
     private void clearDropLocation() {
-        if (dropZone != null) dropZone.setStyle("");
+        if (drop_zone != null) drop_zone.setStyle("");
     }    
 }

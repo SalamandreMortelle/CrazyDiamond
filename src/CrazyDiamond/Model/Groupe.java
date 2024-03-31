@@ -5,7 +5,6 @@ import javafx.collections.ListChangeListener;
 import javafx.geometry.Point2D;
 
 import java.util.*;
-import java.util.logging.Level;
 
 public class Groupe extends BaseObstacleComposite implements Obstacle, Identifiable, Nommable {
 
@@ -14,19 +13,19 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
     private static int compteur_groupe = 0;
 
     private final ListChangeListener<Obstacle> lcl_reconstruction_listes_obstacles = change -> {
-        while (change.next()) {
-
-            if (change.wasRemoved()) {
-                LOGGER.log(Level.FINER, "Obstacle supprimé du groupe");
-                construireListesObstacles();
-            } else if (change.wasAdded()) {
-                construireListesObstacles();
-//                for (Obstacle additem : change.getAddedSubList()) {
-//                    LOGGER.log(Level.FINER, "Obstacle ajouté dans le groupe : {0}", additem);
-//                }
-            }
-
-        }
+        construireListesObstacles();
+//        while (change.next()) {
+//
+//            if (change.wasRemoved()) {
+//                LOGGER.log(Level.FINER, "Obstacle supprimé du groupe");
+//                construireListesObstacles();
+//            } else if (change.wasAdded()) {
+//                construireListesObstacles();
+////                for (Obstacle additem : change.getAddedSubList()) {
+////                    LOGGER.log(Level.FINER, "Obstacle ajouté dans le groupe : {0}", additem);
+////                }
+//            }
+//        }
     };
     private ArrayList<Obstacle> liste_obstacles_reels;
     private ArrayList<Obstacle> liste_obstacles;
@@ -47,6 +46,10 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
 
     public Groupe(Imp_Identifiable ii, Imp_Nommable in,Imp_ElementComposite ic,boolean solidaire) throws IllegalArgumentException {
         super(ii,in,ic);
+
+        // Ce groupe est le parent de tous ses éléments
+        for (Obstacle o : ic.elements())
+            o.definirParent(this);
 
         this.elements_solidaires = new SimpleBooleanProperty(solidaire) ;
 
@@ -187,9 +190,18 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
         elements_solidaires.set(solidaires);
     }
 
-    private void ajouterListChangeListenerDesGroupes(ListChangeListener<Obstacle> lcl_o) {
+//    public void ajouterListChangeListener(ListChangeListener<Obstacle> lcl_o) {
+    public void ajouterListChangeListener(ListChangeListener<Obstacle> lcl_o) {
 
-        elements().addListener(lcl_o);
+        super.ajouterListChangeListener(lcl_o);
+//        elementsObservables().addListener(lcl_o);
+
+//        ajouterListChangeListenerDesGroupes(lcl_o);
+    }
+
+    public void ajouterListChangeListenerDesGroupes(ListChangeListener<Obstacle> lcl_o) {
+
+        this.elementsObservables().addListener(lcl_o);
 
         for (Obstacle o : elements()) {
             if (o instanceof Groupe grp) // Détection des changements qui interviennent dans les groupes
@@ -198,17 +210,20 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
 
     }
 
+
     /**
      * Enleve le ListChangeListener passé en paramètre des groupes
      * @param lcl_o : le ListChangeListener à enlever
      */
     private void enleverListChangeListenerDesGroupes(ListChangeListener<Obstacle> lcl_o) {
+
         for (Obstacle o : elements()) {
             if (o instanceof Groupe grp) // Détection des changements qui interviennent dans les groupes
                 grp.enleverListChangeListenerDesGroupes(lcl_o);
         }
 
-        elements().removeListener(lcl_o);
+        elementsObservables().removeListener(lcl_o);
+//        super.enleverListChangeListener(lcl_o);
     }
 
     private void construireListesObstacles() {
@@ -275,7 +290,7 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
         super.ajouterObstacle(o);
 
         if (o instanceof Groupe grp) {
-            grp.ajouterListChangeListenerDesGroupes(lcl_reconstruction_listes_obstacles);
+            grp.ajouterListChangeListener(lcl_reconstruction_listes_obstacles);
         }
 
         o.definirAppartenanceGroupe(true);
@@ -376,6 +391,7 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
     public boolean obstaclesReelsComprennent(Obstacle o) {
         return liste_obstacles_reels.contains(o) ;
     }
+    public int indexParmiObstaclesReels(Obstacle o) { return liste_obstacles_reels.indexOf(o) ; }
     public boolean obstaclesComprennent(Obstacle o) {
         return liste_obstacles.contains(o) ;
     }
