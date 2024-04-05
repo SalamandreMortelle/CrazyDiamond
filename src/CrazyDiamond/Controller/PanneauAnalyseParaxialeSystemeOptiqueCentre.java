@@ -6,6 +6,7 @@ import javafx.beans.binding.ObjectExpression;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.scene.control.*;
@@ -375,6 +376,15 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
 
         // Faire les bindings du tableau des intersections
         table_intersections.setItems(soc.dioptresRencontres());
+
+
+        // TODO : voir si vraiment utile
+        soc.dioptresRencontresProperty().addListener(
+                (ListChangeListener<? super RencontreDioptreParaxial>) (observable) -> table_intersections.refresh()
+        );
+        soc.matriceTransfertOptiqueProperty().addListener(
+                (observableValue, affine, t1) -> table_intersections.refresh()
+        );
 
         col_numero.setCellValueFactory(column-> new ReadOnlyObjectWrapper<>(table_intersections.getItems().indexOf(column.getValue()) + 1)) ;
 

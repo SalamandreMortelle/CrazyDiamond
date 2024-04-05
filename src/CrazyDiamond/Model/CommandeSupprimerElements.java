@@ -76,7 +76,7 @@ public class CommandeSupprimerElements extends Commande {
         Iterator<ArrayList<Obstacle>>  it_liste_obs = liste_obstacles_socs.iterator() ;
         while (it_soc.hasNext() && it_liste_obs.hasNext()) {
             SystemeOptiqueCentre soc = it_soc.next() ;
-            soc.ajouterObstacles(it_liste_obs.next()) ;
+            soc.ajouterObstaclesCentres(it_liste_obs.next()) ;
             environnement.ajouterSystemeOptiqueCentre(soc);
         }
 

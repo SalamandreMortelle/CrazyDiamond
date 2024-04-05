@@ -28,6 +28,7 @@ public abstract class BaseObstacleComposite extends BaseObstacle {
 
     public void ajouterObstacle(Obstacle o) {
         o.definirParent(this); // On commence par définir le parent (sinon problème)
+
         imp_elementComposite.ajouterObstacle(o);
     }
     public void retirerObstacle(Obstacle o) {
@@ -94,6 +95,7 @@ public abstract class BaseObstacleComposite extends BaseObstacle {
     }
     public void ajouterObstacleEnPosition(Obstacle o_a_ajouter, int i_pos) {
         o_a_ajouter.definirParent(this); // On commence par définir le parent (sinon problème)
+
         imp_elementComposite.ajouterObstacleEnPosition(o_a_ajouter,i_pos);
     }
 

@@ -37,12 +37,11 @@ public class CommandeAjouterObstaclesDansSystemeOptiqueCentre extends Commande {
             translations.add(soc.translationPourAjoutObstacle(o));
             rotations.add(soc.angleRotationPourAjoutObstacle(o));
         });
-
     }
 
     @Override
     public void executer() {
-        obstacles.forEach(soc::ajouterObstacle) ;
+        obstacles.forEach(soc::ajouterObstacleCentre) ;
 
         enregistrer();
     }

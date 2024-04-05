@@ -75,7 +75,7 @@ public class SystemeOptiqueCentreDeserializer extends StdDeserializer<SystemeOpt
                 // NB : attention, ici on suppose que l'environnement contient déjà l'obstacle dont on a l'identifiant : c'est vrai
                 // quand on désérialise tout un environnement depuis un fichier, mais pas quand on désérialise depuis le presse-papier car
                 // les obstacles ne sont chargés que dans l'objet ElementsSelectionnes, et pas encore dans l'environnement hote.
-                soc.ajouterObstacle(env.obstacle(obs_id));
+                soc.ajouterObstacleCentre(env.obstacle(obs_id));
             }
 
         }

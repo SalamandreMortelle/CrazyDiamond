@@ -52,7 +52,7 @@ public class CommandeAjouterObstacleDansGroupe extends Commande {
         // On commence par remettre l'obstacle dans son SOC d'origine, afin que l'appel à ajouterObstacleEnPositionALaRacine qui suit
         // se charge de le repositionner à sa bonne place dans le SOC
         if (soc_contenant_obstacle!=null)
-            soc_contenant_obstacle.ajouterObstacle(obstacle);
+            soc_contenant_obstacle.ajouterObstacleCentre(obstacle);
         environnement.ajouterObstacleEnPositionALaRacine(obstacle,index_dans_environnement);
 
         if (composition_contenant_obstacle!=null)

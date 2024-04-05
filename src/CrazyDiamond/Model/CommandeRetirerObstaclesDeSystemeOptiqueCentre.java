@@ -32,7 +32,7 @@ public class CommandeRetirerObstaclesDeSystemeOptiqueCentre extends Commande {
 
     @Override
     public void annuler() {
-        obstacles.forEach(soc::ajouterObstacle);
+        obstacles.forEach(soc::ajouterObstacleCentre);
     }
 
 }

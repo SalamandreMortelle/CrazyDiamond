@@ -107,10 +107,20 @@ public class ArbreSOCTreeCellFactory implements Callback<TreeView<ElementArbreSO
             return;
         }
 
+        TreeItem<ElementArbreSOC> item_survole = treeCell.getTreeItem();
+
+        // On ne peut déposer que sur un item SOC (pas sur un des obstacles qu'il contient, car l'ordre des objets d'un
+        // SOC n'est pas libre : il est imposé par l'Environnement.
+        if (!(item_survole.getValue().contenu() instanceof SystemeOptiqueCentre soc_survole))
+            return;
+
         Obstacle dragged_obs = environnement.obstacle((String)event.getDragboard().getContent(CrazyDiamond.FORMAT_OBSTACLE_ID)) ;
 
-        if (!dragged_obs.aSymetrieDeRevolution() || dragged_obs.appartientASystemeOptiqueCentre() || dragged_obs.appartientAComposition())
+        // L'obstacle déplacé est-il éligible à l'ajout dans un SOC ?
+        if (!soc_survole.estEligible(dragged_obs))
             return;
+//        if (!dragged_obs.aSymetrieDeRevolution() || dragged_obs.appartientASystemeOptiqueCentre() || dragged_obs.appartientAComposition())
+//            return;
 
         event.acceptTransferModes(TransferMode.MOVE);
         if (!Objects.equals(dropZone, treeCell)) {

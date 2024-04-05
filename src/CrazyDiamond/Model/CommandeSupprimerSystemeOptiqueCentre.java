@@ -25,7 +25,7 @@ public class CommandeSupprimerSystemeOptiqueCentre extends Commande {
 
     @Override
     public void annuler() {
-        obstacles_du_soc.forEach(soc::ajouterObstacle);
+        obstacles_du_soc.forEach(soc::ajouterObstacleCentre);
         environnement.ajouterSystemeOptiqueCentre(soc);
     }
 

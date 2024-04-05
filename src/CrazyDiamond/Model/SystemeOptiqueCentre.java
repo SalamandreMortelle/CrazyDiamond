@@ -146,6 +146,10 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     private boolean nouveau_h_image_apres_conversion_a_prendre_compte = false;
     private Double nouveau_h_image_apres_conversion = null ;
 
+    public boolean reference(Obstacle obstacle) {
+        return obstacles_centres.contains(obstacle);
+    }
+
 
     private class IterateurObstaclesCentresReels implements Iterator<Obstacle> {
         private final Iterator<Obstacle> it_obstacles_reels ;
@@ -195,7 +199,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         int i_pos_cible_dans_soc = -1 ;
 
         for (Obstacle oc : obstacles_centres) { // Parcours des obstacles centrés
-            if (environnement.indexParmiObstaclesReels(oc)>i_pos_parmi_obstacles_reels_de_env) {
+            if (environnement.indexParmiObstacles(oc)>i_pos_parmi_obstacles_reels_de_env) {
                 // On s'arrête sur le premier qui a un index supérieur à la position de l'objet déplacé parmi les obstacles réels de l'env
                 i_pos_cible_dans_soc = obstacles_centres.indexOf(oc) ; // On va insérer l'obstacle déplacé à sa place
                 break ;
@@ -220,8 +224,8 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         return new CommandeCreerSystemeOptiqueCentre(env,this) ;
     }
 
-    public void ajouterObstacles(List<Obstacle> obstacles_a_ajouter) {
-        obstacles_a_ajouter.forEach(this::ajouterObstacle);
+    public void ajouterObstaclesCentres(List<Obstacle> obstacles_a_ajouter) {
+        obstacles_a_ajouter.forEach(this::ajouterObstacleCentre);
     }
 
 
@@ -1721,35 +1725,41 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
     }
 
-    public void ajouterObstacle(Obstacle o) {
+    public boolean estEligible(Obstacle o) {
+        return (o.aSymetrieDeRevolution() && !this.comprend(o)
+                //&& environnement.systemeOptiqueCentreContenant(o) == null
+                && !o.appartientASystemeOptiqueCentre()
+                && (o.parent() instanceof Groupe grp && grp.parent()==null) // Obstacle doit être à la racine (pas un sous-groupe ni une sous-composition, ni un élément de ceux-ci)
+                ) ;
+    }
 
-        if (o.aSymetrieDeRevolution() && !o.appartientASystemeOptiqueCentre())
-            if(!obstacles_centres.contains(o)) {
+    public void ajouterObstacleCentre(Obstacle o) {
 
-                positionnerObstacle(o);
+        if (!estEligible(o))
+            return ;
 
-                // Insertion de l'objet à sa place compte tenu de son indexParmiObstaclesReels dans l'environnement (après les objets de
-                // indexParmiObstaclesReels inférieur et avant ceux de indexParmiObstaclesReels supérieur).
-                if (obstacles_centres.size()==0 || environnement.indexParmiObstaclesReels(o)>environnement.indexParmiObstaclesReels(obstacles_centres.get(obstacles_centres.size()-1))) {
-                    obstacles_centres.add(o) ;
-                } else {
+        positionnerObstacle(o);
 
-                    for (int i=0 ; i<obstacles_centres.size(); ++i) {
-                        if (environnement.indexParmiObstaclesReels(o)<environnement.indexParmiObstaclesReels(obstacles_centres.get(i))) {
-                            obstacles_centres.add(i,o) ;
-                            break;
-                        }
-                    }
+        // Insertion de l'objet à sa place compte tenu de son indexParmiObstacles dans l'environnement (après les objets de
+        // indexParmiObstacles inférieur et avant ceux de indexParmiObstacles supérieur).
+        if (obstacles_centres.size()==0 || environnement.indexParmiObstacles(o)>environnement.indexParmiObstacles(obstacles_centres.get(obstacles_centres.size()-1))) {
+            obstacles_centres.add(o) ; // Ajout en dernière position
+        } else {
+
+            for (int i=0 ; i<obstacles_centres.size(); ++i) {
+                if (environnement.indexParmiObstacles(o)<environnement.indexParmiObstacles(obstacles_centres.get(i))) {
+                    obstacles_centres.add(i,o) ; // Insertion à la place du premier objet qui a un index supérieur (reste de la liste est déplacé à droite)
+                    break;
                 }
-
-                o.definirAppartenanceSystemeOptiqueCentre(true) ;
-
-                calculeElementsCardinaux();
-
-                // Déclencher un recalcul des éléments cardinaux dès qu'un attribut de l'obstacle change
-                o.ajouterRappelSurChangementToutePropriete(this::calculeElementsCardinaux);
-
             }
+        }
+
+        o.definirAppartenanceSystemeOptiqueCentre(true) ;
+
+        calculeElementsCardinaux();
+
+        // Déclencher un recalcul des éléments cardinaux dès qu'un attribut ou un élément de l'obstacle change
+        o.ajouterRappelSurChangementToutePropriete(this::calculeElementsCardinaux);
 
     }
 

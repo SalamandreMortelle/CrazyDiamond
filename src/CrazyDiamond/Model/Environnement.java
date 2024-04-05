@@ -327,7 +327,13 @@ public class Environnement {
 
         return null ;
     }
+    public SystemeOptiqueCentre systemeOptiqueCentreReferencant(Obstacle o) {
+        for (SystemeOptiqueCentre soc : systemes_optiques_centres)
+            if (soc.reference(o))
+                return soc ;
 
+        return null ;
+    }
     public Composition compositionContenant(Obstacle o) {
         return groupeRacine().compositionContenant(o) ;
 //        for (Obstacle ob  : groupe_racine_obstacles) {
@@ -386,7 +392,7 @@ public class Environnement {
         repositionnerObstacleDansSoc(o_a_deplacer, i_pos);
         // TODO : Ligne précédente à revoir car ne marche que quand les SOCs ne contiennent que des obstacles à la racine
         // A remplacer à terme par qqh comme :
-        // repositionnerObstacleDansSoc(o_a_deplacer,groupeRacine().indexParmiObstaclesReels(o_a_deplacer));
+        // repositionnerObstacleDansSoc(o_a_deplacer,groupeRacine().indexParmiObstacles(o_a_deplacer));
 
     }
 
@@ -404,7 +410,7 @@ public class Environnement {
         repositionnerObstacleDansSoc(o_a_ajouter, i_pos_dans_env);
         // TODO : Ligne précédente à revoir car ne marche que quand les SOCs ne contiennent que des obstacles à la racine
         // A remplacer à terme par qqh comme :
-        // repositionnerObstacleDansSoc(o_a_deplacer,groupeRacine().indexParmiObstaclesReels(o_a_ajouter));
+        // repositionnerObstacleDansSoc(o_a_deplacer,groupeRacine().indexParmiObstacles(o_a_ajouter));
     }
 
     protected void repositionnerObstacleDansSoc(Obstacle o_a_deplacer, int i_pos_dans_env) {
@@ -796,13 +802,13 @@ public class Environnement {
 
     public int indexDansParent(Obstacle o) {
         return o.parent().indexALaRacine(o) ;
-//        return groupeRacine().indexParmiObstaclesReels(o) ;
+//        return groupeRacine().indexParmiObstacles(o) ;
 //        return groupeRacine().indexObstacleALaRacine(o);
     }
 
-    public int indexParmiObstaclesReels(Obstacle o) {
-        return groupeRacine().indexParmiObstaclesReels(o) ;
-//        return groupeRacine().indexObstacleALaRacine(o);
+    public int indexParmiObstacles(Obstacle o) {
+//        return groupeRacine().indexParmiObstacles(o) ;
+        return groupeRacine().indexParmiObstacles(o) ;
     }
 
 

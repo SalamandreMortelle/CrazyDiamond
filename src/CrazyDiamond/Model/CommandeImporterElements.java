@@ -67,7 +67,7 @@ public class CommandeImporterElements extends Commande {
         while (it_soc.hasNext() && it_liste_obs.hasNext()) {
             SystemeOptiqueCentre soc = it_soc.next() ;
 
-            soc.ajouterObstacles(it_liste_obs.next()) ;
+            soc.ajouterObstaclesCentres(it_liste_obs.next()) ;
             environnement.ajouterSystemeOptiqueCentre(soc);
         }
 

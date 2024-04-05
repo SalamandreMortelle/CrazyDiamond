@@ -81,7 +81,6 @@ public class Imp_ElementComposite {
         elements.add(i_pos,o_a_deplacer);
     }
 
-
     public void retirerObstacle(Obstacle o) {
         elements.remove(o);
 
@@ -112,19 +111,18 @@ public class Imp_ElementComposite {
 //        return Obstacle.super.obstacle_avec_id(obs_id);
     }
 
-
     /**
      * Ajoute un ListChangeListener sur le composite et sur tous les sous-composites (sous-groupes, sous-compositions)
      * Tout ajout ou retrait d'un élément dans le composite ou dans un de ses sous-composites déclenchera
      * le listener.
      * De plus, lorsqu'un nouvel obstacle sera ajouté dans le Groupe, les listeners déjà enregistrés lui seront
-     * automatiquement ajoutés (cf . {link #ajouterObstacleALaRacine}).
+     * automatiquement ajoutés (cf . {link #ajouterObstacle}).
      * Si le listener a déjà été ajouté, rien n'est fait.
      * @param lcl_o le listener à ajouter
      */
     public void ajouterListChangeListener(ListChangeListener<Obstacle> lcl_o) {
-        if (observateurs_des_elements.contains(lcl_o)) // Observateur déjà enregistré : ne rien faire
-            return;
+//        if (observateurs_des_elements.contains(lcl_o)) // Observateur déjà enregistré : ne rien faire
+//            return;
 
         elements.addListener(lcl_o);
         observateurs_des_elements.add(lcl_o);
@@ -176,7 +174,6 @@ public class Imp_ElementComposite {
         // Dans un Composite, il faut aussi mettre en observation la liste des éléments pour réagir aux ajouts et aux
         // suppressions d'éléments
         surveillerListeElements(rap);
-
     }
 
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
@@ -210,8 +207,6 @@ public class Imp_ElementComposite {
         // Ajout récursif du rappel dans tous les sous-groupes et dans toutes les sous-compositions
         ajouterListChangeListener(lcl_elements);
     }
-
-
 
     public int nombreObstaclesPremierNiveau() {
         return elements.size() ;
@@ -307,7 +302,6 @@ public class Imp_ElementComposite {
             Obstacle o = elements.get(i);
             o.tournerAutourDe(centre_rot, delta_ori);
         }
-
     }
 
     public void tournerAutourDe(Point2D centre_rot, double angle_rot_deg) {
@@ -366,6 +360,5 @@ public class Imp_ElementComposite {
     public boolean estALaRacine(Obstacle o) {
         return elements.contains(o) ;
     }
-
 
 }

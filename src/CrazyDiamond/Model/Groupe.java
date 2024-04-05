@@ -66,8 +66,13 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
         return elements().indexOf(o) ;
     }
 
+    /**
+     * Retourne la plus petite composition contenant l'obstacle o
+     * @param o obstacle recherché
+     * @return la plus petite Composition trouvée
+     */
     public Composition compositionContenant(Obstacle o) {
-        for (Obstacle ob  : liste_obstacles_reels) {
+        for (Obstacle ob  : liste_obstacles_reels) { // Marcherait tout aussi bien en cherchant dans liste_obstacles
             if (ob instanceof Composition && ob.comprend(o))
                 return ob.composition_contenant(o);
         }
@@ -199,7 +204,7 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
 //        ajouterListChangeListenerDesGroupes(lcl_o);
     }
 
-    public void ajouterListChangeListenerDesGroupes(ListChangeListener<Obstacle> lcl_o) {
+    private void ajouterListChangeListenerDesGroupes(ListChangeListener<Obstacle> lcl_o) {
 
         this.elementsObservables().addListener(lcl_o);
 
@@ -254,8 +259,27 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
     }
     public Iterable<Obstacle> iterableObstaclesReelsDepuisArrierePlan() {
         // Le parcours des groupes et obstacles en profondeur correspond à un parcours de l'arrière-plan vers l'avant-plan de l'Environnement
-        return this::iterateurObstaclesReelsEnProfondeur;
+        // return this::iterateurObstaclesReelsEnProfondeur;
+
+
+        return  () -> obtenir_iterateur_obs_reels_simple() ;
+
     }
+
+    private Iterator<Obstacle> obtenir_iterateur_obs_reels_simple() {
+        ArrayList<Obstacle> liste_obstacles_reels_locale = new ArrayList<>(2*nombreObstaclesPremierNiveau()) ;
+
+        Iterable<Obstacle> it_obs = iterableObstaclesDepuisArrierePlan() ;
+        for (Obstacle o : it_obs) {
+//            liste_obstacles.add(o) ;
+            if (o.estReel())
+                liste_obstacles_reels_locale.add(o) ;
+        }
+
+        return liste_obstacles_reels_locale.iterator() ;
+    }
+
+
     /**
      * Iterateur sur les objets réels du groupe, depuis le premier plan vers l'arrière-plan.
      * @return l'itérateur
@@ -278,8 +302,13 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
 
     /**
      * Ajoute un obstacle au premier niveau du Groupe, à la suite des autres (donc au premier plan).
-     * NB : Les utilisateurs de cette méthode doivent veiller à retirer l'obstacle de l'environnement avant d'appeler
-     * cette méthode.
+     *
+     * Les utilisateurs de cette méthode doivent veiller, si nécessaire, à retirer l'obstacle de l'environnement avant
+     * d'appeler cette méthode.
+     *
+     * Il est également de leur responsabilité de le replacer en bonne place dans le SOC auquel il appartenait si cet
+     * ajout fait suite à un retrait dans le cadre d'un déplacement.
+     *
      * @param o : obstacle à ajouter
      */
     public void ajouterObstacle(Obstacle o) {
@@ -294,8 +323,17 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
         }
 
         o.definirAppartenanceGroupe(true);
+
     }
 
+    /**
+     * Retire un obstacle du Groupe.
+     *
+     * Il est de la responsabilité des appealants de s'assurer que l'obstacle est également retiré d'un éventuel SOC
+     * d'appartenance, dont la classe Groupe n'a pas connaissance (ou qu'il est déplacé correctement dans le SOC, si le
+     * retrait est suivi d'un rajout dans le cadre d'un déplacement).
+     * @param o l'obstacle à retirer
+     */
     public void retirerObstacle(Obstacle o) {
         super.retirerObstacle(o);
 
@@ -391,7 +429,11 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
     public boolean obstaclesReelsComprennent(Obstacle o) {
         return liste_obstacles_reels.contains(o) ;
     }
+
+    public int indexParmiObstacles(Obstacle o) { return liste_obstacles.indexOf(o) ; }
+
     public int indexParmiObstaclesReels(Obstacle o) { return liste_obstacles_reels.indexOf(o) ; }
+
     public boolean obstaclesComprennent(Obstacle o) {
         return liste_obstacles.contains(o) ;
     }

@@ -18,7 +18,6 @@ public class CommandeDeplacerObstacleDansComposite extends Commande {
     // Eventuel SOC auquel l'obstacle appartient initialement
     SystemeOptiqueCentre soc_initial ;
 
-
     public CommandeDeplacerObstacleDansComposite(Environnement environnement, Obstacle obs_a_deplacer, Obstacle composite_cible, int pos_cible_dans_composite) {
 
         if (! (composite_cible instanceof BaseObstacleComposite boc_cible))
@@ -41,7 +40,7 @@ public class CommandeDeplacerObstacleDansComposite extends Commande {
         this.composite_initial = obstacle.parent() ;
         this.position_dans_composite_initial = composite_initial.indexALaRacine(obstacle) ;
 
-        this.soc_initial = environnement.systemeOptiqueCentreContenant(obstacle) ;
+        this.soc_initial = ( environnement.systemeOptiqueCentreReferencant(obstacle) ) ;
 
     }
 
@@ -53,11 +52,22 @@ public class CommandeDeplacerObstacleDansComposite extends Commande {
         // On le retire de son composite d'appartenance
         composite_initial.retirerObstacle(obstacle);
 
-        if (soc_initial!=null)
+        if (soc_initial!=null) {
+//            obstacle.definirAppartenanceSystemeOptiqueCentre(false);
+            soc_initial.retirerObstacleCentre(obstacle);
+        } else
             obstacle.definirAppartenanceSystemeOptiqueCentre(false);
+
+        if (composite_cible.appartientASystemeOptiqueCentre())
+            obstacle.definirAppartenanceSystemeOptiqueCentre(true);
 
         // On le positionne dans l'environnement, à la position souhaitée
         composite_cible.ajouterObstacleEnPosition(obstacle, position_cible_dans_composite_cible);
+
+        if (soc_initial!=null) {
+//            obstacle.definirAppartenanceSystemeOptiqueCentre(false);
+            soc_initial.ajouterObstacleCentre(obstacle); // Repositionne l'obstacle dans le SOC en tenant compte de sa nouvelle position (Z order) dans l'Environnement
+        }
 
         enregistrer();
     }
@@ -71,7 +81,7 @@ public class CommandeDeplacerObstacleDansComposite extends Commande {
 
         // On remet l'obstacle dans son soc initial
         if (soc_initial!=null)
-            soc_initial.ajouterObstacle(obstacle);
+            soc_initial.ajouterObstacleCentre(obstacle);
 
         // TODO : gérer ce repositionnement de l'obstacle dans son éventuel soc d'appartenance
 //        environnement.repositionnerObstacleDansSoc(o_a_ajouter, i_pos_dans_env);
