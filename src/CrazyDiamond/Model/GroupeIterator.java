@@ -10,11 +10,9 @@ public class GroupeIterator implements Iterator<Obstacle> {
     private final Deque<Iterator<Obstacle>> iterators = new ArrayDeque<>();
     private final boolean breadthFirst; // breadthFirst si vrai, depthFirst si false
 
-    private final Obstacle racine ;
     public GroupeIterator(Obstacle node, boolean breadthFirst) {
         this.iterators.add(Collections.singleton(node).iterator());
         this.breadthFirst = breadthFirst;
-        this.racine = node ;
     }
 
     @Override
@@ -25,6 +23,7 @@ public class GroupeIterator implements Iterator<Obstacle> {
     @Override
     public Obstacle next() {
         Iterator<Obstacle> iterator = this.iterators.removeFirst();
+
         Obstacle obs = iterator.next();
         if (iterator.hasNext())
             this.iterators.addFirst(iterator);
