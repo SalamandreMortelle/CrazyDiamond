@@ -250,12 +250,7 @@ public class Environnement {
 
     public Iterator<Obstacle> iterateur_obstacles_reels() {
 //        return groupe_racine_obstacles.iterator() ;
-        return groupeRacine().iterateurObstaclesReelsEnProfondeur() ;
-    }
-
-    public ListIterator<Obstacle> iterateur_inverse_liste_obstacles_reels() {
-//        return obstacles.listIterator(obstacles.size()) ;
-        return groupeRacine().iterateurInverseObstaclesReelsDepuisPremierPlan() ;
+        return groupeRacine().iterateurObstaclesReelsDepuisArrierePlan() ;
     }
 
     public Iterator<Obstacle> iterateur_obstacles_premier_niveau() {
@@ -277,20 +272,12 @@ public class Environnement {
         return sources.get() ;
     }
 
-    private ListIterator<Source> iterateur_liste_sources_sur_fin() {
-        return sources.listIterator(sources.size()) ;
-    }
-
     public Iterator<Source> iterateur_sources() {
         return sources.iterator() ;
     }
 
     public ObservableList<SystemeOptiqueCentre> systemesOptiquesCentres() {
         return systemes_optiques_centres.get() ;
-    }
-
-    private ListIterator<SystemeOptiqueCentre> iterateur_liste_soc_sur_fin() {
-        return systemes_optiques_centres.listIterator(systemes_optiques_centres.size()) ;
     }
 
     public Iterator<SystemeOptiqueCentre> iterateur_systemesOptiquesCentres() {return systemes_optiques_centres.iterator() ;}
@@ -536,15 +523,24 @@ public class Environnement {
     }
 
     public Obstacle obstacleReelAuPremierPlanContenant(Point2D p) {
-        ListIterator<Obstacle> ito = iterateur_inverse_liste_obstacles_reels() ;
+////        ListIterator<Obstacle> ito = iterateurBidirectionnelObstaclesReelsDepuisArrierePlan() ;
+////        Iterator<Obstacle> ito = groupeRacine().listeObstaclesDepuisPremierPlan().iterator() ;
+//        Iterator<Obstacle> ito = groupeRacine().iterateurObstaclesReelsDepuisPremierPlan() ;
+//
+//        // Verifier que le point de départ du rayon n'est pas dans un obstacle
+//        // TODO : supprimer le test ci-dessous quand la refraction sera gérée (le point de départ pourra être dans un obstacle)
+//        while (ito.hasNext()) {
+//            Obstacle o = ito.next() ;
+//            if (o.contient(p)) {
+//                LOGGER.log(Level.FINEST,"Le point de départ du rayon est dans l'obstacle {0}",o) ;
+//                return o;
+//            }
+//        }
 
-        // Verifier que le point de départ du rayon n'est pas dans un obstacle
-        // TODO : supprimer le test ci-dessous quand la refraction sera gérée (le point de départ pourra être dans un obstacle)
-        while (ito.hasPrevious()) {
-            Obstacle o = ito.previous() ;
-            if (o.estReel() && o.contient(p)) {
-                LOGGER.log(Level.FINEST,"Le point de départ du rayon est dans l'obstacle {0}",o) ;
-                return o;
+        for (Obstacle o_reel : groupeRacine().iterableObstaclesReelsDepuisPremierPlan()) {
+            if (o_reel.contient(p)) {
+                LOGGER.log(Level.FINEST,"Le point de départ du rayon est dans l'obstacle {0}",o_reel) ;
+                return o_reel;
             }
         }
 
@@ -566,23 +562,17 @@ public class Environnement {
 
 
     public Obstacle obstacleReelAuPremierPlanTresProcheDe(Point2D p, double tolerance) {
-        ListIterator<Obstacle> ito = iterateur_inverse_liste_obstacles_reels()  ;
-
-        // Verifier que le point de départ du rayon n'est pas dans un obstacle
-        // TODO : supprimer le test ci-dessous quand la refraction sera gérée (le point de départ pourra être dans un obstacle)
-        while (ito.hasPrevious()) {
-            Obstacle o = ito.previous() ;
+        for (Obstacle o : groupeRacine().iterableObstaclesReelsDepuisPremierPlan()) {
             if (o.estTresProcheDe(p,tolerance)) {
                 LOGGER.log(Level.FINEST,"Point très proche de l'obstacle {0}",o) ;
                 return o;
             }
         }
-
         return null ;
     }
 
     public Source derniere_source_tres_proche(Point2D p, double tolerance_pointage) {
-        ListIterator<Source> its = iterateur_liste_sources_sur_fin()  ;
+        ListIterator<Source> its = sources.listIterator(sources.size()) ;
 
         while (its.hasPrevious()) {
             Source s = its.previous() ;
@@ -597,7 +587,7 @@ public class Environnement {
     }
 
     public SystemeOptiqueCentre dernier_soc_tres_proche(Point2D p, double tolerance_pointage) {
-        ListIterator<SystemeOptiqueCentre> its = iterateur_liste_soc_sur_fin()  ;
+        ListIterator<SystemeOptiqueCentre> its = systemes_optiques_centres.listIterator(systemes_optiques_centres.size())  ;
 
         while (its.hasPrevious()) {
             SystemeOptiqueCentre soc = its.previous() ;
@@ -619,20 +609,12 @@ public class Environnement {
      * ou null s'il n'y en a aucun.
      */
     public Obstacle autre_obstacle_contenant(Point2D p, Obstacle obs) {
-        //Iterator<Obstacle> ito = iterateur_obstacles() ;
-        ListIterator<Obstacle> ito = iterateur_inverse_liste_obstacles_reels() ;
-
-//        Obstacle resultat = null ;
-
-        while (ito.hasPrevious()) {
-            Obstacle o = ito.previous() ;
+        for (Obstacle o: groupeRacine().iterableObstaclesReelsDepuisPremierPlan()) {
             if (o.contient(p) && (o!=obs)) {
                 LOGGER.log(Level.FINEST,"Autre obstacle contenant le point trouvé : {0}",o ) ;
                 return o ;
             }
         }
-
-//        return resultat ;
         return null ;
     }
 
@@ -648,7 +630,7 @@ public class Environnement {
     }
 
     /**
-     * Retourne l'obstacle du SOC dans le milieu duquel émerge un rayon incident r qui part de p_rencontre_dioptre
+     * Retourne l'obstacle réel du SOC dans le milieu duquel émerge un rayon incident r qui part de p_rencontre_dioptre
      * l'obstacle retourné contient forcément un milieu (i.e. il a une épaisseur)
      * @param r : le rayon incident
      * @param p_rencontre_dioptre : le point où le rayon r rencontre un dioptre (point qui appartient donc à la surface d'un des obstacles du SOC si un SOC est fourni)
@@ -657,10 +639,12 @@ public class Environnement {
     public Obstacle obstacle_emergence_dans_soc(Rayon r, Point2D p_rencontre_dioptre,Obstacle obs_rencontre, SystemeOptiqueCentre soc) throws Exception {
 
         // On parcourt les obstacles depuis la fin jusqu'au début pour tenir compte de la précédence sur l'axe Z (Z-order)
-        ListIterator<Obstacle> ito = iterateur_inverse_liste_obstacles_reels();
+//        ListIterator<Obstacle> ito = iterateurBidirectionnelObstaclesReelsDepuisArrierePlan();
+//        Iterator<Obstacle> ito = groupeRacine().listeObstaclesDepuisPremierPlan().iterator();
 
-        while (ito.hasPrevious()) {
-            Obstacle o = ito.previous();
+//        while (ito.hasNext()) {
+//            Obstacle o = ito.next();
+        for (Obstacle o : groupeRacine().iterableObstaclesReelsDepuisPremierPlan()) {
 
             // Si un SOC est passé en paramètre, on ne traite que les obstacles de ce SOC
             if (soc!=null && !soc.comprend(o))
@@ -777,7 +761,7 @@ public class Environnement {
 
     }
     private void convertirDistances(double facteur_conversion) {
-//        for (Obstacle o : groupe_racine_obstacles)
+
         for (Obstacle o : groupeRacine().iterableObstaclesReelsDepuisArrierePlan())
             o.convertirDistances(facteur_conversion);
         for (Source s : sources)
@@ -802,18 +786,14 @@ public class Environnement {
 
     public int indexDansParent(Obstacle o) {
         return o.parent().indexALaRacine(o) ;
-//        return groupeRacine().indexParmiObstacles(o) ;
-//        return groupeRacine().indexObstacleALaRacine(o);
     }
 
     public int indexParmiObstacles(Obstacle o) {
-//        return groupeRacine().indexParmiObstacles(o) ;
         return groupeRacine().indexParmiObstacles(o) ;
     }
 
 
     public Obstacle obstacle(int index_a_la_racine) {
-//        return groupe_racine_obstacles.get(indexDansParent);
         return groupeRacine().obstacle(index_a_la_racine) ;
     }
 
@@ -821,4 +801,3 @@ public class Environnement {
         return groupeRacine().estALaRacine(o);
     }
 }
-

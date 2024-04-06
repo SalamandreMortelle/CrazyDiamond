@@ -89,7 +89,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         cae.effacerSelection();
 
         cae.selection().stream_sources().forEach(s -> afficheSelectionSource(s,now));
-        cae.selection().stream_obstacles().forEach(o -> afficheSelectionObstacle(o,now));
+        cae.selection().stream_obstacles().forEach(o -> afficheSelectionObstacle(o,now,cae.selection().nombreObstaclesReels()==1));
         cae.selection().stream_socs().forEach(soc -> afficheSelectionSystemeOptiqueCentre(soc,now));
 
         afficheZoneSelectionRectangulaire();
@@ -271,7 +271,15 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
     }
 
-    public void afficheSelectionObstacle(Obstacle o, long temps) {
+    public void afficheSelectionObstacle(Obstacle o_selectionne, long temps, boolean avec_poignees) {
+        if (o_selectionne instanceof Groupe grp) {
+            for (Obstacle o : grp.iterableObstaclesReelsDepuisArrierePlan())
+                afficheSelectionObstacle(o,temps,avec_poignees);
+        } else
+            afficheSelectionObstacleReel(o_selectionne,temps,avec_poignees);
+
+    }
+    private void afficheSelectionObstacleReel(Obstacle o, long temps,boolean avec_poignees) {
 
         ContoursObstacle co = contours_visibles_obstacles.get(o) ;
 
@@ -307,7 +315,8 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         gc.setLineDashes(null);
         gc.setLineWidth(lw);
 
-        cae.afficherPoignees(o.positions_poignees(),gc);
+        if (avec_poignees)
+            cae.afficherPoignees(o.positions_poignees(),gc);
 
         gc.setFill(pf);
         gc.setStroke(s);

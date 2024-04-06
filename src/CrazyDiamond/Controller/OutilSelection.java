@@ -21,7 +21,7 @@ public class OutilSelection extends Outil {
     private final JsonMapper jsonMapper ;
     
     private boolean retaillage_selection_en_cours = false ;
-    private boolean selection_rectangulaire_en_cours;
+    private boolean selection_rectangulaire_en_cours = false;
     private Point2D p_debut_glisser_selection_g;
 
     // Debut du dernier déplacement du glisser

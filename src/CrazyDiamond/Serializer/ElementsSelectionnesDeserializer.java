@@ -76,6 +76,7 @@ public class ElementsSelectionnesDeserializer extends StdDeserializer<ElementsSe
                     case "Rectangle" -> o_a_ajouter = mapper.treeToValue(obs_node, Rectangle.class);
                     case "Segment" -> o_a_ajouter = mapper.treeToValue(obs_node, Segment.class);
                     case "Composition" -> o_a_ajouter = mapper.treeToValue(obs_node, Composition.class);
+                    case "Groupe" -> o_a_ajouter = mapper.treeToValue(obs_node, Groupe.class);
                 }
                 // Ajout de l'obstacle dans l'environnement, et dans les éléments sélectionnés
                 env_hote.ajouterObstacleALaRacine(o_a_ajouter);

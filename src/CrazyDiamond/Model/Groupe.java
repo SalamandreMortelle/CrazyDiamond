@@ -160,71 +160,51 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
     public List<Obstacle> obstaclesFils() { return elements() ; }
 
     public Iterable<Obstacle> iterableParcoursEnLargeur() {
-        return () -> new GroupeIterator(this, true);
+        return () -> new IterateurGroupePrefixe(this, false);
     }
     public Iterator<Obstacle> iterateurParcoursEnLargeur() {
-        return new GroupeIterator(this, true);
+        return new IterateurGroupePrefixe(this, false);
     }
 
     public Iterable<Obstacle> iterableObstaclesDepuisArrierePlan() {
-        // Le parcours des groupes et obstacles en profondeur correspond à un parcours de l'arrière-plan vers le premier plan de l'Environnement
-        return () -> new GroupeIterator(this, false);
+        // Le parcours prefixe en profondeur correspond à un parcours de l'arrière-plan vers le premier plan de l'Environnement
+        return this::iterateurObstaclesDepuisArrierePlan;
     }
 
     public Iterator<Obstacle> iterateurObstaclesDepuisArrierePlan() {
-        // Le parcours des groupes et obstacles en profondeur correspond à un parcours de l'arrière-plan vers le premier plan de l'Environnement
-        return new GroupeIterator(this, false);
+        // Le parcours prefixe en profondeur correspond à un parcours de l'arrière-plan vers le premier plan de l'Environnement
+        return new IterateurGroupePrefixe(this, true);
     }
 
-    public List<Obstacle> listeObstaclesDepuisArrierePlan() {
-
-        ArrayList<Obstacle> resultat = new ArrayList<>(5) ;
-
-        for (Obstacle o : iterableObstaclesDepuisArrierePlan())
-            resultat.add(o) ;
-
-        return resultat ;
+    public Iterable<Obstacle> iterableObstaclesDepuisPremierPlan() {
+        // Le parcours postfixe en profondeur correspond à un parcours de l'arrière-plan vers le premier plan de l'Environnement
+        return this::iterateurObstaclesDepuisPremierPlan;
     }
 
-    public List<Obstacle> listeObstaclesReelsDepuisArrierePlan() {
-
-        ArrayList<Obstacle> resultat = new ArrayList<>(5) ;
-
-        for (Obstacle o : iterableObstaclesDepuisArrierePlan())
-            if (o.estReel())
-                resultat.add(o) ;
-
-        return resultat ;
+    public Iterator<Obstacle> iterateurObstaclesDepuisPremierPlan() {
+        // Le parcours postfixe en profondeur correspond à un parcours de l'arrière-plan vers le premier plan de l'Environnement
+        return new IterateurGroupePostfixe(this, true);
     }
 
-    public List<Obstacle> listeObstaclesDepuisPremierPlan() {
-
-        ArrayList<Obstacle> resultat = new ArrayList<>(5) ;
-
-        for (Obstacle o : iterableObstaclesDepuisArrierePlan())
-                resultat.add(0,o) ;
-
-        return resultat ;
-
+    Iterator<Obstacle> iterateurObstaclesReelsDepuisArrierePlan() {
+        // Le parcours prefixe en profondeur correspond à un parcours de l'arrière-plan vers l'avant-plan de l'Environnement
+        return new IterateurGroupePrefixeObstaclesReels(this,true) ;
     }
-    public List<Obstacle> listeObstaclesReelsDepuisPremierPlan() {
-
-        ArrayList<Obstacle> resultat = new ArrayList<>(5) ;
-
-        for (Obstacle o : iterableObstaclesDepuisArrierePlan())
-            if (o.estReel())
-                resultat.add(0,o) ;
-
-        return resultat ;
-
+    public Iterable<Obstacle> iterableObstaclesReelsDepuisArrierePlan() {
+        return this::iterateurObstaclesReelsDepuisArrierePlan;
     }
-
+    Iterator<Obstacle> iterateurObstaclesReelsDepuisPremierPlan() {
+        // Le parcours postfixe en profondeur correspond à un parcours de l'arrière-plan vers l'avant-plan de l'Environnement
+        return new IterateurGroupePostfixeObstaclesReels(this,true) ;
+    }
+    public Iterable<Obstacle> iterableObstaclesReelsDepuisPremierPlan() {
+        return this::iterateurObstaclesReelsDepuisPremierPlan;
+    }
 
     public void definirElementsSolidaires(boolean solidaires) {
         elements_solidaires.set(solidaires);
     }
 
-//    public void ajouterListChangeListener(ListChangeListener<Obstacle> lcl_o) {
     public void ajouterListChangeListener(ListChangeListener<Obstacle> lcl_o) {
 
         super.ajouterListChangeListener(lcl_o);
@@ -273,52 +253,6 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
 //
 //    }
 
-    /**
-     * Iterateur sur les objets réels du groupe, depuis l'arrière-plan vers le premier plan.
-     * @return l'itérateur
-     */
-    Iterator<Obstacle> iterateurObstaclesReelsEnProfondeur() {
-        // DONE: Optimisation possible pour cette méthode et la suivante (iterateurInverseObstaclesReelsDepuisPremierPlan):
-        // Faire de liste_obstacles_reels un attribut privé de la classe et le construire uniquement quand on ajoute ou
-        // enlève un obstacle du groupe (ajouterObstacleALaRacine/retirerObstacle). NB : Il faut aussi ajouter, récursivement, un
-        // ListChangeListener spécifique pour déclencher la reconstruction quand on ajoute ou enlève des obstacles d'un
-        // sous-groupe, via ajouterListChangeListenerSurGroupesUniquement.
-//        List<Obstacle> liste_obstacles_reels = construireListeObstaclesReels() ;
-        return listeObstaclesReelsDepuisArrierePlan().iterator() ;
-//        return liste_obstacles_reels.iterator() ;
-    }
-    public Iterable<Obstacle> iterableObstaclesReelsDepuisArrierePlan() {
-        // Le parcours des groupes et obstacles en profondeur correspond à un parcours de l'arrière-plan vers l'avant-plan de l'Environnement
-        // return this::iterateurObstaclesReelsEnProfondeur;
-
-
-        return  () -> listeObstaclesReelsDepuisArrierePlan().iterator() ;
-//        return  () -> obtenir_iterateur_obs_reels_simple() ;
-
-    }
-
-//    private Iterator<Obstacle> obtenir_iterateur_obs_reels_simple() {
-//        ArrayList<Obstacle> liste_obstacles_reels_locale = new ArrayList<>(2*nombreObstaclesPremierNiveau()) ;
-//
-//        Iterable<Obstacle> it_obs = iterableObstaclesDepuisArrierePlan() ;
-//        for (Obstacle o : it_obs) {
-////            liste_obstacles.add(o) ;
-//            if (o.estReel())
-//                liste_obstacles_reels_locale.add(o) ;
-//        }
-//
-//        return liste_obstacles_reels_locale.iterator() ;
-//    }
-
-
-    /**
-     * Iterateur sur les objets réels du groupe, depuis le premier plan vers l'arrière-plan.
-     * @return l'itérateur
-     */
-    ListIterator<Obstacle> iterateurInverseObstaclesReelsDepuisPremierPlan() {
-        return listeObstaclesDepuisArrierePlan().listIterator() ;
-//        return liste_obstacles_reels.listIterator(liste_obstacles_reels.size()) ;
-    }
 
     @Override
     public Commande commandeCreation(Environnement env) {
@@ -347,7 +281,6 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
             return;
 
         super.ajouterObstacle(o);
-
 
 //        if (o instanceof Groupe grp) {
 //            grp.ajouterListChangeListener(lcl_reconstruction_listes_obstacles);
@@ -462,7 +395,7 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
         if (!o_cherche.estReel())
             return false ;
 
-        for (Obstacle o : iterableObstaclesDepuisArrierePlan())
+        for (Obstacle o : iterableObstaclesReelsDepuisArrierePlan())
             if (o==o_cherche)
                 return true ;
 
@@ -483,8 +416,6 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
         return -1 ;
     }
 
-//    public int indexParmiObstaclesReels(Obstacle o) { return liste_obstacles_reels.indexOf(o) ; }
-
     public boolean obstaclesComprennent(Obstacle o_cherche) {
 //        return  liste_obstacles.contains(o_cherche) ;
 
@@ -495,4 +426,17 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
         return false;
     }
 
+    public int nombreObstacles() {
+        int resultat = 0 ;
+        for (Obstacle o : iterableObstaclesDepuisArrierePlan())
+            ++resultat ;
+        return resultat ;
+    }
+
+    public int nombreObstaclesReels() {
+        int resultat = 0 ;
+        for (Obstacle o : iterableObstaclesReelsDepuisArrierePlan())
+            ++resultat ;
+        return resultat ;
+    }
 }

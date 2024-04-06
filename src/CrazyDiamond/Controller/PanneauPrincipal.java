@@ -302,6 +302,14 @@ public class PanneauPrincipal {
         creerOutils();
 
         outil_courant = outilSource;
+        choix_mode.selectToggle(ajout_source);
+        ajout_source.setSelected(true);
+//        selection.setSelected(true); // Ne sert à rien
+
+//        choix_mode.selectedToggleProperty().addListener( (obs,old_val,new_val) -> {
+//            if (new_val!=null)
+//                new_val.setSelected(true);
+//        });
 
         racine.addEventFilter(KeyEvent.KEY_PRESSED, this::traiterTouchePressee) ;
 
@@ -1124,6 +1132,7 @@ public class PanneauPrincipal {
                 + ") " + environnement.unite().symbole;
 
         label_droit.setText(sb);
+//        label_droit.setText(sb + " " + choix_mode.getSelectedToggle().toString());
 
         Obstacle obs = canvas_environnement.obstacleReelPointeAuPremierPlan(pos_souris) ;
         if (obs!=null) {

@@ -35,10 +35,10 @@ public class ElementsSelectionnes {
 
     public void selectionnerUniquement(Obstacle o) {
         vider();
-        if (o instanceof Groupe grp) {
-            for (Obstacle og : grp.iterableObstaclesReelsDepuisArrierePlan())
-                obstacles.add(og) ;
-        } else
+//        if (o instanceof Groupe grp) {
+//            for (Obstacle og : grp.iterableObstaclesReelsDepuisArrierePlan())
+//                obstacles.add(og) ;
+//        } else
             obstacles.add(o) ;
     }
 
@@ -53,13 +53,13 @@ public class ElementsSelectionnes {
         if (obstacles.contains(a_ajouter))
             return;
 
-        if (a_ajouter instanceof Groupe grp) {
-            for (Obstacle og : grp.iterableObstaclesReelsDepuisArrierePlan()) {
-                if (!obstacles.contains(og))
-                    obstacles.add(og);
-            }
-        } else
-            obstacles.add(a_ajouter) ;
+//        if (a_ajouter instanceof Groupe grp) {
+//            for (Obstacle og : grp.iterableObstaclesReelsDepuisArrierePlan()) {
+//                if (!obstacles.contains(og))
+//                    obstacles.add(og);
+//            }
+//        } else
+        obstacles.add(a_ajouter) ;
 
 
 
@@ -144,6 +144,17 @@ public class ElementsSelectionnes {
 
     public int nombreSources() { return sources.size() ;}
     public int nombreObstacles() { return obstacles.size() ;}
+
+    public int nombreObstaclesReels() {
+        int resultat = 0 ;
+        for (Obstacle o : obstacles) {
+            if (o instanceof Groupe grp)
+                resultat += grp.nombreObstaclesReels() ;
+            else
+                ++resultat;
+        }
+        return resultat;
+    }
     public int nombreSystemesOptiquesCentres() { return socs.size() ;}
     public Source sourceUnique() {
 
@@ -201,4 +212,6 @@ public class ElementsSelectionnes {
     public Iterator<Source> iterateur_sources() { return sources.iterator() ; }
 
     public Iterator<SystemeOptiqueCentre> iterateur_systemesOptiquesCentres() { return socs.iterator() ; }
+
+
 }
