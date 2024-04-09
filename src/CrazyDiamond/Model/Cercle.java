@@ -20,11 +20,10 @@ public class Cercle extends BaseObstacleAvecContourEtMatiere implements Obstacle
 
     public Cercle(TypeSurface type_surface, double xcentre, double ycentre, double rayon) throws IllegalArgumentException {
         this(null,xcentre,ycentre,rayon,type_surface);
-
     }
 
     public Cercle(String nom, double xcentre, double ycentre, double rayon, TypeSurface type_surface) throws IllegalArgumentException {
-        this(nom,type_surface,xcentre,ycentre,rayon,null,1.0,null,null) ;
+        this(nom,type_surface,xcentre,ycentre,rayon,null,1.5,null,null) ;
     }
 
     public Cercle(String nom, TypeSurface type_surface, double xcentre, double ycentre, double rayon, NatureMilieu nature_milieu, double indice_refraction, Color couleur_matiere, Color couleur_contour) throws IllegalArgumentException {

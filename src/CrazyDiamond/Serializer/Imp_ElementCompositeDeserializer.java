@@ -40,6 +40,7 @@ public class Imp_ElementCompositeDeserializer extends StdDeserializer<Imp_Elemen
             for (int i = 0; i < nb_comps; i++) {
                 JsonNode comp_node = liste_elements_node.get(i);
                 switch (comp_node.get("@type").asText()) {
+                    case "Lentille" -> iec.ajouterObstacle(mapper.treeToValue(comp_node, Lentille.class));
                     case "Cercle" -> iec.ajouterObstacle(mapper.treeToValue(comp_node, Cercle.class));
                     case "Conique" -> iec.ajouterObstacle(mapper.treeToValue(comp_node, Conique.class));
                     case "DemiPlan" -> iec.ajouterObstacle(mapper.treeToValue(comp_node, DemiPlan.class));

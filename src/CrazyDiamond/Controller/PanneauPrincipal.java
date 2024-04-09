@@ -60,6 +60,7 @@ public class PanneauPrincipal {
         simpleModule.addSerializer(Imp_ElementAvecMatiere.class, new Imp_ElementAvecMatiereSerializer());
         simpleModule.addSerializer(Imp_ElementSansEpaisseur.class, new Imp_ElementSansEpaisseurSerializer());
 
+        simpleModule.addSerializer(Lentille.class, new LentilleSerializer());
         simpleModule.addSerializer(Cercle.class, new CercleSerializer());
         simpleModule.addSerializer(Conique.class, new ConiqueSerializer());
         simpleModule.addSerializer(DemiPlan.class, new DemiPlanSerializer());
@@ -90,6 +91,7 @@ public class PanneauPrincipal {
         simpleModule.addDeserializer(Imp_ElementAvecMatiere.class, new Imp_ElementAvecMatiereDeserializer());
         simpleModule.addDeserializer(Imp_ElementSansEpaisseur.class, new Imp_ElementSansEpaisseurDeserializer());
 
+        simpleModule.addDeserializer(Lentille.class, new LentilleDeserializer());
         simpleModule.addDeserializer(Cercle.class, new CercleDeserializer());
         simpleModule.addDeserializer(Conique.class, new ConiqueDeserializer());
         simpleModule.addDeserializer(DemiPlan.class, new DemiPlanDeserializer());
@@ -172,6 +174,8 @@ public class PanneauPrincipal {
 
     @FXML
     private Toggle ajout_demi_plan ;
+    @FXML
+    private Toggle ajout_lentille ;
 
     @FXML
     private Toggle ajout_segment ;
@@ -220,6 +224,7 @@ public class PanneauPrincipal {
 
     // Table donnent le nom des fichiers .fxml de panneau associé à chaque obstacle d'environnement
     private static final Map<Class<?>,String> dico_fxml = Map.ofEntries(
+            Map.entry(Lentille.class, "View/PanneauLentille.fxml"),
             Map.entry(DemiPlan.class, "View/PanneauDemiPlan.fxml"),
             Map.entry(Segment.class, "View/PanneauSegment.fxml"),
             Map.entry(Prisme.class, "View/PanneauPrisme.fxml"),
@@ -238,7 +243,8 @@ public class PanneauPrincipal {
 
     private OutilSelection outilSelection ;
     private OutilAjoutSource outilSource;
-    private OutilAjoutObstacle outilDemiPlan;
+    private OutilAjoutObstacle outilLentille;
+        private OutilAjoutObstacle outilDemiPlan;
     private OutilAjoutObstacle outilSegment;
     private OutilAjoutObstacle outilPrisme;
     private OutilAjoutObstacle outilRectangle;
@@ -504,6 +510,7 @@ public class PanneauPrincipal {
         // Sélection du nouvel outil approprié
         selection.selectedProperty().addListener( new changeListenerOutil(outilSelection) ) ;
         ajout_source.selectedProperty().addListener( new changeListenerOutil(outilSource) ) ;
+        ajout_lentille.selectedProperty().addListener( new changeListenerOutil(outilLentille) ) ;
         ajout_demi_plan.selectedProperty().addListener( new changeListenerOutil(outilDemiPlan) ) ;
         ajout_segment.selectedProperty().addListener( new changeListenerOutil(outilSegment) ) ;
         ajout_prisme.selectedProperty().addListener( new changeListenerOutil(outilPrisme) ) ;
@@ -675,6 +682,14 @@ public class PanneauPrincipal {
 
         outilSource = new OutilAjoutSource(canvas_environnement);
 
+        outilLentille = new OutilAjoutObstacle(canvas_environnement) {
+            public Obstacle creerObstacle(double x, double y) {
+                return new Lentille(TypeSurface.CONVEXE,x, y,0.0+canvas_environnement.resolution(),
+                        0.0+canvas_environnement.resolution(),false,
+                        0.0+canvas_environnement.resolution(),false,
+                        canvas_environnement.resolution(),0.0) ;
+            }
+        };
         outilDemiPlan = new OutilAjoutObstacle(canvas_environnement) {
             public Obstacle creerObstacle(double x, double y) {
                 return new DemiPlan(TypeSurface.CONVEXE,x, y,0.0) ;
@@ -736,61 +751,51 @@ public class PanneauPrincipal {
 
         // Create factory
         Callable<?> controleurPanneauPrincipalFactory = () -> new PanneauPrincipal(nouveau_canvas_affichage_environnement);
-
         // Save the factory in the injector
         DependencyInjection.addInjectionMethod(PanneauPrincipal.class, controleurPanneauPrincipalFactory);
 
 
         //create factory
         Callable<?> controleurPanneauSourceFactory = () -> new PanneauSource(source_en_attente_de_panneau , canvas_environnement);
-
         //save the factory in the injector
         DependencyInjection.addInjectionMethod(PanneauSource.class, controleurPanneauSourceFactory) ;
 
         Callable<?> controleurPanneauParametresAffichageEnvironnementFactory = () -> new PanneauParametresAffichageEnvironnement(canvas_environnement);
-
         DependencyInjection.addInjectionMethod(PanneauParametresAffichageEnvironnement.class, controleurPanneauParametresAffichageEnvironnementFactory) ;
 
 
-        Callable<?> controleurPanneauDemiPlanFactory = () -> new PanneauDemiPlan((DemiPlan)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
+        Callable<?> controleurPanneauLentilleFactory = () -> new PanneauLentille((Lentille) obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
+        DependencyInjection.addInjectionMethod(PanneauLentille.class, controleurPanneauLentilleFactory) ;
 
+        Callable<?> controleurPanneauDemiPlanFactory = () -> new PanneauDemiPlan((DemiPlan)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
         DependencyInjection.addInjectionMethod(PanneauDemiPlan.class, controleurPanneauDemiPlanFactory) ;
 
         Callable<?> controleurPanneauSegmentFactory = () -> new PanneauSegment((Segment)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
-
         DependencyInjection.addInjectionMethod(PanneauSegment.class, controleurPanneauSegmentFactory) ;
 
         Callable<?> controleurPanneauPrismeFactory = () -> new PanneauPrisme((Prisme)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
-
         DependencyInjection.addInjectionMethod(PanneauPrisme.class, controleurPanneauPrismeFactory) ;
 
         Callable<?> controleurPanneauRectangleFactory = () -> new PanneauRectangle((Rectangle)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
-
         DependencyInjection.addInjectionMethod(PanneauRectangle.class, controleurPanneauRectangleFactory) ;
 
         Callable<?> controleurPanneauCercleFactory = () -> new PanneauCercle((Cercle)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
-
         DependencyInjection.addInjectionMethod(PanneauCercle.class, controleurPanneauCercleFactory) ;
 
         Callable<?> controleurPanneauConiqueFactory = () -> new PanneauConique((Conique)obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
-
         DependencyInjection.addInjectionMethod(PanneauConique.class, controleurPanneauConiqueFactory) ;
 
         Callable<?> controleurPanneauCompositionFactory = () -> new PanneauComposition((Composition) obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
-
         DependencyInjection.addInjectionMethod(PanneauComposition.class, controleurPanneauCompositionFactory) ;
 
         Callable<?> controleurPanneauGroupeFactory = () -> new PanneauGroupe((Groupe) obstacle_en_attente_de_panneau,obstacle_en_attente_de_panneau_dans_composition, canvas_environnement);
-
         DependencyInjection.addInjectionMethod(PanneauGroupe.class, controleurPanneauGroupeFactory) ;
 
 
         Callable<?> controleurPanneauSystemeOptiqueCentre = () -> new PanneauSystemeOptiqueCentre(soc_en_attente_de_panneau, canvas_environnement);
-
         DependencyInjection.addInjectionMethod(PanneauSystemeOptiqueCentre.class, controleurPanneauSystemeOptiqueCentre) ;
 
         Callable<?> controleurPanneauAnalyseParaxialeSystemeOptiqueCentre = () -> new PanneauAnalyseParaxialeSystemeOptiqueCentre(soc_en_attente_de_panneau, canvas_environnement);
-
         DependencyInjection.addInjectionMethod(PanneauAnalyseParaxialeSystemeOptiqueCentre.class, controleurPanneauAnalyseParaxialeSystemeOptiqueCentre) ;
 
     }
@@ -1125,11 +1130,11 @@ public class PanneauPrincipal {
         Point2D pos_souris = canvas_environnement.gc_vers_g(me.getX(),me.getY()) ;
 
         // Affichage des infos en bas de l'écran
-        String sb = "(X : "
+        String sb = "( "
                 + canvas_environnement.convertisseurAffichageDistance().toString(pos_souris.getX())
-                + " , Y : "
+                + " , "
                 + canvas_environnement.convertisseurAffichageDistance().toString(pos_souris.getY())
-                + ") " + environnement.unite().symbole;
+                + " ) " + environnement.unite().symbole;
 
         label_droit.setText(sb);
 //        label_droit.setText(sb + " " + choix_mode.getSelectedToggle().toString());

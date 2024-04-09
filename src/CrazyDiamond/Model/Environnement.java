@@ -280,7 +280,7 @@ public class Environnement {
         return systemes_optiques_centres.get() ;
     }
 
-    public Iterator<SystemeOptiqueCentre> iterateur_systemesOptiquesCentres() {return systemes_optiques_centres.iterator() ;}
+    public Iterator<SystemeOptiqueCentre> iterateur_systemesOptiquesCentres() { return systemes_optiques_centres.iterator() ;}
 
 
     public void ajouterSource(Source s) {
@@ -350,7 +350,7 @@ public class Environnement {
 //            return;
 
         // A VERIFIER :  a priori inutile les éléments du groupe racine sont déjà surveillés par lcl_illumination ; cf. ligne 143
-//        o.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources);
+        o.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources);
 
         groupeRacine().ajouterObstacle(o);
         // Tous les ListChangeListeners déjà définis sur le groupe racine sont automatiquement appliqués à l'Obstacle
@@ -367,6 +367,22 @@ public class Environnement {
 //    }
 
 
+    public void ajouterObstacleEnPositionALaRacine(Obstacle o_a_ajouter, int i_pos_dans_env) {
+        if (groupeRacine().estALaRacine(o_a_ajouter))
+            return;
+//        if (this.groupe_racine_obstacles.contains(o_a_ajouter))
+//            return;
+//
+        o_a_ajouter.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources);
+//
+//        groupe_racine_obstacles.add(i_pos_dans_env,o_a_ajouter);
+        groupeRacine().ajouterObstacleEnPosition(o_a_ajouter,i_pos_dans_env);
+
+        repositionnerObstacleDansSoc(o_a_ajouter, i_pos_dans_env);
+        // TODO : Ligne précédente à revoir car ne marche que quand les SOCs ne contiennent que des obstacles à la racine
+        // A remplacer à terme par qqh comme :
+        // repositionnerObstacleDansSoc(o_a_deplacer,groupeRacine().indexParmiObstacles(o_a_ajouter));
+    }
 
     public void deplacerObstacleEnPositionALaRacine(Obstacle o_a_deplacer, int i_pos) {
         if (!groupeRacine().estALaRacine(o_a_deplacer))
@@ -383,22 +399,7 @@ public class Environnement {
 
     }
 
-    public void ajouterObstacleEnPositionALaRacine(Obstacle o_a_ajouter, int i_pos_dans_env) {
-        if (groupeRacine().estALaRacine(o_a_ajouter))
-            return;
-//        if (this.groupe_racine_obstacles.contains(o_a_ajouter))
-//            return;
-//
-//        o_a_ajouter.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources);
-//
-//        groupe_racine_obstacles.add(i_pos_dans_env,o_a_ajouter);
-        groupeRacine().ajouterObstacleEnPosition(o_a_ajouter,i_pos_dans_env);
 
-        repositionnerObstacleDansSoc(o_a_ajouter, i_pos_dans_env);
-        // TODO : Ligne précédente à revoir car ne marche que quand les SOCs ne contiennent que des obstacles à la racine
-        // A remplacer à terme par qqh comme :
-        // repositionnerObstacleDansSoc(o_a_deplacer,groupeRacine().indexParmiObstacles(o_a_ajouter));
-    }
 
     protected void repositionnerObstacleDansSoc(Obstacle o_a_deplacer, int i_pos_dans_env) {
 

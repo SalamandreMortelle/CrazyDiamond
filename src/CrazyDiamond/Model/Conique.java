@@ -60,7 +60,7 @@ public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacl
     private static int compteur_conique = 0 ;
 
     public Conique(TypeSurface type_surface, double x_foyer, double y_foyer, double orientation_deg, double parametre, double excentricite) throws IllegalArgumentException {
-        this(null,type_surface,x_foyer,y_foyer,orientation_deg,parametre,excentricite,null,1.0,null,null) ;
+        this(null,type_surface,x_foyer,y_foyer,orientation_deg,parametre,excentricite,null,1.5,null,null) ;
     }
 
     public Conique(String nom, TypeSurface type_surface, double x_foyer, double y_foyer, double orientation_deg, double parametre, double excentricite, NatureMilieu nature_milieu, double indice_refraction, Color couleur_matiere, Color couleur_contour) throws IllegalArgumentException {

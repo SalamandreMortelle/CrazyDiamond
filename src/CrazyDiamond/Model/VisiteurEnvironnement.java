@@ -13,6 +13,7 @@ public interface VisiteurEnvironnement {
     void visiteConique(Conique c) ;
     void visiteDemiPlan(DemiPlan dp) ;
     void visitePrisme(Prisme prisme);
+    void visiteLentille(Lentille lentille);
 
     void visiteComposition(Composition c) ;
     void visiteCompositionDeuxObstacles(CompositionDeuxObstacles c) ;

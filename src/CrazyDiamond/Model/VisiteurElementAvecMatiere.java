@@ -7,6 +7,7 @@ public interface VisiteurElementAvecMatiere {
     void visiteConique(Conique c) ;
     void visiteDemiPlan(DemiPlan dp) ;
     void visitePrisme(Prisme prisme);
+    void visiteLentille(Lentille lentille);
 
     void visiteComposition(Composition c) ;
 

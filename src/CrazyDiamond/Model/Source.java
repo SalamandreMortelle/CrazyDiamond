@@ -489,7 +489,6 @@ public class Source extends BaseElementNommable implements Nommable {
      */
     protected void calculerCheminDuRayon(CheminLumiere chemin, Rayon r, int nombre_obstacles_rencontres) {
 
-
         // Par défaut considérer que le rayon ne rencontre pas d'obstacle
         Obstacle obstacle_rencontre = null;
 

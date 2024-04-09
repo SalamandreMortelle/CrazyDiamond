@@ -467,6 +467,10 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     }
 
     @Override
+    public void visiteLentille(Lentille lentille) {
+        visiteComposition(lentille.composition());
+    }
+    @Override
     public void visitePrisme(Prisme prisme) {
         GraphicsContext gc = cae.gc_affichage() ;
 

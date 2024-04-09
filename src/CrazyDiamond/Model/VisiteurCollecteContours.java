@@ -114,6 +114,11 @@ public class VisiteurCollecteContours implements VisiteurElementAvecMatiere {
     }
 
     @Override
+    public void visiteLentille(Lentille lentille) {
+        visiteComposition(lentille.composition());
+    }
+
+    @Override
     public void visiteConique(Conique conique) {
 
         ContoursObstacle co = conique.couper(boite_limites, nombre_pas_angulaire_par_arc,false) ;

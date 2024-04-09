@@ -15,11 +15,15 @@ public class DemiPlan extends BaseObstacleAvecContourEtMatiere implements Obstac
 
     private static int compteur_demi_plan = 0 ;
 
+    public DemiPlan(String nom, double x_origine, double y_origine, double orientation_deg,TypeSurface type_surface) throws IllegalArgumentException {
+        this(nom,type_surface,x_origine,y_origine,orientation_deg,null,1.5,null,null) ;
+    }
     public DemiPlan(TypeSurface type_surface, double x_origine, double y_origine, double orientation_deg) throws IllegalArgumentException {
-        this(null,type_surface,x_origine,y_origine,orientation_deg,null,1.0,null,null) ;
+        this(null,type_surface,x_origine,y_origine,orientation_deg,null,1.5,null,null) ;
     }
 
-    public DemiPlan(String nom, TypeSurface type_surface, double x_origine, double y_origine, double orientation_deg, NatureMilieu nature_milieu, double indice_refraction, Color couleur_matiere, Color couleur_contour) throws IllegalArgumentException {
+    public DemiPlan(String nom, TypeSurface type_surface, double x_origine, double y_origine, double orientation_deg,
+                    NatureMilieu nature_milieu, double indice_refraction, Color couleur_matiere, Color couleur_contour) throws IllegalArgumentException {
         super(nom != null ? nom : "Demi-plan " + (++compteur_demi_plan),
                 type_surface, nature_milieu, indice_refraction, couleur_matiere, couleur_contour);
 

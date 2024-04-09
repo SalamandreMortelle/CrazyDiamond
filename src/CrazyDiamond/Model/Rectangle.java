@@ -19,10 +19,11 @@ public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obsta
     private static int compteur_rectangle ;
 
     public Rectangle(TypeSurface type_surface, double  x_centre, double y_centre, double largeur, double hauteur, double orientation_deg) throws IllegalArgumentException {
-        this(null,type_surface,x_centre,y_centre,largeur,hauteur,orientation_deg,null,1.0,null,null) ;
+        this(null,type_surface,x_centre,y_centre,largeur,hauteur,orientation_deg,null,1.5,null,null) ;
     }
 
-    public Rectangle(String nom, TypeSurface type_surface, double  x_centre, double y_centre, double largeur, double hauteur, double orientation_deg, NatureMilieu nature_milieu, double indice_refraction, Color couleur_matiere, Color couleur_contour) throws IllegalArgumentException {
+    public Rectangle(String nom, TypeSurface type_surface, double  x_centre, double y_centre, double largeur, double hauteur,
+                     double orientation_deg, NatureMilieu nature_milieu, double indice_refraction, Color couleur_matiere, Color couleur_contour) throws IllegalArgumentException {
         super(nom != null ? nom :"Rectangle "+(++compteur_rectangle),
                 type_surface, nature_milieu, indice_refraction, couleur_matiere, couleur_contour);
 
@@ -612,7 +613,7 @@ public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obsta
 
     @Override
     public double rayonDiaphragmeMaximumConseille() {
-        return hauteur.get();
+        return hauteur.get()*0.5d;
     }
 
     @Override

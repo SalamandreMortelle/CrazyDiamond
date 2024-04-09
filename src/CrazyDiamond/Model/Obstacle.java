@@ -442,7 +442,7 @@ public interface Obstacle {
     }
 
     /**
-     * Calcule les rayons réfractés et réfléchis produits par l'incidence d'un rayon incident sur un obstacle
+     * Calcule les rayons réfractés et réfléchis produits par la rencontre d'un rayon incident et d'un obstacle
      * @param o : l'obstacle rencontré par le rayon
      * @param r : le rayon incident (le milieu d'origine du rayon est déjà défini par l'appelant [dans r.indice_milieu_traverse], ainsi que son point
      *          d'intersection avec l'obstacle o [dans r.arrivee()})
@@ -589,7 +589,6 @@ public interface Obstacle {
         // Idem si le rayon émerge dans un milieu absorbant
         if (obs_emergence!=null && obs_emergence.natureMilieu()==NatureMilieu.ABSORBANT)
             return rayons_res ;
-
 
         // Traitement du rayon réfracté (ou transmis sans réfraction dans le cas d'une surface PARTIELLEMENT_REFLECHISSANTE
         // d'un obstacle sans épaisseur)

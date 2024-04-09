@@ -27,7 +27,6 @@ public class GroupeSerializer extends StdSerializer<Groupe> {
 
         groupe.appliquerSurElementComposite(jsonGenerator::writeObject);
 
-
         jsonGenerator.writeEndObject();
 
     }

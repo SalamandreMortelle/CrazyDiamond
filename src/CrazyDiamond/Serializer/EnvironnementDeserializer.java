@@ -93,6 +93,7 @@ public class EnvironnementDeserializer extends StdDeserializer<Environnement> {
                 JsonNode obs_node = liste_obs_node.get(i);
                 Obstacle o_a_ajouter = null;
                 switch (obs_node.get("@type").asText()) {
+                    case "Lentille" -> o_a_ajouter = mapper.treeToValue(obs_node, Lentille.class);
                     case "Cercle" -> o_a_ajouter = mapper.treeToValue(obs_node, Cercle.class);
                     case "Conique" -> o_a_ajouter = mapper.treeToValue(obs_node, Conique.class);
                     case "DemiPlan" -> o_a_ajouter = mapper.treeToValue(obs_node, DemiPlan.class);

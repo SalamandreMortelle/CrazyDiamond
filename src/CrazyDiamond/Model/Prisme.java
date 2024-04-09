@@ -15,7 +15,7 @@ public class Prisme extends BaseObstacleAvecContourEtMatiere implements Obstacle
     private static int compteur_prisme;
 
     public Prisme(TypeSurface type_surface, double x_centre, double y_centre, double angle_sommet, double largeur_base, double orientation_deg) throws IllegalArgumentException {
-        this(null,type_surface,x_centre,y_centre,angle_sommet,largeur_base,orientation_deg,null,1.0,null,null) ;
+        this(null,type_surface,x_centre,y_centre,angle_sommet,largeur_base,orientation_deg,null,1.5,null,null) ;
     }
 
     public Prisme(String nom, TypeSurface type_surface, double x_centre, double y_centre, double angle_sommet, double largeur_base, double orientation_deg, NatureMilieu nature_milieu, double indice_refraction, Color couleur_matiere, Color couleur_contour) throws IllegalArgumentException {
@@ -488,7 +488,7 @@ public class Prisme extends BaseObstacleAvecContourEtMatiere implements Obstacle
     }
 
     /**
-     * @param dd_ou_s
+     * @param dd_ou_s demi-droite ou segment
      * @return toutes les intersections (0, 1 ou 2) du prisme avec une demi-droite ou un segment, classées de la plus proche du
      * point de départ de la demi-droite ou du segment, à la plus éloignée.
      */
