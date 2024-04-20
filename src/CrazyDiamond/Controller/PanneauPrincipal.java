@@ -244,7 +244,7 @@ public class PanneauPrincipal {
     private OutilSelection outilSelection ;
     private OutilAjoutSource outilSource;
     private OutilAjoutObstacle outilLentille;
-        private OutilAjoutObstacle outilDemiPlan;
+    private OutilAjoutObstacle outilDemiPlan;
     private OutilAjoutObstacle outilSegment;
     private OutilAjoutObstacle outilPrisme;
     private OutilAjoutObstacle outilRectangle;
@@ -685,8 +685,8 @@ public class PanneauPrincipal {
         outilLentille = new OutilAjoutObstacle(canvas_environnement) {
             public Obstacle creerObstacle(double x, double y) {
                 return new Lentille(TypeSurface.CONVEXE,x, y,0.0+canvas_environnement.resolution(),
-                        0.0+canvas_environnement.resolution(),false,
-                        0.0+canvas_environnement.resolution(),false,
+                        0.0+canvas_environnement.resolution(), ConvexiteFaceLentille.CONVEXE,
+                        0.0+canvas_environnement.resolution(), ConvexiteFaceLentille.CONVEXE,
                         canvas_environnement.resolution(),0.0) ;
             }
         };

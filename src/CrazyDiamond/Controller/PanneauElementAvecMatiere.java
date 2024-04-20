@@ -1,7 +1,6 @@
 package CrazyDiamond.Controller;
 
 import CrazyDiamond.Model.*;
-import javafx.beans.property.ObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
@@ -54,10 +53,12 @@ public class PanneauElementAvecMatiere {
                 -> new CommandeDefinirUnParametre<>(element_avec_matiere, c_apres, element_avec_matiere::couleurMatiere, element_avec_matiere::definirCouleurMatiere).executer());
 
         // Indice réfraction
+        prendreEnCompteIndiceRefraction(element_avec_matiere.indiceRefraction());
         element_avec_matiere.indiceRefractionProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteIndiceRefraction));
         OutilsControleur.integrerSpinnerDoubleValidant(spinner_indice_refraction, element_avec_matiere.indiceRefraction(), this::definirIndiceRefraction);
 
         // Convexité
+        prendreEnCompteConvexite(element_avec_matiere.typeSurface());
         element_avec_matiere.typeSurfaceProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteConvexite));
 
         choix_convexite.selectedToggleProperty().addListener((observable, oldValue,newValue) -> {
@@ -71,6 +72,7 @@ public class PanneauElementAvecMatiere {
         });
 
         // Nature du milieu
+        prendreEnCompteNatureMilieu(element_avec_matiere.natureMilieu());
         element_avec_matiere.natureMilieuProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteNatureMilieu));
         choix_nature_milieu.selectedToggleProperty().addListener((observable, oldValue,newValue) -> {
             LOGGER.log(Level.FINE,"Choix nature milieu passe de {0} à {1}", new Object[] {oldValue,newValue}) ;

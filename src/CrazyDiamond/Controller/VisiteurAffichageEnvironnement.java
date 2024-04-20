@@ -468,7 +468,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
     @Override
     public void visiteLentille(Lentille lentille) {
-        visiteComposition(lentille.composition());
+        visiteCompositionPourObstacle(lentille.composition(),lentille);
     }
     @Override
     public void visitePrisme(Prisme prisme) {
@@ -667,8 +667,13 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     @Override
     public void visiteComposition(Composition c) {
 
+        visiteCompositionPourObstacle(c,c);
+
+    }
+
+    private void visiteCompositionPourObstacle(Composition c,Obstacle o_appartenance) {
         if (c.estVide())
-            return ;
+            return;
 
         GraphicsContext gc = cae.gc_affichage() ;
 
@@ -688,14 +693,13 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         ContoursObstacle contours_resultat = vcc.contours(c.typeSurface()) ;
 
-        contours_visibles_obstacles.put(c,contours_resultat) ;
+        contours_visibles_obstacles.put(o_appartenance,contours_resultat) ;
 
         cae.afficherContoursObstacle(contours_resultat) ;
 
         // TODO : on pourrait aussi utiliser un gc_affichage.restore() (précédé d'un gc_affichage.save() en début de méthode)
         gc.setFill(pf);
         gc.setStroke(s);
-
     }
 
     @Override

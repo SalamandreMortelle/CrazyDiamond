@@ -38,17 +38,22 @@ public class LentilleDeserializer extends StdDeserializer<Lentille> {
         Imp_ElementAvecContour iec = mapper.treeToValue(lentille_node, Imp_ElementAvecContour.class) ;
         Imp_ElementAvecMatiere iam = mapper.treeToValue(lentille_node, Imp_ElementAvecMatiere.class) ;
 
-        Lentille lentille = new Lentille(ii,in,iec,iam,
+        return new Lentille(ii,in,iec,iam,
                 lentille_node.get("x_centre").asDouble()*facteur_conversion,
                 lentille_node.get("y_centre").asDouble()*facteur_conversion,
                 lentille_node.get("epaisseur").asDouble()*facteur_conversion,
-                lentille_node.get("r_courbure_1").asDouble()*facteur_conversion,
-                lentille_node.get("face_1_plane").asBoolean(),
-                lentille_node.get("r_courbure_2").asDouble()*facteur_conversion,
-                lentille_node.get("face_2_plane").asBoolean(),
+                FormeFaceLentille.fromValue(lentille_node.get("forme_face_1").asText()),
+                lentille_node.get("rayon_1").asDouble()*facteur_conversion,
+                lentille_node.get("parametre_1").asDouble()*facteur_conversion,
+                lentille_node.get("excentricite_1").asDouble()*facteur_conversion,
+                ConvexiteFaceLentille.fromValue(lentille_node.get("convexite_face_1").asText()),
+                FormeFaceLentille.fromValue(lentille_node.get("forme_face_2").asText()),
+                lentille_node.get("rayon_2").asDouble()*facteur_conversion,
+                lentille_node.get("parametre_2").asDouble()*facteur_conversion,
+                lentille_node.get("excentricite_2").asDouble()*facteur_conversion,
+                ConvexiteFaceLentille.fromValue(lentille_node.get("convexite_face_2").asText()),
                 lentille_node.get("diametre").asDouble()*facteur_conversion,
                 lentille_node.get("orientation").asDouble()) ;
-
-        return lentille;
     }
+
 }

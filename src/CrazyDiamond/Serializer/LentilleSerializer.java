@@ -28,10 +28,19 @@ public class LentilleSerializer extends StdSerializer<Lentille> {
         jsonGenerator.writeNumberField("x_centre",lentille.xCentre());
         jsonGenerator.writeNumberField("y_centre",lentille.yCentre());
         jsonGenerator.writeNumberField("epaisseur",lentille.epaisseur());
-        jsonGenerator.writeNumberField("r_courbure_1",lentille.rayonCourbure1());
-        jsonGenerator.writeBooleanField("face_1_plane",lentille.face1Plane());
-        jsonGenerator.writeNumberField("r_courbure_2",lentille.rayonCourbure2());
-        jsonGenerator.writeBooleanField("face_2_plane",lentille.face2Plane());
+
+        jsonGenerator.writeObjectField("forme_face_1",lentille.formeFace1());
+        jsonGenerator.writeNumberField("rayon_1",lentille.rayon1());
+        jsonGenerator.writeNumberField("parametre_1",lentille.parametre1());
+        jsonGenerator.writeNumberField("excentricite_1",lentille.excentricite1());
+        jsonGenerator.writeObjectField("convexite_face_1",lentille.convexiteFace1());
+
+        jsonGenerator.writeObjectField("forme_face_2",lentille.formeFace2());
+        jsonGenerator.writeNumberField("rayon_2",lentille.rayon2());
+        jsonGenerator.writeNumberField("parametre_2",lentille.parametre2());
+        jsonGenerator.writeNumberField("excentricite_2",lentille.excentricite2());
+        jsonGenerator.writeObjectField("convexite_face_2",lentille.convexiteFace2());
+
         jsonGenerator.writeNumberField("diametre",lentille.diametre());
         jsonGenerator.writeNumberField("orientation",lentille.orientation());
 
