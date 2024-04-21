@@ -56,7 +56,7 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
      * @param o obstacle recherché
      * @return la plus petite Composition trouvée
      */
-    public Composition compositionContenant(Obstacle o) {
+    public Composition plusPetiteCompositionContenant(Obstacle o) {
         for (Obstacle ob  : iterableObstaclesReelsDepuisArrierePlan()) { // Marcherait tout aussi bien en cherchant avec iterableObstaclesDepuisArrierePlan
             if (ob instanceof Composition && ob.comprend(o))
                 return ob.composition_contenant(o);
@@ -64,6 +64,21 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
 
         return null ;
     }
+
+    /**
+     * Retourne la plus grande composition contenant l'obstacle o
+     * @param o obstacle recherché
+     * @return la plus grande Composition trouvée
+     */
+    public Composition plusGrandeCompositionContenant(Obstacle o) {
+        for (Obstacle ob  : iterableObstaclesReelsEnLargeurDepuisPremierPlan()) {
+            if (ob instanceof Composition compo && compo.comprend(o))
+                return compo ;
+        }
+
+        return null ;
+    }
+
 
     public Groupe sousGroupeContenant(Obstacle o) {
         for (Obstacle ob  : elements()) {
@@ -91,7 +106,7 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
         return null ;
     }
 
-    public Groupe plus_grand_groupe_solidaire_contenant(Obstacle obs_reel) {
+    public Groupe plusGrandGroupeSolidaireContenant(Obstacle obs_reel) {
 
         // On extrait la liste (du plus englobant jusqu'au plus petit) des groupes qui contiennent obs_reel
         List<Groupe> groupes = groupes_contenant(obs_reel) ;
@@ -199,6 +214,20 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
     }
     public Iterable<Obstacle> iterableObstaclesReelsDepuisPremierPlan() {
         return this::iterateurObstaclesReelsDepuisPremierPlan;
+    }
+    Iterator<Obstacle> iterateurObstaclesReelsEnLargeurDepuisArrierePlan() {
+        // Le parcours prefixe en largeur correspond à un parcours de chaque niveau, de l'arrière-plan vers l'avant-plan de l'Environnement
+        return new IterateurGroupePrefixeObstaclesReels(this,false) ;
+    }
+    public Iterable<Obstacle> iterableObstaclesReelsEnLargeurDepuisArrierePlan() {
+        return this::iterateurObstaclesReelsEnLargeurDepuisArrierePlan;
+    }
+    Iterator<Obstacle> iterateurObstaclesReelsEnLargeurDepuisPremierPlan() {
+        // Le parcours postfixe correspond à un parcours de chaque niveau, de l'avant-plan vers l'arrière-plan de l'Environnement
+        return new IterateurGroupePostfixeObstaclesReels(this,false) ;
+    }
+    public Iterable<Obstacle> iterableObstaclesReelsEnLargeurDepuisPremierPlan() {
+        return this::iterateurObstaclesReelsEnLargeurDepuisPremierPlan;
     }
 
     public void definirElementsSolidaires(boolean solidaires) {

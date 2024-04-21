@@ -1,6 +1,8 @@
 package CrazyDiamond.Model;
 
+import javafx.beans.binding.DoubleBinding;
 import javafx.beans.binding.ObjectBinding;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
@@ -8,6 +10,9 @@ import javafx.scene.transform.Rotate;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static CrazyDiamond.Model.ConvexiteFaceLentille.CONVEXE;
+import static CrazyDiamond.Model.FormeFaceLentille.SPHERIQUE;
 
 public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obstacle, Identifiable, Nommable, ElementAvecContour, ElementAvecMatiere {
 
@@ -44,12 +49,14 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
     private Conique conique_1;
     private Conique conique_2;
     
-    private DemiPlan dp_haut;
-    private DemiPlan dp_bas;
+//    private DemiPlan dp_haut;
+//    private DemiPlan dp_bas;
     private DemiPlan dp_face_1_plane;
-    private DemiPlan dp_limite_face_1_concave;
+//    private DemiPlan dp_limite_face_1_concave;
     private DemiPlan dp_face_2_plane;
-    private DemiPlan dp_limite_face_2_concave;
+//    private DemiPlan dp_limite_face_2_concave;
+
+    private Rectangle rectangle_limite ;
 
     // Constructeur simplifié pour lentille à faces sphériques
     public Lentille(TypeSurface type_surface, double  x_centre, double y_centre, double epaisseur, 
@@ -57,8 +64,8 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
                     double rayon_2, ConvexiteFaceLentille convexite_face_2, 
                     double diametre, double orientation_deg) throws IllegalArgumentException {
         this(null,type_surface,null,x_centre,y_centre,epaisseur,
-                FormeFaceLentille.SPHERIQUE , rayon_1, rayon_1, 0.0, convexite_face_1,
-                FormeFaceLentille.SPHERIQUE , rayon_2, rayon_2, 0.0, convexite_face_2,
+                SPHERIQUE , rayon_1, rayon_1, 0.0, convexite_face_1,
+                SPHERIQUE , rayon_2, rayon_2, 0.0, convexite_face_2,
                 diametre,orientation_deg,1.5,null,null) ;
     }
 
@@ -166,6 +173,9 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
         this.composition = new Composition("Composition privée", Composition.Operateur.INTERSECTION,
                 iam.typeSurface(),iam.natureMilieu(),iam.indiceRefraction(),iam.couleurMatiere(),iac.couleurContour()) ;
 
+        // La composition interne portera le même nom que la lentille
+        composition.nomProperty().bind(this.nomProperty()) ;
+
         construireComposition(x_centre, y_centre, epaisseur,
                 forme_1, rayon_1, parametre_1, excentricite_1, convexite_face_1,
                 forme_2, rayon_2, parametre_2, excentricite_2, convexite_face_2,
@@ -188,57 +198,89 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
         dp_face_2_plane = new DemiPlan("Demi-plan privé face 2", 0.5*epaisseur, 0d, 0d, TypeSurface.CONVEXE);
 
 
-        cercle_1 = new Cercle("Cercle privé face 1",
-                (convexite_face_1== ConvexiteFaceLentille.CONVEXE?(-0.5d*epaisseur + rayon_1):(-0.5d* epaisseur - rayon_1)), 0, rayon_1,
-                (convexite_face_1== ConvexiteFaceLentille.CONVEXE?TypeSurface.CONVEXE:TypeSurface.CONCAVE));
+        cercle_1 = new Cercle("Face 1",
+                (convexite_face_1== CONVEXE?(-0.5d*epaisseur + rayon_1):(-0.5d* epaisseur - rayon_1)), 0, rayon_1,
+                (convexite_face_1== CONVEXE?TypeSurface.CONVEXE:TypeSurface.CONCAVE));
 
-        cercle_2 = new Cercle("Cercle privé face 2",
-                (convexite_face_2== ConvexiteFaceLentille.CONVEXE?(0.5d*epaisseur - rayon_2):(0.5d* epaisseur + rayon_2)),0, rayon_1,
-                (convexite_face_2== ConvexiteFaceLentille.CONVEXE?TypeSurface.CONVEXE:TypeSurface.CONCAVE));
+        cercle_2 = new Cercle("Face 2",
+                (convexite_face_2== CONVEXE?(0.5d*epaisseur - rayon_2):(0.5d* epaisseur + rayon_2)),0, rayon_2,
+                (convexite_face_2== CONVEXE?TypeSurface.CONVEXE:TypeSurface.CONCAVE));
 
-        conique_1 = new Conique("Conique privée face 1",
-                (convexite_face_1==ConvexiteFaceLentille.CONVEXE?(-0.5d*epaisseur + parametre_1/(1+excentricite_1)):(-0.5d* epaisseur - parametre_1/(1+excentricite_1))), 0,
-                (convexite_face_1==ConvexiteFaceLentille.CONVEXE?180d:0d),parametre_1,excentricite_1,
-                (convexite_face_1==ConvexiteFaceLentille.CONVEXE?TypeSurface.CONVEXE:TypeSurface.CONCAVE));
+        conique_1 = new Conique("Face 1",
+                (convexite_face_1== CONVEXE?(-0.5d*epaisseur + parametre_1/(1+excentricite_1)):(-0.5d* epaisseur - parametre_1/(1+excentricite_1))), 0,
+                (convexite_face_1== CONVEXE?180d:0d),parametre_1,excentricite_1,
+                (convexite_face_1== CONVEXE?TypeSurface.CONVEXE:TypeSurface.CONCAVE));
 
-        conique_2 = new Conique("Conique privée face 2",
-                (convexite_face_2== ConvexiteFaceLentille.CONVEXE?(0.5d*epaisseur - parametre_2/(1+excentricite_2)):(0.5d* epaisseur + parametre_2/(1+excentricite_2))), 0,
-                (convexite_face_1==ConvexiteFaceLentille.CONVEXE?0d:180d),parametre_2,excentricite_2,
-                (convexite_face_2== ConvexiteFaceLentille.CONVEXE?TypeSurface.CONVEXE:TypeSurface.CONCAVE));
-
-
-        dp_limite_face_1_concave = new DemiPlan("Demi-plan privé limite face 1 concave", -0.5*epaisseur-rayon_1, 0d, 180d, TypeSurface.CONVEXE);
-        dp_limite_face_2_concave = new DemiPlan("Demi-plan privé limite face 2 concave", 0.5*epaisseur+rayon_2, 0d, 0d, TypeSurface.CONVEXE);
+        conique_2 = new Conique("Face 2",
+                (convexite_face_2== CONVEXE?(0.5d*epaisseur - parametre_2/(1+excentricite_2)):(0.5d* epaisseur + parametre_2/(1+excentricite_2))), 0,
+                (convexite_face_1== CONVEXE?0d:180d),parametre_2,excentricite_2,
+                (convexite_face_2== CONVEXE?TypeSurface.CONVEXE:TypeSurface.CONCAVE));
 
 
+        StringBinding complete_nom_composant_prive_face_1 = new StringBinding() {
+            @Override
+            protected String computeValue() {
+                { super.bind(nomProperty()) ;}
+                return "Face 1 (de "+nom()+")";
+            }
+        };
+        cercle_1.nomProperty().bind(complete_nom_composant_prive_face_1);
+        conique_1.nomProperty().bind(complete_nom_composant_prive_face_1);
+        dp_face_1_plane.nomProperty().bind(complete_nom_composant_prive_face_1);
+
+        StringBinding complete_nom_composant_prive_face_2 = new StringBinding() {
+            @Override
+            protected String computeValue() {
+                { super.bind(nomProperty()) ;}
+                return "Face 2 (de "+nom()+")";
+            }
+        };
+        cercle_2.nomProperty().bind(complete_nom_composant_prive_face_2);
+        conique_2.nomProperty().bind(complete_nom_composant_prive_face_2);
+        dp_face_2_plane.nomProperty().bind(complete_nom_composant_prive_face_2);
+        
+        
+
+//        dp_limite_face_1_concave = new DemiPlan("Demi-plan privé limite face 1 concave", -0.5*epaisseur-rayon_1, 0d, 180d, TypeSurface.CONVEXE);
+//        dp_limite_face_2_concave = new DemiPlan("Demi-plan privé limite face 2 concave", 0.5*epaisseur+rayon_2, 0d, 0d, TypeSurface.CONVEXE);
+
+        double pseudo_r2 = (convexite_face_2==CONVEXE?0:(forme_2==SPHERIQUE?rayon_2:parametre_2)) ;
+        double pseudo_r1 = (convexite_face_1==CONVEXE?0:(forme_1==SPHERIQUE?rayon_1:parametre_1)) ;
+
+        rectangle_limite = new Rectangle("Rectangle privé des limites de lentille",
+                0.5d*(pseudo_r2-pseudo_r1),0,pseudo_r1+epaisseur+pseudo_r2,diametre,0d,TypeSurface.CONVEXE) ;
+
+        composition.ajouterObstacle(rectangle_limite);
+//        StringBinding complete_nom_composant_prive_limites = new StringBinding() {
+//            @Override
+//            protected String computeValue() {
+//                { super.bind(nomProperty()) ;}
+//                return "Bord de "+nom();
+//            }
+//        };
+//        rectangle_limite.nomProperty().bind(complete_nom_composant_prive_limites);
+
+        // Ces deux switchs sont peut-être inutiles : l'initialisation est faite lors du binding (cf. plus bas)
         switch (convexite_face_1) {
-            case CONVEXE,CONCAVE -> composition.ajouterObstacle(forme_1==FormeFaceLentille.SPHERIQUE?cercle_1:conique_1) ;
+            case CONVEXE,CONCAVE -> composition.ajouterObstacle(forme_1== SPHERIQUE? cercle_1 : conique_1) ;
             case PLANE -> composition.ajouterObstacle(dp_face_1_plane) ;
         }
-//        if (convexite_face_1== ConvexiteFaceLentille.PLANE)
-//            composition.ajouterObstacle(dp_face_1_plane);
-//        else
-//            composition.ajouterObstacle(cercle_1);
         switch (convexite_face_2) {
-            case CONVEXE,CONCAVE -> composition.ajouterObstacle(forme_2==FormeFaceLentille.SPHERIQUE?cercle_2:conique_2) ;
+            case CONVEXE,CONCAVE -> composition.ajouterObstacle(forme_2== SPHERIQUE? cercle_2 : conique_2) ;
             case PLANE -> composition.ajouterObstacle(dp_face_2_plane) ;
         }
-//        if (convexite_face_2== ConvexiteFaceLentille.PLANE)
-//            composition.ajouterObstacle(dp_face_2_plane);
-//        else
-//            composition.ajouterObstacle(cercle_2);
 
-        if (convexite_face_1== ConvexiteFaceLentille.CONCAVE)
-            composition.ajouterObstacle(dp_limite_face_1_concave);
-        if (convexite_face_2== ConvexiteFaceLentille.CONCAVE)
-            composition.ajouterObstacle(dp_limite_face_2_concave);
+//        if (convexite_face_1== ConvexiteFaceLentille.CONCAVE)
+//            composition.ajouterObstacle(dp_limite_face_1_concave);
+//        if (convexite_face_2== ConvexiteFaceLentille.CONCAVE)
+//            composition.ajouterObstacle(dp_limite_face_2_concave);
 
-        // Mieux vaut avoir en permanence les deux demi-plans qui délimitent le diamètre, même s'ils sont inutiles, que d'avoir à
-        // les créer et à la détruire en fonction des aléas de paramétrage de la lentille. Attention aux performances cependant.
-        dp_haut = new DemiPlan("Demi-plan privé limite demi-diamètre haut",
-                0d, 0.5d * diametre, 90d, TypeSurface.CONVEXE);
-        dp_bas = new DemiPlan("Demi-plan privé limite demi-diamètre bas",
-                0d, -0.5d * diametre, 270d, TypeSurface.CONVEXE);
+//        // Mieux vaut avoir en permanence les deux demi-plans qui délimitent le diamètre, même s'ils sont inutiles, que d'avoir à
+//        // les créer et à la détruire en fonction des aléas de paramétrage de la lentille. Attention aux performances cependant.
+//        dp_haut = new DemiPlan("Demi-plan privé limite demi-diamètre haut",
+//                0d, 0.5d * diametre, 90d, TypeSurface.CONVEXE);
+//        dp_bas = new DemiPlan("Demi-plan privé limite demi-diamètre bas",
+//                0d, -0.5d * diametre, 270d, TypeSurface.CONVEXE);
 
         // Les demi-plans haut bas sont présents en permanence dans la composition même s'ils ne servent à rien (trop
         // complexe de calculer en permanence et dans tous les cas possibles si ces demi-plans sont nécessaires=
@@ -253,11 +295,19 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
 
         composition.tournerAutourDe(Point2D.ZERO, orientation_deg);
         composition.translater(new Point2D(x_centre, y_centre));
+        // Attention : on ne vient de positionner que la composition et ses éléments, les autres éléments non rattachés
+        // à la composition (comme dp_face_1_plane et dp_face_2_plane n'ont pas été positionnés). Pourtant tout semble
+        // fonctionner : ce sont en fait les bindings(cf. plus bas) qui initialisent toutes les positions et orientations.
+        // L'initialisation des positions et orientations est sans doute inutile...
 
         // Liaisons (bindings) entre les propriétés de la lentille et celles de sa composition privée
         composition.natureMilieuProperty().bind(this.natureMilieuProperty());
         composition.traitementSurfaceProperty().bind(this.traitementSurfaceProperty());
+        composition.tauxReflexionSurfaceProperty().bind(this.tauxReflexionSurfaceProperty());
+        composition.orientationAxePolariseurProperty().bind(this.orientationAxePolariseurProperty());
         composition.couleurContourProperty().bind(this.couleurContourProperty());
+
+        composition.indiceRefractionProperty().bind(this.indiceRefractionProperty());
         composition.couleurMatiereProperty().bind(this.couleurMatiereProperty());
 
         // TODO : Pas aussi simple, si face1 est plane, il faut remplacer le cercle 1 dans la composition par le dp1, et idem pour la face 2
@@ -336,18 +386,13 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
                 case PLANE -> {
                     composition.retirerObstacle(cercle_1);
                     composition.retirerObstacle(conique_1);
-                    composition.retirerObstacle(dp_limite_face_1_concave);
+//                    composition.retirerObstacle(dp_limite_face_1_concave);
                     composition.ajouterObstacle(dp_face_1_plane);
                 }
-                case CONVEXE -> {
+                case CONVEXE, CONCAVE -> {
                     composition.retirerObstacle(dp_face_1_plane);
-                    composition.retirerObstacle(dp_limite_face_1_concave);
-                    composition.ajouterObstacle(formeFace1()==FormeFaceLentille.SPHERIQUE?cercle_1:conique_1);
-                }
-                case CONCAVE -> {
-                    composition.retirerObstacle(dp_face_1_plane);
-                    composition.ajouterObstacle(formeFace1()==FormeFaceLentille.SPHERIQUE?cercle_1:conique_1);
-                    composition.ajouterObstacle(dp_limite_face_1_concave);
+//                    composition.retirerObstacle(dp_limite_face_1_concave);
+                    composition.ajouterObstacle(formeFace1()== SPHERIQUE? cercle_1 : conique_1);
                 }
             }
         } );
@@ -357,19 +402,15 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
                 case PLANE -> {
                     composition.retirerObstacle(cercle_2);
                     composition.retirerObstacle(conique_2);
-                    composition.retirerObstacle(dp_limite_face_2_concave);
+//                    composition.retirerObstacle(dp_limite_face_2_concave);
                     composition.ajouterObstacle(dp_face_2_plane);
                 }
-                case CONVEXE -> {
+                case CONVEXE, CONCAVE -> {
                     composition.retirerObstacle(dp_face_2_plane);
-                    composition.retirerObstacle(dp_limite_face_2_concave);
-                    composition.ajouterObstacle(formeFace2()==FormeFaceLentille.SPHERIQUE?cercle_2:conique_2);
+//                    composition.retirerObstacle(dp_limite_face_2_concave);
+                    composition.ajouterObstacle(formeFace2()== SPHERIQUE? cercle_2 : conique_2);
                 }
-                case CONCAVE -> {
-                    composition.retirerObstacle(dp_face_2_plane);
-                    composition.ajouterObstacle(formeFace2()==FormeFaceLentille.SPHERIQUE?cercle_2:conique_2);
-                    composition.ajouterObstacle(dp_limite_face_2_concave);
-                }
+                //                    composition.ajouterObstacle(dp_limite_face_2_concave);
             }
 
         } );
@@ -384,7 +425,7 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
                 Point2D centre = positionEtOrientationObjectProperty().get().position();
                 Point2D vecteur_dir = positionEtOrientationObjectProperty().get().direction() ;
 
-                if (convexiteFace1()== ConvexiteFaceLentille.CONVEXE || convexiteFace1()== ConvexiteFaceLentille.PLANE)
+                if (convexiteFace1()== CONVEXE || convexiteFace1()== ConvexiteFaceLentille.PLANE)
                     return centre.add(vecteur_dir.multiply(-0.5d*epaisseur()+ rayon1()));
 
                 // Face 1 CONCAVE : le centre du cercle 1 passe "à gauche" de la face
@@ -405,7 +446,7 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
                 Point2D vecteur_dir = positionEtOrientationObjectProperty().get().direction() ;
 
 //                double a = parametre1()/(1+excentricite1()) ;
-                if (convexiteFace1()== ConvexiteFaceLentille.CONVEXE || convexiteFace1()== ConvexiteFaceLentille.PLANE)
+                if (convexiteFace1()== CONVEXE || convexiteFace1()== ConvexiteFaceLentille.PLANE)
                     return new PositionEtOrientation(position.add(vecteur_dir.multiply(-0.5d*epaisseur()+parametre1()/(1+excentricite1()))),orientation_deg+180d);
 //                    return new PositionEtOrientation(position.add(vecteur_dir.multiply(-0.5d*epaisseur()+parametre1())),orientation_deg+180d);
                 // Face 1 CONCAVE : le foyer de la conique 1 passe "à gauche" de la face
@@ -426,7 +467,7 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
                 Point2D centre = positionEtOrientationObjectProperty().get().position();
                 Point2D vecteur_dir = positionEtOrientationObjectProperty().get().direction() ;
 
-                if (convexiteFace2()== ConvexiteFaceLentille.CONVEXE || convexiteFace2()== ConvexiteFaceLentille.PLANE)
+                if (convexiteFace2()== CONVEXE || convexiteFace2()== ConvexiteFaceLentille.PLANE)
                     return centre.add(vecteur_dir.multiply(0.5d*epaisseur()- rayon2()));
 
                 // Face 2 CONCAVE : le centre du cercle 2 passe "à droite" de la face
@@ -446,7 +487,7 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
                 Point2D vecteur_dir = positionEtOrientationObjectProperty().get().direction() ;
 
 
-                if (convexiteFace2()== ConvexiteFaceLentille.CONVEXE || convexiteFace2()== ConvexiteFaceLentille.PLANE)
+                if (convexiteFace2()== CONVEXE || convexiteFace2()== ConvexiteFaceLentille.PLANE)
                     return new PositionEtOrientation(position.add(vecteur_dir.multiply(0.5d*epaisseur()-parametre2()/(1+excentricite2()))),orientation_deg);
                 // Face 1 CONCAVE : le foyer de la conique 2 passe "à gauche" de la face
                 return new PositionEtOrientation(position.add(vecteur_dir.multiply(0.5d*epaisseur()+parametre2()/(1+excentricite2()))),orientation_deg+180d);
@@ -456,39 +497,95 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
         conique_2.positionEtOrientationObjectProperty().bind(calcul_position_et_orientation_conique_2);
 
 
-        ObjectBinding<PositionEtOrientation> calcul_position_dp_haut = new ObjectBinding<>() {
+        ObjectBinding<PositionEtOrientation> calcul_position_rect_limite = new ObjectBinding<>() {
             @Override
             protected PositionEtOrientation computeValue() {
 
-                { super.bind(diametreProperty(),positionEtOrientationObjectProperty()) ; }
+                { super.bind(positionEtOrientationObjectProperty(),
+                        convexiteFace1Property(),formeFace1Property(),rayon1Property(),parametre1Property(),
+                        convexiteFace2Property(),formeFace2Property(),rayon2Property(),parametre2Property()) ; }
 
                 Point2D position = positionEtOrientationObjectProperty().get().position();
                 double orientation_deg = positionEtOrientationObjectProperty().get().orientation_deg();
                 Point2D vecteur_dir = positionEtOrientationObjectProperty().get().direction() ;
+
+                double pseudo_r2 = (convexiteFace2()==CONVEXE?0:(formeFace2()==SPHERIQUE?rayon2():parametre2())) ;
+                double pseudo_r1 = (convexiteFace1()==CONVEXE?0:(formeFace1()==SPHERIQUE?rayon1():parametre1())) ;
+
+//                rectangle_limite = new Rectangle("Rectangle privé des limites de lentille",
+//                        0.5d*(pseudo_r2-pseudo_r2),0,pseudo_r1+epaisseur+pseudo_r2,diametre,0d,TypeSurface.CONVEXE) ;
+
+                return new PositionEtOrientation(position.add(vecteur_dir.multiply(0.5d*(pseudo_r2-pseudo_r1))),orientation_deg) ;
+
 //                return new PositionEtOrientation(position.add(vecteur_dir.multiply(0.5d*diametre())) , orientation_deg+90d ) ;
-                Point2D perp_vecteur_dir = new Point2D(-vecteur_dir.getY(), vecteur_dir.getX()) ;
-                return new PositionEtOrientation(position.add(perp_vecteur_dir.multiply(0.5d*diametre())) , orientation_deg+90d ) ;
+//                Point2D perp_vecteur_dir = new Point2D(-vecteur_dir.getY(), vecteur_dir.getX()) ;
+//                return new PositionEtOrientation(position.add(perp_vecteur_dir.multiply(0.5d*diametre())) , orientation_deg+90d ) ;
 
             }
         } ;
-        dp_haut.positionEtOrientationObjectProperty().bind(calcul_position_dp_haut);
 
-        ObjectBinding<PositionEtOrientation> calcul_position_dp_bas = new ObjectBinding<>() {
+        rectangle_limite.positionEtOrientationObjectProperty().bind(calcul_position_rect_limite);
+
+
+//        ObjectBinding<PositionEtOrientation> calcul_position_dp_haut = new ObjectBinding<>() {
+//            @Override
+//            protected PositionEtOrientation computeValue() {
+//
+//                { super.bind(diametreProperty(),positionEtOrientationObjectProperty()) ; }
+//
+//                Point2D position = positionEtOrientationObjectProperty().get().position();
+//                double orientation_deg = positionEtOrientationObjectProperty().get().orientation_deg();
+//                Point2D vecteur_dir = positionEtOrientationObjectProperty().get().direction() ;
+////                return new PositionEtOrientation(position.add(vecteur_dir.multiply(0.5d*diametre())) , orientation_deg+90d ) ;
+//                Point2D perp_vecteur_dir = new Point2D(-vecteur_dir.getY(), vecteur_dir.getX()) ;
+//                return new PositionEtOrientation(position.add(perp_vecteur_dir.multiply(0.5d*diametre())) , orientation_deg+90d ) ;
+//
+//            }
+//        } ;
+//        dp_haut.positionEtOrientationObjectProperty().bind(calcul_position_dp_haut);
+        DoubleBinding calcul_largeur_rect_limite = new DoubleBinding() {
             @Override
-            protected PositionEtOrientation computeValue() {
+            protected double computeValue() {
 
-                { super.bind(diametreProperty(),positionEtOrientationObjectProperty()) ; }
+                { super.bind(positionEtOrientationObjectProperty(),
+                        convexiteFace1Property(),formeFace1Property(),rayon1Property(),parametre1Property(),
+                        convexiteFace2Property(),formeFace2Property(),rayon2Property(),parametre2Property(),
+                        epaisseurProperty()) ; }
 
-                Point2D position = positionEtOrientationObjectProperty().get().position();
-                double orientation_deg = positionEtOrientationObjectProperty().get().orientation_deg();
-                Point2D vecteur_dir = positionEtOrientationObjectProperty().get().direction() ;
-//                return new PositionEtOrientation(position.add(vecteur_dir.multiply(0.5d*diametre())) , orientation_deg+270d ) ;
-                Point2D perp_vecteur_dir = new Point2D(vecteur_dir.getY(), -vecteur_dir.getX()) ;
-                return new PositionEtOrientation(position.add(perp_vecteur_dir.multiply(0.5d*diametre())) , orientation_deg+270d ) ;
+                double pseudo_r2 = (convexiteFace2()==CONVEXE?0:(formeFace2()==SPHERIQUE?rayon2():parametre2())) ;
+                double pseudo_r1 = (convexiteFace1()==CONVEXE?0:(formeFace1()==SPHERIQUE?rayon1():parametre1())) ;
+
+                return pseudo_r1 + epaisseur() + pseudo_r2 ;
+//                Point2D position = positionEtOrientationObjectProperty().get().position();
+//                double orientation_deg = positionEtOrientationObjectProperty().get().orientation_deg();
+//                Point2D vecteur_dir = positionEtOrientationObjectProperty().get().direction() ;
+////                return new PositionEtOrientation(position.add(vecteur_dir.multiply(0.5d*diametre())) , orientation_deg+90d ) ;
+//                Point2D perp_vecteur_dir = new Point2D(-vecteur_dir.getY(), vecteur_dir.getX()) ;
+//                return new PositionEtOrientation(position.add(perp_vecteur_dir.multiply(0.5d*diametre())) , orientation_deg+90d ) ;
 
             }
         } ;
-        dp_bas.positionEtOrientationObjectProperty().bind(calcul_position_dp_bas);
+
+        rectangle_limite.largeurProperty().bind(calcul_largeur_rect_limite);
+
+        rectangle_limite.hauteurProperty().bind(diametreProperty());
+
+//        ObjectBinding<PositionEtOrientation> calcul_position_dp_bas = new ObjectBinding<>() {
+//            @Override
+//            protected PositionEtOrientation computeValue() {
+//
+//                { super.bind(diametreProperty(),positionEtOrientationObjectProperty()) ; }
+//
+//                Point2D position = positionEtOrientationObjectProperty().get().position();
+//                double orientation_deg = positionEtOrientationObjectProperty().get().orientation_deg();
+//                Point2D vecteur_dir = positionEtOrientationObjectProperty().get().direction() ;
+////                return new PositionEtOrientation(position.add(vecteur_dir.multiply(0.5d*diametre())) , orientation_deg+270d ) ;
+//                Point2D perp_vecteur_dir = new Point2D(vecteur_dir.getY(), -vecteur_dir.getX()) ;
+//                return new PositionEtOrientation(position.add(perp_vecteur_dir.multiply(0.5d*diametre())) , orientation_deg+270d ) ;
+//
+//            }
+//        } ;
+//        dp_bas.positionEtOrientationObjectProperty().bind(calcul_position_dp_bas);
 
 //        diametreProperty().addListener( (observable, oldValue,newValue) -> {
 //            ajouterOuRetirerDpHautDpBas(newValue.doubleValue(), rayon1(), rayon2()) ;
@@ -530,57 +627,52 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
         } ;
         dp_face_2_plane.positionEtOrientationObjectProperty().bind(calcul_position_dp2);
 
-        ObjectBinding<PositionEtOrientation> calcul_position_dp_limite_face_1_concave = new ObjectBinding<>() {
-            @Override
-            protected PositionEtOrientation computeValue() {
+//        ObjectBinding<PositionEtOrientation> calcul_position_dp_limite_face_1_concave = new ObjectBinding<>() {
+//            @Override
+//            protected PositionEtOrientation computeValue() {
+//
+//                { super.bind(formeFace1Property(),rayon1Property(),parametre1Property(),excentricite1Property(),epaisseurProperty(),positionEtOrientationObjectProperty()) ; }
+//
+//                Point2D position = positionEtOrientationObjectProperty().get().position();
+//                double orientation_deg = positionEtOrientationObjectProperty().get().orientation_deg();
+//                Point2D vecteur_dir = positionEtOrientationObjectProperty().get().direction() ;
+//
+//                double d_lim = -0.5d*epaisseur() - (formeFace1()== SPHERIQUE?rayon1():(excentricite1()<1d?parametre1()/(1-excentricite1()*excentricite1()):Double.MAX_VALUE)) ;
+//                return new PositionEtOrientation(position.add(vecteur_dir.multiply(d_lim)) , orientation_deg+180d ) ;
+//            }
+//        } ;
+//        dp_limite_face_1_concave.positionEtOrientationObjectProperty().bind(calcul_position_dp_limite_face_1_concave);
+//
+//        ObjectBinding<PositionEtOrientation> calcul_position_dp_limite_face_2_concave = new ObjectBinding<>() {
+//            @Override
+//            protected PositionEtOrientation computeValue() {
+//
+//                { super.bind(formeFace2Property(),rayon2Property(),parametre2Property(),excentricite2Property(),epaisseurProperty(),positionEtOrientationObjectProperty()) ; }
+//
+//                Point2D position = positionEtOrientationObjectProperty().get().position();
+//                double orientation_deg = positionEtOrientationObjectProperty().get().orientation_deg();
+//                Point2D vecteur_dir = positionEtOrientationObjectProperty().get().direction() ;
+//                double d_lim = 0.5d*epaisseur() + (formeFace2()== SPHERIQUE?rayon2():(excentricite2()<1d?parametre2():Double.MAX_VALUE)) ;
+//                return new PositionEtOrientation(position.add(vecteur_dir.multiply(d_lim)) , orientation_deg+0d ) ;
+//            }
+//        } ;
+//        dp_limite_face_2_concave.positionEtOrientationObjectProperty().bind(calcul_position_dp_limite_face_2_concave);
 
-                { super.bind(formeFace1Property(),rayon1Property(),parametre1Property(),excentricite1Property(),epaisseurProperty(),positionEtOrientationObjectProperty()) ; }
-
-                Point2D position = positionEtOrientationObjectProperty().get().position();
-                double orientation_deg = positionEtOrientationObjectProperty().get().orientation_deg();
-                Point2D vecteur_dir = positionEtOrientationObjectProperty().get().direction() ;
-
-                double d_lim = -0.5d*epaisseur() - (formeFace1()==FormeFaceLentille.SPHERIQUE?rayon1():(excentricite1()<1d?parametre1()/(1-excentricite1()*excentricite1()):Double.MAX_VALUE)) ;
-                return new PositionEtOrientation(position.add(vecteur_dir.multiply(d_lim)) , orientation_deg+180d ) ;
-//                return new PositionEtOrientation(position.add(vecteur_dir.multiply(-0.5d*epaisseur()- rayon1())) , orientation_deg+180d ) ;
-
-            }
-        } ;
-        dp_limite_face_1_concave.positionEtOrientationObjectProperty().bind(calcul_position_dp_limite_face_1_concave);
-
-        ObjectBinding<PositionEtOrientation> calcul_position_dp_limite_face_2_concave = new ObjectBinding<>() {
-            @Override
-            protected PositionEtOrientation computeValue() {
-
-                { super.bind(formeFace2Property(),rayon2Property(),parametre2Property(),excentricite2Property(),epaisseurProperty(),positionEtOrientationObjectProperty()) ; }
-
-                Point2D position = positionEtOrientationObjectProperty().get().position();
-                double orientation_deg = positionEtOrientationObjectProperty().get().orientation_deg();
-                Point2D vecteur_dir = positionEtOrientationObjectProperty().get().direction() ;
-                double d_lim = 0.5d*epaisseur() + (formeFace2()==FormeFaceLentille.SPHERIQUE?rayon2():(excentricite2()<1d?parametre2():Double.MAX_VALUE)) ;
-                return new PositionEtOrientation(position.add(vecteur_dir.multiply(d_lim)) , orientation_deg+0d ) ;
-//                return new PositionEtOrientation(position.add(vecteur_dir.multiply(0.5d*epaisseur()+ rayon2())) , orientation_deg+0d ) ;
-
-            }
-        } ;
-        dp_limite_face_2_concave.positionEtOrientationObjectProperty().bind(calcul_position_dp_limite_face_2_concave);
-
-        // TODO
     }
 
-    private void ajouterOuRetirerDpHautDpBas(double diametre, double r_1, double r_2) {
-        if (0.5d*diametre <Math.max(r_1,r_2) ) {
-            if (!composition.comprend(dp_haut))
-                composition.ajouterObstacle(dp_haut);
-            if (!composition.comprend(dp_bas))
-                composition.ajouterObstacle(dp_bas);
-        } else {
-            if (composition.comprend(dp_haut))
-                composition.retirerObstacle(dp_haut);
-            if (composition.comprend(dp_bas))
-                composition.retirerObstacle(dp_bas);
-        }
-    }
+//    private void ajouterOuRetirerDpHautDpBas(double diametre, double r_1, double r_2) {
+//        if (0.5d*diametre <Math.max(r_1,r_2) ) {
+//            if (!composition.comprend(dp_haut))
+//                composition.ajouterObstacle(dp_haut);
+//            if (!composition.comprend(dp_bas))
+//                composition.ajouterObstacle(dp_bas);
+//        } else {
+//            if (composition.comprend(dp_haut))
+//                composition.retirerObstacle(dp_haut);
+//            if (composition.comprend(dp_bas))
+//                composition.retirerObstacle(dp_bas);
+//        }
+//    }
 
 
     public ObjectProperty<PositionEtOrientation> positionEtOrientationObjectProperty() {return position_orientation ;}
@@ -713,12 +805,14 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
 
     @Override
     public Double rayonDiaphragmeParDefaut() {
-        return 0.5d*diametre.get();
+//        return 0.5d*diametre.get();
+        return Math.min(0.5d*diametre.get(),Math.min(formeFace1()==SPHERIQUE?rayon1():parametre1(),formeFace2()==SPHERIQUE?rayon2():parametre2()));
     }
 
     @Override
     public double rayonDiaphragmeMaximumConseille() {
-        return 0.5d*diametre.get();
+//        return 0.5d*diametre.get();
+        return Math.min(0.5d*diametre.get(),Math.min(formeFace1()==SPHERIQUE?rayon1():parametre1(),formeFace2()==SPHERIQUE?rayon2():parametre2()));
     }
 
     @Override

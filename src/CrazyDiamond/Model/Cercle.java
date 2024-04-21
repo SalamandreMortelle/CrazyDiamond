@@ -225,7 +225,8 @@ public class Cercle extends BaseObstacleAvecContourEtMatiere implements Obstacle
         return rayon();
     }
 
-    @Override public double rayonDiaphragmeMaximumConseille() { return rayon() ; }
+    @Override
+    public double rayonDiaphragmeMaximumConseille() { return rayon() ; }
 
     /**
      * Calcule l'abscisse du centre du cercle par rapport à un axe

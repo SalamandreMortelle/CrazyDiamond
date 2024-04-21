@@ -18,6 +18,10 @@ public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obsta
 
     private static int compteur_rectangle ;
 
+    public Rectangle(String nom, double  x_centre, double y_centre, double largeur, double hauteur, double orientation_deg,TypeSurface type_surface) throws IllegalArgumentException {
+        this(nom,type_surface,x_centre,y_centre,largeur,hauteur,orientation_deg,null,1.5,null,null) ;
+    }
+
     public Rectangle(TypeSurface type_surface, double  x_centre, double y_centre, double largeur, double hauteur, double orientation_deg) throws IllegalArgumentException {
         this(null,type_surface,x_centre,y_centre,largeur,hauteur,orientation_deg,null,1.5,null,null) ;
     }

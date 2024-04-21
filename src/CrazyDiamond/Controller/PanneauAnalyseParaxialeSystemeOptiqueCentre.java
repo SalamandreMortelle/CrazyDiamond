@@ -408,9 +408,12 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
             Point2D deplacement = soc.direction().multiply(e.getNewValue()-e.getOldValue()) ;
 //            intersection.obstacleSurface().translaterParCommande(deplacement); // Déclenchera un recalcul de la matrice optique qui mettra à jour la valeur de Z affichée dans la table
             Obstacle obs_reel_a_deplacer = intersection.obstacleSurface() ;
-            Groupe grp_a_deplacer = canvas.environnement().groupeRacine().plus_grand_groupe_solidaire_contenant(obs_reel_a_deplacer) ;
+            Groupe grp_a_deplacer = canvas.environnement().groupeRacine().plusGrandGroupeSolidaireContenant(obs_reel_a_deplacer) ;
+            Composition cmp_a_deplacer = canvas.environnement().plusGrandeCompositionContenant(obs_reel_a_deplacer) ;
             if (grp_a_deplacer!=null)
                 grp_a_deplacer.translaterParCommande(deplacement);
+            else if (cmp_a_deplacer!=null)
+                cmp_a_deplacer.translaterParCommande(deplacement);
             else
                 obs_reel_a_deplacer.translaterParCommande(deplacement);
 

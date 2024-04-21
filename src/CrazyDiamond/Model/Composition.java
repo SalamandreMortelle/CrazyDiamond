@@ -111,6 +111,21 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
 
         super.ajouterObstacle(o);
 
+        if (o instanceof ElementAvecContour eac) {
+            eac.traitementSurfaceProperty().bind(traitementSurfaceProperty());
+            eac.tauxReflexionSurfaceProperty().bind(tauxReflexionSurfaceProperty()) ;
+            eac.orientationAxePolariseurProperty().bind(orientationAxePolariseurProperty());
+        }
+        if (o instanceof ElementAvecMatiere eam) {
+            eam.natureMilieuProperty().bind(natureMilieuProperty());
+            eam.indiceRefractionProperty().bind(indiceRefractionProperty());
+            // NB : On ne fait pas de binding sur typeSurface (Convexe/Concave car c'est ue propriété "topologique"
+            // intrinsèque de l'obstacle : l'inclusion de l'obstacle dans une Composition ne change rien à cette
+            // topologie qu'il faut conserver pour que les calculs géométriques impliquant cet obstacle restent corrects.
+        }
+
+        // TODO : on pourrait aussi compléter le nom des obstacles avec le nom de leur composition d'appartenance
+
 //        // TODO : il faudrait peut-être vérifier si l'obstacle appartient à l'environnement car sinon, il n'y aura pas de notification
 //        // des rappels en cas de modification de ses propriétés (car ces rappels sont ajoutés lors de l'ajout de l'obstacle à l'environnement)
 
@@ -119,6 +134,16 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
 
     public void retirerObstacle(Obstacle o) {
         super.retirerObstacle(o);
+
+        if (o instanceof ElementAvecContour eac) {
+            eac.traitementSurfaceProperty().unbind();
+            eac.tauxReflexionSurfaceProperty().unbind();
+            eac.orientationAxePolariseurProperty().unbind();
+        }
+        if (o instanceof ElementAvecMatiere eam) {
+            eam.natureMilieuProperty().unbind();
+            eam.indiceRefractionProperty().unbind();
+        }
 
         o.definirAppartenanceComposition(false);
     }

@@ -321,8 +321,8 @@ public class Environnement {
 
         return null ;
     }
-    public Composition compositionContenant(Obstacle o) {
-        return groupeRacine().compositionContenant(o) ;
+    public Composition plusPetiteCompositionContenant(Obstacle o) {
+        return groupeRacine().plusPetiteCompositionContenant(o) ;
 //        for (Obstacle ob  : groupe_racine_obstacles) {
 //            if (ob.getClass() == Composition.class && ob.comprend(o))
 //                    return ob.composition_contenant(o);
@@ -330,6 +330,11 @@ public class Environnement {
 //
 //        return null ;
     }
+
+    public Composition plusGrandeCompositionContenant(Obstacle o) {
+        return groupeRacine().plusGrandeCompositionContenant(o) ;
+  }
+
     public Groupe groupeContenant(Obstacle o) {
         return groupeRacine().sousGroupeContenant(o) ;
     }
@@ -470,7 +475,7 @@ public class Environnement {
     public void supprimerObstacleALaRacine(Obstacle o) {
 
         if (o.appartientAComposition()) {
-            Composition comp_contenante = compositionContenant(o);
+            Composition comp_contenante = plusPetiteCompositionContenant(o);
 
             comp_contenante.retirerObstacle(o) ;
             if (comp_contenante.appartientASystemeOptiqueCentre())
@@ -556,7 +561,7 @@ public class Environnement {
         if (obs_reel==null)
             return null ;
 
-        return groupeRacine().plus_grand_groupe_solidaire_contenant(obs_reel);
+        return groupeRacine().plusGrandGroupeSolidaireContenant(obs_reel);
 
     }
 

@@ -341,7 +341,11 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         Affine nouvelle_matrice_transfert;
 
         try {
-            // Calcul de tous les dioptres du SOC le sens des Z croissants et des Rcourbure "croissants"
+            // Calcul de tous les dioptres du SOC le sens des Z croissants et des Rcourbure "croissants" (progression
+            // forcée dans le sens des Z croissants, en ignorant les dioptres réfléchissants) : on cherche à avoir la
+            // liste exhaustive de tous les dioptres, sans chercher à savoir s'ils peuvent être rencontrés par le rayon
+            // qui entre dans le SOC (les dioptres réellement rencontrés sont extraits dans la méthode
+            // calculeMatriceTransfertOptique).
             dioptres.setAll(extraireDioptresParaxiaux());
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE,"Impossible de calculer les intersections du SOC avec l'axe",e);
@@ -1167,6 +1171,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         ArrayList<DioptreParaxial> resultat = new ArrayList<>(2*obstacles_centres.size()) ;
 
 //        Iterator<Obstacle> itoc = obstacles_centres.iterator() ;
+        // Attention : si l'iterateur ci-dessous rencontre une composition, il en retourne un par un tous les obstacles
         Iterator<Obstacle> itoc = new IterateurObstaclesCentresReels() ;
 
         if (itoc.hasNext()) // Les dioptres de l'obstacle le plus en arrière sont supposés initialement tous visibles

@@ -31,7 +31,7 @@ public class CommandeSupprimerObstacle extends Commande {
 
     private void memoriserEtatInitial() {
         index_dans_environnement = environnement.indexObstacleALaRacine(obstacle) ;
-        composition_contenant_obstacle = obstacle.appartientAComposition()?environnement.compositionContenant(obstacle):null ;
+        composition_contenant_obstacle = obstacle.appartientAComposition()?environnement.plusPetiteCompositionContenant(obstacle):null ;
         soc_contenant_obstacle = obstacle.appartientASystemeOptiqueCentre()?environnement.systemeOptiqueCentreContenant(obstacle):null ;
     }
 

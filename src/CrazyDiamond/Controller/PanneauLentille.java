@@ -10,6 +10,8 @@ import javafx.scene.layout.VBox;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static CrazyDiamond.Model.ConvexiteFaceLentille.CONVEXE;
+
 public class PanneauLentille {
 
     // Modèle
@@ -188,10 +190,10 @@ public class PanneauLentille {
         lentille.formeFace1Property().addListener((observable, oldValue, newValue) -> {
             if (newValue==FormeFaceLentille.SPHERIQUE) {
                 parent_parametres_face_1.getChildren().remove(parametres_forme_conique_1);
-                parent_parametres_face_1.getChildren().add(2,parametres_forme_spherique_1);
+                parent_parametres_face_1.getChildren().add(3,parametres_forme_spherique_1);
             } else if (newValue==FormeFaceLentille.CONIQUE) {
                 parent_parametres_face_1.getChildren().remove(parametres_forme_spherique_1);
-                parent_parametres_face_1.getChildren().add(2,parametres_forme_conique_1);
+                parent_parametres_face_1.getChildren().add(3,parametres_forme_conique_1);
             }
         });
 
@@ -201,11 +203,17 @@ public class PanneauLentille {
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas, spinner_rayon_1, lentille.rayon1(),this::definirRayon1);
 
 //        ((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_rayon_1.getValueFactory()).minProperty().bind(lentille.epaisseurProperty().multiply(0.5d));
+
+        // Ce binding cause une boucle infinie : epaisseur modifiée => ce binding est appelé => il peut apparemment modifier
+        // r1 s'il se retrouve inférieur au min =>
 //        DoubleBinding calcul_rayon1_min = new DoubleBinding() {
 //            @Override
 //            protected double computeValue() {
-//                { super.bind(lentille.epaisseurProperty(),lentille.convexiteFace1Property()); ; }
-//                return (lentille.convexiteFace1()==ConvexiteFaceLentille.CONVEXE? 0.5d* lentille.epaisseur():0d) ;
+//                { super.bind(lentille.epaisseurProperty(),lentille.convexiteFace1Property()); }
+//
+//                return 0d ;
+////                return (lentille.convexiteFace1()==CONVEXE?0.5d*lentille.epaisseur()+1E-7d:1E-7d) ;
+//
 //            }
 //        } ;
 //        ((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_rayon_1.getValueFactory()).minProperty().bind(calcul_rayon1_min);
@@ -236,13 +244,18 @@ public class PanneauLentille {
         choix_convexite_face_1.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
             LOGGER.log(Level.FINE,"Choix convexite face 1 passe de {0} à {1}", new Object[] {oldValue,newValue}) ;
 
-            if (newValue==choix_convexe_1 && lentille.convexiteFace1()!= ConvexiteFaceLentille.CONVEXE)
-                new CommandeDefinirUnParametre<>(lentille, ConvexiteFaceLentille.CONVEXE, lentille::convexiteFace1, lentille::definirConvexiteFace1).executer();
+            if (newValue==choix_convexe_1 && lentille.convexiteFace1()!= CONVEXE)
+                new CommandeDefinirUnParametre<>(lentille, CONVEXE, lentille::convexiteFace1, lentille::definirConvexiteFace1).executer();
             if (newValue==choix_plane_1 && lentille.convexiteFace1()!= ConvexiteFaceLentille.PLANE)
                 new CommandeDefinirUnParametre<>(lentille, ConvexiteFaceLentille.PLANE, lentille::convexiteFace1, lentille::definirConvexiteFace1).executer();
             if (newValue==choix_concave_1 && lentille.convexiteFace1()!= ConvexiteFaceLentille.CONCAVE)
                 new CommandeDefinirUnParametre<>(lentille, ConvexiteFaceLentille.CONCAVE, lentille::convexiteFace1, lentille::definirConvexiteFace1).executer();
         });
+
+        choix_spherique_1.disableProperty().bind(choix_plane_1.selectedProperty());
+        choix_conique_1.disableProperty().bind(choix_plane_1.selectedProperty());
+        parametres_forme_spherique_1.disableProperty().bind(choix_plane_1.selectedProperty());
+        parametres_forme_conique_1.disableProperty().bind(choix_plane_1.selectedProperty());
 
         // Forme Face 2
         prendreEnCompteFormeFace2(lentille.formeFace2());
@@ -267,10 +280,10 @@ public class PanneauLentille {
         lentille.formeFace2Property().addListener((observable, oldValue, newValue) -> {
             if (newValue==FormeFaceLentille.SPHERIQUE) {
                 parent_parametres_face_2.getChildren().remove(parametres_forme_conique_2);
-                parent_parametres_face_2.getChildren().add(2,parametres_forme_spherique_2);
+                parent_parametres_face_2.getChildren().add(3,parametres_forme_spherique_2);
             } else if (newValue==FormeFaceLentille.CONIQUE) {
                 parent_parametres_face_2.getChildren().remove(parametres_forme_spherique_2);
-                parent_parametres_face_2.getChildren().add(2,parametres_forme_conique_2);
+                parent_parametres_face_2.getChildren().add(3,parametres_forme_conique_2);
             }
         });
 
@@ -293,13 +306,19 @@ public class PanneauLentille {
         choix_convexite_face_2.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
             LOGGER.log(Level.FINE,"Choix convexite face 2 passe de {0} à {1}", new Object[] {oldValue,newValue}) ;
 
-            if (newValue==choix_convexe_2 && lentille.convexiteFace2()!= ConvexiteFaceLentille.CONVEXE)
-                new CommandeDefinirUnParametre<>(lentille, ConvexiteFaceLentille.CONVEXE, lentille::convexiteFace2, lentille::definirConvexiteFace2).executer();
+            if (newValue==choix_convexe_2 && lentille.convexiteFace2()!= CONVEXE)
+                new CommandeDefinirUnParametre<>(lentille, CONVEXE, lentille::convexiteFace2, lentille::definirConvexiteFace2).executer();
             if (newValue==choix_plane_2 && lentille.convexiteFace2()!= ConvexiteFaceLentille.PLANE)
                 new CommandeDefinirUnParametre<>(lentille, ConvexiteFaceLentille.PLANE, lentille::convexiteFace2, lentille::definirConvexiteFace2).executer();
             if (newValue==choix_concave_2 && lentille.convexiteFace2()!= ConvexiteFaceLentille.CONCAVE)
                 new CommandeDefinirUnParametre<>(lentille, ConvexiteFaceLentille.CONCAVE, lentille::convexiteFace2, lentille::definirConvexiteFace2).executer();
         });
+
+        choix_spherique_2.disableProperty().bind(choix_plane_2.selectedProperty());
+        choix_conique_2.disableProperty().bind(choix_plane_2.selectedProperty());
+        parametres_forme_spherique_2.disableProperty().bind(choix_plane_2.selectedProperty());
+        parametres_forme_conique_2.disableProperty().bind(choix_plane_2.selectedProperty());
+
 
         checkbox_faces_symetriques.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue) {
@@ -326,6 +345,7 @@ public class PanneauLentille {
                 spinner_excentricite_2.getValueFactory().valueProperty().unbindBidirectional(spinner_excentricite_1.getValueFactory().valueProperty());
             }
         });
+        
     }
 
     private void definirOrientation(Number or) {

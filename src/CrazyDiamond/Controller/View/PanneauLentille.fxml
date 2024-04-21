@@ -79,12 +79,23 @@
       </HBox>
 
       <HBox>
-         <VBox fx:id="parent_parametres_face_1">
-         <HBox alignment="CENTER_LEFT" prefWidth="600.0">
-   <!--            <Separator prefWidth="20.0"/>-->
-            <Label minWidth="30" style="-fx-font-weight: bold;" text="Face 1"/>
-            <Separator prefWidth="60.0"/>
-         </HBox>
+         <VBox fx:id="parent_parametres_face_1" spacing="4">
+            <HBox alignment="CENTER_LEFT" prefWidth="600.0">
+      <!--            <Separator prefWidth="20.0"/>-->
+               <Label minWidth="30" style="-fx-font-weight: bold;" text="Face 1"/>
+               <Separator prefWidth="60.0"/>
+            </HBox>
+
+            <VBox alignment="CENTER_LEFT">
+               <RadioButton fx:id="choix_convexe_1" selected="true" mnemonicParsing="false" text="Convexe">
+                  <toggleGroup>
+                     <ToggleGroup fx:id="choix_convexite_face_1"/>
+                  </toggleGroup>
+               </RadioButton>
+               <RadioButton fx:id="choix_plane_1" mnemonicParsing="false" selected="false" text="Plane" toggleGroup="$choix_convexite_face_1"/>
+               <RadioButton fx:id="choix_concave_1" mnemonicParsing="false" selected="false" text="Concave" toggleGroup="$choix_convexite_face_1"/>
+            </VBox>
+
             <VBox alignment="CENTER_LEFT">
                <RadioButton fx:id="choix_spherique_1" mnemonicParsing="false" text="Sphérique" selected="true">
                   <toggleGroup>
@@ -94,63 +105,67 @@
                <RadioButton fx:id="choix_conique_1" mnemonicParsing="false" text="Conique" toggleGroup="$choix_forme_face_1"/>
             </VBox>
 
-         <HBox fx:id="parametres_forme_spherique_1" alignment="TOP_CENTER" spacing="5.0">
-         <children>
-            <Label minWidth="-Infinity" text="R">
-               <padding>
-                  <Insets top="3.0" />
-               </padding>
-            </Label>
-            <Spinner fx:id="spinner_rayon_1" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0" max="%spinner_distance_max" />
-         </children>
-         <padding>
-            <Insets top="5.0" />
-         </padding>
-      </HBox>
-            <VBox fx:id="parametres_forme_conique_1">
-               <HBox  alignment="TOP_CENTER" spacing="5.0">
-                  <children>
-                     <Label minWidth="-Infinity" text="p">
-                        <padding>
-                           <Insets top="3.0" />
-                        </padding>
-                     </Label>
-                     <Spinner fx:id="spinner_parametre_1" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0"  max="%spinner_distance_max"/>
-                  </children>
+            <HBox fx:id="parametres_forme_spherique_1" alignment="TOP_CENTER" spacing="5.0">
+            <children>
+               <Label minWidth="-Infinity" text="R">
                   <padding>
-                     <Insets top="5.0" />
+                     <Insets top="3.0" />
                   </padding>
-               </HBox>
-               <HBox  alignment="TOP_CENTER" spacing="5.0">
-                  <children>
-                     <Label minWidth="-Infinity" text="e">
-                        <padding>
-                           <Insets top="3.0" />
-                        </padding>
-                     </Label>
-                     <Spinner fx:id="spinner_excentricite_1" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0"  max="%spinner_excentricite_conique_max"/>
-                  </children>
-                  <padding>
-                     <Insets top="5.0" />
-                  </padding>
-               </HBox>
-            </VBox>
-      <VBox alignment="CENTER_LEFT">
-         <RadioButton fx:id="choix_convexe_1" mnemonicParsing="false" text="Convexe">
-            <toggleGroup>
-               <ToggleGroup fx:id="choix_convexite_face_1"/>
-            </toggleGroup>
-         </RadioButton>
-         <RadioButton fx:id="choix_plane_1" mnemonicParsing="false" selected="true" text="Plane" toggleGroup="$choix_convexite_face_1"/>
-         <RadioButton fx:id="choix_concave_1" mnemonicParsing="false" selected="true" text="Concave" toggleGroup="$choix_convexite_face_1"/>
+               </Label>
+               <Spinner fx:id="spinner_rayon_1" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0" max="%spinner_distance_max" />
+            </children>
+            <padding>
+               <Insets top="5.0" />
+            </padding>
+         </HBox>
+               <VBox fx:id="parametres_forme_conique_1">
+                  <HBox  alignment="TOP_CENTER" spacing="5.0">
+                     <children>
+                        <Label minWidth="-Infinity" text="p">
+                           <padding>
+                              <Insets top="3.0" />
+                           </padding>
+                        </Label>
+                        <Spinner fx:id="spinner_parametre_1" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0"  max="%spinner_distance_max"/>
+                     </children>
+                     <padding>
+                        <Insets top="5.0" />
+                     </padding>
+                  </HBox>
+                  <HBox  alignment="TOP_CENTER" spacing="5.0">
+                     <children>
+                        <Label minWidth="-Infinity" text="e">
+                           <padding>
+                              <Insets top="3.0" />
+                           </padding>
+                        </Label>
+                        <Spinner fx:id="spinner_excentricite_1" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0"  max="%spinner_excentricite_conique_max"/>
+                     </children>
+                     <padding>
+                        <Insets top="5.0" />
+                     </padding>
+                  </HBox>
+               </VBox>
       </VBox>
-   </VBox>
-         <VBox fx:id="parent_parametres_face_2">
+         <VBox fx:id="parent_parametres_face_2" spacing="4">
             <HBox alignment="CENTER_LEFT" prefWidth="600.0">
       <!--         <Separator prefWidth="20.0"/>-->
                <Label minWidth="30" style="-fx-font-weight: bold;" text="Face 2"/>
                <Separator prefWidth="60.0"/>
             </HBox>
+
+
+            <VBox alignment="CENTER_LEFT">
+               <RadioButton fx:id="choix_convexe_2" selected="true" mnemonicParsing="false" text="Convexe">
+                  <toggleGroup>
+                     <ToggleGroup fx:id="choix_convexite_face_2"/>
+                  </toggleGroup>
+               </RadioButton>
+               <RadioButton fx:id="choix_plane_2" mnemonicParsing="false" selected="false" text="Plane" toggleGroup="$choix_convexite_face_2"/>
+               <RadioButton fx:id="choix_concave_2" mnemonicParsing="false" selected="false" text="Concave" toggleGroup="$choix_convexite_face_2"/>
+            </VBox>
+
+
             <VBox alignment="CENTER_LEFT">
                <RadioButton fx:id="choix_spherique_2" mnemonicParsing="false" text="Sphérique" selected="true">
                   <toggleGroup>
@@ -203,15 +218,6 @@
                </HBox>
             </VBox>
 
-            <VBox alignment="CENTER_LEFT">
-               <RadioButton fx:id="choix_convexe_2" mnemonicParsing="false" text="Convexe">
-                  <toggleGroup>
-                     <ToggleGroup fx:id="choix_convexite_face_2"/>
-                  </toggleGroup>
-               </RadioButton>
-               <RadioButton fx:id="choix_plane_2" mnemonicParsing="false" selected="true" text="Plane" toggleGroup="$choix_convexite_face_2"/>
-               <RadioButton fx:id="choix_concave_2" mnemonicParsing="false" selected="true" text="Concave" toggleGroup="$choix_convexite_face_2"/>
-            </VBox>
       </VBox>
    </HBox>
       <Separator prefWidth="200.0" />

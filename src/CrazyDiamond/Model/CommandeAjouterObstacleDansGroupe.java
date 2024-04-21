@@ -23,7 +23,7 @@ public class CommandeAjouterObstacleDansGroupe extends Commande {
 
     @Override
     public void executer() {
-        composition_contenant_obstacle = environnement.compositionContenant(obstacle) ;
+        composition_contenant_obstacle = environnement.plusPetiteCompositionContenant(obstacle) ;
         // Inutile de chercher le groupe qui contient l'obstacle s'il fait partie d'une composition
         groupe_contenant_obstacle = (composition_contenant_obstacle==null?environnement.groupeContenant(obstacle):null) ;
         soc_contenant_obstacle = environnement.systemeOptiqueCentreContenant(obstacle) ;

@@ -69,6 +69,7 @@ public class ElementsSelectionnesDeserializer extends StdDeserializer<ElementsSe
                 JsonNode obs_node = liste_obs_node.get(i);
                 Obstacle o_a_ajouter = null;
                 switch (obs_node.get("@type").asText()) {
+                    case "Lentille" -> o_a_ajouter = mapper.treeToValue(obs_node, Lentille.class);
                     case "Cercle" -> o_a_ajouter = mapper.treeToValue(obs_node, Cercle.class) ;
                     case "Conique" -> o_a_ajouter = mapper.treeToValue(obs_node, Conique.class) ;
                     case "DemiPlan" -> o_a_ajouter = mapper.treeToValue(obs_node, DemiPlan.class) ;
@@ -78,6 +79,9 @@ public class ElementsSelectionnesDeserializer extends StdDeserializer<ElementsSe
                     case "Composition" -> o_a_ajouter = mapper.treeToValue(obs_node, Composition.class);
                     case "Groupe" -> o_a_ajouter = mapper.treeToValue(obs_node, Groupe.class);
                 }
+
+                o_a_ajouter.nomProperty().set(o_a_ajouter.nom()+" (copie)");
+
                 // Ajout de l'obstacle dans l'environnement, et dans les éléments sélectionnés
                 env_hote.ajouterObstacleALaRacine(o_a_ajouter);
                 es.ajouter(o_a_ajouter);

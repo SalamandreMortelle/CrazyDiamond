@@ -25,7 +25,7 @@ public class IterateurGroupePrefixe implements Iterator<Obstacle> {
         Obstacle obs = iterator.next() ;
         if (!iterator.hasNext())
             this.iterateurs.removeFirst();
-        if (obs.contientObstaclesFils()) { // équivalent à obs instanceof Groupe
+        if (obs.contientObstaclesFils()) { // équivalent à "obs instanceof Groupe"
             if (this.en_profondeur)
                 this.iterateurs.addFirst(obs.obstaclesFils().iterator());
             else // Parcours en largeur

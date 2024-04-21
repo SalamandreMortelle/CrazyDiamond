@@ -989,7 +989,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
         Obstacle obs_reel = obstacleReelPointeAuPremierPlan(pt_g) ;
 
-        Groupe grp_appartenance = environnement.groupeRacine().plus_grand_groupe_solidaire_contenant(obs_reel) ;
+        Groupe grp_appartenance = environnement.groupeRacine().plusGrandGroupeSolidaireContenant(obs_reel) ;
 
         return (grp_appartenance!=null?grp_appartenance:obs_reel) ;
     }
@@ -1109,7 +1109,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         visiteur_affichage.streamObstaclesVisibles().forEach(obstacle -> {
             if(visiteur_affichage.contoursVisiblesObstacle(obstacle).intersecte(zone_rect)) {
 
-                Groupe grp_appartenance = environnement.groupeRacine().plus_grand_groupe_solidaire_contenant(obstacle);
+                Groupe grp_appartenance = environnement.groupeRacine().plusGrandGroupeSolidaireContenant(obstacle);
 
                 selection().ajouter(grp_appartenance != null ? grp_appartenance : obstacle);
             }
