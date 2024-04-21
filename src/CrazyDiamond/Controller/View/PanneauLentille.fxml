@@ -66,7 +66,7 @@
 
       <HBox alignment="TOP_CENTER" spacing="5.0">
          <children>
-            <Label contentDisplay="RIGHT" minWidth="-Infinity" text="Diamètre">
+            <Label contentDisplay="RIGHT" minWidth="-Infinity" text="Diamètre max.">
                <padding>
                   <Insets top="3.0" />
                </padding>

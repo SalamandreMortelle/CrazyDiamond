@@ -802,8 +802,11 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
                         }
 
                     } else { // La surface est majoritairement transparente
+                        dioptre_rencontre.sens.set((pas>0)?"⟶":"⟵");
                         if (dioptre_rencontre.obstacleSurface().natureMilieu() != NatureMilieu.PAS_DE_MILIEU) // Il y a un "vrai" dioptre entre deux milieux
                             if (dioptre_rencontre.rayonCourbure() != null) {
+
+
 
                                 // Coefficients a,b,c,d : cf. Optique, fondements et applications J-Ph. Pérez, Chap 4 (p. 45)
                                 // (déterminant de la matrice de transfert vaut 1)
