@@ -331,9 +331,17 @@ public class Environnement {
 //        return null ;
     }
 
+    public Groupe plusGrandGroupeSolidaireContenant(Obstacle o) {
+        return groupeRacine().plusGrandGroupeSolidaireContenant(o) ;
+    }
+
     public Composition plusGrandeCompositionContenant(Obstacle o) {
         return groupeRacine().plusGrandeCompositionContenant(o) ;
   }
+
+    public Obstacle obstacleContenant(Obstacle o) {
+        return groupeRacine().obstacleContenant(o) ;
+    }
 
     public Groupe groupeContenant(Obstacle o) {
         return groupeRacine().sousGroupeContenant(o) ;

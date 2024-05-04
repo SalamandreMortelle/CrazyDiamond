@@ -79,6 +79,21 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
         return null ;
     }
 
+    /**
+     * Retourne l'obstacle qui est, ou qui contient dans l'une de ses composantes (cas des groupes)
+     * dans l'une de ses composantes privées (cas des lentilles par exemple), l'obstacle o
+     * @param o
+     * @return l'obstacle trouvé qui peut être l'obstacle o lui-même
+     */
+    public Obstacle obstacleContenant(Obstacle o) {
+        for (Obstacle ob  : iterableObstaclesReelsEnLargeurDepuisPremierPlan()) {
+            if (ob.comprend(o))
+                return ob ;
+        }
+
+        return null ;
+    }
+
 
     public Groupe sousGroupeContenant(Obstacle o) {
         for (Obstacle ob  : elements()) {

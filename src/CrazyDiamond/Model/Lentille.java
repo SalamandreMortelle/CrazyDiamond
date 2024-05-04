@@ -173,6 +173,7 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
         this.composition = new Composition("Composition privée", Composition.Operateur.INTERSECTION,
                 iam.typeSurface(),iam.natureMilieu(),iam.indiceRefraction(),iam.couleurMatiere(),iac.couleurContour()) ;
 
+//        this.composition.definirParent(this);
         // La composition interne portera le même nom que la lentille
         composition.nomProperty().bind(this.nomProperty()) ;
 
@@ -726,6 +727,8 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
 
     public void definirDiametre(double diametre) {this.diametre.set(diametre);}
 
+    @Override
+    public boolean comprend(Obstacle o) {return (composition.comprend(o) || this.equals(o)) ;}
 
     @Override
     public boolean aSurSaSurface(Point2D p) {

@@ -35,7 +35,7 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
 
     static class DoubleStringConverterSansException extends DoubleStringConverter {
 
-        private static final String regExp = "[\\x00-\\x20]*[+-]?(((((\\p{Digit}+)(\\.)?((\\p{Digit}+)?)([eE][+-]?(\\p{Digit}+))?)|(\\.((\\p{Digit}+))([eE][+-]?(\\p{Digit}+))?)|(((0[xX](\\p{XDigit}+)(\\.)?)|(0[xX](\\p{XDigit}+)?(\\.)(\\p{XDigit}+)))[pP][+-]?(\\p{Digit}+)))[fFdD]?))[\\x00-\\x20]*";
+        private static final String regExp = "[\\x00-\\x20]*[+-]?(((((\\d+)(\\.)?((\\p{Digit}+)?)([eE][+-]?(\\p{Digit}+))?)|(\\.((\\p{Digit}+))([eE][+-]?(\\p{Digit}+))?)|(((0[xX](\\p{XDigit}+)(\\.)?)|(0[xX](\\p{XDigit}+)?(\\.)(\\p{XDigit}+)))[pP][+-]?(\\p{Digit}+)))[fFdD]?))[\\x00-\\x20]*";
 
         private static final Pattern pattern = Pattern.compile(regExp);
         private static boolean isDouble(String s) {
@@ -407,13 +407,26 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
 
             Point2D deplacement = soc.direction().multiply(e.getNewValue()-e.getOldValue()) ;
 //            intersection.obstacleSurface().translaterParCommande(deplacement); // Déclenchera un recalcul de la matrice optique qui mettra à jour la valeur de Z affichée dans la table
-            Obstacle obs_reel_a_deplacer = intersection.obstacleSurface() ;
-            Groupe grp_a_deplacer = canvas.environnement().groupeRacine().plusGrandGroupeSolidaireContenant(obs_reel_a_deplacer) ;
+
+
+            // Identification de l'obstacle réel de l'environnement qui contient l'obstacle dont on a changé le Z, ou cet obstacle
+            // lui-même, s'il ne fait ni partie d'un groupe, ni d'une composante privée d'un obstacle de l'environnement
+            Obstacle obs_reel_a_deplacer = canvas.environnement().obstacleContenant(intersection.obstacleSurface()) ;
+
+
+//            // Composition interne privée qui n'est pas dans l'arbre des obstacles de l'environnement (ex : composition interne d'une lentlle)
+//            Composition cmp_interne_a_deplacer = (obs_reel_a_deplacer.parent() instanceof Composition cmp ? (cmp.parent()==null?cmp:null) : null) ;
+////            Lentille lentille_a_deplacer = (cmp_interne_a_deplacer!=null?(cmp_interne_a_deplacer.parent() instanceof Lentille lent?lent:null):null) ;
+            Groupe grp_a_deplacer = canvas.environnement().plusGrandGroupeSolidaireContenant(obs_reel_a_deplacer) ;
             Composition cmp_a_deplacer = canvas.environnement().plusGrandeCompositionContenant(obs_reel_a_deplacer) ;
             if (grp_a_deplacer!=null)
                 grp_a_deplacer.translaterParCommande(deplacement);
             else if (cmp_a_deplacer!=null)
                 cmp_a_deplacer.translaterParCommande(deplacement);
+//            else if (lentille_a_deplacer!=null)
+//                lentille_a_deplacer.translaterParCommande(deplacement);
+//            else if (cmp_interne_a_deplacer!=null)
+//                cmp_interne_a_deplacer.translaterParCommande(deplacement);
             else
                 obs_reel_a_deplacer.translaterParCommande(deplacement);
 
