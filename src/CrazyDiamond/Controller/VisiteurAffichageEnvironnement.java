@@ -853,7 +853,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         gc.setStroke(c_rm);
 
         // Objet virtuel ?
-        if (soc.dioptresRencontres().size()>0 && soc.dioptresRencontres().get(0).ZIntersection()<soc.ZObjet())
+        if (soc.dioptresRencontres().size()>0 && soc.dioptresRencontres().get(0).ZGeometrique()<soc.ZObjet())
             gc.setLineDashes(2*res,6*res);
 
         for (RencontreDioptreParaxial intersection : soc.dioptresRencontres()) {
@@ -861,7 +861,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             if (intersection.HLimiteOuverture()==null)
                 continue;
 
-            Point2D pt = origine.add(soc.direction().multiply(intersection.ZIntersection())) ;
+            Point2D pt = origine.add(soc.direction().multiply(intersection.ZGeometrique())) ;
             Point2D pt_haut = pt.add(perp.multiply(intersection.HLimiteOuverture())) ;
             Point2D pt_bas  = pt.add(perp.multiply(-intersection.HLimiteOuverture())) ;
 
@@ -876,7 +876,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         if (soc.ZImage()!=null) {
             // Objet virtuel ?
-            if (soc.dioptresRencontres().size() > 0 && soc.dioptresRencontres().get(soc.dioptresRencontres().size() - 1).ZIntersection() > soc.ZImage())
+            if (soc.dioptresRencontres().size() > 0 && soc.dioptresRencontres().get(soc.dioptresRencontres().size() - 1).ZGeometrique() > soc.ZImage())
                 gc.setLineDashes(2 * res, 6 * res);
 
             gc.strokeLine(pt_prec_haut.getX(), pt_prec_haut.getY(), pimage.getX(), pimage.getY());
@@ -898,7 +898,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         double res = cae.resolution() ;
 
 
-        double z_d =it_avec_diaph.ZIntersection(), h_d = it_avec_diaph.rayonDiaphragme();
+        double z_d =it_avec_diaph.ZGeometrique(), h_d = it_avec_diaph.rayonDiaphragme();
         double z_ant_d = it_avec_diaph.antecedentDiaphragme().z() , h_ant_d = Math.abs(it_avec_diaph.antecedentDiaphragme().hauteur()) ;
 
         double pos_lien = Math.max(h_ant_d,h_d)+15*res+10*res+20*res ;
@@ -1019,7 +1019,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         Point2D pt_prec_ct_bas = pt_objet_ct_bas ;
 
         // Objet virtuel ?
-        if (soc.dioptresRencontres().size()>0 && soc.dioptresRencontres().get(0).ZIntersection()<soc.ZObjet())
+        if (soc.dioptresRencontres().size()>0 && soc.dioptresRencontres().get(0).ZGeometrique()<soc.ZObjet())
             gc.setLineDashes(2*res,6*res);
 
         for (RencontreDioptreParaxial intersection : soc.dioptresRencontres()) {
@@ -1027,7 +1027,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 //            if (intersection.HLimiteChamp()==null)
 //                continue;
 
-            Point2D pt = origine.add(soc.direction().multiply(intersection.ZIntersection())) ;
+            Point2D pt = origine.add(soc.direction().multiply(intersection.ZGeometrique())) ;
 
             if (champ_moyen&&intersection.HLimiteChamp()!=null) {
                 Point2D pt_cm_haut = pt.add(perp.multiply(intersection.HLimiteChamp()));

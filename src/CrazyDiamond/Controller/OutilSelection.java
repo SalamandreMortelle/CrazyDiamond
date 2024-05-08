@@ -204,7 +204,7 @@ public class OutilSelection extends Outil {
 //            cae.translaterSelection(v_glisser_g);
 //        }
 
-        if (!selection_rectangulaire_en_cours) { // Fin ("arrivée") du glisser
+        if (!selection_rectangulaire_en_cours && p_depart_glisser_g!=null) { // Fin ("arrivée") du glisser
             Point2D p_arrivee_glisser_g = cae.gc_vers_g(mouseEvent.getX(),mouseEvent.getY());
             Point2D v_glisser_total_g   = p_arrivee_glisser_g.subtract(p_depart_glisser_g) ;
             // Enregistrement d'une seule commande correspondant au déplacement résultant global

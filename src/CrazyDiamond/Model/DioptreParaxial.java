@@ -7,8 +7,8 @@ import java.util.List;
 
 public class DioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
 
-    // Abscisse de l'intersection dans le référentiel du SOC
-    DoubleProperty z_intersection;
+    // Abscisse de l'intersection dans le référentiel géométrique du SOC
+    DoubleProperty z_geometrique;
 
     // Rayon algébrique de courbure de la surface rencontrée, au niveau du point de rencontre, ou "null" si le dioptre est plan
     ObjectProperty<Double> r_courbure;
@@ -103,14 +103,14 @@ public class DioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
 
     }
 
-    public DioptreParaxial(double z_intersection, Double r_courbure) { // Création d'un dioptre virtuel : seul sa position géométrique (Z et Rc) compte
-        this(z_intersection, r_courbure, 0.0, 0.0, null);
+    public DioptreParaxial(double z_geometrique, Double r_courbure) { // Création d'un dioptre virtuel : seul sa position géométrique (Z et Rc) compte
+        this(z_geometrique, r_courbure, 0.0, 0.0, null);
     }
 
-    public DioptreParaxial(double z_intersection, Double r_courbure, double indice_avant, double indice_apres, Obstacle obs_surface) {
+    public DioptreParaxial(double z_geometrique, Double r_courbure, double indice_avant, double indice_apres, Obstacle obs_surface) {
 
-        this.z_intersection = new SimpleDoubleProperty(z_intersection);
-        this.r_courbure = new SimpleObjectProperty<Double>(r_courbure);
+        this.z_geometrique = new SimpleDoubleProperty(z_geometrique);
+        this.r_courbure = new SimpleObjectProperty<>(r_courbure);
 
 
         if (obs_surface!=null) { // Pas un dioptre virtuel
@@ -118,12 +118,12 @@ public class DioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
             this.indice_apres = new SimpleDoubleProperty(indice_apres);
 
             if (obs_surface.aUneProprieteDiaphragme()) { // Ce cas ne concerne que les obs_surface de type Segment qui ont une propriété diaphragme
-                this.r_diaphragme = new SimpleObjectProperty<Double>(obs_surface.diaphragmeProperty().getValue());
+                this.r_diaphragme = new SimpleObjectProperty<>(obs_surface.diaphragmeProperty().getValue());
                 this.r_diaphragme.bindBidirectional(obs_surface.diaphragmeProperty());
             } else
-                this.r_diaphragme = new SimpleObjectProperty<Double>(obs_surface.rayonDiaphragmeParDefaut());
+                this.r_diaphragme = new SimpleObjectProperty<>(obs_surface.rayonDiaphragmeParDefaut());
 
-            this.obs_surface = new SimpleObjectProperty<Obstacle>(obs_surface);
+            this.obs_surface = new SimpleObjectProperty<>(obs_surface);
 
         } else { // Cas où ce dioptre est "virtuel" (pas rattaché à un obstacle), seul sa position géométrique (Z et Rc) compte
             // Ne rien faire : on n'a pas besoin de la propriété Rdiaphragme dans ce cas, ni de la propriété obs_surface
@@ -148,8 +148,8 @@ public class DioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
         indice_avant.set(indice_apres.get());
     }
 
-    public double ZIntersection() {
-        return z_intersection.get();
+    public double ZGeometrique() {
+        return z_geometrique.get();
     }
 
     public Double rayonCourbure() {
@@ -184,15 +184,15 @@ public class DioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
         if (rayonDiaphragme() == null)
             return null;
 
-        return new SystemeOptiqueCentre.PositionElement(ZIntersection(), rayonDiaphragme());
+        return new SystemeOptiqueCentre.PositionElement(ZGeometrique(), rayonDiaphragme());
     }
 
     public Double z() {
-        return z_intersection.get();
+        return z_geometrique.get();
     }
 
     public DoubleProperty zProperty() {
-        return z_intersection;
+        return z_geometrique;
     }
 
     public DoubleProperty indiceAvantProperty() {
@@ -221,8 +221,8 @@ public class DioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
 
     /**
      * Supprime de liste_d les dioptres qui sont après d_limite, ou confondus avec lui
-     * @param liste_d
-     * @param d_limite
+     * @param liste_d liste des dioptres
+     * @param d_limite dioptre limite
      */
     static void supprimeDioptresApres(List<DioptreParaxial> liste_d, DioptreParaxial d_limite) {
         liste_d.removeIf(d -> DioptreParaxial.comparateur.compare(d,d_limite)>=0 ) ;
@@ -336,7 +336,7 @@ public class DioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
     }
 
     public void convertirDistances(double facteur_conversion) {
-        z_intersection.set(z_intersection.get()*facteur_conversion);
+        z_geometrique.set(z_geometrique.get()*facteur_conversion);
         if (r_courbure.get()!=null) r_courbure.set(r_courbure.get()*facteur_conversion);
         if (r_diaphragme.get()!=null) r_diaphragme.set(r_diaphragme.get()*facteur_conversion);
     }

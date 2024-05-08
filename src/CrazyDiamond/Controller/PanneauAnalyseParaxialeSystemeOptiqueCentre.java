@@ -171,7 +171,8 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         LOGGER.log(Level.INFO,"Initialisation du PanneauAnayseParaxialeSystemeOptiqueCentre et de ses liaisons") ;
 
         StringBinding affiche_nature_soc = new StringBinding() {
-            { super.bind(soc.ZPlanFocal2Property(),soc.ZPlanPrincipal2Property(),soc.IntersectionsSurAxeProperty(),soc.MatriceTransfertESProperty()) ;}
+            { super.bind(soc.ZPlanFocal2Property(),soc.ZPlanPrincipal2Property(),soc.SensPlusEnSortieProperty(),
+                    soc.IntersectionsSurAxeProperty(),soc.MatriceTransfertESProperty()) ;}
             @Override protected String computeValue() {
 
                 StringBuilder sb = new StringBuilder() ;
@@ -197,7 +198,7 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
 
                 sb.append("dioptrique ") ;
 
-                double vergence = soc.NSortie()/(soc.ZPlanFocal2()-soc.ZPlanPrincipal2()) ;
+                double vergence = soc.NSortie()/((soc.SensPlusEnSortie()?1d:-1d)*(soc.ZPlanFocal2()-soc.ZPlanPrincipal2())) ;
 
                 if (Environnement.quasiEgal(vergence,0d))
                     sb.append("afocal") ;
@@ -226,12 +227,12 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         focale_objet.textProperty().bind(calcul_focale_objet);
 
         StringBinding calcul_focale_image = new StringBinding() {
-            { super.bind(soc.ZPlanFocal2Property(),soc.ZPlanPrincipal2Property()) ;}
+            { super.bind(soc.ZPlanFocal2Property(),soc.ZPlanPrincipal2Property(),soc.SensPlusEnSortieProperty()) ;}
             @Override protected String computeValue() {
                 if (soc.ZPlanFocal2()==null || soc.ZPlanPrincipal2()==null)
                     return "" ;
 
-                return canvas.convertisseurAffichageDistance().toString(soc.ZPlanFocal2() - soc.ZPlanPrincipal2())
+                return canvas.convertisseurAffichageDistance().toString((soc.SensPlusEnSortie()?1d:-1d)*(soc.ZPlanFocal2() - soc.ZPlanPrincipal2()))
                         + canvas.environnement().suffixeUnite() ;
             }
         };
@@ -245,7 +246,6 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
 
         z_pl_nodal_objet.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanNodal1Property(),true));
         z_pl_nodal_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanNodal2Property(),true));
-
 
         StringBinding affiche_label_z_objet = new StringBinding() {
             { super.bind(canvas.environnement().uniteProperty()) ;}
@@ -394,7 +394,7 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         };
         col_z.textProperty().bind(affiche_label_z_dioptre);
 
-        col_z.setCellValueFactory(p -> p.getValue().zProperty().asObject());
+        col_z.setCellValueFactory(p -> p.getValue().ZGeometriqueProperty().asObject());
         col_z.setCellFactory(TextFieldTableCell.forTableColumn(new DoubleStringConverterSansException()));
 
         col_z.setOnEditCommit(e-> {

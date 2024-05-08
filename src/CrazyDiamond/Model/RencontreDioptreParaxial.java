@@ -5,8 +5,10 @@ import javafx.scene.transform.Affine;
 
 public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
 
-    // Abscisse de l'intersection dans le référentiel du SOC
-    DoubleProperty z_intersection;
+    // Abscisse géométrique de l'intersection dans le référentiel du SOC
+    DoubleProperty z_geometrique;
+    // Abscisse optique de l'intersection dans le référentiel du SOC
+    DoubleProperty z_optique;
 
     // Rayon algébrique de courbure de la surface rencontrée, au niveau du point de rencontre, ou "null" si le dioptre est plan
     ObjectProperty<Double> r_courbure;
@@ -45,7 +47,7 @@ public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*
 
     public boolean estConfonduAvec(RencontreDioptreParaxial d_autre) {
 
-        if (!Environnement.quasiEgal(z(),d_autre.z()))
+        if (!Environnement.quasiEgal(ZGeometrique(),d_autre.ZGeometrique()))
             return false ;
 
         if (rayonCourbure()==null && d_autre.rayonCourbure()==null)
@@ -84,22 +86,33 @@ public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*
     }
 
 
-    // Constructeur à partir d'un dioptre paraxial : n'initialise pas les propriétés r_diaphragme et ignorer qui
-    // relèvent des modalités de traversée du dioptre et sont définies dans un second temps
-    public RencontreDioptreParaxial(DioptreParaxial dioptre,boolean sens_plus) {
+    //
 
-        // Pour les propriétés qui sont propres à chaque traversée du dioptre (i.e. qui dépendent du sens de
+    /**
+     * Constructeur à partir d'un dioptre paraxial : n'initialise pas les propriétés r_diaphragme et ignorer qui
+     * relèvent des modalités de traversée du dioptre et sont définies dans un second temps.
+     *
+     * @param dioptre : le DioptreParaxial qui est rencontré
+     * @param sens_plus : sens de la lumière incidente qui arrive sur le dioptre, par rapport à l'axe géométrique du SOC
+     * @param precedent_dioptre_rencontre : précédent dioptre rencontré (null s'il n'y en pas : première rencontre)
+     */
+    public RencontreDioptreParaxial(DioptreParaxial dioptre,boolean sens_plus, RencontreDioptreParaxial precedent_dioptre_rencontre) {
+
+        // Pour les propriétés qui sont propres à chaque traversée du dioptre (c'est-à-dire qui dépendent du sens de
         // propagation de la lumière, ou de choix faits par l'utilisateur), on crée une nouvelle propriété.
-        // Pour les autres, qui sont des propriétés intrinsèques de l'obstacles, on se contente de reprendre (copîer)
+        // Pour les autres, qui sont des propriétés intrinsèques de l'obstacle, on se contente de reprendre (copîer)
         // la référence de la propriété existante.
 
         // Propriétés générales du dioptre, ne dépendant pas du sens de propagation de la lumière : on référence directement
         // la Property du dioptre de base
-        this.z_intersection = dioptre.z_intersection;
+        this.z_geometrique = dioptre.z_geometrique;
         this.obs_surface = dioptre.obs_surface;
         this.r_diaphragme = dioptre.r_diaphragme;
 
         // Propriétés spécifiques de la rencontre du dioptre, qui dépendent du sens de propagation
+        this.z_optique = (precedent_dioptre_rencontre==null?
+                            new SimpleDoubleProperty(dioptre.ZGeometrique())
+                           :new SimpleDoubleProperty(precedent_dioptre_rencontre.ZOptique()+Math.abs(dioptre.ZGeometrique()-precedent_dioptre_rencontre.ZGeometrique()))) ;
         this.sens = new SimpleStringProperty(sens_plus?"⟶":"⟵");
         this.indice_avant = new SimpleDoubleProperty(sens_plus?dioptre.indiceAvant():dioptre.indiceApres());
         this.indice_apres = new SimpleDoubleProperty(sens_plus?dioptre.indiceApres():dioptre.indiceAvant());
@@ -109,7 +122,7 @@ public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*
             this.r_courbure = new SimpleObjectProperty<>(null);
 
         this.ignorer = new SimpleBooleanProperty(false);
-        this.sens = new SimpleStringProperty("⟶");
+//        this.sens = new SimpleStringProperty("⟶");
 
         this.est_diaphragme_ouverture = new SimpleStringProperty("");
         this.est_diaphragme_champ = new SimpleStringProperty("");
@@ -156,8 +169,11 @@ public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*
         indice_avant.set(indice_apres.get());
     }
 
-    public double ZIntersection() {
-        return z_intersection.get();
+    public double ZGeometrique() {
+        return z_geometrique.get();
+    }
+    public Double ZOptique() {
+        return z_optique.get();
     }
 
     public Double rayonCourbure() {
@@ -196,6 +212,18 @@ public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*
         return sens.get();
     }
 
+    public double coefficientSensIncidence() {
+        if (sens().equals("⟶") || sens().equals("⇥") || sens().equals("⮌"))
+            return 1d ;
+
+        return -1d;
+    }
+    public double coefficientSensEmergence() {
+        if (sens().equals("⟶") || sens().equals("⇥") || sens().equals("⮎"))
+            return 1d ;
+
+        return -1d;
+    }
     public String estDiaphragmeOuverture() {
         return est_diaphragme_ouverture.get();
     }
@@ -256,15 +284,16 @@ public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*
         if (rayonDiaphragme() == null)
             return null;
 
-        return new SystemeOptiqueCentre.PositionElement(ZIntersection(), rayonDiaphragme());
+        return new SystemeOptiqueCentre.PositionElement(ZGeometrique(), rayonDiaphragme());
     }
 
-    public Double z() {
-        return z_intersection.get();
-    }
 
-    public DoubleProperty zProperty() {
-        return z_intersection;
+
+    public DoubleProperty ZGeometriqueProperty() {
+        return z_geometrique;
+    }
+    public DoubleProperty ZOptiqueProperty() {
+        return z_optique;
     }
 
     public DoubleProperty indiceAvantProperty() {
