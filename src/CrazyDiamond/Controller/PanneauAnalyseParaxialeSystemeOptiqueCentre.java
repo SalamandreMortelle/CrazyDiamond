@@ -171,20 +171,20 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         LOGGER.log(Level.INFO,"Initialisation du PanneauAnayseParaxialeSystemeOptiqueCentre et de ses liaisons") ;
 
         StringBinding affiche_nature_soc = new StringBinding() {
-            { super.bind(soc.ZPlanFocal2Property(),soc.ZPlanPrincipal2Property(),soc.SensPlusEnSortieProperty(),
+            { super.bind(soc.ZGeometriquePlanFocalImageProperty(),soc.ZGeometriquePlanPrincipalImageProperty(),soc.SensPlusEnSortieProperty(),
                     soc.IntersectionsSurAxeProperty(),soc.MatriceTransfertESProperty()) ;}
             @Override protected String computeValue() {
 
                 StringBuilder sb = new StringBuilder() ;
                 sb.append("Système ") ;
 
-                if (soc.MatriceTransfertES()!=null && Environnement.quasiEgal(soc.MatriceTransfertES().getMyx(),0d)) {
+                if (soc.matriceTransfertES()!=null && Environnement.quasiEgal(soc.matriceTransfertES().getMyx(),0d)) {
                     sb.append("afocal") ;
                     return sb.toString() ;
                 }
 
-                if (soc.ZPlanFocal2()==null || soc.ZPlanPrincipal2()==null || soc.NSortie()==0d
-                        ||Objects.equals(soc.ZPlanFocal2(),soc.ZPlanPrincipal2()) || soc.InterSectionsSurAxe()==null)
+                if (soc.ZGeometriquePlanFocalImage()==null || soc.ZGeometriquePlanPrincipalImage()==null || soc.NSortie()==0d
+                        ||Objects.equals(soc.ZGeometriquePlanFocalImage(),soc.ZGeometriquePlanPrincipalImage()) || soc.InterSectionsSurAxe()==null)
                     return "-" ;
 
 
@@ -198,7 +198,12 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
 
                 sb.append("dioptrique ") ;
 
-                double vergence = soc.NSortie()/((soc.SensPlusEnSortie()?1d:-1d)*(soc.ZPlanFocal2()-soc.ZPlanPrincipal2())) ;
+//                double vergence = soc.NSortie()/((soc.SensPlusEnSortie()?1d:-1d)*(soc.ZGeometriquePlanFocalImage()-soc.ZGeometriquePlanPrincipalImage())) ;
+
+                if (soc.matriceTransfertES()==null)
+                    return sb.toString() ;
+
+                double vergence = - soc.matriceTransfertES().getMyx() ; // Coeff. c de la matrice de transfert
 
                 if (Environnement.quasiEgal(vergence,0d))
                     sb.append("afocal") ;
@@ -215,37 +220,59 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
 
 
         StringBinding calcul_focale_objet = new StringBinding() {
-            { super.bind(soc.ZPlanFocal1Property(),soc.ZPlanPrincipal1Property()) ;}
+//            { super.bind(soc.ZPlanFocalObjetProperty(),soc.ZPlanPrincipalObjetProperty()) ;}
+            { super.bind(soc.MatriceTransfertESProperty(),canvas.environnement().uniteProperty()) ;}
             @Override protected String computeValue() {
-                if (soc.ZPlanFocal1()==null || soc.ZPlanPrincipal1()==null)
+//                if (soc.ZPlanFocalObjet()==null || soc.ZPlanPrincipalObjet()==null)
+//                    return "" ;
+
+                if (soc.matriceTransfertES()==null)
                     return "" ;
 
-                return canvas.convertisseurAffichageDistance().toString(soc.ZPlanFocal1() - soc.ZPlanPrincipal1())
+                double vergence = - soc.matriceTransfertES().getMyx() ; // Coeff. c de la matrice de transfert
+                if (Environnement.quasiEgal(vergence,0d))
+                    return "" ;
+
+                double focale_objet = (-soc.NEntree()/vergence) ; // En mètres
+
+//                return canvas.convertisseurAffichageDistance().toString(soc.ZPlanFocalObjet() - soc.ZPlanPrincipalObjet())
+//                        + canvas.environnement().suffixeUnite() ;
+                return canvas.convertisseurAffichageDistance().toString(focale_objet / canvas.environnement().unite().valeur )
                         + canvas.environnement().suffixeUnite() ;
+
             }
         };
         focale_objet.textProperty().bind(calcul_focale_objet);
 
         StringBinding calcul_focale_image = new StringBinding() {
-            { super.bind(soc.ZPlanFocal2Property(),soc.ZPlanPrincipal2Property(),soc.SensPlusEnSortieProperty()) ;}
+//            { super.bind(soc.ZPlanFocalImageProperty(),soc.ZPlanPrincipalImageProperty(),soc.SensPlusEnSortieProperty()) ;}
+            { super.bind(soc.MatriceTransfertESProperty(),canvas.environnement().uniteProperty()) ;}
             @Override protected String computeValue() {
-                if (soc.ZPlanFocal2()==null || soc.ZPlanPrincipal2()==null)
+//                if (soc.ZPlanFocalImage()==null || soc.ZPlanPrincipalImage()==null)
+//                    return "" ;
+                if (soc.matriceTransfertES()==null)
                     return "" ;
 
-                return canvas.convertisseurAffichageDistance().toString((soc.SensPlusEnSortie()?1d:-1d)*(soc.ZPlanFocal2() - soc.ZPlanPrincipal2()))
+                double vergence = - soc.matriceTransfertES().getMyx() ; // Coeff. c de la matrice de transfert
+                if (Environnement.quasiEgal(vergence,0d))
+                    return "" ;
+
+                double focale_image = (soc.NSortie()/vergence) ;  // En mètres
+
+                return canvas.convertisseurAffichageDistance().toString(focale_image / canvas.environnement().unite().valeur )
                         + canvas.environnement().suffixeUnite() ;
             }
         };
         focale_image.textProperty().bind(calcul_focale_image);
 
-        z_pl_focal_objet.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanFocal1Property(),true));
-        z_pl_focal_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanFocal2Property(),true));
+        z_pl_focal_objet.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZGeometriquePlanFocalObjetProperty(),true));
+        z_pl_focal_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZGeometriquePlanFocalImageProperty(),true));
 
-        z_pl_principal_objet.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanPrincipal1Property(),true));
-        z_pl_principal_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanPrincipal2Property(),true));
+        z_pl_principal_objet.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZGeometriquePlanPrincipalObjetProperty(),true));
+        z_pl_principal_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZGeometriquePlanPrincipalImageProperty(),true));
 
-        z_pl_nodal_objet.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanNodal1Property(),true));
-        z_pl_nodal_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanNodal2Property(),true));
+        z_pl_nodal_objet.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZGeometriquePlanNodalObjetProperty(),true));
+        z_pl_nodal_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZGeometriquePlanNodalImageProperty(),true));
 
         StringBinding affiche_label_z_objet = new StringBinding() {
             { super.bind(canvas.environnement().uniteProperty()) ;}
@@ -254,7 +281,7 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         label_z_objet.textProperty().bind(affiche_label_z_objet);
 
 
-        ObjectProperty<Double> z_objet_object_property = soc.ZObjetProperty();
+        ObjectProperty<Double> z_objet_object_property = soc.ZGeometriqueObjetProperty();
         // Mise à jour de la valeur du spinner quand la valeur de la propriété change
         z_objet_object_property.addListener(new ChangeListenerAvecGarde<>(spinner_z_objet.getValueFactory().valueProperty()::set));
         // Mise à jour de la propriété ZObjet du SOC quand la valeur du spinner change
@@ -283,7 +310,7 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
 
         canvas.ajustePasEtAffichageSpinnerValueFactoryDistance((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_h_objet.getValueFactory());
 
-        z_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZImageProperty(),true));
+        z_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZGeometriqueImageProperty(),true));
         h_image.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.HImageProperty(),true));
 
         grandissement_transversal.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.GrandissementTransversalProperty()));
@@ -307,10 +334,10 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         StringBinding affiche_a = new StringBinding() {
             { super.bind(soc.MatriceTransfertESProperty()) ;}
             @Override protected String computeValue() {
-                if (soc.MatriceTransfertES()==null)
+                if (soc.matriceTransfertES()==null)
                     return "" ;
 
-                return canvas.convertisseurAffichageDistance().toString(soc.MatriceTransfertES().getMxx());
+                return canvas.convertisseurAffichageDistance().toString(soc.matriceTransfertES().getMxx());
             }
         };
         label_a.textProperty().bind(affiche_a);
@@ -318,10 +345,10 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         StringBinding affiche_b = new StringBinding() {
             { super.bind(soc.MatriceTransfertESProperty()) ;}
             @Override protected String computeValue() {
-                if (soc.MatriceTransfertES()==null)
+                if (soc.matriceTransfertES()==null)
                     return "" ;
 
-                return canvas.convertisseurAffichageDistance().toString(soc.MatriceTransfertES().getMxy());
+                return canvas.convertisseurAffichageDistance().toString(soc.matriceTransfertES().getMxy());
             }
         };
         label_b.textProperty().bind(affiche_b);
@@ -329,10 +356,10 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         StringBinding affiche_c = new StringBinding() {
             { super.bind(soc.MatriceTransfertESProperty()) ;}
             @Override protected String computeValue() {
-                if (soc.MatriceTransfertES()==null)
+                if (soc.matriceTransfertES()==null)
                     return "" ;
 
-                return canvas.convertisseurAffichageDistance().toString(soc.MatriceTransfertES().getMyx());
+                return canvas.convertisseurAffichageDistance().toString(soc.matriceTransfertES().getMyx());
             }
         };
         label_c.textProperty().bind(affiche_c);
@@ -340,10 +367,10 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         StringBinding affiche_d = new StringBinding() {
             { super.bind(soc.MatriceTransfertESProperty()) ;}
             @Override protected String computeValue() {
-                if (soc.MatriceTransfertES()==null)
+                if (soc.matriceTransfertES()==null)
                     return "" ;
 
-                return canvas.convertisseurAffichageDistance().toString(soc.MatriceTransfertES().getMyy());
+                return canvas.convertisseurAffichageDistance().toString(soc.matriceTransfertES().getMyy());
             }
         };
         label_d.textProperty().bind(affiche_d);
@@ -351,24 +378,24 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         StringBinding calcul_et_formatage_vergence = new StringBinding() {
             { super.bind(soc.MatriceTransfertESProperty()) ;}
             @Override protected String computeValue() {
-                if (soc.MatriceTransfertES()==null)
+                if (soc.matriceTransfertES()==null)
                     return "" ;
 
-                double c = soc.MatriceTransfertES().getMyx() ;
+                double c = soc.matriceTransfertES().getMyx() ;
 
-                // NB :  Attention le résultat n'est en dioptries (δ) que si les distances sont en mètres
+                // NB : Attention le résultat n'est en dioptries (δ) que si les distances sont en mètres
                 return canvas.convertisseurAffichageDistance().toString(-c)+" δ";
             }
         };
         label_vergence.textProperty().bind(calcul_et_formatage_vergence);
 
         StringBinding calcul_et_formatage_interstice = new StringBinding() {
-            { super.bind(soc.ZPlanPrincipal1Property(),soc.ZPlanPrincipal2Property()) ;}
+            { super.bind(soc.ZOptiquePlanPrincipalObjetProperty(),soc.ZOptiquePlanPrincipalImageProperty()) ;}
             @Override protected String computeValue() {
-                if (soc.ZPlanPrincipal1()==null || soc.ZPlanPrincipal2()==null|| Objects.equals(soc.ZPlanPrincipal1(), soc.ZPlanPrincipal2()))
+                if (soc.ZOptiquePlanPrincipalObjet()==null || soc.ZOptiquePlanPrincipalImage()==null)
                     return "" ;
 
-                return canvas.convertisseurAffichageDistance().toString(soc.ZPlanPrincipal2()-soc.ZPlanPrincipal1())
+                return canvas.convertisseurAffichageDistance().toString(soc.ZOptiquePlanPrincipalImage()-soc.ZOptiquePlanPrincipalObjet())
                         + suffixeUniteAUtiliser() ;
             }
         };
@@ -382,7 +409,7 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         soc.dioptresRencontresProperty().addListener(
                 (ListChangeListener<? super RencontreDioptreParaxial>) (observable) -> table_intersections.refresh()
         );
-        soc.matriceTransfertOptiqueProperty().addListener(
+        soc.matriceTransfertESProperty().addListener(
                 (observableValue, affine, t1) -> table_intersections.refresh()
         );
 

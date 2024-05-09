@@ -61,7 +61,10 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     private boolean suspendre_repositionnement_obstacles = false;
 
     /**
-     * Abscisse du plan de référence d'entrée du système optique, positionné sur le dioptre du système ayant la plus petite abscisse
+     * Abscisse du plan de référence d'entrée du système optique, positionné sur le premier dioptre du système ayant la
+     * plus petite abscisse.
+     * Pour le plan d'entrée, cette abscisse est à la fois une abscisse géométrique et optique. Lorsque la lumière
+     * rencontre le plan d'entrée du SOC, elle n'a subi aucune réflexion, susceptible d'avoir "replié" l'axe optique.
      */
     double z_plan_entree;
 
@@ -71,10 +74,19 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     private final DoubleProperty n_entree ;
 
     /**
-     * Abscisse du plan de référence de sortie du système optique, positionné sur le dernier dioptre rencontré par un rayon confondu
-     * avec l'axe du système et émis depuis le plan d'entrée, dans le sens des X croissants.
+     * Abscisse géométrique du plan de référence de sortie du système optique, positionné sur le dernier dioptre
+     * rencontré par un rayon confondu avec l'axe du système et émis depuis le plan d'entrée, dans le sens des Z
+     * croissants.
      */
-    double z_plan_sortie;
+    double z_geometrique_plan_sortie;
+    /**
+     * Abscisse optique du plan de référence de sortie du système optique, positionné sur le dernier dioptre
+     * rencontré par un rayon confondu avec l'axe du système et émis depuis le plan d'entrée, dans le sens des Z
+     * croissants.
+     * Si la lumière subit des réflexions dans le SOC, l'axe optique "se replie" et le Z optique n'est plus forcément
+     * identique au Z geometrique.
+     */
+    double z_optique_plan_sortie ;
     /**
      * Indice du milieu "après" le SOC, dans le sens du rayon sortant du système, abstraction faite des milieux des
      * obstacles qui n'appartiennent pas au SOC
@@ -87,16 +99,42 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
      */
     final BooleanProperty sens_plus_en_sortie ;
 
-    private final SimpleObjectProperty<Double> z_plan_principal_objet;
-    private final SimpleObjectProperty<Double> z_plan_principal_image;
-    private final SimpleObjectProperty<Double> z_plan_nodal_objet;
-    private final SimpleObjectProperty<Double> z_plan_nodal_image;
-    private final SimpleObjectProperty<Double> z_plan_focal_objet;
-    private final SimpleObjectProperty<Double> z_plan_focal_image;
 
-    private final SimpleObjectProperty<Double> z_objet ;
+    /** Z geométrique du plan focal objet */
+    private final SimpleObjectProperty<Double> z_geometrique_plan_focal_objet;
+    /** Z optique du plan focal objet */
+    private final SimpleObjectProperty<Double> z_optique_plan_focal_objet;
+    /** Z geométrique du plan focal image */
+    private final SimpleObjectProperty<Double> z_geometrique_plan_focal_image;
+    /** Z optique du plan focal image */    
+    private final SimpleObjectProperty<Double> z_optique_plan_focal_image;
+
+    /** Z geométrique du plan principal objet */
+    private final SimpleObjectProperty<Double> z_geometrique_plan_principal_objet;
+    /** Z optique du plan principal objet */    
+    private final SimpleObjectProperty<Double> z_optique_plan_principal_objet;
+
+    /** Z geométrique du plan principal image */
+    private final SimpleObjectProperty<Double> z_geometrique_plan_principal_image;
+
+    /** Z optique du plan principal objet */    
+    private final SimpleObjectProperty<Double> z_optique_plan_principal_image;
+
+    /** Z geométrique du plan nodal objet */
+    private final SimpleObjectProperty<Double> z_geometrique_plan_nodal_objet;
+    /** Z optique du plan nodal objet */    
+    private final SimpleObjectProperty<Double> z_optique_plan_nodal_objet;
+    /** Z geométrique du plan nodal image */
+    private final SimpleObjectProperty<Double> z_geometrique_plan_nodal_image;
+    /** Z optique du plan nodal objet */    
+    private final SimpleObjectProperty<Double> z_optique_plan_nodal_image;
+
+
+    /** Z géométrique de l'objet */
+    private final SimpleObjectProperty<Double> z_geometrique_objet;
     private final SimpleObjectProperty<Double> h_objet ;
-    private final SimpleObjectProperty<Double> z_image ;
+    /** Z géométrique de l'image */
+    private final SimpleObjectProperty<Double> z_geometrique_image;
     private final SimpleObjectProperty<Double> h_image ;
 
     private final SimpleObjectProperty<Double> grandissement_transversal ;
@@ -178,7 +216,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
     public void definirPosition(Point2D pos) { axe.set(new PositionEtOrientation(pos,orientation()));}
 
-    public void definirZObjet(double z) { z_objet.set(z) ; }
+    public void definirZObjet(double z) { z_geometrique_objet.set(z) ; }
     public void definirHObjet(double h) { h_objet.set(h) ; }
 
     public void definirMontrerObjet(boolean mo) {montrer_objet.set(mo);}
@@ -265,8 +303,8 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
 
     /**
-     * Calcule la position (z_image + hauteur_image), en unités de l'environnement, de l'image d'un objet
-     * (z_objet + hauteur_objet) par une matrice de transfert ES grâce à la relation homographique et à la formule du
+     * Calcule la position (z_image optique + hauteur_image), en unités de l'environnement, de l'image d'un objet
+     * (z_objet optique + hauteur_objet) par une matrice de transfert ES grâce à la relation homographique et à la formule du
      * grandissement transversal.
      * NB :
      * z_objet doit être fourni, en unités de l'environnement, comptées par rapport à la face d'entrée du système (positif
@@ -302,7 +340,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
      * une matrice de transfert ES grâce à la relation homographique "inverse" et à la formule du grandissement transversal.
      *
      * <br>NB :
-     * z_image doit être fourni en unités de l'environnement, comptéEs par rapport à la face de sortie du système (positif
+     * z_image doit être fourni en unités de l'environnement, comptées par rapport à la face de sortie du système (positif
      * s'il est situé après la face de sortie dans le sens de propagation de la lumière, négatif sinon)
      * z_antecedent est retourné en unités de l'environnement, comptées par rapport à la face d'entrée (positif s'il est
      * après dans le sens de propagation de la lumière, négatif sinon)
@@ -404,20 +442,27 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         double focale_objet = (-n_entree.get()/vergence) ; // En mètres
         double focale_image = (n_sortie.get()/vergence) ;  // En mètres
 
-        // Les z des éléments cardinaux doivent être exprimés en unités de l'environnement : il faut donc faire des conversions
-        // NB : On calcule ici les Z *optiques* des éléments cardinaux, par leur Z géométrique (qu'il faut calculer pour l'affichage)
-        z_plan_focal_objet.set( (z_plan_entree*environnement.unite().valeur + focale_objet*d) / environnement.unite().valeur ) ;
-        z_plan_focal_image.set( (z_plan_sortie*environnement.unite().valeur + (sens_plus_en_sortie.get()?1d:-1d)*focale_image*a) / environnement.unite().valeur ) ;
-        LOGGER.log(Level.FINE,"Z Plan Focal 1 : {0} , Z Plan Focal 2 : {1}",new Object[] {z_plan_focal_objet, z_plan_focal_image});
+        // Les Z des éléments cardinaux doivent être exprimés en unités de l'environnement : il faut donc faire des
+        // conversions d'unité. De plus Les formules (cf. Perez pp. 53-54) donnent les Z *optiques* des éléments
+        // cardinaux, qu'il faut convertir en Z géométriques (dont on a besoin ici, car ils serviront à positionner dans
+        // le Canvas).
+        z_optique_plan_focal_objet.set( (z_plan_entree*environnement.unite().valeur + focale_objet*d) / environnement.unite().valeur ) ;
+        z_geometrique_plan_focal_objet.set(convertirEnZGeometrique(z_optique_plan_focal_objet.get())) ;
+        z_optique_plan_focal_image.set( (z_optique_plan_sortie *environnement.unite().valeur + focale_image*a) / environnement.unite().valeur ) ;
+        z_geometrique_plan_focal_image.set(convertirEnZGeometrique(z_optique_plan_focal_image.get())) ;
+        LOGGER.log(Level.FINE,"Z Plan Focal 1 : {0} , Z Plan Focal 2 : {1}",new Object[] {z_geometrique_plan_focal_objet, z_geometrique_plan_focal_image});
 
-        z_plan_principal_objet.set( (z_plan_entree*environnement.unite().valeur + focale_objet*(d-1d)) / environnement.unite().valeur );
-//        z_plan_principal_2.set( (z_plan_sortie*environnement.unite().valeur + (sens_plus_en_sortie.get()?1d:-1d)*focale_image*(a-1d)) / environnement.unite().valeur ) ;
-        z_plan_principal_image.set( (z_plan_sortie*environnement.unite().valeur + (sens_plus_en_sortie.get()?1d:-1d)*focale_image*(a-1d)) / environnement.unite().valeur ) ;
-        LOGGER.log(Level.FINE,"Z Plan Principal 1 : {0} , Z Plan Principal 2 : {1}",new Object[] {z_plan_principal_objet, z_plan_principal_image});
+        z_optique_plan_principal_objet.set( (z_plan_entree*environnement.unite().valeur + focale_objet*(d-1d)) / environnement.unite().valeur );
+        z_geometrique_plan_principal_objet.set(convertirEnZGeometrique(z_optique_plan_principal_objet.get()));
+        z_optique_plan_principal_image.set( (z_optique_plan_sortie *environnement.unite().valeur + focale_image*(a-1d)) / environnement.unite().valeur ) ;
+        z_geometrique_plan_principal_image.set(convertirEnZGeometrique(z_optique_plan_principal_image.get())) ;
+        LOGGER.log(Level.FINE,"Z Plan Principal 1 : {0} , Z Plan Principal 2 : {1}",new Object[] {z_geometrique_plan_principal_objet, z_geometrique_plan_principal_image});
 
-        z_plan_nodal_objet.set( (z_plan_entree*environnement.unite().valeur + focale_objet*(d- n_sortie.get()/n_entree.get())) / environnement.unite().valeur ) ;
-        z_plan_nodal_image.set( (z_plan_sortie*environnement.unite().valeur + (sens_plus_en_sortie.get()?1d:-1d)*focale_image*(a-n_entree.get()/n_sortie.get())) / environnement.unite().valeur ) ;
-        LOGGER.log(Level.FINE,"Z Plan Nodal 1 : {0} , Z Plan Nodal 2 : {1}",new Object[] {z_plan_nodal_objet, z_plan_nodal_image});
+        z_optique_plan_nodal_objet.set( (z_plan_entree*environnement.unite().valeur + focale_objet*(d- n_sortie.get()/n_entree.get())) / environnement.unite().valeur ) ;
+        z_geometrique_plan_nodal_objet.set(convertirEnZGeometrique(z_optique_plan_nodal_objet.get())) ;
+        z_optique_plan_nodal_image.set( (z_optique_plan_sortie *environnement.unite().valeur + focale_image*(a-n_entree.get()/n_sortie.get())) / environnement.unite().valeur ) ;
+        z_geometrique_plan_nodal_image.set(convertirEnZGeometrique(z_optique_plan_nodal_image.get())) ;
+        LOGGER.log(Level.FINE,"Z Plan Nodal 1 : {0} , Z Plan Nodal 2 : {1}",new Object[] {z_geometrique_plan_nodal_objet, z_geometrique_plan_nodal_image});
 
         matrice_transfert_es.set(nouvelle_matrice_transfert);
 
@@ -425,36 +470,62 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
     private void supprimerAbscissesElementsCardinaux() {
 
-        z_plan_focal_objet.set(null) ;
-        z_plan_focal_image.set(null) ;
-        z_plan_principal_objet.set(null) ;
-        z_plan_principal_image.set(null) ;
-        z_plan_nodal_objet.set(null) ;
-        z_plan_nodal_image.set(null) ;
+        z_optique_plan_focal_objet.set(null) ;
+        z_geometrique_plan_focal_objet.set(null) ;
+        
+        z_optique_plan_focal_image.set(null) ;
+        z_geometrique_plan_focal_image.set(null) ;
+        
+        z_optique_plan_principal_objet.set(null) ;
+        z_geometrique_plan_principal_objet.set(null) ;
+        
+        z_optique_plan_principal_image.set(null) ;
+        z_geometrique_plan_principal_image.set(null) ;
+        
+        z_optique_plan_nodal_objet.set(null) ;
+        z_geometrique_plan_nodal_objet.set(null) ;
+        
+        z_optique_plan_nodal_image.set(null) ;
+        z_geometrique_plan_nodal_image.set(null) ;
 
     }
 
     public Double ZPlanEntree() { return z_plan_entree; }
-    public Double ZPlanSortie() { return z_plan_sortie; }
-    public ObjectProperty<Double> ZPlanFocal1Property() { return z_plan_focal_objet;}
-    public Double ZPlanFocal1() { return z_plan_focal_objet.get();}
-    public ObjectProperty<Double> ZPlanFocal2Property() { return z_plan_focal_image;}
-    public Double ZPlanFocal2() { return z_plan_focal_image.get();}
-    public ObjectProperty<Double> ZPlanPrincipal1Property() { return z_plan_principal_objet;}
-    public Double ZPlanPrincipal1() { return z_plan_principal_objet.get();}
-    public ObjectProperty<Double> ZPlanPrincipal2Property() { return z_plan_principal_image;}
-    public Double ZPlanPrincipal2() { return z_plan_principal_image.get();}
-    public ObjectProperty<Double> ZPlanNodal1Property() { return z_plan_nodal_objet;}
-    public Double ZPlanNodal1() { return z_plan_nodal_objet.get();}
-    public ObjectProperty<Double> ZPlanNodal2Property() { return z_plan_nodal_image;}
-    public Double ZPlanNodal2() { return z_plan_nodal_image.get();}
+    public Double ZGeometriquePlanSortie() { return z_geometrique_plan_sortie; }
+    public Double ZOptiquePlanSortie() { return z_optique_plan_sortie; }
+    public ObjectProperty<Double> ZGeometriquePlanFocalObjetProperty() { return z_geometrique_plan_focal_objet;}
+    public Double ZGeometriquePlanFocalObjet() { return z_geometrique_plan_focal_objet.get();}
+    public ObjectProperty<Double> ZGeometriquePlanFocalImageProperty() { return z_geometrique_plan_focal_image;}
+    public Double ZGeometriquePlanFocalImage() { return z_geometrique_plan_focal_image.get();}
+    public ObjectProperty<Double> ZGeometriquePlanPrincipalObjetProperty() { return z_geometrique_plan_principal_objet;}
+    public Double ZGeometriquePlanPrincipalObjet() { return z_geometrique_plan_principal_objet.get();}
+    public ObjectProperty<Double> ZGeometriquePlanPrincipalImageProperty() { return z_geometrique_plan_principal_image;}
+    public Double ZGeometriquePlanPrincipalImage() { return z_geometrique_plan_principal_image.get();}
+    public ObjectProperty<Double> ZGeometriquePlanNodalObjetProperty() { return z_geometrique_plan_nodal_objet;}
+    public Double ZGeometriquePlanNodalObjet() { return z_geometrique_plan_nodal_objet.get();}
+    public ObjectProperty<Double> ZGeometriquePlanNodalImageProperty() { return z_geometrique_plan_nodal_image;}
+    public Double ZGeometriquePlanNodalImage() { return z_geometrique_plan_nodal_image.get();}
 
-    public ObjectProperty<Double> ZObjetProperty() { return z_objet;}
-    public Double ZObjet() { return z_objet.get();}
+    public ObjectProperty<Double> ZOptiquePlanFocalObjetProperty() { return z_optique_plan_focal_objet;}
+    public Double ZOptiquePlanFocalObjet() { return z_optique_plan_focal_objet.get();}
+    public ObjectProperty<Double> ZOptiquePlanFocalImageProperty() { return z_optique_plan_focal_image;}
+    public Double ZOptiquePlanFocalImage() { return z_optique_plan_focal_image.get();}
+    public ObjectProperty<Double> ZOptiquePlanPrincipalObjetProperty() { return z_optique_plan_principal_objet;}
+    public Double ZOptiquePlanPrincipalObjet() { return z_optique_plan_principal_objet.get();}
+    public ObjectProperty<Double> ZOptiquePlanPrincipalImageProperty() { return z_optique_plan_principal_image;}
+    public Double ZOptiquePlanPrincipalImage() { return z_optique_plan_principal_image.get();}
+    public ObjectProperty<Double> ZOptiquePlanNodalObjetProperty() { return z_optique_plan_nodal_objet;}
+    public Double ZOptiquePlanNodalObjet() { return z_optique_plan_nodal_objet.get();}
+    public ObjectProperty<Double> ZOptiquePlanNodalImageProperty() { return z_optique_plan_nodal_image;}
+    public Double ZOptiquePlanNodalImage() { return z_optique_plan_nodal_image.get();}
+    
+    
+    public ObjectProperty<Double> ZGeometriqueObjetProperty() { return z_geometrique_objet;}
+    public Double ZGeometriqueObjet() { return z_geometrique_objet.get();}
     public ObjectProperty<Double> HObjetProperty() { return h_objet;}
     public Double HObjet() { return h_objet.get();}
-    public ObjectProperty<Double> ZImageProperty() { return z_image;}
-    public Double ZImage() { return z_image.get();}
+    public ObjectProperty<Double> ZGeometriqueImageProperty() { return z_geometrique_image;}
+    public Double ZGeometriqueImage() { return z_geometrique_image.get();}
     public ObjectProperty<Double> HImageProperty() { return h_image;}
     public Double HImage() { return h_image.get();}
 
@@ -472,7 +543,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
     public ObjectProperty<Affine> MatriceTransfertESProperty() { return matrice_transfert_es; }
 
-    public Affine MatriceTransfertES() { return matrice_transfert_es.get() ; }
+    public Affine matriceTransfertES() { return matrice_transfert_es.get() ; }
 
 
     public BooleanProperty SensPlusEnSortieProperty() { return sens_plus_en_sortie; }
@@ -515,11 +586,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         return dioptres_rencontres.get() ;
     }
 
-    public Affine matriceTransfertOptique() {
-        return matrice_transfert_es.get() ;
-    }
-
-    public ObjectProperty<Affine> matriceTransfertOptiqueProperty() {
+    public ObjectProperty<Affine> matriceTransfertESProperty() {
         return matrice_transfert_es ;
     }
 
@@ -669,7 +736,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
                 if (index_diaphragme_ouverture_bis == -1)
                     index_diaphragme_ouverture_bis = i ;
 
-                if (ZObjet()!=null /* && (z_antecedent_diaphragme-ZObjet())>0 */) {
+                if (ZGeometriqueObjet()!=null /* && (z_antecedent_diaphragme-ZObjet())>0 */) {
                     // La recherche du DO dépend de la position de l'objet z_objet, ce n'est pas une propriété intrinsèque du SOC
 
                     // Methode 1 pour trouver le DO : ratio hauteur d'émergence sur dioptre i / rayon diaphragme i maximal pour un rayon
@@ -682,7 +749,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
                     // Ajoutons la matrice de translation entre l'objet et le plan d'entrée (rappel : on multiplie les
                     // matrices en partant de la fin vers le début ; c'est donc bien un append, et non un prepend qu'il
                     // faut faire ici)
-                    mat_transfert_depuis_objet.append(new Affine(  1d, (z_plan_entree-ZObjet())*environnement.unite().valeur/NEntree(), 0d,0d, 1d, 0d )) ;
+                    mat_transfert_depuis_objet.append(new Affine(  1d, (z_plan_entree- ZGeometriqueObjet())*environnement.unite().valeur/NEntree(), 0d,0d, 1d, 0d )) ;
                     // mat_transfert_depuis_objet.append(new Affine(  1d, (pas>0?1d:-1d)*(z_plan_entree-ZObjet())/NEntree(), 0d,0d, 1d, 0d )) ; // NON : sur le plan
                     // d'entree le rayon est toujours dans le sens de l'axe (et pas représente le sens du marche du rayon *au niveau du dioptre courant* et pas en entrée du SOC...)
 
@@ -704,12 +771,14 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
                             new Object[] {nb_dioptres_rencontres,ratio_h_emergent} ) ;
 
                     // NB : Toutes ces positions sont en mètres
+                    // Il s'agit d'une position en Z optique
                     PositionElement antecedent_diaphragme_relatif_soc =
                             positionAntecedent(resultat,
                                     new PositionElement(0d, dioptre_rencontre.rayonDiaphragme()),
                                     NEntree(),
                                     dioptre_rencontre.indiceApres());
 
+                    // On renseigne l'antécédent du diaphragme, avec son Z optique
                     dioptre_rencontre.antecedent_diaphragme.set(
                             new PositionElement(z_plan_entree + antecedent_diaphragme_relatif_soc.z(),
                                     antecedent_diaphragme_relatif_soc.hauteur()) ) ;
@@ -733,7 +802,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
                     // TODO : a supprimer à terme
                     // Attention : en présence de surfaces réfléchissantes sur l'axe optique, celui-ci "se replie" et la distance
                     // (optique, càd la distance parcourue le long de l'axe) ne se calcule pas par la simple différence ci-dessou
-                    double denom = Math.abs(dioptre_rencontre.antecedentDiaphragme().z() - ZObjet()) ;
+                    double denom = Math.abs(dioptre_rencontre.antecedentDiaphragme().z() - ZGeometriqueObjet()) ;
 
                     Double tan_angle_antecedent_depuis_z_objet = Environnement.quasiEgal(denom,0d) ?
                             null : Math.abs(dioptre_rencontre.antecedentDiaphragme().hauteur()) / denom ;
@@ -765,7 +834,8 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
                         // Il peut arriver que les indexALaRacine trouvés ne soient pas les mêmes, mais qu'ils correspondent tous
                         // deux à des diaphragmes identiques, c'est à dire de même position et de même rayon suite à
                         // des erreurs d'arrondi. Dans ce cas pas d'alerte.
-                        if (!Environnement.quasiEgal(d_ouv.ZGeometrique(),d_ouv_bis.ZGeometrique())
+//                        if (!Environnement.quasiEgal(d_ouv.ZGeometrique(),d_ouv_bis.ZGeometrique())
+                        if (!Environnement.quasiEgal(d_ouv.ZOptique(),d_ouv_bis.ZOptique())
                                 || !Environnement.quasiEgal(d_ouv.rayonDiaphragme(),d_ouv_bis.rayonDiaphragme()))
                             LOGGER.log(Level.SEVERE, "DO n'est pas le même selon la méthode...");
                     }
@@ -845,15 +915,18 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
             i += pas ;
         }  // Fin de la construction de la liste des dioptres rencontrés et de la matrice de transfert
 
-        z_plan_sortie = dioptre_rencontre.ZGeometrique()  ;
+        z_geometrique_plan_sortie = dioptre_rencontre.ZGeometrique()  ;
+        z_optique_plan_sortie = dioptre_rencontre.ZOptique() ;
         sens_plus_en_sortie.set(pas>0) ;
         n_sortie.set(dioptre_rencontre.indiceApres()) ;
 
         // Mise à jour immédiate de la position de l'image (en mètres) : on en a besoin un peu plus loin dans cette méthode
-
         PositionElement position_image = positionImage(resultat,
-                new PositionElement(z_objet.get()-z_plan_entree, +0.1d),n_entree.get(),n_sortie.get()) ;
-        double z_image_precalcule = (z_plan_sortie + (sens_plus_en_sortie.get()?1d:-1d) * position_image.z()) ;
+                new PositionElement(convertirEnZOptique(z_geometrique_objet.get())-z_plan_entree, +0.1d),n_entree.get(),n_sortie.get()) ;
+//        PositionElement position_image = positionImage(resultat,
+//                new PositionElement(z_objet.get()-z_plan_entree, +0.1d),n_entree.get(),n_sortie.get()) ;
+        double z_image_precalcule = z_optique_plan_sortie + position_image.z() ; // On calcule ici un Z optique
+//        double z_image_precalcule = (z_geometrique_plan_sortie + (sens_plus_en_sortie.get()?1d:-1d) * position_image.z()) ;
         double h_image_precalcule = position_image.hauteur()  ;
 
         // Si on a trouvé un DO...
@@ -862,16 +935,17 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
             // ..on le marque ;
             dioptres_rencontres.get(index_diaphragme_ouverture).est_diaphragme_ouverture.set("✓");
             //...son antécédent est la pupille d'entrée du système
-            z_pupille_entree.set(dioptres_rencontres.get(index_diaphragme_ouverture).antecedentDiaphragme().z()) ;
+            z_pupille_entree.set(dioptres_rencontres.get(index_diaphragme_ouverture).antecedentDiaphragme().z()) ; // C'est le Z optique que l'on renseigne ici
             // Par convention, on choisit de prendre r_pupille entrée > 0
             r_pupille_entree.set(Math.abs(dioptres_rencontres.get(index_diaphragme_ouverture).antecedentDiaphragme().hauteur())) ;
 
             // ...et l'image de la pupille d'entrée est la pupille de sortie du système
             PositionElement image_pupille_entree =
                     positionImage(resultat, new PositionElement(z_pupille_entree.get()-z_plan_entree, r_pupille_entree.get()),
-                            NEntree(), NSortie());
+                            NEntree(), NSortie()); // Position calculée en Z optique
 
-            z_pupille_sortie.set ( z_plan_sortie + (sens_plus_en_sortie.get()?1d:-1d)*image_pupille_entree.z() );
+            z_pupille_sortie.set ( z_optique_plan_sortie + image_pupille_entree.z() );
+//            z_pupille_sortie.set ( z_geometrique_plan_sortie + (sens_plus_en_sortie.get()?1d:-1d)*image_pupille_entree.z() );
             r_pupille_sortie.set ( Math.abs(image_pupille_entree.hauteur()) );
 
             // On peut alors définir l'angle d'ouverture du système
@@ -913,7 +987,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
                 // Si l'objet est avant la pupille d'entrée, l'angle du rayon (issu d'une hauteur h>0, celle du champ_moyen_objet) sur la pupille d'entrée est négatif (on le prend à-1°)
                 // Si l'objet est après la pupille d'entrée (objet virtuel), l'angle sur la pupille d'entrée est positif (+1°)
-                Point2D r_emergent = mat_transfert_depuis_pupille_entree.transform(0, Math.toRadians((z_objet.get()<z_pupille_entree.get())?-1d:1d));
+                Point2D r_emergent = mat_transfert_depuis_pupille_entree.transform(0, Math.toRadians((z_geometrique_objet.get()<z_pupille_entree.get())?-1d:1d));
                 // Point2D r_emergent = mat_transfert_depuis_pupille_entree.transform(0, Math.toRadians(1d));
 
                 double ratio_h_emergent = Double.MAX_VALUE ;
@@ -953,7 +1027,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
             dioptres_rencontres.get(index_diaphragme_champ).est_diaphragme_champ.set("✓");
 
             // L'antécédent du diaphragme de champ par la partie de système qui le précède est la lucarne d'entrée du SOC...
-            z_lucarne_entree.set(dioptres_rencontres.get(index_diaphragme_champ).antecedentDiaphragme().z());
+            z_lucarne_entree.set(dioptres_rencontres.get(index_diaphragme_champ).antecedentDiaphragme().z()); // Il s'agit du Z optique de la lucarne d'entrée
             r_lucarne_entree.set(Math.abs(dioptres_rencontres.get(index_diaphragme_champ).antecedentDiaphragme().hauteur()));
 
 
@@ -964,19 +1038,20 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
                     positionImage(resultat, new PositionElement(z_lucarne_entree.get() - z_plan_entree, r_lucarne_entree.get()),
                             NEntree(), NSortie());
             // ...et son image est la lucarne de sortie
-            z_lucarne_sortie.set(z_plan_sortie + (sens_plus_en_sortie.get() ? 1d : -1d) * image_lucarne_entree.z());
+            z_lucarne_sortie.set(z_optique_plan_sortie + image_lucarne_entree.z());
+//            z_lucarne_sortie.set(z_geometrique_plan_sortie + (sens_plus_en_sortie.get() ? 1d : -1d) * image_lucarne_entree.z());
             r_lucarne_sortie.set(Math.abs(image_lucarne_entree.hauteur()));
 
             // Ce rayon a un signe :
-            // si l'objet est avant la pupille d'entrée, il est négatif car on a lancé un rayon d'angle +1° pour trouver les champs
+            // si l'objet est avant la pupille d'entrée, il est négatif, car on a lancé un rayon d'angle +1° pour trouver les champs
             // si l'objet est après la pupille d'entrée, il est positif
             // r_champ_moyen_objet.set( r_lucarne_entree.get() * (z_objet.get()-z_pupille_entree.get()) / Math.abs((z_pupille_entree.get()-z_lucarne_entree.get())) ) ;
 
             // Comme on a pris soin de calculer l'angle sur la pupille d'entrée à +1° ou -1° selon les positions respectives (cf. plus haut)
             // du plan objet et du plan de la pupille d'entrée, on est sûr que le r_champ_moyen_objet doit être positif (comme les autres champs objets calculés plus loin)
-            r_champ_moyen_objet.set(Math.abs(r_lucarne_entree.get() * (z_pupille_entree.get() - z_objet.get()) / Math.abs((z_pupille_entree.get() - z_lucarne_entree.get()))));
+            r_champ_moyen_objet.set(Math.abs(r_lucarne_entree.get() * (z_pupille_entree.get() - z_geometrique_objet.get()) / Math.abs((z_pupille_entree.get() - z_lucarne_entree.get()))));
 
-            PositionElement position_image_cm = positionImage(resultat, new PositionElement(z_objet.get() - z_plan_entree, r_champ_moyen_objet.get()), NEntree(), NSortie());
+            PositionElement position_image_cm = positionImage(resultat, new PositionElement(z_geometrique_objet.get() - z_plan_entree, r_champ_moyen_objet.get()), NEntree(), NSortie());
                 r_champ_moyen_image.set(position_image_cm.hauteur());
 
         // Contrôle
@@ -1026,9 +1101,9 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 //                if (z_luc!=z_pupille_entree.get()) {
 
                     double coeff_dir_1 = (r_luc - r_pupille_entree.get()) / (z_luc - z_pupille_entree.get());
-                    double r_extr_1 = (z_luc - z_objet.get()) * (-coeff_dir_1) + r_luc;
+                    double r_extr_1 = (z_luc - z_geometrique_objet.get()) * (-coeff_dir_1) + r_luc;
                     double coeff_dir_2 = (r_luc + r_pupille_entree.get()) / (z_luc - z_pupille_entree.get());
-                    double r_extr_2 = (z_luc - z_objet.get()) * (-coeff_dir_2) + r_luc;
+                    double r_extr_2 = (z_luc - z_geometrique_objet.get()) * (-coeff_dir_2) + r_luc;
                     // NB : r_extr_1 et r_extr_2 peuvent être tous deux négatifs, si le plan objet est après la lucarne et la pupille d'entrée
 
 
@@ -1125,31 +1200,23 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
                 // TODO : vérifier le signe de ces angles dans différentes configurations : ils sont importants pour calculer
                 //  les hauteurs d'incidence des rayons limites du Cpl et du Ct sur tous les dioptres
-//            PositionElement lucarne_cpl = intersections_reelles_sur_axe.get(index_diaphragme_cpl).antecedentDiaphragme() ;             // NB : lucarne_cpl.hauteur() peut être négative
-//            angle_champ_pleine_lumiere_objet.set(/*(lucarne_cpl.z()<z_pupille_entree.get()?1d:-1d)**/angleDeVuDe(lucarne_cpl.z(),lucarne_cpl.hauteur() - (lucarne_cpl.hauteur()>0?1d:-1d)*r_pupille_entree.get(),z_pupille_entree.get()));
                 angle_champ_pleine_lumiere_objet.set(Math.toDegrees(Math.atan(coeff_dir_bord_cpl_provisoire)));
-//            PositionElement lucarne_ct = intersections_reelles_sur_axe.get(index_diaphragme_ct).antecedentDiaphragme() ;
-//            angle_champ_total_objet.set(/*(lucarne_ct.z()<z_pupille_entree.get()?1d:-1d)**/ angleDeVuDe(lucarne_ct.z(),lucarne_ct.hauteur() + (lucarne_ct.hauteur()>0?1d:-1d)*r_pupille_entree.get(),z_pupille_entree.get()));
                 angle_champ_total_objet.set(Math.toDegrees(Math.atan(coeff_dir_bord_ct_provisoire)));
 
-                PositionElement image_cpl =
-                        positionImage(resultat, new PositionElement(z_objet.get() - z_plan_entree, r_cpl_provisoire),
-                                NEntree(), NSortie());
-                PositionElement image_ct =
-                        positionImage(resultat, new PositionElement(z_objet.get() - z_plan_entree, r_ct_provisoire),
-                                NEntree(), NSortie());
+                PositionElement image_cpl = positionImage(resultat, new PositionElement(  convertirEnZOptique(z_geometrique_objet.get()) - z_plan_entree, r_cpl_provisoire), NEntree(), NSortie());
+//                PositionElement image_cpl = positionImage(resultat, new PositionElement( z_objet.get() - z_plan_entree, r_cpl_provisoire), NEntree(), NSortie());
+                PositionElement image_ct = positionImage(resultat, new PositionElement(convertirEnZOptique(z_geometrique_objet.get()) - z_plan_entree, r_ct_provisoire), NEntree(), NSortie());
+//                PositionElement image_ct = positionImage(resultat, new PositionElement(z_objet.get() - z_plan_entree, r_ct_provisoire), NEntree(), NSortie());
 
                 r_champ_pleine_lumiere_image.set(image_cpl.hauteur());
-//            r_champ_pleine_lumiere_image.set( Math.abs(image_objet_cpl.hauteur()) );
                 r_champ_total_image.set(image_ct.hauteur());
-//            r_champ_total_image.set( Math.abs(image_objet_ct.hauteur()) );
 
                 // TODO : vérifier le signe de ces angles dans différentes configurations : ils sont importants pour calculer
                 //  les hauteurs d'incidence des rayons limites du Cpl et du Ct sur tous les dioptres
-                angle_champ_pleine_lumiere_image.set(angleDeVuDe(z_plan_sortie + image_cpl.z(), image_cpl.hauteur() - r_pupille_sortie.get(), z_pupille_sortie.get()));
-//            angle_champ_pleine_lumiere_image.set(angleDeVuDe(z_plan_sortie+image_objet_cpl.z(),Math.abs(image_objet_cpl.hauteur())- r_pupille_sortie.get(),z_pupille_sortie.get())) ;
-                angle_champ_total_image.set(angleDeVuDe(z_plan_sortie + image_ct.z(), image_ct.hauteur() + r_pupille_sortie.get(), z_pupille_sortie.get()));
-//            angle_champ_total_image.set(angleDeVuDe(z_plan_sortie+image_objet_ct.z(),Math.abs(image_objet_ct.hauteur())+ r_pupille_sortie.get(),z_pupille_sortie.get())) ;
+                angle_champ_pleine_lumiere_image.set(angleDeVuDe(z_optique_plan_sortie + image_cpl.z(), image_cpl.hauteur() - r_pupille_sortie.get(), z_pupille_sortie.get()));
+//                angle_champ_pleine_lumiere_image.set(angleDeVuDe(z_geometrique_plan_sortie + image_cpl.z(), image_cpl.hauteur() - r_pupille_sortie.get(), z_pupille_sortie.get()));
+                angle_champ_total_image.set(angleDeVuDe(z_optique_plan_sortie + image_ct.z(), image_ct.hauteur() + r_pupille_sortie.get(), z_pupille_sortie.get()));
+//                angle_champ_total_image.set(angleDeVuDe(z_geometrique_plan_sortie + image_ct.z(), image_ct.hauteur() + r_pupille_sortie.get(), z_pupille_sortie.get()));
 
 
                 for (RencontreDioptreParaxial its : dioptres_rencontres) {
@@ -1363,16 +1430,23 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         this.montrer_plans_principaux = new SimpleBooleanProperty(false) ;
         this.montrer_plans_nodaux = new SimpleBooleanProperty(false) ;
 
-        this.z_plan_focal_objet = new SimpleObjectProperty<>(null) ;
-        this.z_plan_focal_image = new SimpleObjectProperty<>(null) ;
-        this.z_plan_principal_objet = new SimpleObjectProperty<>(null) ;
-        this.z_plan_principal_image = new SimpleObjectProperty<>(null) ;
-        this.z_plan_nodal_objet = new SimpleObjectProperty<>(null) ;
-        this.z_plan_nodal_image = new SimpleObjectProperty<>(null) ;
+        this.z_geometrique_plan_focal_objet = new SimpleObjectProperty<>(null) ;
+        this.z_geometrique_plan_focal_image = new SimpleObjectProperty<>(null) ;
+        this.z_geometrique_plan_principal_objet = new SimpleObjectProperty<>(null) ;
+        this.z_geometrique_plan_principal_image = new SimpleObjectProperty<>(null) ;
+        this.z_geometrique_plan_nodal_objet = new SimpleObjectProperty<>(null) ;
+        this.z_geometrique_plan_nodal_image = new SimpleObjectProperty<>(null) ;
 
-        this.z_objet = new SimpleObjectProperty<>(0.0) ;
+        this.z_optique_plan_focal_objet = new SimpleObjectProperty<>(null) ;
+        this.z_optique_plan_focal_image = new SimpleObjectProperty<>(null) ;
+        this.z_optique_plan_principal_objet = new SimpleObjectProperty<>(null) ;
+        this.z_optique_plan_principal_image = new SimpleObjectProperty<>(null) ;
+        this.z_optique_plan_nodal_objet = new SimpleObjectProperty<>(null) ;
+        this.z_optique_plan_nodal_image = new SimpleObjectProperty<>(null) ;
+        
+        this.z_geometrique_objet = new SimpleObjectProperty<>(0.0) ;
         this.h_objet = new SimpleObjectProperty<>(1.0) ;
-        this.z_image = new SimpleObjectProperty<>(null) ;
+        this.z_geometrique_image = new SimpleObjectProperty<>(null) ;
         this.h_image = new SimpleObjectProperty<>(null) ;
 
         this.grandissement_transversal  = new SimpleObjectProperty<>(null) ;
@@ -1407,12 +1481,11 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         
         
         // Calcul de la position de l'image grâce à la relation homographique, valable pour un système focal ou afocal
-
-        ObjectBinding<Double> calcule_z_image = new ObjectBinding<>() {
+        ObjectBinding<Double> calcule_z_geometrique_image = new ObjectBinding<>() {
 
             // On ne met pas la dépendance à n_entree/n_sortie car ils sont forcément modifiés en même temps que la matrice de transfert
             {
-                super.bind(matrice_transfert_es, z_objet, n_entree, n_sortie);
+                super.bind(matrice_transfert_es, z_geometrique_objet, n_entree, n_sortie);
             }
 
             @Override
@@ -1425,10 +1498,16 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
                     return nouveau_z_image_apres_conversion;
                 }
 
-                if (matrice_transfert_es.get() == null || z_objet.get() == null /*|| z_objet.get()>z_plan_entree*/)
+                if (matrice_transfert_es.get() == null || z_geometrique_objet.get() == null /*|| z_objet.get()>z_plan_entree*/)
                     return null;
+                System.out.println("----");
+                System.out.println("Z geometrique objet = "+z_geometrique_objet.get());
 
-                double resultat = z_plan_sortie + (sens_plus_en_sortie.get() ? 1d : -1d) * positionImage(matrice_transfert_es.get(), new PositionElement(z_objet.get() - z_plan_entree, 0d), n_entree.get(), n_sortie.get()).z();
+                double z_optique_objet = convertirEnZOptique(z_geometrique_objet.get()) ;
+                System.out.println("Z optique objet = "+z_optique_objet);
+
+                double resultat = convertirEnZGeometrique(z_optique_plan_sortie + positionImage(matrice_transfert_es.get(), new PositionElement(z_optique_objet - z_plan_entree, 0d), n_entree.get(), n_sortie.get()).z());
+//                double resultat = z_geometrique_plan_sortie + (sens_plus_en_sortie.get() ? 1d : -1d) * positionImage(matrice_transfert_es.get(), new PositionElement(z_geometrique_objet.get() - z_plan_entree, 0d), n_entree.get(), n_sortie.get()).z();
 
                 // Code ci-dessous laissé provisoirement pour contrôle : TODO : à supprimer ;
 
@@ -1439,12 +1518,27 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
                 double d = matrice_transfert_es.get().getMyy();
 
                 // Relation homographique (Optique : Fondements et applications, J-Ph. Perez, chapitre 6)
-//                double resultat_bis = z_plan_sortie + (sens_plus_en_sortie.get()?1d:-1d)*n_sortie.get() * (a*(z_objet.get()-z_plan_entree)/n_entree.get() - b) / (-c*(z_objet.get()-z_plan_entree)/n_entree.get()+d);
-                double resultat_bis = (z_plan_sortie * environnement.unite().valeur
-                        + (sens_plus_en_sortie.get() ? 1d : -1d) * n_sortie.get()
-                        * (a * (z_objet.get() - z_plan_entree) * environnement.unite().valeur / n_entree.get() - b)
-                        / (-c * (z_objet.get() - z_plan_entree) * environnement.unite().valeur / n_entree.get() + d))
-                        / environnement.unite().valeur;
+                System.out.println("Z (optique) plan entrée = "+z_plan_entree);
+                System.out.println("Z optique plan sortie = "+z_optique_plan_sortie);
+
+                double z_optique_resultat_bis = (z_optique_plan_sortie * environnement.unite().valeur
+                        + n_sortie.get()
+                        * (a * (z_optique_objet - z_plan_entree) * environnement.unite().valeur / n_entree.get() - b)
+                        / (-c * (z_optique_objet - z_plan_entree) * environnement.unite().valeur / n_entree.get() + d))
+                        / environnement.unite().valeur ;
+
+                System.out.println("Z optique image = "+z_optique_resultat_bis);
+
+                double resultat_bis = convertirEnZGeometrique( z_optique_resultat_bis );
+                System.out.println("Z geometrique image = "+resultat_bis);
+                System.out.println("Z optique image après reconversion = "+ convertirEnZOptique(resultat_bis));
+
+
+//                double resultat_bis = (z_geometrique_plan_sortie * environnement.unite().valeur
+//                        + (sens_plus_en_sortie.get() ? 1d : -1d) * n_sortie.get()
+//                        * (a * (z_geometrique_objet.get() - z_plan_entree) * environnement.unite().valeur / n_entree.get() - b)
+//                        / (-c * (z_geometrique_objet.get() - z_plan_entree) * environnement.unite().valeur / n_entree.get() + d))
+//                        / environnement.unite().valeur;
                 // ATTENTION : formule probablement fausse si sens_plus_en_sortie est false
 
                 if (!Environnement.quasiEgal(resultat, resultat_bis))
@@ -1456,12 +1550,12 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
             }
         };
-        z_image.bind(calcule_z_image);
+        z_geometrique_image.bind(calcule_z_geometrique_image);
 
         ObjectBinding<Double> calcule_h_image = new ObjectBinding<>() {
 
             // On ne met pas la dépendance à n_entree/n_sortie car ils sont forcément modifiés en même temps que la matrice de transfert
-            { super.bind(matrice_transfert_es,z_objet,h_objet,n_entree,n_sortie) ;}
+            { super.bind(matrice_transfert_es, z_geometrique_objet,h_objet,n_entree,n_sortie) ;}
             @Override protected Double computeValue() {
 
 //                if (suspendre_calcul_image)
@@ -1471,10 +1565,13 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
                     return nouveau_h_image_apres_conversion ;
                 }
 
-                if (matrice_transfert_es.get() == null || z_objet.get() == null || h_objet.get() == null /*|| z_objet.get()>z_plan_entree*/)
+                if (matrice_transfert_es.get() == null || z_geometrique_objet.get() == null || h_objet.get() == null /*|| z_objet.get()>z_plan_entree*/)
                     return null ;
 
-                double resultat = positionImage(matrice_transfert_es.get(), new PositionElement(z_objet.get()-z_plan_entree, h_objet.get()),n_entree.get(),n_sortie.get()).hauteur() ;
+                double z_optique_objet = convertirEnZOptique(z_geometrique_objet.get()) ;
+
+                double resultat = positionImage(matrice_transfert_es.get(), new PositionElement(z_optique_objet-z_plan_entree, h_objet.get()),n_entree.get(),n_sortie.get()).hauteur() ;
+//                double resultat = positionImage(matrice_transfert_es.get(), new PositionElement(z_geometrique_objet.get()-z_plan_entree, h_objet.get()),n_entree.get(),n_sortie.get()).hauteur() ;
 
                 // Code ci-dessous laissé provisoirement pour contrôle : TODO : à supprimer ;
 //                double z_image = n_image * ( a * z_obj_sur_n_obj -b ) / ( -c * z_obj_sur_n_obj + d ) ;
@@ -1487,9 +1584,10 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
                 double c = matrice_transfert_es.get().getMyx();
                 double d = matrice_transfert_es.get().getMyy();
 
-                double resultat_bis =  h_objet.get()*(a+c*(a*(z_objet.get()-z_plan_entree)*environnement.unite().valeur/n_entree.get() - b)
-                        / (-c*(z_objet.get()-z_plan_entree)*environnement.unite().valeur/n_entree.get()+d)) ;
-//                double resultat_bis =  h_objet.get()*(a+c*(a*(z_objet.get()-z_plan_entree)/n_entree.get() - b) / (-c*(z_objet.get()-z_plan_entree)/n_entree.get()+d)) ;
+                double resultat_bis =  h_objet.get()*(a+c*(a*(z_optique_objet-z_plan_entree)*environnement.unite().valeur/n_entree.get() - b)
+                        / (-c*(z_optique_objet-z_plan_entree)*environnement.unite().valeur/n_entree.get()+d)) ;
+//                double resultat_bis =  h_objet.get()*(a+c*(a*(z_geometrique_objet.get()-z_plan_entree)*environnement.unite().valeur/n_entree.get() - b)
+//                        / (-c*(z_geometrique_objet.get()-z_plan_entree)*environnement.unite().valeur/n_entree.get()+d)) ;
 
                 if (!Environnement.quasiEgal(resultat,resultat_bis))
                     LOGGER.log(Level.SEVERE,"Les H image ne sont pas les mêmes selon la méthode de calcul !") ;
@@ -1503,7 +1601,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         h_image.bind(calcule_h_image);
 
         ObjectBinding<Double> calcul_grandissement_transversal = new ObjectBinding<>() {
-            { super.bind(matrice_transfert_es,z_image,n_sortie) ;}
+            { super.bind(matrice_transfert_es, z_geometrique_image,n_sortie) ;}
 
             @Override protected Double computeValue() {
 
@@ -1524,10 +1622,13 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
                 if (Environnement.quasiEgal(c,0d)) // Système afocal : Gt constant, ne dépend pas de la position de l'objet
                     return a ;
 
-                if (z_image.get()==null)
+                if (z_geometrique_image.get()==null)
                     return null ;
 
-                return ( a+c*((z_image.get() - z_plan_sortie)*environnement.unite().valeur / n_sortie.get()) );
+                double z_optique_image = convertirEnZOptique(z_geometrique_image.get()) ;
+
+                return ( a+c*((z_optique_image - z_optique_plan_sortie)*environnement.unite().valeur / n_sortie.get()) );
+//                return ( a+c*((z_geometrique_image.get() - z_geometrique_plan_sortie)*environnement.unite().valeur / n_sortie.get()) );
             }
         };
         grandissement_transversal.bind(calcul_grandissement_transversal);
@@ -1596,32 +1697,13 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     public ObservableList<Obstacle> obstacles_centres() {return obstacles_centres.get() ;}
     public Stream<Obstacle> stream_obstacles_centres() {return obstacles_centres.stream() ;}
 
-    /**
-     * Recherche de l'obstacle le plus à l'avant-plan contenant "strictement" un certain point (i.e. l'obstacle retourné
-     * ne doit pas avoir le point à sa surface).
-     * @param p le point
-     * @return l'obstacle trouvé
-     */
-    public Obstacle obstacle_contenant_strictement(Point2D p) {
-
-        Obstacle resultat = null ;
-
-        for (Obstacle o : obstacles_centres) {
-            if (o.contient_strict(p))
-                resultat = o ;
-        }
-
-        return resultat ;
-    }
-
     public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
         axe.addListener((observable, oldValue, newValue) -> rap.rappel());
         couleur_axe.addListener((observable, oldValue, newValue) -> rap.rappel());
 
         montrer_dioptres.addListener((observable, oldValue, newValue) -> rap.rappel());
 
-
-        z_objet.addListener((observable, oldValue, newValue) -> rap.rappel());
+        z_geometrique_objet.addListener((observable, oldValue, newValue) -> rap.rappel());
         h_objet.addListener((observable, oldValue, newValue) -> rap.rappel());
 
         montrer_objet.addListener((observable, oldValue, newValue) -> rap.rappel());
@@ -1632,7 +1714,6 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         montrer_plans_nodaux.addListener((observable, oldValue, newValue) -> rap.rappel());
 
         matrice_transfert_es.addListener((observable, oldValue, newValue) -> rap.rappel());
-
     }
 
     public void ajouterRappelSurChangementTouteProprieteModfiantElementsCardinaux(RappelSurChangement rap) {
@@ -1883,17 +1964,27 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         suspendre_repositionnement_obstacles = false ;
 
         z_plan_entree = z_plan_entree*facteur_conversion ;
-        z_plan_sortie = z_plan_sortie*facteur_conversion ;
+        z_geometrique_plan_sortie = z_geometrique_plan_sortie *facteur_conversion ;
 
-        convertirObjectDoubleProperty(z_plan_focal_objet,facteur_conversion);
-        convertirObjectDoubleProperty(z_plan_focal_image,facteur_conversion);
+        convertirObjectDoubleProperty(z_geometrique_plan_focal_objet,facteur_conversion);
+        convertirObjectDoubleProperty(z_geometrique_plan_focal_image,facteur_conversion);
 
-        convertirObjectDoubleProperty(z_plan_principal_objet,facteur_conversion);
-        convertirObjectDoubleProperty(z_plan_principal_image,facteur_conversion);
+        convertirObjectDoubleProperty(z_geometrique_plan_principal_objet,facteur_conversion);
+        convertirObjectDoubleProperty(z_geometrique_plan_principal_image,facteur_conversion);
 
-        convertirObjectDoubleProperty(z_plan_nodal_objet,facteur_conversion);
-        convertirObjectDoubleProperty(z_plan_nodal_image,facteur_conversion);
+        convertirObjectDoubleProperty(z_geometrique_plan_nodal_objet,facteur_conversion);
+        convertirObjectDoubleProperty(z_geometrique_plan_nodal_image,facteur_conversion);
 
+        convertirObjectDoubleProperty(z_optique_plan_focal_objet,facteur_conversion);
+        convertirObjectDoubleProperty(z_optique_plan_focal_image,facteur_conversion);
+
+        convertirObjectDoubleProperty(z_optique_plan_principal_objet,facteur_conversion);
+        convertirObjectDoubleProperty(z_optique_plan_principal_image,facteur_conversion);
+
+        convertirObjectDoubleProperty(z_optique_plan_nodal_objet,facteur_conversion);
+        convertirObjectDoubleProperty(z_optique_plan_nodal_image,facteur_conversion);
+        
+        
         for (DioptreParaxial d : dioptres)
             d.convertirDistances(facteur_conversion) ;
 
@@ -1908,7 +1999,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 //        h_image.unbind();
 
         nouveau_z_image_apres_conversion_a_prendre_compte = true ;
-        nouveau_z_image_apres_conversion = (z_image.get() != null ? z_image.get()*facteur_conversion : null) ;
+        nouveau_z_image_apres_conversion = (z_geometrique_image.get() != null ? z_geometrique_image.get()*facteur_conversion : null) ;
         nouveau_h_image_apres_conversion = (h_image.get() != null ? h_image.get()*facteur_conversion : null) ;
         nouveau_g_t_apres_conversion = (grandissement_transversal.get() != null ? grandissement_transversal.get() : null) ;
 
@@ -1917,7 +2008,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
         // Déclenche une màj de z_image et h_image (et le passage à false du flag nouveau_h_image), et un calcul du
         // grandissement transversal, puisque z_image va être mis à jour du fait de la mise à jour de z_objet.
-        convertirObjectDoubleProperty(z_objet,facteur_conversion);
+        convertirObjectDoubleProperty(z_geometrique_objet,facteur_conversion);
 
         nouveau_h_image_apres_conversion_a_prendre_compte = true ; // On repasse le flag à true pour qu'il soit pris en compte
 
@@ -1951,12 +2042,41 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     }
 
     /**
-     * Convertit une coordonnée Z optique (c'est-à-dire une coordonnée le long de l'axe optique, sachant que celui-ci
-     * peut se replier lorsqu'il rencontre une surface réfléchissante) en Z géométrique, c'est-à-dire en distance réelle
-     * (sans "repli" d'axe). Le point de coordonnée z_optique=0 est l'origine du SOC
-     * @param z_optique
+     * Convertit une coordonnée Z géométrique sur l'axe géométrique (à sens unique) du SOC, en coordonnée Z optique
+     * minimale.
+     * @param z_geometrique
      * @return
      */
+    public double convertirEnZOptique(double z_geometrique) {
+
+        if (dioptres_rencontres==null || dioptres_rencontres.get()==null || dioptres_rencontres.isEmpty())
+            return z_geometrique ;
+
+        double z_face_entree = dioptres_rencontres.get(0).ZOptique() ; // C'est à la fois le Z entrée géométrique et optique
+
+        if (z_geometrique<=z_face_entree)
+            return z_geometrique ;
+
+        double z_optique_resultat = z_face_entree ;
+
+        for (int i=1 ; i <dioptres_rencontres.size() ; i++) {
+
+            if (z_geometrique <= dioptres_rencontres.get(i).ZGeometrique())
+                return z_optique_resultat + Math.abs(z_geometrique - dioptres_rencontres.get(i-1).ZGeometrique()) ;
+
+            z_optique_resultat = dioptres_rencontres.get(i).ZOptique() ;
+        }
+
+        return z_optique_resultat + Math.abs(z_geometrique - dioptres_rencontres.get(dioptres_rencontres.size()-1).ZGeometrique()) ;
+    }
+
+        /**
+         * Convertit une coordonnée Z optique (c'est-à-dire une coordonnée le long de l'axe optique, sachant que celui-ci
+         * peut se replier lorsqu'il rencontre une surface réfléchissante) en Z géométrique, c'est-à-dire en distance réelle
+         * (sans "repli" d'axe). Le point de coordonnée z_optique=0 est l'origine du SOC
+         * @param z_optique
+         * @return
+         */
     public double convertirEnZGeometrique(double z_optique) {
 
         if (dioptres_rencontres==null || dioptres_rencontres.get()==null || dioptres_rencontres.isEmpty())

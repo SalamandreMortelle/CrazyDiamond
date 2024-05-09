@@ -793,31 +793,31 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         afficheRayonsLimiteChamps(soc,true,true,true);
 
         if (soc.MontrerPlansFocaux()) {
-            marquePositionSurAxeSOC(soc,soc.ZPlanFocal1(),Color.LIGHTBLUE,300,"Fo");
-            marquePositionSurAxeSOC(soc,soc.ZPlanFocal2(),Color.LIGHTBLUE,300,"Fi");
+            marquePositionSurAxeSOC(soc,soc.ZGeometriquePlanFocalObjet(),Color.LIGHTBLUE,300,"Fo");
+            marquePositionSurAxeSOC(soc,soc.ZGeometriquePlanFocalImage(),Color.LIGHTBLUE,300,"Fi");
         }
 
         if (soc.MontrerPlansPrincipaux()) {
-            marquePositionSurAxeSOC(soc,soc.ZPlanPrincipal1(),Color.LIGHTYELLOW,300,"Ho");
-            marquePositionSurAxeSOC(soc,soc.ZPlanPrincipal2(),Color.LIGHTYELLOW,300,"Hi");
+            marquePositionSurAxeSOC(soc,soc.ZGeometriquePlanPrincipalObjet(),Color.LIGHTYELLOW,300,"Ho");
+            marquePositionSurAxeSOC(soc,soc.ZGeometriquePlanPrincipalImage(),Color.LIGHTYELLOW,300,"Hi");
         }
 
         if (soc.MontrerPlansNodaux()) {
-            marquePositionSurAxeSOC(soc,soc.ZPlanNodal1(),Color.PALEVIOLETRED,300,"No");
-            marquePositionSurAxeSOC(soc,soc.ZPlanNodal2(),Color.PALEVIOLETRED,300,"Ni");
+            marquePositionSurAxeSOC(soc,soc.ZGeometriquePlanNodalObjet(),Color.PALEVIOLETRED,300,"No");
+            marquePositionSurAxeSOC(soc,soc.ZGeometriquePlanNodalImage(),Color.PALEVIOLETRED,300,"Ni");
         }
 
         if (soc.MontrerObjet()) {
-            afficheFlechePerpendiculaireAxeSOC(soc, soc.ZObjet(), Color.GREEN, soc.HObjet());
-            afficheLabelSOC(soc, soc.ZObjet(), 0d, Color.GREEN,"Ao");
-            afficheLabelSOC(soc, soc.ZObjet(), soc.HObjet(), Color.GREEN,"Bo");
+            afficheFlechePerpendiculaireAxeSOC(soc, soc.ZGeometriqueObjet(), Color.GREEN, soc.HObjet());
+            afficheLabelSOC(soc, soc.ZGeometriqueObjet(), 0d, Color.GREEN,"Ao");
+            afficheLabelSOC(soc, soc.ZGeometriqueObjet(), soc.HObjet(), Color.GREEN,"Bo");
 
         }
 
         if (soc.MontrerImage() && soc.HImage()!=null) {
-            afficheFlechePerpendiculaireAxeSOC(soc, soc.ZImage(), Color.GREEN, soc.HImage());
-            afficheLabelSOC(soc, soc.ZImage(), 0d, Color.GREEN,"Ai");
-            afficheLabelSOC(soc, soc.ZImage(), soc.HImage(), Color.GREEN,"Bi");
+            afficheFlechePerpendiculaireAxeSOC(soc, soc.ZGeometriqueImage(), Color.GREEN, soc.HImage());
+            afficheLabelSOC(soc, soc.ZGeometriqueImage(), 0d, Color.GREEN,"Ai");
+            afficheLabelSOC(soc, soc.ZGeometriqueImage(), soc.HImage(), Color.GREEN,"Bi");
         }
 
 
@@ -842,8 +842,8 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         Point2D perp = soc.perpendiculaireDirection();
 
         // Point objet sur l'axe
-        Point2D pobjet = origine.add(soc.direction().multiply(soc.ZObjet())) ;
-        Point2D pimage = (soc.ZImage()!=null?origine.add(soc.direction().multiply(soc.ZImage())):null) ;
+        Point2D pobjet = origine.add(soc.direction().multiply(soc.ZGeometriqueObjet())) ;
+        Point2D pimage = (soc.ZGeometriqueImage()!=null?origine.add(soc.direction().multiply(soc.ZGeometriqueImage())):null) ;
 
         Point2D pt_prec_haut = pobjet ;
         Point2D pt_prec_bas = pobjet ;
@@ -853,7 +853,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         gc.setStroke(c_rm);
 
         // Objet virtuel ?
-        if (soc.dioptresRencontres().size()>0 && soc.dioptresRencontres().get(0).ZGeometrique()<soc.ZObjet())
+        if (soc.dioptresRencontres().size()>0 && soc.dioptresRencontres().get(0).ZGeometrique()<soc.ZGeometriqueObjet())
             gc.setLineDashes(2*res,6*res);
 
         for (RencontreDioptreParaxial intersection : soc.dioptresRencontres()) {
@@ -874,9 +874,9 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             pt_prec_bas  = pt_bas ;
         }
 
-        if (soc.ZImage()!=null) {
+        if (soc.ZGeometriqueImage()!=null) {
             // Objet virtuel ?
-            if (soc.dioptresRencontres().size() > 0 && soc.dioptresRencontres().get(soc.dioptresRencontres().size() - 1).ZGeometrique() > soc.ZImage())
+            if (soc.dioptresRencontres().size() > 0 && soc.dioptresRencontres().get(soc.dioptresRencontres().size() - 1).ZGeometrique() > soc.ZGeometriqueImage())
                 gc.setLineDashes(2 * res, 6 * res);
 
             gc.strokeLine(pt_prec_haut.getX(), pt_prec_haut.getY(), pimage.getX(), pimage.getY());
@@ -988,7 +988,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         Point2D perp = soc.perpendiculaireDirection();
 
         // Points objets sur l'axe
-        Point2D pobjet = origine.add(soc.direction().multiply(soc.ZObjet())) ;
+        Point2D pobjet = origine.add(soc.direction().multiply(soc.ZGeometriqueObjet())) ;
 
         Point2D pt_objet_cm_haut  = null, pt_objet_cm_bas  = null;
         Point2D pt_objet_cpl_haut = null, pt_objet_cpl_bas = null ;
@@ -1019,7 +1019,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         Point2D pt_prec_ct_bas = pt_objet_ct_bas ;
 
         // Objet virtuel ?
-        if (soc.dioptresRencontres().size()>0 && soc.dioptresRencontres().get(0).ZGeometrique()<soc.ZObjet())
+        if (soc.dioptresRencontres().size()>0 && soc.dioptresRencontres().get(0).ZGeometrique()<soc.ZGeometriqueObjet())
             gc.setLineDashes(2*res,6*res);
 
         for (RencontreDioptreParaxial intersection : soc.dioptresRencontres()) {
@@ -1075,15 +1075,15 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         gc.setStroke(s) ; // Restauration de la couleur de départ
         gc.setLineDashes(); // Arrêt des pointillés (s'il y en avait)
 
-        if (soc.ZImage()==null || soc.ZPlanSortie()==null)
+        if (soc.ZGeometriqueImage()==null || soc.ZGeometriquePlanSortie()==null)
             return ;
 
         // Image virtuelle ?
-        if (soc.dioptresRencontres().size()>0 && soc.ZPlanSortie()>soc.ZImage())
+        if (soc.dioptresRencontres().size()>0 && soc.ZGeometriquePlanSortie()>soc.ZGeometriqueImage())
             gc.setLineDashes(2*res,6*res);
 
         // Points image d'arrivée
-        Point2D pimage = origine.add(soc.direction().multiply(soc.ZImage())) ;
+        Point2D pimage = origine.add(soc.direction().multiply(soc.ZGeometriqueImage())) ;
 
         if (champ_moyen && soc.RChampMoyenImage()!=null) {
             Point2D pt_image_cm_haut = pimage.add(perp.multiply(soc.RChampMoyenImage()));

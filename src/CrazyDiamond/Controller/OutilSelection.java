@@ -335,10 +335,11 @@ public class OutilSelection extends Outil {
                     else if (clipboard.hasString()) // Si le clipboard contient une string, on tente de la parser comme du JSON CrazyDiamond
                         es = or.readValue(clipboard.getString(),ElementsSelectionnes.class) ;
 
-                    if (es!=null) {
+                    if (es!=null && !es.estVide()) {
                         new CommandeImporterElements(cae.environnement(),es).enregistrer();
                         cae.definirSelection(es);
                     }
+                    else break;
 
                 } catch (Exception e) {
                     LOGGER.log(Level.SEVERE,"Exception lors de la lecture du presse-papier") ;
@@ -352,6 +353,9 @@ public class OutilSelection extends Outil {
                 keyEvent.consume();
             }
             case DELETE -> {
+                if (cae.selection().estVide())
+                    break; // Ne pas consommer l'évènement pour que les champs texte, spinners, etc. puissent le recevoir
+
                 new CommandeSupprimerElements(cae.environnement(),cae.selection()).executer();
 
                 keyEvent.consume();

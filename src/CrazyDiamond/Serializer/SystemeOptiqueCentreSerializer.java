@@ -28,7 +28,7 @@ public class SystemeOptiqueCentreSerializer extends StdSerializer<SystemeOptique
         jsonGenerator.writeNumberField("y_origine",soc.YOrigine());
         jsonGenerator.writeNumberField("orientation",soc.orientation());
 
-        jsonGenerator.writeNumberField("z_objet",soc.ZObjet());
+        jsonGenerator.writeNumberField("z_objet",soc.ZGeometriqueObjet());
         jsonGenerator.writeNumberField("h_objet",soc.HObjet());
 
         jsonGenerator.writeBooleanField("montrer_objet",soc.MontrerObjet());
