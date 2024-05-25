@@ -149,8 +149,8 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
             throw new IllegalArgumentException("L'excentricité d'une face de lentille conique ne peut être négatif.") ;
         if (convexite_face_1 == ConvexiteFaceLentille.PLANE && convexite_face_2 == ConvexiteFaceLentille.PLANE)
             throw new IllegalArgumentException("Les deux faces d'une lentille ne peuvent pas être planes.") ;
-        if (diametre!=Double.MAX_VALUE && 0.5d*diametre>Math.min(rayon_1, rayon_2)) // À affiner : si les deux cercles de courbure se coupent, le rayon de la lentille ne peut pas être supérieur à l'ordonnée de leur intersection
-            throw new IllegalArgumentException("Le rayon (demi-diamètre) de la lentille ne peut pas être supérieur au rayon de courbure d'une des faces.") ;
+//        if (diametre!=Double.MAX_VALUE && 0.5d*diametre>Math.min(rayon_1, rayon_2)) // À affiner : si les deux cercles de courbure se coupent, le rayon de la lentille ne peut pas être supérieur à l'ordonnée de leur intersection
+//            throw new IllegalArgumentException("Le rayon (demi-diamètre) de la lentille ne peut pas être supérieur au rayon de courbure d'une des faces.") ;
 
         this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(new Point2D(x_centre,y_centre),orientation_deg)) ;
 

@@ -106,8 +106,12 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
     @FXML private  TableColumn<RencontreDioptreParaxial,String> col_dcpl;
     @FXML private  TableColumn<RencontreDioptreParaxial,String> col_dct;
 
+    @FXML private Label label_z_entree;
+    @FXML private Label label_z_sortie;
+
     @FXML private Label label_n_entree;
     @FXML private Label label_n_sortie;
+
 
     @FXML private Label label_a;
     @FXML private Label label_b;
@@ -327,6 +331,9 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         toggle_montrer_image.selectedProperty().bindBidirectional(soc.MontrerImageProperty());
 
         toggle_montrer_dioptres.selectedProperty().bindBidirectional(soc.MontrerDioptresProperty());
+
+        label_z_entree.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZPlanEntreeProperty(),true));
+        label_z_sortie.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.ZGeometriquePlanSortieProperty(),true));
 
         label_n_entree.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.NEntreeProperty()));
         label_n_sortie.textProperty().bind(new FormatageNombreAvecPrecisionAdaptee(soc.NSortieProperty()));
