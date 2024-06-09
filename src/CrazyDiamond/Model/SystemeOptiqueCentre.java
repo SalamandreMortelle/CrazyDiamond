@@ -1006,6 +1006,9 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
             RencontreDioptreParaxial its = dioptres_rencontres.get(j) ;
 
+            if (its.ignorer())
+                continue;
+
             // 1) Calage de la hauteur des rayons marginaux
             if (its.HLimiteOuverture()!=null && ratio_h_emergent_max_depuis_objet !=0d) {
                 if (ratio_h_emergent_max_depuis_objet!=Double.MAX_VALUE)
@@ -2143,8 +2146,8 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
          * Convertit une coordonnée Z optique (c'est-à-dire une coordonnée le long de l'axe optique, sachant que celui-ci
          * peut se replier lorsqu'il rencontre une surface réfléchissante) en Z géométrique, c'est-à-dire en distance réelle
          * (sans "repli" d'axe). Le point de coordonnée z_optique=0 est l'origine du SOC
-         * @param z_optique
-         * @return
+         * @param z_optique : Z optique
+         * @return Z géométrique
          */
     public double convertirEnZGeometrique(double z_optique) {
 

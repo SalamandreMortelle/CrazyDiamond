@@ -781,8 +781,9 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         }
 
-        for (RencontreDioptreParaxial its : soc.dioptresRencontres()) {
-            afficheDiaphragmeAntecedentDe(soc,its,Color.LIGHTGREY);
+        for (RencontreDioptreParaxial rdp : soc.dioptresRencontres()) {
+            if (!rdp.ignorer())
+                afficheDiaphragmeAntecedentDe(soc,rdp,Color.LIGHTGREY);
         }
 
         afficheDiaphragme(soc,soc.pupilleEntree(),Color.GREEN);
