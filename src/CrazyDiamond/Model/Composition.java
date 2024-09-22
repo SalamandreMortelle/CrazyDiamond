@@ -109,6 +109,11 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
         if (this.elements().contains(o))
             return;
 
+        // On définit l'appartenance à la composition avant de faire l'ajout, car les listeners du composite parent vont
+        // se charger d'intégrer l'obstacle dans la vue (PanneauPrincipal) et de lui créer un panneau, qui n'est pas le
+        // même selon que l'obstacle appartient à une composition ou non.
+        o.definirAppartenanceComposition(true);
+
         super.ajouterObstacle(o);
 
         if (o instanceof ElementAvecContour eac) {
@@ -129,7 +134,43 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
 //        // TODO : il faudrait peut-être vérifier si l'obstacle appartient à l'environnement car sinon, il n'y aura pas de notification
 //        // des rappels en cas de modification de ses propriétés (car ces rappels sont ajoutés lors de l'ajout de l'obstacle à l'environnement)
 
+
+    }
+
+    public void ajouterObstacleEnPosition(Obstacle o, int i_pos) {
+        if (o instanceof Groupe)
+            throw new IllegalCallerException("Un Groupe ne peut pas être ajouté dans une Composition.");
+
+        if (this.elements().contains(o))
+            return;
+
+        // On définit l'appartenance à la composition avant de faire l'ajout, car les listeners du composite parent vont
+        // se charger d'intégrer l'obstacle dans la vue (PanneauPrincipal) et de lui créer un panneau, qui n'est pas le
+        // même selon que l'obstacle appartient à une composition ou non.
         o.definirAppartenanceComposition(true);
+
+        super.ajouterObstacleEnPosition(o,i_pos);
+
+        if (o instanceof ElementAvecContour eac) {
+            eac.traitementSurfaceProperty().bind(traitementSurfaceProperty());
+            eac.tauxReflexionSurfaceProperty().bind(tauxReflexionSurfaceProperty()) ;
+            eac.orientationAxePolariseurProperty().bind(orientationAxePolariseurProperty());
+        }
+        if (o instanceof ElementAvecMatiere eam) {
+            eam.natureMilieuProperty().bind(natureMilieuProperty());
+            eam.indiceRefractionProperty().bind(indiceRefractionProperty());
+            // NB : On ne fait pas de binding sur typeSurface (Convexe/Concave car c'est ue propriété "topologique"
+            // intrinsèque de l'obstacle : l'inclusion de l'obstacle dans une Composition ne change rien à cette
+            // topologie qu'il faut conserver pour que les calculs géométriques impliquant cet obstacle restent corrects.
+        }
+
+        // TODO : on pourrait aussi compléter le nom des obstacles avec le nom de leur composition d'appartenance
+
+//        // TODO : il faudrait peut-être vérifier si l'obstacle appartient à l'environnement car sinon, il n'y aura pas de notification
+//        // des rappels en cas de modification de ses propriétés (car ces rappels sont ajoutés lors de l'ajout de l'obstacle à l'environnement)
+
+
+
     }
 
     public void retirerObstacle(Obstacle o) {

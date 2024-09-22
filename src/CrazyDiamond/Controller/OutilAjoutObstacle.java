@@ -20,7 +20,7 @@ public class OutilAjoutObstacle extends OutilPermettantDeplacementZoneVisible {
 
         Point2D pclic = cae.gc_vers_g(me.getX(),me.getY()) ;
 
-        if (obstacle_en_cours_ajout == null) { // On vient de commencer le tracé d'un nouveau cercle
+        if (obstacle_en_cours_ajout == null) { // On vient de commencer le tracé du nouvel obstacle
 
             // Création d'un nouvel obstacle
 //            obstacle_en_cours_ajout = new Cercle(TypeSurface.CONVEXE, pclic.getX(), pclic.getY(), cae.resolution()) ;

@@ -31,6 +31,13 @@ public abstract class BaseObstacleComposite extends BaseObstacle {
 
         imp_elementComposite.ajouterObstacle(o);
     }
+
+    public void ajouterObstacleEnPosition(Obstacle o_a_ajouter, int i_pos) {
+        o_a_ajouter.definirParent(this); // On commence par définir le parent (sinon problème)
+
+        imp_elementComposite.ajouterObstacleEnPosition(o_a_ajouter,i_pos);
+    }
+
     public void retirerObstacle(Obstacle o) {
         imp_elementComposite.retirerObstacle(o);
         o.definirParent(null);
@@ -92,11 +99,6 @@ public abstract class BaseObstacleComposite extends BaseObstacle {
     public boolean estALaRacine(Obstacle o) {return imp_elementComposite.estALaRacine(o) ;}
     public void deplacerObstacleEnPositionALaRacine(Obstacle o_a_deplacer, int i_pos) {
         imp_elementComposite.deplacerObstacleEnPositionALaRacine(o_a_deplacer,i_pos);
-    }
-    public void ajouterObstacleEnPosition(Obstacle o_a_ajouter, int i_pos) {
-        o_a_ajouter.definirParent(this); // On commence par définir le parent (sinon problème)
-
-        imp_elementComposite.ajouterObstacleEnPosition(o_a_ajouter,i_pos);
     }
 
     public void appliquerSurElementComposite(ConsumerAvecException<Object, IOException> consumer) throws IOException {

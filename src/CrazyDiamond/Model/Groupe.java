@@ -82,7 +82,7 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
     /**
      * Retourne l'obstacle qui est, ou qui contient dans l'une de ses composantes (cas des groupes)
      * dans l'une de ses composantes privées (cas des lentilles par exemple), l'obstacle o
-     * @param o
+     * @param o l'obstale dont on cherche le contenant (qui peut être lui-même)
      * @return l'obstacle trouvé qui peut être l'obstacle o lui-même
      */
     public Obstacle obstacleContenant(Obstacle o) {
@@ -324,13 +324,25 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
         if (this.elements().contains(o))
             return;
 
+        // On définit l'appartenance à la composition avant de faire l'ajout, car les listeners du composite parent vont
+        // se charger d'intégrer l'obstacle dans la vue (PanneauPrincipal) et de lui créer un panneau, qui n'est pas le
+        // même selon que l'obstacle appartient à une composition ou non.
+        o.definirAppartenanceGroupe(true);
+
         super.ajouterObstacle(o);
 
-//        if (o instanceof Groupe grp) {
-//            grp.ajouterListChangeListener(lcl_reconstruction_listes_obstacles);
-//        }
+    }
 
+    public void ajouterObstacleEnPosition(Obstacle o, int i_pos) {
+        if (this.elements().contains(o))
+            return;
+
+        // On définit l'appartenance à la composition avant de faire l'ajout, car les listeners du composite parent vont
+        // se charger d'intégrer l'obstacle dans la vue (PanneauPrincipal) et de lui créer un panneau, qui n'est pas le
+        // même selon que l'obstacle appartient à une composition ou non.
         o.definirAppartenanceGroupe(true);
+
+        super.ajouterObstacleEnPosition(o,i_pos);
 
     }
 

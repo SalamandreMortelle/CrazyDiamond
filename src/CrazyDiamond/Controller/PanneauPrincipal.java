@@ -329,7 +329,7 @@ public class PanneauPrincipal {
         // d'un glisser ; pourrait se faire avec un appel à startFullDrag() dans le handler setOnDragDetected mais dans
         // ce cas tous les Nodes de la scène (càd tous les boutons, listview, treeview, etc.) recevraient des notifications
         // DragEvent lorsqu'ils sont survolés par le glisser, ce qui n'a aucun intérêt dans notre cas).
-        // On utilis donc un flag glisser_en_cours pour savoir si un glisser est en cours
+        // On utilise donc un flag glisser_en_cours pour savoir si un glisser est en cours
 //        canvas_environnement.setOnDragDetected(this::traiterDebutGlisser);
 
         canvas_environnement.setOnMousePressed(this::traiterBoutonSourisPresse);
@@ -1009,7 +1009,7 @@ public class PanneauPrincipal {
     protected void integrerObstacleDansVue(Obstacle o, TreeItem<Obstacle> parent) {
 
 //        creerPanneauSimplePourObstacle(o, parent != treeview_obstacles.getRoot()) ;
-        creerPanneauSimplePourObstacle(o, o.appartientAComposition()) ;
+        Node panneau_obs = creerPanneauSimplePourObstacle(o, o.appartientAComposition()) ;
 
         TreeItem<Obstacle> tio = ajouterItemDansTreeItem(parent,o);
 
@@ -1019,23 +1019,13 @@ public class PanneauPrincipal {
             obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
         }
 
-//        if (o instanceof Composition) {
-//            ObservableList<Obstacle> obstacles = ((Composition) o).elements() ;
-//
-//            obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
-//            observerElementsDeCompositionOuGroupe(tio, obstacles);
-//        } else if (o instanceof Groupe) {
-//            ObservableList<Obstacle> obstacles = ((Groupe) o).elements() ;
-//
-//            obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
-//            observerElementsDeCompositionOuGroupe(tio, obstacles);
-//        }
+        scrollpane_droit_element_courant.setContent(panneau_obs);
 
     }
 
     protected void integrerObstacleDansVue(Obstacle o, TreeItem<Obstacle> parent, int i_pos) {
 
-        creerPanneauSimplePourObstacle(o, parent != treeview_obstacles.getRoot()) ;
+        Node panneau_obs = creerPanneauSimplePourObstacle(o, o.appartientAComposition()) ;
 
         TreeItem<Obstacle> tio = ajouterItemDansTreeItem(parent,o,i_pos);
 
@@ -1047,20 +1037,7 @@ public class PanneauPrincipal {
                 integrerObstacleDansVue(o_dans_composite,tio,i_pos_dans_composite++);
         }
 
-//        if (o instanceof Composition) {
-//            ObservableList<Obstacle> obstacles = ((Composition) o).elements() ;
-//
-//            obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
-//            observerElementsDeCompositionOuGroupe(tio, obstacles);
-////            for (Obstacle oi : obstacles) {
-////                integrerObstacleDansVue(oi,tio);
-////            }
-//        } else if (o instanceof Groupe) {
-//            ObservableList<Obstacle> obstacles = ((Groupe) o).elements() ;
-//
-//            obstacles.forEach(oi->integrerObstacleDansVue(oi,tio));
-//            observerElementsDeCompositionOuGroupe(tio, obstacles);
-//        }
+        scrollpane_droit_element_courant.setContent(panneau_obs);
 
     }
 
