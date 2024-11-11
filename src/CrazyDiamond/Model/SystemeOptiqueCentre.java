@@ -1817,6 +1817,14 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
     }
 
+    public Point2D point(double z_geom, double h_geom) {
+        return origine().add(direction().multiply(z_geom)).add(perpendiculaireDirection().multiply(h_geom)) ;
+    }
+
+    public Point2D intersectionDroiteSupportAvecPlan(DemiDroiteOuSegment dds,double z_plan) {
+        return dds.intersectionDroiteSupportAvecDroiteSupportDe(new DemiDroiteOuSegment(point(z_plan, 0), perpendiculaireDirection())) ;
+    }
+
     public void retaillerPourSourisEn(Point2D pos_souris) {
         // Si on est sur l'origine, ne rien faire
         if (pos_souris.equals(origine()))

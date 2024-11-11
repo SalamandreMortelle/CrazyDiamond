@@ -205,7 +205,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 //        gc_affichage.setLineWidth(2*eg.resolution);
 
         if (seg.rayonDiaphragmeProperty().get()==0d) {
-            gc.strokeLine(seg.x1(), seg.y1(), seg.x2(), seg.y2());
+            traceLigne(seg.depart() , seg.arrivee());
             // On ne s'embête pas à clipper le segment dans la zone visible... Mais l'épaisseur de celui-ci peut devenir
             // très mince si on zoome beaucoup...
 
@@ -222,8 +222,8 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             Point2D dep_pup = seg.departPupille() ;
             Point2D arr = seg.arrivee() ;
             Point2D arr_pup = seg.arriveePupille() ;
-            gc.strokeLine(dep.getX(),dep.getY(),dep_pup.getX(),dep_pup.getY());
-            gc.strokeLine(arr_pup.getX(),arr_pup.getY(),arr.getX(),arr.getY());
+            traceLigne(dep,dep_pup);
+            traceLigne(arr_pup,arr);
 
             ContoursObstacle co = new ContoursObstacle();
             Contour c_surf = new Contour();
@@ -346,7 +346,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         if (src.type()== Source.TypeSource.PROJECTEUR) {
             Point2D[] extremites = src.extremitesProjecteur() ;
-            gc.strokeLine(extremites[0].getX(),extremites[0].getY() ,extremites[1].getX(),extremites[1].getY() );
+            traceLigne(extremites[0] ,extremites[1]);
         }
 
         gc.setLineDashes(null);
@@ -559,7 +559,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
                 if (cae.contient(pt_deb) && !cae.contient(pt_arr)) {
                     Point2D p_sortie_boite_limites = cae.derniere_intersection_avec_limites(r) ;
                     if (p_sortie_boite_limites!=null) {
-                        gc.strokeLine(r.depart().getX(), r.depart().getY(), p_sortie_boite_limites.getX(), p_sortie_boite_limites.getY());
+                        traceLigne(r.depart(), p_sortie_boite_limites);
                         LOGGER.log(Level.FINER, "Point d'arrivée hors limites, ramené en {0}, {1}", new Object[]{p_sortie_boite_limites.getX(), p_sortie_boite_limites.getY()});
                     }
 
@@ -571,7 +571,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
                 } else if (!cae.contient(pt_deb) && cae.contient(pt_arr)) {
                     Point2D p_entree_boite_limites = cae.premiere_intersection_avec_limites(r) ;
                     if (p_entree_boite_limites!=null) {
-                        gc.strokeLine(p_entree_boite_limites.getX(), p_entree_boite_limites.getY(), r.arrivee().getX(), r.arrivee().getY());
+                        traceLigne(p_entree_boite_limites, r.arrivee());
                         LOGGER.log(Level.FINER, "Point de départ hors limites, ramené en {0}, {1}", new Object[]{p_entree_boite_limites.getX(), p_entree_boite_limites.getY()});
                     }
 
@@ -585,7 +585,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
                     Point2D p_sortie_boite_limites = cae.derniere_intersection_avec_limites(r) ;
 
                     if (p_entree_boite_limites!=null && p_sortie_boite_limites!=null) {
-                        gc.strokeLine(p_entree_boite_limites.getX(), p_entree_boite_limites.getY(), p_sortie_boite_limites.getX(), p_sortie_boite_limites.getY());
+                        traceLigne(p_entree_boite_limites, p_sortie_boite_limites);
                         LOGGER.log(Level.FINER, "Points d'arrivée et de départ hors limites, ramenés en {0}, {1} et {2}, {3}", new Object[]{p_entree_boite_limites.getX(), p_entree_boite_limites.getY(), p_sortie_boite_limites.getX(), p_sortie_boite_limites.getY()});
                     }
                     else {
@@ -610,7 +610,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
                 } else {
                     LOGGER.log(Level.FINER,"Point d'arrivée et de départ dans les limites") ;
-                    gc.strokeLine(r.depart().getX(), r.depart().getY(), r.arrivee().getX(), r.arrivee().getY());
+                    traceLigne(r.depart(), r.arrivee());
 
                     if (r.phenomene_origine!= Rayon.PhenomeneOrigine.EMISSION_SOURCE && cae.prolongementsArriereVisibles()) {
                         Point2D p_avant_depart = cae.premiere_intersection(r.supportGeometrique().prolongementAvantDepart());
@@ -633,7 +633,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
                 if (p_sortie_boite_limites != null) {
                     if (cae.contient(r.depart())) {
-                        gc.strokeLine(r.depart().getX(), r.depart().getY(), p_sortie_boite_limites.getX(), p_sortie_boite_limites.getY());
+                        traceLigne(r.depart(), p_sortie_boite_limites);
                         LOGGER.log(Level.FINER, "Rayon infini {0} entre {1},{2} et {3},{4}", new Object[]{cpt, r.depart().getX(), r.depart().getY(), p_sortie_boite_limites.getX(), p_sortie_boite_limites.getY()});
 
                         if (r.phenomene_origine!= Rayon.PhenomeneOrigine.EMISSION_SOURCE && cae.prolongementsArriereVisibles()) {
@@ -643,7 +643,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
                     } else {
                         Point2D p_entree_boite_limites = cae.premiere_intersection_avec_limites(r) ;
-                        gc.strokeLine(p_entree_boite_limites.getX(), p_entree_boite_limites.getY(), p_sortie_boite_limites.getX(), p_sortie_boite_limites.getY());
+                        traceLigne(p_entree_boite_limites, p_sortie_boite_limites);
                     }
                 } else { // Le rayon commence hors de la zone visible et ne la traverse pas
                     if (r.phenomene_origine!= Rayon.PhenomeneOrigine.EMISSION_SOURCE && cae.prolongementsArriereVisibles()) {
@@ -819,6 +819,8 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             afficheFlechePerpendiculaireAxeSOC(soc, soc.ZGeometriqueImage(), Color.GREEN, soc.HImage());
             afficheLabelSOC(soc, soc.ZGeometriqueImage(), 0d, Color.GREEN,"Ai");
             afficheLabelSOC(soc, soc.ZGeometriqueImage(), soc.HImage(), Color.GREEN,"Bi");
+
+            afficheConstructionImage(soc);
         }
 
 
@@ -826,6 +828,298 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         gc.setStroke(s);
 
 
+    }
+
+    private void afficheConstructionImage(SystemeOptiqueCentre soc) {
+
+        if (soc.ZGeometriqueObjet()==null)
+            return;
+
+        GraphicsContext gc = cae.gc_affichage() ;
+        Color c_constr = Color.GREEN ;
+        Paint s = gc.getStroke() ;
+        Paint f = gc.getFill() ;
+
+        gc.setStroke(c_constr);
+        gc.setFill(c_constr);
+
+        traceParalleleAxeOptiqueEmergentParFoyerImage(soc);
+
+        traceIncidentParPointNodalObjetEmergentParalleleParPointNodalImage(soc);
+
+        traceIncidentParFoyerObjetEmergentParalleleAxeOptique(soc);
+
+        gc.setFill(f);
+        gc.setStroke(s);
+
+    }
+
+    private void traceIncidentParFoyerObjetEmergentParalleleAxeOptique(SystemeOptiqueCentre soc) {
+        //
+        // Rayon passant par le foyer objet, émerge du plan principal image parallèlement à l'axe du système à même
+        // hauteur que son intersection avec le plan principal objet,
+        //
+        Point2D pt_obj = soc.point(soc.ZGeometriqueObjet(), soc.HObjet()) ; // Point Bo
+        Point2D pt_foc_obj = soc.point(soc.ZGeometriquePlanFocalObjet(), 0)  ;
+        Point2D pt_img = soc.point(soc.ZGeometriqueImage(), soc.HImage()) ; // Point Bi
+
+//        if (Environnement.quasiConfondus(pt_obj,pt_foc_obj))
+//            return;
+//        if (Environnement.quasiEgal(pt_obj.getX(), pt_foc_obj.getX())) // Il faudrait tester que pt_obj et pt_foc_obj ont m^me valeur de Zoptique...
+//            return ;
+        if (Environnement.quasiEgal(soc.ZGeometriqueObjet(),soc.ZGeometriquePlanFocalObjet()))
+            return;
+
+        DemiDroiteOuSegment dd_incident_fo = new DemiDroiteOuSegment(pt_obj, pt_foc_obj.subtract(pt_obj)) ;
+        Point2D pt_entree_incident_fo = soc.intersectionDroiteSupportAvecPlan(dd_incident_fo, soc.ZPlanEntree()) ;
+        Point2D int_avec_plan_pr_obj = soc.intersectionDroiteSupportAvecPlan(dd_incident_fo, soc.ZGeometriquePlanPrincipalObjet());
+
+        // 1. Jusqu'au plan d'entrée
+        if (soc.ZGeometriqueObjet()< soc.ZPlanEntree()) { // Les rayons incidents vont partir de Bo
+            if (soc.ZGeometriquePlanFocalObjet()< soc.ZGeometriqueObjet()) {
+                traceLignePointillee(pt_foc_obj, pt_obj);
+                if (soc.ZGeometriquePlanPrincipalObjet()< soc.ZGeometriquePlanFocalObjet())
+                    traceLignePointillee(int_avec_plan_pr_obj, pt_foc_obj);
+            } else if (soc.ZGeometriquePlanPrincipalObjet()< soc.ZGeometriqueObjet())
+                traceLignePointillee(int_avec_plan_pr_obj, pt_obj);
+
+            traceLigneFlechee(pt_obj, pt_entree_incident_fo);
+        }
+        else { // Les rayons incidents vont partir de -Infini, en direction de Bo
+            if (dd_incident_fo.direction().dotProduct(soc.direction())>0) // Recherche du rayon incident qui pointe vers Bo, en partant de Bo
+                dd_incident_fo.renverseDirection();
+            dd_incident_fo.definirDepart(pt_entree_incident_fo);
+            Point2D pt_entree_bl_incident_fo = cae.boite_limites().contains(pt_entree_incident_fo)?
+                    cae.boite_limites().premiere_intersection(dd_incident_fo):cae.boite_limites().derniere_intersection(dd_incident_fo);
+            if (pt_entree_bl_incident_fo!=null)
+                traceLigneFlechee(pt_entree_bl_incident_fo,pt_entree_incident_fo) ;
+        }
+
+        // 2. Jusqu'au plan principal objet (s'il se trouve après le plan d'entrée), avec un prolongement vers le Fo si nécessaire.
+        if (soc.ZGeometriqueObjet()> soc.ZPlanEntree()) {
+            traceLignePointillee(pt_entree_incident_fo, pt_obj);
+            if (soc.ZGeometriquePlanFocalObjet() > soc.ZGeometriqueObjet()) {
+                traceLignePointillee(pt_obj, pt_foc_obj);
+                if (soc.ZGeometriquePlanPrincipalObjet() > soc.ZGeometriquePlanFocalObjet())
+                    traceLignePointillee(pt_foc_obj, int_avec_plan_pr_obj);
+            } else if (soc.ZGeometriquePlanPrincipalObjet() > soc.ZGeometriqueObjet())
+                traceLignePointillee(pt_obj, int_avec_plan_pr_obj);
+        } else {
+            if (soc.ZGeometriquePlanFocalObjet() > soc.ZPlanEntree()) {
+                traceLignePointillee(pt_entree_incident_fo, pt_foc_obj);
+                if (soc.ZGeometriquePlanPrincipalObjet() > soc.ZGeometriquePlanFocalObjet())
+                    traceLignePointillee(pt_foc_obj, int_avec_plan_pr_obj);
+            } else if (soc.ZGeometriquePlanPrincipalObjet()> soc.ZPlanEntree())
+                traceLignePointillee(pt_entree_incident_fo,int_avec_plan_pr_obj);
+        }
+
+        // 3. Du plan principal objet au plan principal image
+        DemiDroiteOuSegment dd_incident_parallele = new DemiDroiteOuSegment(int_avec_plan_pr_obj, soc.direction()) ;
+        Point2D proj_int_sur_plan_pr_img = soc.intersectionDroiteSupportAvecPlan(dd_incident_parallele, soc.ZGeometriquePlanPrincipalImage()) ;
+        traceLignePointillee(int_avec_plan_pr_obj,proj_int_sur_plan_pr_img);
+
+        // 4. Après le plan principal image
+
+        Point2D pt_sortie_emergent_parallele = soc.intersectionDroiteSupportAvecPlan(dd_incident_parallele, soc.ZGeometriquePlanSortie()) ;
+        DemiDroiteOuSegment dd_emergent_parallele = new DemiDroiteOuSegment(pt_sortie_emergent_parallele, soc.direction()) ;
+
+        Point2D pt_sortie_bl_emergent_parallele = cae.boite_limites().contains(pt_sortie_emergent_parallele)?
+                cae.boite_limites().premiere_intersection(dd_emergent_parallele):cae.boite_limites().derniere_intersection(dd_emergent_parallele) ;
+
+        if (pt_sortie_bl_emergent_parallele!=null)
+            traceLigneFlechee(pt_sortie_emergent_parallele, pt_sortie_bl_emergent_parallele);
+
+        // Prolongements arrière (lignes de rappel) vers le plan principal image, le point image s'ils se trouvent avant le plan de sortie
+        if(soc.ZGeometriquePlanPrincipalImage()< soc.ZGeometriquePlanSortie() ) {
+            traceLignePointillee(proj_int_sur_plan_pr_img,pt_sortie_emergent_parallele);
+            if (soc.ZGeometriqueImage()< soc.ZGeometriquePlanPrincipalImage())
+                traceLignePointillee(pt_img,proj_int_sur_plan_pr_img);
+        } else if (soc.ZGeometriqueImage()< soc.ZGeometriquePlanSortie())
+            traceLignePointillee(pt_img,pt_sortie_emergent_parallele);
+    }
+
+    private void traceIncidentParPointNodalObjetEmergentParalleleParPointNodalImage(SystemeOptiqueCentre soc) {
+        //
+        // Rayon passant par le point nodal objet, émerge du point nodal image parallèlement au rayon incident
+        //
+        Point2D pt_obj = soc.point(soc.ZGeometriqueObjet(), soc.HObjet()) ; // Point Bo
+        Point2D pt_nod_obj = soc.point(soc.ZGeometriquePlanNodalObjet(), 0)  ;
+        Point2D pt_nod_img = soc.point(soc.ZGeometriquePlanNodalImage(), 0)  ;
+        Point2D pt_img = soc.point(soc.ZGeometriqueImage(), soc.HImage()) ; // Point Bi
+
+//        if (Environnement.quasiConfondus(pt_obj,pt_nod_obj))
+//            return ;
+//        if (Environnement.quasiEgal(pt_obj.getX(), pt_nod_obj.getX())) // Il faut en fait tester s'ils ont même Z
+//            return ;
+        if (Environnement.quasiEgal(soc.ZGeometriqueObjet(),soc.ZGeometriquePlanNodalObjet()))
+            return;
+
+        DemiDroiteOuSegment dd_incident_no = new DemiDroiteOuSegment(pt_obj, pt_nod_obj.subtract(pt_obj)) ;  // BoNo
+        Point2D pt_entree_incident_no = soc.intersectionDroiteSupportAvecPlan(dd_incident_no, soc.ZPlanEntree()) ;
+
+        // 1. Jusqu'au plan d'entrée
+        if (soc.ZGeometriqueObjet()< soc.ZPlanEntree()) { // Les rayons incidents vont partir de Bo
+            if (soc.ZGeometriquePlanNodalObjet()< soc.ZGeometriqueObjet())
+                traceLignePointillee(pt_nod_obj, pt_obj);
+            traceLigneFlechee(pt_obj, pt_entree_incident_no);
+
+        }
+        else { // Les rayons incidents vont partir de -Infini, en direction de Bo
+            if (dd_incident_no.direction().dotProduct(soc.direction())>0) // Recherche du rayon incident qui pointe vers Bo, en partant de Bo
+                dd_incident_no.renverseDirection();
+            dd_incident_no.definirDepart(pt_entree_incident_no);
+            Point2D pt_entree_bl_incident_no = cae.boite_limites().contains(pt_entree_incident_no)?
+                    cae.boite_limites().premiere_intersection(dd_incident_no):cae.boite_limites().derniere_intersection(dd_incident_no);
+            if (pt_entree_bl_incident_no!=null)
+                traceLigneFlechee(pt_entree_bl_incident_no,pt_entree_incident_no) ;
+        }
+
+        // 2. Jusqu'au plan nodal objet (s'il se trouve après le plan d'entrée)
+        if (soc.ZGeometriquePlanNodalObjet()> soc.ZPlanEntree())
+            traceLignePointillee(pt_entree_incident_no, pt_nod_obj);
+
+        // 3. Jusqu'au plan nodal image (tracé des parallèles entre les plans nodaux)
+        Point2D pt_pl_ni_incident_no = soc.intersectionDroiteSupportAvecPlan(dd_incident_no, soc.ZGeometriquePlanNodalImage()) ;
+        traceLignePointillee(pt_nod_obj,pt_pl_ni_incident_no);
+
+        DemiDroiteOuSegment dd_emergent_ni = new DemiDroiteOuSegment(pt_nod_img,dd_incident_no.direction()) ; // Emergent parallèle
+        Point2D pt_pl_no_emergent_ni = soc.intersectionDroiteSupportAvecPlan(dd_emergent_ni, soc.ZGeometriquePlanNodalObjet()) ;
+        traceLignePointillee(pt_pl_no_emergent_ni, pt_nod_img);
+
+        // 4. Après le plan nodal image
+        Point2D pt_sortie_emergent_ni = soc.intersectionDroiteSupportAvecPlan(dd_emergent_ni, soc.ZGeometriquePlanSortie()) ;
+
+        if (dd_emergent_ni.direction().dotProduct(soc.direction())<0)
+            dd_emergent_ni.renverseDirection();
+        dd_emergent_ni.definirDepart(pt_sortie_emergent_ni);
+
+        Point2D pt_sortie_bl_emergent_ni = cae.boite_limites().contains(pt_sortie_emergent_ni)?
+                cae.boite_limites().premiere_intersection(dd_emergent_ni):cae.boite_limites().derniere_intersection(dd_emergent_ni) ;
+
+        if (pt_sortie_bl_emergent_ni!=null)
+            traceLigneFlechee(pt_sortie_emergent_ni, pt_sortie_bl_emergent_ni);
+
+        // Prolongements arrière (lignes de rappel) vers le plan nodal image, le point image s'ils se trouvent avant le plan de sortie
+        if(soc.ZGeometriquePlanNodalImage()< soc.ZGeometriquePlanSortie() ) {
+                traceLignePointillee(pt_nod_img,pt_sortie_emergent_ni);
+                if (soc.ZGeometriqueImage()< soc.ZGeometriquePlanNodalImage())
+                    traceLignePointillee(pt_img, pt_nod_img);
+        } else if (soc.ZGeometriqueImage()< soc.ZGeometriquePlanSortie())
+            traceLignePointillee(pt_img,pt_sortie_emergent_ni);
+    }
+
+    private void traceParalleleAxeOptiqueEmergentParFoyerImage(SystemeOptiqueCentre soc) {
+        //
+        // Rayon parallèle à l'axe optique, émerge sur le plan principal image à même hauteur que son intersection avec
+        // le plan principal objet et passe par le foyer image
+        //
+
+        Point2D pt_obj = soc.point(soc.ZGeometriqueObjet(), soc.HObjet()) ; // Point Bo
+        Point2D pt_obj_proj_pl_entree = soc.point(soc.ZPlanEntree(), soc.HObjet()) ; // Point Bo projeté orth sur Plan Entrée
+        Point2D pt_foc_img = soc.point(soc.ZGeometriquePlanFocalImage(), 0)  ;
+        Point2D pt_img = soc.point(soc.ZGeometriqueImage(), soc.HImage()) ; // Point Bi
+
+        Point2D proj_sur_plan_pr_obj = soc.point(soc.ZGeometriquePlanPrincipalObjet(), soc.HObjet())  ;
+        Point2D proj_sur_plan_pr_img = soc.point(soc.ZGeometriquePlanPrincipalImage(), soc.HObjet())  ;
+
+//        if (Environnement.quasiConfondus(proj_sur_plan_pr_img,pt_foc_img))
+//            return;
+//        if (Environnement.quasiEgal(proj_sur_plan_pr_img.getX(), pt_foc_img.getX()))
+//            return ;
+
+
+        // 1. Jusqu'au plan d'entrée
+        if(soc.ZGeometriqueObjet()< soc.ZPlanEntree()) { // Les rayons incidents vont partir de Bo
+            if (soc.ZGeometriquePlanPrincipalObjet()< soc.ZGeometriqueObjet())
+                traceLignePointillee(proj_sur_plan_pr_obj, pt_obj);
+
+            traceLigneFlechee(pt_obj, pt_obj_proj_pl_entree);
+        }
+        else { // Les rayons incidents vont partir de -Infini, en direction de Bo
+            DemiDroiteOuSegment dd_incident_par_bo = new DemiDroiteOuSegment(pt_obj_proj_pl_entree, soc.direction().multiply(-1));
+            Point2D pt_entree_bl_incident_bo = cae.boite_limites().contains(pt_obj_proj_pl_entree)?
+                cae.boite_limites().premiere_intersection(dd_incident_par_bo):cae.boite_limites().derniere_intersection(dd_incident_par_bo);
+            if (pt_entree_bl_incident_bo!=null)
+                traceLigneFlechee(pt_entree_bl_incident_bo, pt_obj_proj_pl_entree) ;
+        }
+
+        // 2. Du plan d'entrée jusqu'au plan principal objet (s'il se trouve après le plan d'entrée)
+        if (soc.ZGeometriquePlanPrincipalObjet()> soc.ZPlanEntree())
+            traceLignePointillee(pt_obj_proj_pl_entree, proj_sur_plan_pr_obj);
+
+        // 3. Du plan principal objet au plan principal image
+        traceLignePointillee(proj_sur_plan_pr_obj,proj_sur_plan_pr_img);
+
+        // 4. Après le plan principal image
+        DemiDroiteOuSegment dd_emergent_fi = new DemiDroiteOuSegment(proj_sur_plan_pr_img, pt_foc_img.subtract(proj_sur_plan_pr_img)) ;
+        Point2D pt_sortie_emergent_fi = soc.intersectionDroiteSupportAvecPlan(dd_emergent_fi, soc.ZGeometriquePlanSortie()) ;
+
+        if (dd_emergent_fi.direction().dotProduct(soc.direction())<0)
+            dd_emergent_fi.renverseDirection();
+        dd_emergent_fi.definirDepart(pt_sortie_emergent_fi);
+
+        Point2D pt_sortie_bl_emergent_fi = cae.boite_limites().contains(pt_sortie_emergent_fi)?
+                cae.boite_limites().premiere_intersection(dd_emergent_fi):cae.boite_limites().derniere_intersection(dd_emergent_fi);
+
+        if (pt_sortie_bl_emergent_fi!=null)  // Du point de sortie du SOC au point de sortie de la zone visible
+            traceLigneFlechee(pt_sortie_emergent_fi, pt_sortie_bl_emergent_fi);
+
+        // Prolongements arrière (lignes de rappel) vers le plan focal image, le plan principal image, le point image s'ils se trouvent avant le plan de sortie
+        if(soc.ZGeometriquePlanFocalImage()< soc.ZGeometriquePlanSortie() || soc.ZGeometriquePlanPrincipalImage()< soc.ZGeometriquePlanSortie()) {
+            if (soc.ZGeometriquePlanFocalImage()< soc.ZGeometriquePlanPrincipalImage()) {
+                traceLignePointillee(pt_foc_img, pt_sortie_emergent_fi);
+                if (soc.ZGeometriqueImage()< soc.ZGeometriquePlanFocalImage())
+                    traceLignePointillee(pt_img, pt_foc_img);
+
+            }
+            else {
+                traceLignePointillee(proj_sur_plan_pr_img, pt_sortie_emergent_fi);
+                if (soc.ZGeometriqueImage()< soc.ZGeometriquePlanPrincipalImage())
+                    traceLignePointillee(pt_img,proj_sur_plan_pr_img);
+
+            }
+        } else if (soc.ZGeometriqueImage()< soc.ZGeometriquePlanSortie())
+            traceLignePointillee(pt_img,pt_sortie_emergent_fi);
+    }
+
+
+    private void traceLigne(Point2D dep, Point2D arr) {
+        cae.gc_affichage().strokeLine(dep.getX(),dep.getY(),arr.getX(), arr.getY());
+    }
+
+    private void traceLigneFlechee(Point2D dep, Point2D arr) {
+        traceLigne(dep,arr);
+
+//        if (dep.getX()==arr.getX() && dep.getY()==arr.getY())
+//            return ;
+
+        Point2D dir = arr.subtract(dep).normalize() ;
+        Point2D perp = new Point2D(-dir.getY(),dir.getX()) ;
+        
+        double res = cae.resolution() ;
+        
+        Point2D pt_extremite = dep.midpoint(arr) ;
+        
+        Point2D pt_depart_pointe_gauche ;
+        Point2D pt_depart_pointe_droite ;
+
+        pt_depart_pointe_gauche = pt_extremite.add(dir.multiply(-8 * res)).add(perp.multiply(+4 * res));
+        pt_depart_pointe_droite = pt_extremite.add(dir.multiply(-8 * res)).add(perp.multiply(-4 * res));
+
+
+        cae.gc_affichage().fillPolygon(
+                new double[]{pt_depart_pointe_gauche.getX(), pt_extremite.getX(), pt_depart_pointe_droite.getX()},
+                new double[]{pt_depart_pointe_gauche.getY(), pt_extremite.getY(), pt_depart_pointe_droite.getY()},
+                3
+        );
+//        traceLigne(pt_depart_pointe_gauche,pt_extremite);
+//        traceLigne(pt_depart_pointe_droite,pt_extremite);
+    }
+    
+    private void traceLignePointillee(Point2D dep, Point2D arr) {
+        cae.gc_affichage().setLineDashes(1* cae.resolution(),3*cae.resolution());
+        cae.gc_affichage().strokeLine(dep.getX(),dep.getY(),arr.getX(), arr.getY());
+        cae.gc_affichage().setLineDashes() ;
     }
 
     // Affichage des rayons limites du diaphragme d'ouverture (rayons marginaux)
@@ -866,8 +1160,8 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             Point2D pt_haut = pt.add(perp.multiply(intersection.HLimiteOuverture())) ;
             Point2D pt_bas  = pt.add(perp.multiply(-intersection.HLimiteOuverture())) ;
 
-            gc.strokeLine(pt_prec_haut.getX(),pt_prec_haut.getY(),pt_haut.getX(),pt_haut.getY());
-            gc.strokeLine(pt_prec_bas.getX(),pt_prec_bas.getY(),pt_bas.getX(),pt_bas.getY());
+            traceLigne(pt_prec_haut,pt_haut);
+            traceLigne(pt_prec_bas,pt_bas);
 
             gc.setLineDashes(); // Arrêt des pointillés (s'il y en avait)
 
@@ -880,8 +1174,8 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             if (soc.dioptresRencontres().size() > 0 && soc.dioptresRencontres().get(soc.dioptresRencontres().size() - 1).ZGeometrique() > soc.ZGeometriqueImage())
                 gc.setLineDashes(2 * res, 6 * res);
 
-            gc.strokeLine(pt_prec_haut.getX(), pt_prec_haut.getY(), pimage.getX(), pimage.getY());
-            gc.strokeLine(pt_prec_bas.getX(), pt_prec_bas.getY(), pimage.getX(), pimage.getY());
+            traceLigne(pt_prec_haut, pimage);
+            traceLigne(pt_prec_bas, pimage);
         }
 
         gc.setLineDashes(); // Arrêt des pointillés (s'il y en avait)
@@ -917,9 +1211,9 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         gc.setStroke(c);
 
-        gc.strokeLine(p_dep.getX(),p_dep.getY(),p_s1.getX(),p_s1.getY());
-        gc.strokeLine(p_s1.getX(),p_s1.getY(),p_s2.getX(),p_s2.getY());
-        gc.strokeLine(p_s2.getX(),p_s2.getY(),p_arr.getX(),p_arr.getY());
+        traceLigne(p_dep,p_s1);
+        traceLigne(p_s1,p_s2);
+        traceLigne(p_s2,p_arr);
 
         Point2D p_p_1 = p_arr.add(soc.direction().multiply(+10*res)).add(perp.multiply(-10*res)) ;
         Point2D p_p_2 = p_arr.add(soc.direction().multiply(-10*res)).add(perp.multiply(-10*res)) ;
@@ -963,8 +1257,8 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
         gc.setStroke(c);
         gc.setLineWidth(3*res);
-        gc.strokeLine(p_debut_diaphragme_1.getX(),p_debut_diaphragme_1.getY(),p_fin_diaphragme_1.getX(), p_fin_diaphragme_1.getY());
-        gc.strokeLine(p_debut_diaphragme_2.getX(),p_debut_diaphragme_2.getY(),p_fin_diaphragme_2.getX(), p_fin_diaphragme_2.getY());
+        traceLigne(p_debut_diaphragme_1,p_fin_diaphragme_1);
+        traceLigne(p_debut_diaphragme_2,p_fin_diaphragme_2);
 
         gc.setLineWidth(lw);
         gc.setStroke(p);
@@ -1036,7 +1330,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
                 gc.setStroke(c_rm);
 
-                gc.strokeLine(pt_prec_cm_haut.getX(), pt_prec_cm_haut.getY(), pt_cm_haut.getX(), pt_cm_haut.getY());
+                traceLigne(pt_prec_cm_haut, pt_cm_haut);
 //                gc_affichage.strokeLine(pt_prec_cm_bas.getX(), pt_prec_cm_bas.getY(), pt_cm_bas.getX(), pt_cm_bas.getY());
 
                 pt_prec_cm_haut = pt_cm_haut ;
@@ -1049,7 +1343,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
                 gc.setStroke(c_rpl);
 
-                gc.strokeLine(pt_prec_cpl_haut.getX(), pt_prec_cpl_haut.getY(), pt_cpl_haut.getX(), pt_cpl_haut.getY());
+                traceLigne(pt_prec_cpl_haut, pt_cpl_haut);
 //                gc_affichage.strokeLine(pt_prec_cpl_bas.getX(), pt_prec_cpl_bas.getY(), pt_cpl_bas.getX(), pt_cpl_bas.getY());
 
                 pt_prec_cpl_haut = pt_cpl_haut ;
@@ -1062,7 +1356,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
 
                 gc.setStroke(c_rct);
 
-                gc.strokeLine(pt_prec_ct_haut.getX(), pt_prec_ct_haut.getY(), pt_ct_haut.getX(), pt_ct_haut.getY());
+                traceLigne(pt_prec_ct_haut, pt_ct_haut);
 //                gc_affichage.strokeLine(pt_prec_ct_bas.getX(), pt_prec_ct_bas.getY(), pt_ct_bas.getX(), pt_ct_bas.getY());
 
                 pt_prec_ct_haut = pt_ct_haut ;
@@ -1090,27 +1384,26 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
             Point2D pt_image_cm_haut = pimage.add(perp.multiply(soc.RChampMoyenImage()));
             Point2D pt_image_cm_bas = pimage.add(perp.multiply(-soc.RChampMoyenImage()));
             gc.setStroke(c_rm);
-            gc.strokeLine(pt_prec_cm_haut.getX(),pt_prec_cm_haut.getY(),pt_image_cm_haut.getX(),pt_image_cm_haut.getY());
+            traceLigne(pt_prec_cm_haut,pt_image_cm_haut);
 //            gc_affichage.strokeLine(pt_prec_cm_bas.getX(),pt_prec_cm_bas.getY(),pt_image_cm_bas.getX(),pt_image_cm_bas.getY());
         }
         if (champ_pleine_lumiere && soc.RChampPleineLumiereImage()!=null) {
             Point2D pt_image_cpl_haut = pimage.add(perp.multiply(soc.RChampPleineLumiereImage()));
             Point2D pt_image_cpl_bas = pimage.add(perp.multiply(-soc.RChampPleineLumiereImage()));
             gc.setStroke(c_rpl);
-            gc.strokeLine(pt_prec_cpl_haut.getX(),pt_prec_cpl_haut.getY(),pt_image_cpl_haut.getX(),pt_image_cpl_haut.getY());
+            traceLigne(pt_prec_cpl_haut,pt_image_cpl_haut);
 //            gc_affichage.strokeLine(pt_prec_cpl_bas.getX(),pt_prec_cpl_bas.getY(),pt_image_cpl_bas.getX(),pt_image_cpl_bas.getY());
         }
         if (champ_total && soc.RChampTotalImage()!=null) {
             Point2D pt_image_ct_haut = pimage.add(perp.multiply(soc.RChampTotalImage()));
             Point2D pt_image_ct_bas = pimage.add(perp.multiply(-soc.RChampTotalImage()));
             gc.setStroke(c_rct);
-            gc.strokeLine(pt_prec_ct_haut.getX(),pt_prec_ct_haut.getY(),pt_image_ct_haut.getX(),pt_image_ct_haut.getY());
+            traceLigne(pt_prec_ct_haut,pt_image_ct_haut);
 //            gc_affichage.strokeLine(pt_prec_ct_bas.getX(),pt_prec_ct_bas.getY(),pt_image_ct_bas.getX(),pt_image_ct_bas.getY());
         }
 
         gc.setStroke(s);
         gc.setLineDashes(); // Arrêt des pointillés (s'il y en avait)
-
 
 //        gc_affichage.stroke();
 
@@ -1226,7 +1519,6 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         Point2D origine = soc.origine();
         Point2D perp = soc.perpendiculaireDirection();
 
-
         Point2D pt_depart = origine.add(soc.direction().multiply(z_sur_axe)) ;
         Point2D pt_extremite = pt_depart.add(perp.multiply(hauteur_fleche)) ;
 
@@ -1249,8 +1541,8 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         gc.strokeLine(pt_depart.getX() , pt_depart.getY() ,
                 pt_depart.getX() + hauteur_fleche * perp.getX(), pt_depart.getY() + hauteur_fleche * perp.getY());
 
-        gc.strokeLine(pt_depart_pointe_gauche.getX(),pt_depart_pointe_gauche.getY(),pt_extremite.getX(),pt_extremite.getY());
-        gc.strokeLine(pt_depart_pointe_droite.getX(),pt_depart_pointe_droite.getY(),pt_extremite.getX(),pt_extremite.getY());
+        traceLigne(pt_depart_pointe_gauche,pt_extremite);
+        traceLigne(pt_depart_pointe_droite,pt_extremite);
 
         gc.setStroke(s) ;
     }

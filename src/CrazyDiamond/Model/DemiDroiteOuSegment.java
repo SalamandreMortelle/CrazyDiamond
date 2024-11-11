@@ -44,9 +44,14 @@ public class DemiDroiteOuSegment {
         this.direction = direction.normalize();
         this.arrivee = null ;
     }
+
+    public void renverseDirection() {
+        this.direction = this.direction.multiply(-1d) ;
+    }
+
     public void definirDepart(Point2D dep) {
         this.depart = dep ;
-        this.direction = (this.arrivee!=null?this.arrivee.subtract(dep).normalize():null) ;
+        this.direction = (this.arrivee!=null?this.arrivee.subtract(dep).normalize():direction) ;
     }
 
     public void definirArrivee(Point2D arr) {
@@ -114,17 +119,8 @@ public class DemiDroiteOuSegment {
      */
     public Point2D intersectionAvec(DemiDroiteOuSegment autre_support) {
 
-        Point2D r  ; // Vecteur directeur du support this
-        if (arrivee != null) // Le support est un segment
-            r = arrivee.subtract(depart) ; // Pour que la norme de r égale la longueur du segment
-        else // Le support est une demi-droite (ou une droite)
-            r = direction ; // La norme de r n'a pas d'importance pour la suite du calcul
-
-        Point2D s  ; // Vecteur directeur de autre_support
-        if (autre_support.arrivee != null) // L'autre support est un segment
-            s = autre_support.arrivee.subtract(autre_support.depart) ; // Pour que la norme de t égale la longueur du segment
-        else // Le support est une demi-droite (ou une droite)
-            s = autre_support.direction ; // La norme de t n'a pas d'importance pour la suite du calcul
+        Point2D r = vecteurDirecteur(this);
+        Point2D s = vecteurDirecteur(autre_support);
 
         double r_vectoriel_s = produit_vectoriel_simplifie(r,s) ;
 
@@ -170,6 +166,75 @@ public class DemiDroiteOuSegment {
             return null ;
 
     }
+
+    private Point2D vecteurDirecteur(DemiDroiteOuSegment dds) {
+
+        Point2D r  ; // Vecteur directeur du support this
+        if (dds.arrivee() != null) // Le support est un segment
+            r = dds.arrivee().subtract(dds.depart()) ; // Pour que la norme de r égale la longueur du segment
+        else // Le support est une demi-droite (ou une droite)
+            r = dds.direction(); // La norme de r n'a pas d'importance pour la suite du calcul si on est sur une demi-droite
+        return r;
+    }
+
+    public Point2D intersectionAvecDroiteSupportDe(DemiDroiteOuSegment autre_support) {
+//        Point2D pt_fin_incident_fo = dd_incident_fo.intersectionAvec(new DemiDroiteOuSegment(pt_pri_obj,perp)) ;
+//        if (pt_fin_incident_fo==null)
+//            pt_fin_incident_fo = dd_incident_fo.intersectionAvec(new DemiDroiteOuSegment(pt_pri_obj,perp.multiply(-1d))) ;
+
+        Point2D r = vecteurDirecteur(this);
+        Point2D s = vecteurDirecteur(autre_support);
+
+        double r_vectoriel_s = produit_vectoriel_simplifie(r,s) ;
+
+        if (r_vectoriel_s==0)
+            return null ;
+
+        Point2D q_moins_p = autre_support.depart.subtract(depart) ;
+        double t = produit_vectoriel_simplifie(q_moins_p,s) / r_vectoriel_s ;
+        double u = produit_vectoriel_simplifie(q_moins_p,r) / r_vectoriel_s ;
+
+        // Equation paramétrique vectorielle de paramètre t de la droite support this : depart+t*r
+        // Equation paramétrique vectorielle de paramètre u de la droite support autre_support : autre_support.depart+u*s
+
+        // Intersection avant l'origine this => pas d'intersection, inutile de chercher plus loin
+        if (t<0d)
+            return null ;
+
+        if (arrivee != null ) {// this est un segment qui coupe peut-être la droite support de autre_support
+            if (0d <= t && t <= 1d) // L'intersection doit faire partie du segment this
+                return depart.add(r.multiply(t)) ;
+            else
+                return null ;
+        }
+
+        // this est une demi-droite qui coupe la droite support de autre_support
+        return depart.add(r.multiply(t)) ;
+
+    }
+
+    public Point2D intersectionDroiteSupportAvecDroiteSupportDe(DemiDroiteOuSegment autre_support) {
+
+        Point2D r = vecteurDirecteur(this);
+        Point2D s = vecteurDirecteur(autre_support);
+
+        double r_vectoriel_s = produit_vectoriel_simplifie(r,s) ;
+
+        if (r_vectoriel_s==0)
+            return null ;
+
+        Point2D q_moins_p = autre_support.depart.subtract(depart) ;
+        double t = produit_vectoriel_simplifie(q_moins_p,s) / r_vectoriel_s ;
+        double u = produit_vectoriel_simplifie(q_moins_p,r) / r_vectoriel_s ;
+
+        // Equation paramétrique vectorielle de paramètre t de la droite support this : depart+t*r
+        // Equation paramétrique vectorielle de paramètre u de la droite support autre_support : autre_support.depart+u*s
+
+        // this est une demi-droite qui coupe la droite support de autre_support
+        return depart.add(r.multiply(t)) ;
+
+    }
+
 
     private double produit_vectoriel_simplifie(Point2D v1, Point2D v2) {
         return (v1.getX()*v2.getY()-v1.getY()*v2.getX()) ;
