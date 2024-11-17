@@ -628,7 +628,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
      * <p>
      * Pré-condition :
      * <ul><li>tous les dioptres (dans le sens des z croissants, et des RC "croissants") en supposant les dioptres tous transparents
-     * sont déjà calculées et classées dans l'attribut dioptres (via la méthode extraireDioptresParaxiaux() appelée dans
+     * sont déjà calculés et classés dans l'attribut dioptres (via la méthode extraireDioptresParaxiaux() appelée dans
      * calculeElementsCardinaux())
      * </ul>
      * </p><br>
@@ -658,7 +658,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
                 0d,1d,0) ;
 
         // Mémorisons les modalités de traversée des dioptres (rayons des diaphragmes, dioptres à ignorer) qui étaient
-        // précédemment définies (pour épargner à l'utilisateur de les re-saisir à chaque modification du SOC)
+        // précédemment définies par l'utilisateur (pour lui épargner de les re-saisir à chaque modification du SOC)
         ArrayList<ModalitesTraverseeDioptre> modalites_traversee_precedentes = new ArrayList<>(dioptres_rencontres.size())  ;
 
         if (dioptres_rencontres.size()>0) {
@@ -750,7 +750,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
                         / dioptre_rencontre.indiceAvant() ;
 
                 if (intervalle!=0d)
-                    resultat.prepend(new Affine(1d, intervalle* environnement.unite().valeur, 0d,
+                    resultat.prepend(new Affine(1d, intervalle*environnement.unite().valeur, 0d,
                             0d, 1d, 0d));
 
             }
@@ -843,12 +843,14 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
                             null : Math.abs(dioptre_rencontre.antecedentDiaphragme().hauteur()) / denom ;
 
                     if (tan_angle_antecedent_depuis_z_objet != null) {
-                        LOGGER.log(Level.FINE, "Pupille entrée du diaphragme {0} en Z = {1} :\n" +
-                                        "    hauteur : {2} m, angle vu de objet : {3}°\n" ,
+                        LOGGER.log(Level.FINE, """
+                                        Pupille entrée du diaphragme {0} en Z = {1} :
+                                            hauteur : {2} m, angle vu de objet : {3}°
+                                        """,
                                 new Object[]{nb_dioptres_rencontres, dioptre_rencontre.antecedentDiaphragme().z() ,dioptre_rencontre.antecedentDiaphragme().hauteur(),
                                         Math.toDegrees(Math.atan(tan_angle_antecedent_depuis_z_objet))});
 
-                        System.out.println("Anécédent du diaphragme "+nb_dioptres_rencontres+" en Z = "+dioptre_rencontre.antecedentDiaphragme().z()+" hauteur :"+dioptre_rencontre.antecedentDiaphragme().hauteur()) ;
+                        System.out.println("Antécédent du diaphragme "+nb_dioptres_rencontres+" en Z = "+dioptre_rencontre.antecedentDiaphragme().z()+" hauteur :"+dioptre_rencontre.antecedentDiaphragme().hauteur()) ;
                         System.out.println("    Angle vu de l'objet  :" +Math.toDegrees(Math.atan(tan_angle_antecedent_depuis_z_objet)));
 
                         // Si l'angle sous lequel on voit l'antécédent du diaphragme courant dans l'espace objet est plus
@@ -1531,6 +1533,9 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         this.angle_champ_pleine_lumiere_image = new SimpleObjectProperty<>(null) ;
         this.angle_champ_total_image = new SimpleObjectProperty<>(null) ;
 
+        // Nécessaire pour déclencher le recalcul de la position des Diaph. d'Ouverture, de Champ, etc. qui dépendent
+        // de la position du plan objet
+        z_geometrique_objet.addListener((observable, oldValue, newValue) -> { calculeElementsCardinaux(); });
 
         // Calcul de la position optique de l'image grâce à la relation homographique, valable pour un système focal ou afocal
         ObjectBinding<Double> calcule_z_optique_image = new ObjectBinding<>() {
