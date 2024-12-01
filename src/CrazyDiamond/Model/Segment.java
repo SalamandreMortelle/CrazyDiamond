@@ -299,7 +299,7 @@ public class Segment extends BaseObstacleAvecContourSansEpaisseur implements Obs
 
         Point2D res = segment_support.intersectionAvec(r.supportGeometrique()) ;
 
-        if (res!=null && res.subtract(centre()).magnitude()< (rayon_diaphragme.get()/2d))
+        if (res!=null && res.subtract(centre()).magnitude()< (rayon_diaphragme.get()))
             return null ;
 
         return res ;
@@ -310,7 +310,7 @@ public class Segment extends BaseObstacleAvecContourSansEpaisseur implements Obs
 
     @Override
     public Point2D pointSurAxeRevolution() {
-        return new Point2D((x1()+ x2())/2,(y1()+ y2())/2 ) ;
+        return centre() ; /* new Point2D((x1()+ x2())/2,(y1()+ y2())/2 ) ; */
     }
 
     @Override
@@ -388,9 +388,16 @@ public class Segment extends BaseObstacleAvecContourSansEpaisseur implements Obs
 
     @Override
     public void convertirDistances(double facteur_conversion) {
+
         position_orientation.set(new PositionEtOrientation(centre().multiply(facteur_conversion),orientation()));
-        rayon_diaphragme.set(rayonDiaphragme()*facteur_conversion);
-        longueur.set(longueur()*facteur_conversion);
+
+        if (facteur_conversion>=1) {
+            longueur.set(longueur()*facteur_conversion);
+            rayon_diaphragme.set(rayonDiaphragme()*facteur_conversion);
+        } else {
+            rayon_diaphragme.set(rayonDiaphragme()*facteur_conversion);
+            longueur.set(longueur()*facteur_conversion);
+        }
     }
 
 }

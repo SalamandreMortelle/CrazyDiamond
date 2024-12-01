@@ -172,11 +172,13 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
     private boolean suspendre_calcul_elements_cardinaux = false;
 
-    // Flag et valeur de z_image précalculés lors d'une conversion d'unités, car le re-calcul correct de z_image et h_image
-    // n'est pas possible tant que l'unité de l'Environnement n'est pas mis à jour (elle ne l'est qu'après le changement
-    // d'unité du SOC ; cf. Environnement::changerUnite()
+    // Flags et valeurs de z_image (optique et géométriques)  précalculés lors d'une conversion d'unités, car le
+    // re-calcul correct de z_image et h_image n'est pas possible tant que l'unité de l'Environnement n'est pas mis à
+    // jour (elle ne l'est qu'après le changement d'unité du SOC ; cf. Environnement::changerUnite())
     private boolean nouveau_z_optique_image_apres_conversion_a_prendre_compte = false;
     private Double nouveau_z_optique_image_apres_conversion = null ;
+    private boolean nouveau_z_geometrique_image_apres_conversion_a_prendre_compte = false;
+    private Double nouveau_z_geometrique_image_apres_conversion = null ;
 
     private boolean nouveau_g_t_a_prendre_compte_apres_conversion = false;
     private Double nouveau_g_t_apres_conversion = null ;
@@ -1611,6 +1613,11 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
             @Override
             protected Double computeValue() {
 
+                if (nouveau_z_geometrique_image_apres_conversion_a_prendre_compte) {
+                    nouveau_z_geometrique_image_apres_conversion_a_prendre_compte = false;
+                    return nouveau_z_geometrique_image_apres_conversion;
+                }
+
                 if (z_optique_image==null||z_optique_image.get()==null)
                     return null ;
 
@@ -2085,6 +2092,8 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
         nouveau_z_optique_image_apres_conversion_a_prendre_compte = true ;
         nouveau_z_optique_image_apres_conversion = (z_optique_image.get() != null ? z_optique_image.get()*facteur_conversion : null) ;
+        nouveau_z_geometrique_image_apres_conversion_a_prendre_compte = true ;
+        nouveau_z_geometrique_image_apres_conversion = (z_geometrique_image.get() != null ? z_geometrique_image.get()*facteur_conversion : null) ;
         nouveau_h_image_apres_conversion = (h_image.get() != null ? h_image.get()*facteur_conversion : null) ;
         nouveau_g_t_apres_conversion = (grandissement_transversal.get() != null ? grandissement_transversal.get() : null) ;
 

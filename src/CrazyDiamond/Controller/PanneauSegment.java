@@ -54,11 +54,14 @@ public class PanneauSegment {
     public Slider slider_r_diaphragme;
 
     private final DoubleProperty pourcentage_ouverture_diaphragme;
+    private boolean garde_recalcul_rayon_diaphragme = false ;
 
     @FXML
     public Spinner<Double> spinner_orientation;
     @FXML
     public Slider slider_orientation;
+
+
 
     public PanneauSegment(Segment s,boolean dans_composition,CanvasAffichageEnvironnement cnv) {
         LOGGER.log(Level.INFO,"Construction du PanneauSegment") ;
@@ -120,31 +123,47 @@ public class PanneauSegment {
         ((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_r_diaphragme.getValueFactory()).maxProperty().bind(segment.longueurProperty().multiply(0.5d));
 
         segment.rayonDiaphragmeProperty().addListener((observable, oldValue, newValue)->{
-            double longueur = segment.longueurProperty().doubleValue() ;
-            if (longueur>0)
-                pourcentage_ouverture_diaphragme.set(100d*newValue.doubleValue()/(0.5d*longueur));
+            double longueur = segment.longueur() ;
+            if (longueur>0) {
+                // Garde : comme il y a (un peu plus bas) un listener sur le pourcentage_ouverture_diaphragme qui peut
+                // lui-même venir modifier la propriété rayonDiaphragme et re-déclencher le présent listener, mieux vaut
+                // une garde pour éviter une boucle infinie (même si, en pratique, on dirait qu'elle ne se produit pas)
+                garde_recalcul_rayon_diaphragme = true ;
+                pourcentage_ouverture_diaphragme.set(100d * newValue.doubleValue() / (0.5d*longueur));
+                garde_recalcul_rayon_diaphragme = false ;
+            }
         });
-        segment.longueurProperty().addListener((observable, oldValue, newValue)->{
 
-            if (newValue.doubleValue()>0)
-                pourcentage_ouverture_diaphragme.set(100*segment.rayonDiaphragmeProperty().doubleValue()/ (newValue.doubleValue()*0.5d));
+        segment.longueurProperty().addListener((observable, oldValue, newValue)->{
+            if (newValue.doubleValue()>0) {
+                garde_recalcul_rayon_diaphragme = true;
+                pourcentage_ouverture_diaphragme.set(100 * segment.rayonDiaphragme() / (newValue.doubleValue()*0.5d));
+                garde_recalcul_rayon_diaphragme = false;
+            }
         });
 
         slider_r_diaphragme.setLabelFormatter(new StringConverter<>() {
-            @Override
-            public String toString(Double aDouble) {
+            @Override public String toString(Double aDouble) {
                 return aDouble.intValue()+"%" ;
             }
-
-            @Override
-            public Double fromString(String s) {
+            @Override public Double fromString(String s) {
                 return null;
             }
         });
 
         slider_r_diaphragme.valueProperty().bindBidirectional(pourcentage_ouverture_diaphragme);
 
-        pourcentage_ouverture_diaphragme.addListener((observable, oldValue, newValue)-> segment.rayonDiaphragmeProperty().set(newValue.doubleValue()*segment.longueurProperty().doubleValue()*0.5d/100d));
+        // Initialisation du pourcentage ouverture rayon diaphragme (nécessaire quand on instancie depuis une désérialisation)
+        pourcentage_ouverture_diaphragme.set(100 * segment.rayonDiaphragme() / (segment.longueur()*0.5d));
+
+        pourcentage_ouverture_diaphragme.addListener((observable, oldValue, newValue)
+            -> {
+                // Garde : Si c'est un changement du rayon diaphragme qui a déclenché le présent listener, inutile de
+                // recalculer le rayon diaphragme. Permet d'éviter une potentielle boucle infini" (même si en pratique,
+                // elle ne semble pas avoir lieu)
+                if (!garde_recalcul_rayon_diaphragme)
+                    segment.rayonDiaphragmeProperty().set(newValue.doubleValue()*segment.longueur()*0.5d/100d);
+            } ) ;
 
     }
 

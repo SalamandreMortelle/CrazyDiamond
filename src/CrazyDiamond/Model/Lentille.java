@@ -990,8 +990,15 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
         position_orientation.set(new PositionEtOrientation(centre().multiply(facteur_conversion),orientation()));
         epaisseur.set(epaisseur()*facteur_conversion);
         diametre.set(diametre()*facteur_conversion);
+
+        double rayon_2_init = rayon2() ;
         rayon_1.set(rayon1()*facteur_conversion);
-        rayon_2.set(rayon2()*facteur_conversion);
+        if (rayon2()==rayon_2_init) // Si le binding des faces symétriques n'a pas déjà mis à jour rayon 2, faisons-le
+            rayon_2.set(rayon2()*facteur_conversion);
+        double parametre_2_init = parametre2() ;
+        parametre_1.set(parametre1()*facteur_conversion);
+        if (parametre2()==parametre_2_init) // Si le binding des faces symétriques n'a pas déjà mis à jour paramètre 2, faisons-le
+            parametre_2.set(parametre2()*facteur_conversion);
     }
 
     public Composition composition() {
