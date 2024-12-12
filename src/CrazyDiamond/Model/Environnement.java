@@ -683,6 +683,9 @@ public class Environnement {
     }
 
     public static boolean quasiEgal(double a, double b) {
+
+        if (a==b) return true ; // Permet de gérer le cas où a et b valent Double.POSITIVE_INFINITY ou Double.NEGATIVE_INFINTY
+
         return Math.abs(a - b) <= Environnement.resolution;
     }
 

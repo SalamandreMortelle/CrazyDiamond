@@ -3,7 +3,6 @@ package CrazyDiamond.Model;
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
-import javafx.scene.transform.Rotate;
 import javafx.util.Pair;
 
 public class Prisme extends BaseObstacleAvecContourEtMatiere implements Obstacle, Identifiable, Nommable,ElementAvecContour,ElementAvecMatiere {
@@ -93,11 +92,19 @@ public class Prisme extends BaseObstacleAvecContourEtMatiere implements Obstacle
 
     @Override
     public void tournerAutourDe(Point2D centre_rot, double angle_rot_deg) {
-        Rotate r = new Rotate(angle_rot_deg,centre_rot.getX(),centre_rot.getY()) ;
+//        Rotate r = new Rotate(angle_rot_deg,centre_rot.getX(),centre_rot.getY()) ;
+//
+//        Point2D nouveau_centre = r.transform(centre()) ;
 
-        Point2D nouveau_centre = r.transform(centre()) ;
+        // Il faut ramener la nouvelle orientation entre 0 et 360° car les spinners et sliders "orientation" des
+        // panneaux contrôleurs imposent ces limites via leurs min/max
+//        double nouvelle_or = (orientation()+angle_rot_deg)%360 ;
+//        if (nouvelle_or<0) nouvelle_or+=360 ;
+//
+//        position_orientation.set(new PositionEtOrientation(nouveau_centre,Obstacle.nouvelleOrientationApresRotation(orientation(),angle_rot_deg)));
+//        position_orientation.set(new PositionEtOrientation(nouveau_centre,orientation()+angle_rot_deg));
 
-        position_orientation.set(new PositionEtOrientation(nouveau_centre,orientation()+angle_rot_deg));
+        position_orientation.set(Obstacle.nouvellePositionEtOrientationApresRotation(position_orientation.get(),centre_rot,angle_rot_deg)) ;
     }
 
     ContoursObstacle couper(BoiteLimiteGeometrique boite, boolean avec_contours_surface) {

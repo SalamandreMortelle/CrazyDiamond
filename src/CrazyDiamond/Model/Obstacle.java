@@ -79,6 +79,20 @@ public interface Obstacle {
 
     }
 
+    static PositionEtOrientation nouvellePositionEtOrientationApresRotation(PositionEtOrientation pos_et_or_actuelle, Point2D centre_rot,double angle_rot_deg) {
+
+        Rotate r = new Rotate(angle_rot_deg,centre_rot.getX(),centre_rot.getY()) ;
+
+        Point2D nouveau_centre = r.transform(pos_et_or_actuelle.position()) ;
+
+        // Il faut ramener la nouvelle orientation entre 0 et 360° car les spinners et sliders "orientation" des
+        // panneaux contrôleurs imposent ces limites via leurs min/max
+        double nouvelle_or = (pos_et_or_actuelle.orientation_deg() + angle_rot_deg) % 360;
+        if (nouvelle_or < 0) nouvelle_or += 360;
+
+        return new PositionEtOrientation(nouveau_centre,nouvelle_or);
+    }
+
     void tournerAutourDe(Point2D centre_rot,double angle_rot_deg) ;
 
     default void definirAppartenanceSystemeOptiqueCentre(boolean b) { }

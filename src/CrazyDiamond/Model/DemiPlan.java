@@ -3,7 +3,6 @@ package CrazyDiamond.Model;
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
-import javafx.scene.transform.Rotate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +56,9 @@ public class DemiPlan extends BaseObstacleAvecContourEtMatiere implements Obstac
         else
             d_z_origine = new DioptreParaxial(z_origine, null, 0d, indiceRefraction() , this);
 
-        if (Math.abs(axe.orientation_deg() - orientation())>90d) // Cet écart vaut 0 ou 180°
+//        if (Math.abs(axe.orientation_deg() - orientation())>90d) // Cet écart vaut 0 ou 180°
+//            d_z_origine.permuterIndicesAvantApres();
+        if (normale().dotProduct(axe.direction())<0)
             d_z_origine.permuterIndicesAvantApres();
 
         resultat.add(d_z_origine) ;
@@ -71,11 +72,8 @@ public class DemiPlan extends BaseObstacleAvecContourEtMatiere implements Obstac
     public double yOrigine() { return position_orientation.get().position().getY();  }
 
     // Direction de la frontière du demi-plan
-    public Point2D direction() {
-
-        double ori_rad = Math.toRadians(orientation()) ;
-        Point2D p_norm = new Point2D(Math.cos(ori_rad),Math.sin(ori_rad)) ;
-
+    public Point2D directionPlan() {
+        Point2D p_norm = normale() ;
         return new Point2D(-p_norm.getY(),p_norm.getX()) ;
     }
 
@@ -129,14 +127,16 @@ public class DemiPlan extends BaseObstacleAvecContourEtMatiere implements Obstac
     }
 
     public Point2D normale() {
-        double ori_rad = Math.toRadians(orientation()) ;
+//        double ori_rad = Math.toRadians(orientation()) ;
+//        Point2D norm = new Point2D(Math.cos(ori_rad),Math.sin(ori_rad)) ;
 
-        Point2D norm = new Point2D(Math.cos(ori_rad),Math.sin(ori_rad)) ;
+        Point2D norm = position_orientation.get().direction() ;
+        return norm.multiply(typeSurface() == TypeSurface.CONVEXE?1d:-1d) ;
 
-        if (typeSurface() == TypeSurface.CONVEXE)
-            return norm ;
-        else
-            return norm.multiply(-1.0) ;
+//        if (typeSurface() == TypeSurface.CONVEXE)
+//            return norm ;
+//        else
+//            return norm.multiply(-1.0) ;
 
     }
 
@@ -210,7 +210,7 @@ public class DemiPlan extends BaseObstacleAvecContourEtMatiere implements Obstac
         double ymax = boite.getMaxY() ;
 
 //        Rayon r = new Rayon(origine(),direction()) ;
-        DemiDroiteOuSegment s = new DemiDroiteOuSegment(origine(),direction()) ;
+        DemiDroiteOuSegment s = new DemiDroiteOuSegment(origine(), directionPlan()) ;
 
         Point2D p_inter1 = boite.premiere_intersection(s) ;
         Point2D p_inter2 = boite.derniere_intersection(s) ;
@@ -220,7 +220,7 @@ public class DemiPlan extends BaseObstacleAvecContourEtMatiere implements Obstac
             p_inter2 = null ;
 
 //        Rayon r_opp = new Rayon(origine(),direction().multiply(-1.0)) ;
-        DemiDroiteOuSegment s_opp = new DemiDroiteOuSegment(origine(),direction().multiply(-1.0)) ;
+        DemiDroiteOuSegment s_opp = new DemiDroiteOuSegment(origine(), directionPlan().multiply(-1.0)) ;
         Point2D p_inter_opp1 = boite.premiere_intersection(s_opp) ;
         Point2D p_inter_opp2 = boite.derniere_intersection(s_opp) ;
 
@@ -392,11 +392,22 @@ public class DemiPlan extends BaseObstacleAvecContourEtMatiere implements Obstac
 
     @Override
     public void tournerAutourDe(Point2D centre_rot, double angle_rot_deg) {
-        Rotate r = new Rotate(angle_rot_deg,centre_rot.getX(),centre_rot.getY()) ;
+//        Rotate r = new Rotate(angle_rot_deg,centre_rot.getX(),centre_rot.getY()) ;
+//
+//        Point2D nouvelle_origine = r.transform(origine()) ;
 
-        Point2D nouvelle_origine = r.transform(origine()) ;
+        // Il faut ramener la nouvelle orientation entre 0 et 360° car les spinners et sliders "orientation" des
+        // panneaux contrôleurs imposent ces limites via leurs min/max
+//        double nouvelle_or = (orientation()+angle_rot_deg)%360 ;
+//        if (nouvelle_or<0) nouvelle_or+=360 ;
+//
+//        System.out.println("Obstacle "+this+" : orientation "+orientation()+" ===> "+(orientation()+angle_rot_deg));
+//        System.out.println("%360 : "+(orientation()+angle_rot_deg)%360 );
+//        System.out.println("IEEERemainder : "+Math.IEEEremainder(orientation()+angle_rot_deg,360) );
+//        position_orientation.set(new PositionEtOrientation(nouvelle_origine,(orientation()+angle_rot_deg)%360));
+//        position_orientation.set(new PositionEtOrientation(nouvelle_origine,Obstacle.nouvelleOrientationApresRotation(orientation(),angle_rot_deg)));
 
-        position_orientation.set(new PositionEtOrientation(nouvelle_origine,orientation()+angle_rot_deg));
+        position_orientation.set(Obstacle.nouvellePositionEtOrientationApresRotation(position_orientation.get(),centre_rot,angle_rot_deg)) ;
     }
 
     @Override

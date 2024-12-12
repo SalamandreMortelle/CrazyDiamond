@@ -29,7 +29,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
     /**
      * Matrice de transfert optique en optique paraxiale, entre les plans de référence d'abscisses z_plan_entree et
-     * z_plan_sortie Seules les 4 composantes xx,xy,yx et yy de la matrice sont significatives.
+     * z_plan_sortie Seules les 4 composantes xx, xy,yx et yy de la matrice sont significatives.
      */
     private final ObjectProperty<Affine> matrice_transfert_es;
 
@@ -388,7 +388,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
             // Calcul de tous les dioptres du SOC le sens des Z croissants et des Rcourbure "croissants" (progression
             // forcée dans le sens des Z croissants, en ignorant les dioptres réfléchissants) : on cherche à avoir la
             // liste exhaustive de tous les dioptres, sans chercher à savoir s'ils peuvent être rencontrés par le rayon
-            // qui entre dans le SOC (les dioptres réellement rencontrés sont extraits dans la méthode
+            // qui entre dans le SOC (les dioptres réellement rencontrés seront extraits dans la méthode
             // calculeMatriceTransfertOptique).
             dioptres.setAll(extraireDioptresParaxiaux());
         } catch (Exception e) {
@@ -958,6 +958,10 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
             i += pas ;
         }  // Fin de la construction de la liste des dioptres rencontrés et de la matrice de transfert
 
+
+        if (dioptre_sortie==null) // Peut arriver si tous les dioptres rencontrés sont marqués "à ignorer"
+            return null ;
+
         z_geometrique_plan_sortie.set(dioptre_sortie.ZGeometrique()) ;
         z_optique_plan_sortie.set(dioptre_sortie.ZOptique()) ;
         sens_plus_en_sortie.set(pas>0) ;
@@ -1116,7 +1120,8 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
             double h_image_cm = (h_image_precalcule > 0 ? 1d : -1d) * Math.abs(r_lucarne_sortie.get() * (z_pupille_sortie.get() - z_image_precalcule) / Math.abs((z_pupille_sortie.get() - z_lucarne_sortie.get())));
 
             if (!Environnement.quasiEgal(Math.abs(h_image_cm),Math.abs(r_champ_moyen_image.get())))
-                    LOGGER.log(Level.SEVERE,"La hauteur absolue du champ moyen n'est pas le même selon la méthode...");
+                    LOGGER.log(Level.SEVERE,"La hauteur absolue du champ moyen n'est pas le même selon la méthode : " +
+                            "{0} pour l'une contre {1} pour l'autre", new Double[]{h_image_cm, r_champ_moyen_image.get()});
         }
 
 
@@ -1461,8 +1466,13 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
             suspendre_calcul_elements_cardinaux = true ;
 
             Point2D delta_pos = newValue.position().subtract(oldValue.position()) ;
-            double delta_angle_rot_deg = newValue.orientation_deg()- oldValue.orientation_deg() ;
+            double delta_angle_rot_deg = (newValue.orientation_deg() - oldValue.orientation_deg()) ;
+//            double delta_angle_rot_deg = (newValue.orientation_deg() - oldValue.orientation_deg())%360 ;
+//            if (delta_angle_rot_deg<0) delta_angle_rot_deg+=360 ;
+//            double delta_angle_rot_deg = Math.IEEEremainder(newValue.orientation_deg()- oldValue.orientation_deg(),180) ;
+
             for (Obstacle o : obstacles_centres) {
+//                System.out.println("Obstacle "+o+" tourne de "+delta_angle_rot_deg+"°");
                 o.tournerAutourDe(this.origine(),delta_angle_rot_deg);
                 o.translater(delta_pos);
             }
@@ -1643,7 +1653,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
                     return nouveau_h_image_apres_conversion ;
                 }
 
-                if (matrice_transfert_es.get() == null || z_geometrique_objet.get() == null || h_objet.get() == null /*|| z_objet.get()>z_plan_entree*/)
+                if (matrice_transfert_es.get() == null || z_geometrique_objet.get() == null || h_objet.get() == null || z_plan_entree.get() == null /*|| z_objet.get()>z_plan_entree*/)
                     return null ;
 
                 double z_optique_objet = convertirEnZOptique(z_geometrique_objet.get()) ;
@@ -1812,6 +1822,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     public void definirOrigine(Point2D origine) { axe.set(new PositionEtOrientation(origine,orientation()));  }
 
     public void definirOrientation(double or_deg) {
+//        System.out.println("Nouvelle orientation "+or_deg) ;
         axe.set(new PositionEtOrientation(origine(),or_deg));
     }
     public void definirDirection(Point2D direction) {
@@ -1971,7 +1982,32 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     }
 
     protected double angleRotationPourAjoutObstacle(Obstacle o) {
-        return (orientation() - o.orientation())%180d ;
+
+//        Point2D norm = position_orientation.get().direction() ;
+//        return norm.multiply(typeSurface() == TypeSurface.CONVEXE?1d:-1d) ;
+
+//        if (normale.dotProduct(axe.direction())<0)
+
+
+//        double ori_soc_rad = Math.toRadians(orientation()) ;
+//        double ori_obs_rad = Math.toRadians(o.orientation()) ;
+//        Point2D vec_soc = new Point2D(Math.cos(ori_soc_rad),Math.sin(ori_soc_rad)) ;
+//        Point2D vec_obs = new Point2D(Math.cos(ori_obs_rad),Math.sin(ori_obs_rad)) ;
+//        return vec_obs.angle(vec_soc) ;
+
+//            return (orientation() - o.orientation())%180d ;
+
+        System.out.println("orientation soc : "+orientation()+" / orientation obs : "+o.orientation()) ;
+        System.out.println("Math.IEEEremainder(orientation() - o.orientation(),180) : "+Math.IEEEremainder(orientation() - o.orientation(),180)) ;
+
+
+            return Math.IEEEremainder(orientation() - o.orientation(),180) ;
+//            return reste(orientation() - o.orientation(),180) ;
+    }
+
+    static private double reste(double value, double stop) {
+        double result = (value - Math.floor(value / stop)*stop);
+        return result == stop ? 0 : result;
     }
 
     private void positionnerObstacle(Obstacle o)  {

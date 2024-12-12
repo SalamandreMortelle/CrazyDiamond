@@ -292,7 +292,9 @@ public class Imp_ElementComposite {
             return;
 
         // On oriente le premier élément
-        double delta_ori = orientation_deg - elements.get(0).orientation();
+//        double delta_ori = orientation_deg - elements.get(0).orientation();
+        double delta_ori = Math.IEEEremainder(orientation_deg - elements.get(0).orientation(),180);
+
         elements.get(0).definirOrientation(orientation_deg);
 
         // Les éléments suivants doivent rester à même distance du premier, rotation par rapport au "centre" (=point sur axe révolution) du premier

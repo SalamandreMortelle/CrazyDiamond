@@ -624,7 +624,7 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
                     ++nb_obs_secondaire_contenant ;
             }
 
-            ++nb_obs_avec_matiere; // Rappel : une Composition ne peut contenir que des stream_obstacles avec matière (pas de segments)
+            ++nb_obs_avec_matiere; // Rappel : une Composition ne peut contenir que des obstacles avec matière (pas de segments)
 
             dioptres_composition.addAll(dioptres_o) ;
         }

@@ -3,7 +3,6 @@ package CrazyDiamond.Model;
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
-import javafx.scene.transform.Rotate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -887,9 +886,7 @@ public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacl
     }
 
     @Override
-    public double orientation()  {
-        return position_orientation.get().orientation_deg() ;
-    }
+    public double orientation() { return position_orientation.get().orientation_deg() ; }
 
     @Override
     public Double rayonDiaphragmeParDefaut() {
@@ -915,7 +912,11 @@ public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacl
         Double z_int_min ;
         Double z_int_max ;
 
-        if (Math.abs(axe.orientation_deg() - orientation())>90d) { // Cet écart angulaire vaut soit 0 soit 180° (cf. SOC::positionnerObstacle)
+        Point2D normale = position_orientation.get().direction() ;
+        normale.multiply(typeSurface() == TypeSurface.CONVEXE?1d:-1d) ;
+
+//        if (Math.abs(axe.orientation_deg() - orientation())>90d) { // Cet écart angulaire vaut soit 0 soit 180° (cf. SOC::positionnerObstacle)
+        if (normale.dotProduct(axe.direction())<0) {
             z_int_min = z_foyer - p / (1 + e);
             z_int_max = (e < 1d ? z_foyer + p / (1 - e) : null);
         }
@@ -951,11 +952,18 @@ public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacl
 
     @Override
     public void tournerAutourDe(Point2D centre_rot, double angle_rot_deg) {
-        Rotate r = new Rotate(angle_rot_deg,centre_rot.getX(),centre_rot.getY()) ;
+//        Rotate r = new Rotate(angle_rot_deg,centre_rot.getX(),centre_rot.getY()) ;
+//
+//        Point2D nouveau_foyer = r.transform(foyer()) ;
 
-        Point2D nouveau_foyer = r.transform(foyer()) ;
-
-        position_orientation.set(new PositionEtOrientation(nouveau_foyer,orientation()+angle_rot_deg));
+        // Il faut ramener la nouvelle orientation entre 0 et 360° car les spinners et sliders "orientation" des
+        // panneaux contrôleurs imposent ces limites via leurs min/max
+//        double nouvelle_or = (orientation()+angle_rot_deg)%360 ;
+//        if (nouvelle_or<0) nouvelle_or+=360 ;
+//
+//        position_orientation.set(new PositionEtOrientation(nouveau_foyer,Obstacle.nouvelleOrientationApresRotation(orientation(),angle_rot_deg)));
+//        position_orientation.set(new PositionEtOrientation(nouveau_foyer,orientation()+angle_rot_deg));
+        position_orientation.set(Obstacle.nouvellePositionEtOrientationApresRotation(position_orientation.get(),centre_rot,angle_rot_deg)) ;
     }
 
     @Override
