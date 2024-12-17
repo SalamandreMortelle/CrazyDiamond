@@ -89,7 +89,11 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
     }
 
     private void dragDetected(MouseEvent event, TreeCell<Obstacle> treeCell) {
+
         dragged_item = treeCell.getTreeItem();
+
+        // Si on commence un glisser depuis une zone vide de l'arborescence, ne rien faire
+        if (dragged_item==null) return ;
 
         // Seuls les obstacles "libres" (c'est-à-dire ceux qui sont au 1er niveau sous le noeud racine, et qui ne font
         // donc pas partie d'une Composition) peuvent être déplacés.

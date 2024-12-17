@@ -87,6 +87,9 @@ public class BoiteLimiteGeometrique extends BoundingBox {
      * @return l'intersection trouvée, ou 'null' s'il n'y en a pas.
      */
     protected Point2D cherche_intersection(DemiDroiteOuSegment dd, ModeRecherche mode) {
+        // Un algorithme standard, comme celui de Liang Barsky serait probablement plus efficace :
+        // https://en.wikipedia.org/wiki/Liang%E2%80%93Barsky_algorithm
+
         double xdep = dd.depart().getX() ;
         double ydep = dd.depart().getY() ;
 

@@ -253,7 +253,7 @@ public class Imp_ElementComposite {
 
                 DemiDroiteOuSegment seg = DemiDroiteOuSegment.construireSegment(o_prec.pointSurAxeRevolution(), o.pointSurAxeRevolution());
 
-                double nouvelle_direction_commune = seg.angle() % 180d;
+                double nouvelle_direction_commune = Math.IEEEremainder(seg.angle(),180) /*seg.angle() % 180d*/ ;
 
                 if (o_prec.aUneOrientation()) {
                     if (!Environnement.quasiEgal((o_prec.orientation() % 180d), nouvelle_direction_commune))
