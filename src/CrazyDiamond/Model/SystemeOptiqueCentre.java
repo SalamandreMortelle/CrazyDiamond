@@ -25,6 +25,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     private static final Color couleur_axe_par_defaut = Color.WHITE ;
 
     // Liste des obstacles (obligatoirement des surfaces de révolution centrées sur l'axe du SOC)
+    // TODO Remplacer par une ListProperty<ElementArbreSOC>
     private final ListProperty<Obstacle> obstacles_centres ;
 
     /**
@@ -1316,7 +1317,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         ArrayList<DioptreParaxial> resultat = new ArrayList<>(2*obstacles_centres.size()) ;
 
 //        Iterator<Obstacle> itoc = obstacles_centres.iterator() ;
-        // Attention : si l'iterateur ci-dessous rencontre une composition, il en retourne un par un tous les obstacles
+        // Attention : si l'iterateur ci-dessous rencontre une composition, il en retourne un par un tous les obstacles : euh, je n'en suis pas sûr
         Iterator<Obstacle> itoc = new IterateurObstaclesCentresReels() ;
 
         if (itoc.hasNext()) // Les dioptres de l'obstacle le plus en arrière sont supposés initialement tous visibles

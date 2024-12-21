@@ -855,6 +855,10 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     }
 
     private void traceIncidentParFoyerObjetEmergentParalleleAxeOptique(SystemeOptiqueCentre soc) {
+
+        if (soc.ZGeometriquePlanFocalObjet()==null||soc.ZGeometriqueImage()==null||soc.HImage()==null)
+            return;
+
         //
         // Rayon passant par le foyer objet, émerge du plan principal image parallèlement à l'axe du système à même
         // hauteur que son intersection avec le plan principal objet,
@@ -939,6 +943,12 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     }
 
     private void traceIncidentParPointNodalObjetEmergentParalleleParPointNodalImage(SystemeOptiqueCentre soc) {
+
+        if (soc.ZGeometriquePlanNodalObjet()==null||soc.ZGeometriquePlanNodalImage()==null
+                ||soc.ZGeometriqueImage()==null||soc.HImage()==null)
+            return;
+
+
         //
         // Rayon passant par le point nodal objet, émerge du point nodal image parallèlement au rayon incident
         //
@@ -1013,6 +1023,10 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         // Rayon parallèle à l'axe optique, émerge sur le plan principal image à même hauteur que son intersection avec
         // le plan principal objet et passe par le foyer image
         //
+
+        if (soc.ZGeometriquePlanFocalImage()==null||soc.ZGeometriqueImage()==null
+                ||soc.ZGeometriquePlanPrincipalObjet()==null||soc.ZGeometriquePlanPrincipalImage()==null)
+            return;
 
         Point2D pt_obj = soc.point(soc.ZGeometriqueObjet(), soc.HObjet()) ; // Point Bo
         Point2D pt_obj_proj_pl_entree = soc.point(soc.ZPlanEntree(), soc.HObjet()) ; // Point Bo projeté orth sur Plan Entrée
