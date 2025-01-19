@@ -1,8 +1,6 @@
 package CrazyDiamond.Serializer;
 
-import CrazyDiamond.Model.Obstacle;
-import CrazyDiamond.Model.RencontreDioptreParaxial;
-import CrazyDiamond.Model.SystemeOptiqueCentre;
+import CrazyDiamond.Model.*;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
@@ -40,13 +38,34 @@ public class SystemeOptiqueCentreSerializer extends StdSerializer<SystemeOptique
 
         jsonGenerator.writeBooleanField("montrer_dioptres",soc.MontrerDioptres());
 
+        // Sérialisation du tableau des obstacles dans un 1er tableau
         jsonGenerator.writeArrayFieldStart("obstacles");
 
-        for (Obstacle o : soc.obstacles_centres())
-            jsonGenerator.writeString(o.id());
+        for (ElementDeSOC el : soc.elementsCentresRacine()) {
+            if (el.estUnObstacle())
+                jsonGenerator.writeString(((Obstacle) el).id());
+        }
 
-        jsonGenerator.writeEndArray();
+        jsonGenerator.writeEndArray(); // Fin du tableau des obstacles
 
+
+        // Sérialisation des sous-SOCs dans un 2ème tableau
+        boolean sous_soc_rencontre = false ;
+        for (ElementDeSOC el : soc.elementsCentresRacine()) {
+            if (el.estUnSOC()) {
+                // Écriture des sous-SOC dans un tableau
+                if (!sous_soc_rencontre) {
+                    jsonGenerator.writeArrayFieldStart("sous_systemes");
+                    sous_soc_rencontre=true ;
+                }
+                jsonGenerator.writeObject(el);
+            }
+        }
+        if (sous_soc_rencontre) // Fin du tableau des sous-SOCs
+            jsonGenerator.writeEndArray();
+
+
+        // Sérialisation des modalités de traversée
         jsonGenerator.writeArrayFieldStart("modalites_traversee_dioptres");
 
         for (RencontreDioptreParaxial renc : soc.dioptresRencontres()) {

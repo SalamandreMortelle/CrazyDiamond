@@ -10,10 +10,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -48,7 +45,7 @@ public class PanneauSystemeOptiqueCentre {
     private ColorPicker colorpicker_axe;
 
     @FXML
-    private ListView<Obstacle> listview_obstacles_centres;
+    private ListView<ElementDeSOC> listview_obstacles_centres;
 
     private final ContextMenu menuContextuelObstacleCentre ;
 
@@ -63,7 +60,9 @@ public class PanneauSystemeOptiqueCentre {
 
         menuContextuelObstacleCentre = new ContextMenu() ;
         MenuItem deleteItemSoc = new MenuItem(rb.getString("supprimer.obstacle_centre"));
-        deleteItemSoc.setOnAction(event -> soc.retirerObstacleCentre(listview_obstacles_centres.getSelectionModel().getSelectedItem()));
+        deleteItemSoc.setOnAction(event
+                -> new CommandeRetirerElementsDeSystemeOptiqueCentre(soc,listview_obstacles_centres.getSelectionModel().getSelectedItem()).executer());
+//        deleteItemSoc.setOnAction(event -> soc.retirerElementPremierNiveau(listview_obstacles_centres.getSelectionModel().getSelectedItem()));
         menuContextuelObstacleCentre.getItems().add(deleteItemSoc);
 
     }
@@ -78,13 +77,19 @@ public class PanneauSystemeOptiqueCentre {
 
         // Position : X origine
         spinner_xorigine.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_RIGHT_HORIZONTAL) ;
+        spinner_xorigine.editableProperty().bind(soc.appartenanceSystemeOptiqueProperty().not()) ;
+        spinner_xorigine.disableProperty().bind(soc.appartenanceSystemeOptiqueProperty()) ;
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_xorigine, soc.XOrigine(), this::definirXOrigineSOC);
 
         // Position : Y origine
+        spinner_yorigine.editableProperty().bind(soc.appartenanceSystemeOptiqueProperty().not()) ;
+        spinner_yorigine.disableProperty().bind(soc.appartenanceSystemeOptiqueProperty()) ;
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_yorigine, soc.YOrigine(), this::definirYOrigineSOC);
 
         // Orientation
         spinner_orientation.getValueFactory().setWrapAround(true);
+        spinner_orientation.editableProperty().bind(soc.appartenanceSystemeOptiqueProperty().not()) ;
+        spinner_orientation.disableProperty().bind(soc.appartenanceSystemeOptiqueProperty()) ;
         OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation,soc.orientation(),this::definirOrientation);
 
         slider_orientation.valueProperty().set(soc.orientation());
@@ -97,21 +102,21 @@ public class PanneauSystemeOptiqueCentre {
                 -> new CommandeDefinirUnParametre<>(soc, c_apres, soc::couleurAxe, soc::definirCouleurAxe).executer());
 
         // Liste des obstacles centrés
-        listview_obstacles_centres.setItems(soc.obstacles_centres());
+        listview_obstacles_centres.setItems(soc.elementsCentresRacine());
 
-        ListChangeListener<Obstacle> lcl_oc = change -> {
+        ListChangeListener<ElementDeSOC> lcl_el = change -> {
             while (change.next()) {
                 if (change.wasRemoved()) {
-                    for (Obstacle oc_retire : change.getRemoved()) {
-                        LOGGER.log(Level.FINE,"Obstacle centré supprimé : {0}",oc_retire.nom()) ;
+                    for (ElementDeSOC elc_retire : change.getRemoved()) {
+                        LOGGER.log(Level.FINE,"Obstacle centré supprimé : {0}",elc_retire.nom()) ;
                         // Rien à faire en cas de suppression
                     }
 
                 } else if (change.wasAdded()) {
-                    for (Obstacle oc_ajoute : change.getAddedSubList()) {
-                        LOGGER.log(Level.FINE,"Obstacle centré ajouté : {0}",oc_ajoute.nom()) ;
+                    for (ElementDeSOC elc_ajoute : change.getAddedSubList()) {
+                        LOGGER.log(Level.FINE,"Obstacle centré ajouté : {0}",elc_ajoute.nom()) ;
                         // Rafraichissement automatique de la listview quand le nom de l'obstacle change
-                        oc_ajoute.nomProperty().addListener((obs, oldName, newName) -> listview_obstacles_centres.refresh());
+                        elc_ajoute.nomProperty().addListener((obs, oldName, newName) -> listview_obstacles_centres.refresh());
                     }
                 }
 
@@ -119,7 +124,7 @@ public class PanneauSystemeOptiqueCentre {
         };
 
 
-        soc.obstacles_centres().addListener(lcl_oc);
+        soc.elementsCentresRacine().addListener(lcl_el);
 
 //        for (Obstacle o : soc.obstacles_centres()) {
 //            // Rafraichissement automatique de la liste des obstacles du SOC quand le nom d'un obstacle change
@@ -148,23 +153,32 @@ public class PanneauSystemeOptiqueCentre {
         // Afficher dialogue avec la liste des Obstacles ayant une symétrie de révolution
         ButtonType okButtonType = new ButtonType(rb.getString("bouton.dialogue.soc.ok"), ButtonBar.ButtonData.OK_DONE);
         ButtonType annulerButtonType = new ButtonType(rb.getString("bouton.dialogue.soc.annuler"), ButtonBar.ButtonData.CANCEL_CLOSE);
-        Dialog<ArrayList<Obstacle>> boite_dialogue = new Dialog<>();
+        Dialog<ArrayList<ElementDeSOC>> boite_dialogue = new Dialog<>();
 
         boite_dialogue.setTitle(rb.getString("titre.dialogue.soc"));
         boite_dialogue.setHeaderText(rb.getString("invite.dialogue.soc"));
 
-        ObservableList<Obstacle> obstacles_a_proposer = FXCollections.observableArrayList();
+        ObservableList<ElementDeSOC> elts_a_proposer = FXCollections.observableArrayList();
 
-        // Seuls les obstacles de premier niveau sont proposés dans la modale de création
+        // Seuls les obstacles de premier niveau sont proposés dans la modale d'ajout
         Iterator<Obstacle> ito = canvas.environnement().iterateur_obstacles_premier_niveau();
         while (ito.hasNext()) {
             Obstacle o = ito.next();
-            // Rechercher si l'obstacle o implémente l'interface ElementAvecMatiere car eux seuls peuvent faire partie d'une composition
-            if (o.aSymetrieDeRevolution() && !soc.comprend(o) && canvas.environnement().systemeOptiqueCentreContenant(o) == null)
-                obstacles_a_proposer.add(o);
+            // Vérifier si l'obstacle o a une symétrie de révolution (requis pour faire partie d'un SOC) et s'il n'est pas déjà dans un SOC
+//            if (o.aSymetrieDeRevolution() && !soc.comprend(o) && canvas.environnement().systemeOptiqueCentrePremierNiveauContenant(o) == null)
+            if (o.aSymetrieDeRevolution() && o.SOCParent()==null) // A voir : on pourrait aussi proposer l'ajout d'obstacle qui ont un SOC parent différent de soc
+                elts_a_proposer.add(o);
         }
 
-        ListView<Obstacle> lo = new ListView<>(obstacles_a_proposer);
+        // TODO : ne pas proposer des SOC qui font partie des ancêtres
+        List<SystemeOptiqueCentre> ancetres = soc.ancetres() ;
+        canvas.environnement().systemesOptiquesCentres().stream()
+                .filter(s -> (!ancetres.contains(s) && s!=soc && s.SOCParent()!=soc))
+                .forEach(elts_a_proposer::add);
+
+//        elts_a_proposer.addAll(canvas.environnement().systemesOptiquesCentres());
+        ListView<ElementDeSOC> lo = new ListView<>(elts_a_proposer);
+
 
         // TODO Limiter la composition à deux objets : proposer deux listview en sélection SINGLE côte à côte (mais
         // interdire de choisir le même objet dans les deux listes... : retirer de la 2ème l'objet sélectionné dans
@@ -188,14 +202,14 @@ public class PanneauSystemeOptiqueCentre {
         boite_dialogue.getDialogPane().getButtonTypes().add(okButtonType);
         boite_dialogue.getDialogPane().getButtonTypes().add(annulerButtonType);
 
-        Optional<ArrayList<Obstacle>> op_obstacles_choisis = boite_dialogue.showAndWait();
-        if (op_obstacles_choisis.isPresent()) {
+        Optional<ArrayList<ElementDeSOC>> op_elts_choisis = boite_dialogue.showAndWait();
+        if (op_elts_choisis.isPresent()) {
 
-            ArrayList<Obstacle> obstacles_choisis = op_obstacles_choisis.get();
+            ArrayList<ElementDeSOC> elements_choisis = op_elts_choisis.get();
 
-            LOGGER.log(Level.INFO, "Obstacles choisis pour SOC : {0}", obstacles_choisis);
+            LOGGER.log(Level.INFO, "Obstacles choisis pour SOC : {0}", elements_choisis);
 
-            new CommandeAjouterObstaclesDansSystemeOptiqueCentre(soc, obstacles_choisis).executer();
+            new CommandeAjouterElementsDansSystemeOptiqueCentre(canvas.environnement(),soc, elements_choisis).executer();
         }
     }
             //            for(Obstacle o : obstacles_choisis) {

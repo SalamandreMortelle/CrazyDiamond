@@ -384,7 +384,7 @@ public class OutilSelection extends Outil {
         while (its.hasNext())
             cae.selection().ajouter(its.next());
 
-        Iterator<SystemeOptiqueCentre> itsoc = cae.environnement().iterateur_systemesOptiquesCentres() ;
+        Iterator<SystemeOptiqueCentre> itsoc = cae.environnement().iterateurSystemesOptiquesCentres() ;
         while (itsoc.hasNext())
             cae.selection().ajouter(itsoc.next());
 

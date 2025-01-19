@@ -7,9 +7,9 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
+import javafx.scene.transform.Rotate;
 
-import java.util.Iterator;
-import java.util.ListIterator;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,9 +40,11 @@ public class Environnement {
     protected final DoubleProperty indice_refraction ;
 
 //    private final ListProperty<Obstacle> obstacles ;
-    private final ObjectProperty<Groupe> groupe_racine_obstacles;
+    private final /*ObjectProperty<Groupe>*/ Groupe groupe_racine_obstacles;
     private final ListProperty<Source> sources ;
     private final ListProperty<SystemeOptiqueCentre> systemes_optiques_centres ;
+//    private final ListProperty<? extends ElementDeSOC> systemes_optiques_centres ;
+//    private final ListProperty<? extends ElementDeSOC> systemes_optiques_centres ;
 
     private boolean suspendre_illumination_sources = false ;
     private boolean suspendre_rafraichissement_affichages = false ;
@@ -76,7 +78,7 @@ public class Environnement {
         this.commentaire = new SimpleStringProperty("") ;
 
 
-        groupe_racine_obstacles = new SimpleObjectProperty<>(new Groupe("Groupe racine",false));
+        groupe_racine_obstacles = new Groupe("Groupe racine",false);
 //      ObservableList<Obstacle> olo = FXCollections.observableArrayList() ;
 //      obstacles = new SimpleListProperty<>(olo);
 
@@ -85,6 +87,8 @@ public class Environnement {
 
         ObservableList<SystemeOptiqueCentre> olsoc = FXCollections.observableArrayList() ;
         systemes_optiques_centres   = new SimpleListProperty<>(olsoc) ;
+//        ObservableList<? extends ElementDeSOC> olsoc = FXCollections.observableArrayList() ;
+//        systemes_optiques_centres   = new SimpleListProperty<>(olsoc) ;
 
         // NB : Les rayons étant dans les sources, l'environnement n'a pas besoin d'être à l'écoute des changements de
         // source : si une source est retirée, ses rayons (chemins) disparaissent avec elle
@@ -141,11 +145,35 @@ public class Environnement {
         // Ajoute le listener dans les obstacles de 1er niveau et, récursivement, dans tous les sous-groupes, et dans toutes les compositions
         groupeRacine().ajouterListChangeListener(lcl_obstacles_pour_illumination);
 
+//        ListChangeListener<ElementDeSOC>  lcl_elements_pour_calcul_elements_cardinaux = change -> {
+//            for (SystemeOptiqueCentre soc :)
+//                // Il n'y a pas d'éléments généraux à calculer
+//        }
+//        systemeOptiqueCentreRacine().ajouterListChangeListener(lcl_elements_pour_calcul_elements_cardinaux);
+    }
+
+    public static PositionEtOrientation nouvellePositionEtOrientationApresRotation(PositionEtOrientation pos_et_or_actuelle, Point2D centre_rot, double angle_rot_deg) {
+
+        Rotate r = new Rotate(angle_rot_deg,centre_rot.getX(),centre_rot.getY()) ;
+
+        Point2D nouveau_centre = r.transform(pos_et_or_actuelle.position()) ;
+
+        // Il faut ramener la nouvelle orientation entre 0 et 360° car les spinners et sliders "orientation" des
+        // panneaux contrôleurs imposent ces limites via leurs min/max
+        double nouvelle_or = (pos_et_or_actuelle.orientation_deg() + angle_rot_deg) % 360;
+        if (nouvelle_or < 0) nouvelle_or += 360;
+
+        return new PositionEtOrientation(nouveau_centre,nouvelle_or);
     }
 
     public Groupe groupeRacine() {
-        return groupe_racine_obstacles.getValue() ;
+        return groupe_racine_obstacles ;
     }
+
+//    public SystemeOptiqueRacine systemeOptiqueRacine() {
+//        return soc_racine ;
+//    }
+
     public Unite unite() { return (prochaine_unite==null?unite.get():prochaine_unite) ;}
 
     public ObjectProperty<Unite> uniteProperty() {return unite ;}
@@ -171,17 +199,20 @@ public class Environnement {
 
 //        Iterator<Obstacle> ito = obstacles.iterator() ;
         // Parcours en profondeur des obstacles : de l'arrière-plan vers l'avant plan
+        // NB : c'est cet itérateur qui va parcourir et afficher tous les obstacles, y compris ceux des sous-groupes :
+        // ce n'est pas la méthode 'accepte' de la classe Groupe qui déclenche la visite des sous-obstacles.
         Iterable<Obstacle> ito = groupeRacine().iterableObstaclesDepuisArrierePlan() ;
+
         Iterator<Source>   its = sources.iterator() ;
+
         Iterator<SystemeOptiqueCentre> itsoc = systemes_optiques_centres.iterator() ;
+//        Iterator<? extends ElementDeSOC> itsoc = systemes_optiques_centres.iterator() ;
 
         // Parcours des obstacles
         v.avantVisiteObstacles();
 
         for (Obstacle o : ito)
             o.accepte(v);
-//        while (ito.hasNext())
-//            ito.next().accepte(v);
 
         v.apresVisiteObstacles();
 
@@ -228,14 +259,14 @@ public class Environnement {
     public void enleverTousLesListChangeListenersObstacles() {
         groupeRacine().enleverTousLesListChangeListeners();
     }
-    public void ajouterListenerListeSystemesOptiquesCentres(ListChangeListener<SystemeOptiqueCentre> lcl_soc) {
+    public void ajouterListenerListeSystemesOptiquesCentres(ListChangeListener<ElementDeSOC> lcl_soc) {
         systemes_optiques_centres.addListener(lcl_soc);
     }
 
     public int nombreSources() { return sources.size(); }
 //    public int nombreObstacles() { return obstacles.size(); }
     public int nombreObstaclesPremierNiveau() { return groupeRacine().nombreObstaclesPremierNiveau(); }
-    public int nombreSystemesOptiquesCentres() { return systemes_optiques_centres.size(); }
+    public int nombreSystemesOptiquesCentresPremierNiveau() { return systemes_optiques_centres.size(); }
 
 
     /**
@@ -271,16 +302,36 @@ public class Environnement {
     public ObservableList<Source> sources() {
         return sources.get() ;
     }
-
     public Iterator<Source> iterateur_sources() {
         return sources.iterator() ;
     }
 
-    public ObservableList<SystemeOptiqueCentre> systemesOptiquesCentres() {
-        return systemes_optiques_centres.get() ;
+    /**
+     * Fournit la totalité des SOC réellement présents ("actifs") dans l'environnement, en tant que SOC de 1er niveau (à
+     * la racine de l'environnement) ou en tant que sous-SOC de ceux-ci. Les SOC coupés dans le presse papier ou
+     * supprimés de l'environnement mais encore présents dans la mémoire de la commande de suppression ne sont pas
+     * retournés.
+     * @return la liste de tous les SOC présents et "actifs" dans l'environnement.
+     * */
+    public List<SystemeOptiqueCentre> systemesOptiquesCentres() {
+
+        ArrayList<SystemeOptiqueCentre> liste = new ArrayList<>(systemes_optiques_centres.size()) ;
+
+        for (SystemeOptiqueCentre soc : systemes_optiques_centres) {
+            liste.add(soc) ;
+            liste.addAll(soc.sousSystemesOptiquesCentres()) ;
+        }
+        return liste ;
+    }
+    public ObservableList<SystemeOptiqueCentre> systemesOptiquesCentresPremierNiveau() {
+        return systemes_optiques_centres.get();
     }
 
-    public Iterator<SystemeOptiqueCentre> iterateur_systemesOptiquesCentres() { return systemes_optiques_centres.iterator() ;}
+    public Iterator<SystemeOptiqueCentre> iterateurSystemesOptiquesCentres() {
+        return systemesOptiquesCentres().iterator() ;
+//        return soc_racine.iterator() ;
+    }
+    public Iterator<SystemeOptiqueCentre> iterateurSystemesOptiquesCentresPremierNiveau() { return systemes_optiques_centres.iterator();}
 
 
     public void ajouterSource(Source s) {
@@ -301,26 +352,47 @@ public class Environnement {
     }
 
     public void ajouterSystemeOptiqueCentre(SystemeOptiqueCentre s) {
-        if (this.systemes_optiques_centres.contains(s))
+
+        // Si le SOC s à ajouter est déjà dans l'environnement (à n'importe quel niveau : racine, ou dans un sous SOC),
+        // on ne peut pas l'y ajouter à nouveau (il faut le détacher [supprimer] de l'environnement au préalable)
+        if (systemesOptiquesCentres().contains(s))
             return ;
 
-        this.systemes_optiques_centres.add(s) ;
+        // Important si s est un SOC supprimé qui appartenait à un autre SOC, dont on est en train d'annuler la suppression,
+        // il aura conservé la référence à son SOC parent d'origine : il faut donc la remettre à null
+        s.definirSOCParent(null);
+        // La définition du SOC parent doit se faire avant l'ajout dans la liste sinon l'intégration dans la vue
+        // (cf. PanneauPrincipal) se passe mal car on a besoin de chercher le SOC parent dans l'arbre des SOC
+        systemes_optiques_centres.add(s) ;
+
+        s.associerObstacles();
+//        for (ElementDeSOC els : s.elements_centres_premier_niveau())
+//            els.definirSOCParent(s);
+
     }
 
-    public SystemeOptiqueCentre systemeOptiqueCentreContenant(Obstacle o) {
+    public SystemeOptiqueCentre systemeOptiqueCentreContenantDirectement(Obstacle o) {
         for (SystemeOptiqueCentre soc : systemes_optiques_centres)
-            if (soc.comprend(o))
+            if (soc.referenceDirectement(o))
                 return soc ;
 
         return null ;
     }
-    public SystemeOptiqueCentre systemeOptiqueCentreReferencant(Obstacle o) {
+
+    public SystemeOptiqueCentre systemeOptiqueCentrePremierNiveauReferencant(Obstacle o) {
         for (SystemeOptiqueCentre soc : systemes_optiques_centres)
-            if (soc.reference(o))
+            if (soc.referenceDirectement(o))
                 return soc ;
 
         return null ;
     }
+//    public SystemeOptiqueCentre systemeOptiqueCentreReferencant(Obstacle o) {
+//        for (SystemeOptiqueCentre soc : soc_racine)
+//            if (soc.reference(o))
+//                return soc ;
+//
+//        return null ;
+//    }
     public Composition plusPetiteCompositionContenant(Obstacle o) {
         return groupeRacine().plusPetiteCompositionContenant(o) ;
 //        for (Obstacle ob  : groupe_racine_obstacles) {
@@ -362,7 +434,7 @@ public class Environnement {
 //        if (this.groupe_racine_obstacles.contains(o))
 //            return;
 
-        // A VERIFIER :  a priori inutile les éléments du groupe racine sont déjà surveillés par lcl_illumination ; cf. ligne 143
+        // TODO A VERIFIER :  a priori inutile les éléments du groupe racine sont déjà surveillés par lcl_illumination ; cf. ligne 143
         o.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources);
 
         groupeRacine().ajouterObstacle(o);
@@ -391,6 +463,8 @@ public class Environnement {
 //        groupe_racine_obstacles.add(i_pos_dans_env,o_a_ajouter);
         groupeRacine().ajouterObstacleEnPosition(o_a_ajouter,i_pos_dans_env);
 
+        // Cet appel ne devrait plus être nécessaire, car le SOC réordonne désormais la liste de ses obstacles à chaque
+        // fois qu'il doit extraire la liste des dioptresParaxiaux.
         repositionnerObstacleDansSoc(o_a_ajouter, i_pos_dans_env);
         // TODO : Ligne précédente à revoir car ne marche que quand les SOCs ne contiennent que des obstacles à la racine
         // A remplacer à terme par qqh comme :
@@ -412,18 +486,34 @@ public class Environnement {
 
     }
 
-
-
+    // Cette méthode ne devrait plus être nécessaire, car le SOC réordonne désormais la liste de ses obstacles à chaque
+    // fois qu'il doit extraire la liste des dioptresParaxiaux.
     protected void repositionnerObstacleDansSoc(Obstacle o_a_deplacer, int i_pos_dans_env) {
 
         if (o_a_deplacer.appartientASystemeOptiqueCentre()) {
 
-            SystemeOptiqueCentre soc = systemeOptiqueCentreContenant(o_a_deplacer) ;
+            SystemeOptiqueCentre soc = systemeOptiqueCentreContenantDirectement(o_a_deplacer) ;
+//            SystemeOptiqueCentre soc = systemeOptiqueCentrePremierNiveauContenant(o_a_deplacer) ;
 
             // Déplacer l'obstacle dans le SOC sachant qu'il est maintenant à la position i_pos_dans_env dans l'environnement
             soc.deplacerObstacle(o_a_deplacer, i_pos_dans_env) ;
         }
     }
+
+
+    protected Comparator<Obstacle> comparateurDepuisArrierePlan = (o1, o2) -> {
+
+        return indexParmiObstacles(o1)-indexParmiObstacles(o2) ;
+
+//        int index_o1 = indexParmiObstacles(o1) ;
+//        int index_o2 = indexParmiObstacles(o2) ;
+//
+//        if (index_o1>index_o2) return 1 ;
+//        if (index_o1<index_o2) return -1 ;
+//
+//        return 0 ;
+
+    } ;
 
 //    public Obstacle dernierObstacle() {
 //        if (groupe_racine_obstacles.size()>0)
@@ -441,11 +531,38 @@ public class Environnement {
 
     }
 
-    public void supprimerSystemeOptiqueCentre(SystemeOptiqueCentre s) {
-        s.detacherObstacles() ;
+    public void retirerSystemeOptiqueCentre(SystemeOptiqueCentre s) {
 
-        systemes_optiques_centres.remove(s) ;
+
+        if (s.SOCParent()==null) {// C'est un SOC de premier niveau
+            this.retirerSystemeOptiqueCentreALaRacine(s);
+        } else // C'est un sous-SOC : il faut le retirer de son parent
+            s.SOCParent().retirer(s);
+
     }
+
+    public void retirerSystemeOptiqueCentreALaRacine(SystemeOptiqueCentre s) {
+
+        if (!systemes_optiques_centres.contains(s))
+            return;
+
+        systemes_optiques_centres.remove(s);
+
+        s.libererObstacles() ;
+        s.supprimerObservateurs() ;
+        s.supprimerRappels();
+//        for (ElementDeSOC e : s.elements_centres_premier_niveau())
+//            e.definirSOCParent(null);
+
+
+//        s.detacherElementsCentres() ;
+
+    }
+
+
+//    protected void dereferencerSystemeOptiqueCentre(SystemeOptiqueCentre s) {
+//        soc_racine.supprimer(s) ;
+//    }
 
     public void illuminerToutesSources() {
 
@@ -461,14 +578,14 @@ public class Environnement {
 
     /**
      * Supprime l'obstacle o de l'Environnement, qu'il fasse partie d'un Groupe (le Groupe Racine ou un sous-groupe), ou
-     * d'une Composition. S'il faisait partie d'n SOC, il en est retiré
+     * d'une Composition. S'il faisait partie d'un SOC, il en est retiré
      * @param o : l'obstacle à supprimer
      */
     public void supprimerObstacle(Obstacle o) {
 
         // Si l'obstacle appartient à un SOC, on l'en retire
         if (o.appartientASystemeOptiqueCentre())
-            systemeOptiqueCentreContenant(o).retirerObstacleCentre(o);
+            o.SOCParent().retirer(o);
 
         // On le retire de son parent (Groupe ou Composition)
         o.parent().retirerObstacle(o);
@@ -487,7 +604,8 @@ public class Environnement {
 
             comp_contenante.retirerObstacle(o) ;
             if (comp_contenante.appartientASystemeOptiqueCentre())
-                o.definirAppartenanceSystemeOptiqueCentre(false);
+                o.definirSOCParent(null);
+//                o.definirAppartenanceSystemeOptiqueCentre(false);
         }
         // TODO: gérer le retrait d'un obstacle qui appartient à un sous-groupe
 //        else if (o.appartientAGroupe()) { // Attention : tous les obtacles de l'environnement appartiennent au groupe Racine...
@@ -500,17 +618,17 @@ public class Environnement {
 
 
         if (o.appartientASystemeOptiqueCentre())
-            systemeOptiqueCentreContenant(o).retirerObstacleCentre(o);
+            o.SOCParent().retirer(o);
 
         // TODO : il faudrait enlever les listeners qui avaient été mis (via Obstacle.ajouterRappelSurChangementTouteProprieteModifiantChemin)
-        // Car le fait d'enlever puis de ré-ajouter un obstacle de l'environnement fait qu'il déclenchera (notifiera) deux fois tous ses rappels
-        // mais il faudrait alors penser à appeler ajouterRappel.. lorsqu'on ajoute cet obstacle dans une composition. Complexe. Plus simple de tolérer
-        // les notifications redondantes.
+        //  Car le fait d'enlever puis de ré-ajouter un obstacle de l'environnement fait qu'il déclenchera (notifiera) deux fois tous ses rappels
+        //  mais il faudrait alors penser à appeler ajouterRappel.. lorsqu'on ajoute cet obstacle dans une composition. Complexe. Plus simple de tolérer
+        //  les notifications redondantes.
 //        groupe_racine_obstacles.remove(o) ;
         groupeRacine().retirerObstacle(o);
 
         // TODO : ajouter un listener sur la liste des obstacles et appeler illuminerTouteSource lors d'un retrait => INUTILE c'est automatique lors
-        // du retrait du groupe racine car un lcl_illumination a été ajouté par l'environnement lors de l'ajout de l'obstacle
+        //  du retrait du groupe racine car un lcl_illumination a été ajouté par l'environnement lors de l'ajout de l'obstacle
 
     }
 
@@ -601,7 +719,10 @@ public class Environnement {
     }
 
     public SystemeOptiqueCentre dernier_soc_tres_proche(Point2D p, double tolerance_pointage) {
+        // On peut se contenter de ne parcourir que les SOC de premier niveau car leurs axes sont les mêmes que ceux de
+        // leurs sous-SOC et le test de proximité se fait en calculant la distance à cet axe (cf SOC::est_tres_proche_de).
         ListIterator<SystemeOptiqueCentre> its = systemes_optiques_centres.listIterator(systemes_optiques_centres.size())  ;
+//        ListIterator<SystemeOptiqueCentre> its = soc_racine.listIterator(soc_racine.size())  ;
 
         while (its.hasPrevious()) {
             SystemeOptiqueCentre soc = its.previous() ;
@@ -618,11 +739,11 @@ public class Environnement {
     /**
      *
      * @param p : point pour lequel on cherche un obstacle qui le contient autre que l'obstacle obs
-     * @param obs : l'obstacle a exclure des résultats
+     * @param obs : l'obstacle à exclure des résultats
      * @return un Obstacle différent de obs qui contient le point (le dernier trouvé dans la liste des obstacles de l'environnement),
      * ou null s'il n'y en a aucun.
      */
-    public Obstacle autre_obstacle_contenant(Point2D p, Obstacle obs) {
+    public Obstacle autreObstacleContenant(Point2D p, Obstacle obs) {
         for (Obstacle o: groupeRacine().iterableObstaclesReelsDepuisPremierPlan()) {
             if (o.contient(p) && (o!=obs)) {
                 LOGGER.log(Level.FINEST,"Autre obstacle contenant le point trouvé : {0}",o ) ;
@@ -779,11 +900,18 @@ public class Environnement {
     }
     private void convertirDistances(double facteur_conversion) {
 
+        // TODO : vu que chaque obstacle Composite propage la conversion à ses sous-obstacles, on doit pouvoir se
+        //  contenter d'appeler :
+        //  groupeRacine().convertirDistances(facteur_conversion) ;
         for (Obstacle o : groupeRacine().iterableObstaclesReelsDepuisArrierePlan())
             o.convertirDistances(facteur_conversion);
+
         for (Source s : sources)
             s.convertirDistances(facteur_conversion);
-        for (SystemeOptiqueCentre soc : systemes_optiques_centres)
+
+        for (SystemeOptiqueCentre soc : systemesOptiquesCentresPremierNiveau())
+            // Chaque SOC propage la conversion de distances à ses sous-SOC, on peut donc se contenter de parcourir les
+            // SOC de 1er niveau
             soc.convertirDistances(facteur_conversion);
 
         Commande.convertirDistancesHistoriques(facteur_conversion) ;
@@ -816,5 +944,13 @@ public class Environnement {
 
     public boolean estALaRacine(Obstacle o) {
         return groupeRacine().estALaRacine(o);
+    }
+
+    public SystemeOptiqueCentre systemesOptiquesCentre(int hashcode) {
+        for (SystemeOptiqueCentre soc : systemesOptiquesCentres())
+            if (soc.hashCode()==hashcode)
+                return soc ;
+
+        return null ;
     }
 }

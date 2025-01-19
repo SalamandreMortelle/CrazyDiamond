@@ -33,27 +33,47 @@ public class CommandeTranslaterElements extends Commande {
 
         sources.forEach(source -> source.translater(vecteur));
         obstacles.forEach(obstacle -> translaterSiPossible(obstacle,vecteur));
-        socs.forEach(soc -> soc.translater(vecteur));
+        socs.forEach(soc -> translaterSiPossible(soc,vecteur));
 
         enregistrer();
     }
 
-    private void translaterSiPossible(Obstacle o, Point2D tr) {
-        if (!o.appartientASystemeOptiqueCentre())
-            o.translater(tr);
-        else {
-            SystemeOptiqueCentre soc = environnement.systemeOptiqueCentreContenant(o);
+    private void translaterSiPossible(ElementDeSOC el, Point2D tr) {
+        // Si l'un des SOC ancêtres fait partie des SOCs à translater, ne pas le translater, car c'est ce SOC
+        // qui va être translaté dans son ensemble.
+        SystemeOptiqueCentre soc_pere = el.SOCParent() ;
 
-            // Si l'obstacle fait partie d'un SOC à translater, ne pas le translater car c'est le SOC
-            // qui va être translaté dans son ensemble.
-            if (socs.contains(soc))
-                return ;
-
-            Point2D tr_sur_axe = soc.vecteurDirecteurAxe().multiply(soc.vecteurDirecteurAxe().dotProduct(tr));
-            o.translater(tr_sur_axe);
+        if (soc_pere==null) {
+            el.translater(tr);
+            return;
         }
 
+        for (SystemeOptiqueCentre soc_ancetre = soc_pere ; soc_ancetre!=null ; soc_ancetre = soc_ancetre.SOCParent())
+            if (socs.contains(soc_ancetre))
+                return ;
+
+
+        Point2D tr_sur_axe = soc_pere.vecteurDirecteurAxe().multiply(soc_pere.vecteurDirecteurAxe().dotProduct(tr));
+        el.translater(tr_sur_axe);
     }
+
+//    private void translaterSiPossible(SystemeOptiqueCentre soc, Point2D tr) {
+//        // Si l'un des SOC ancêtres fait partie des SOCs à translater, ne pas translater, car c'est ce SOC
+//        // qui va être translaté dans son ensemble.
+//
+//        SystemeOptiqueCentre soc_pere = soc.SOCParent() ;
+//
+//        if (soc_pere==null)
+//            soc.translater(tr);
+//
+//        for (SystemeOptiqueCentre soc_ancetre = soc_pere ; soc_ancetre!=null ; soc_ancetre = soc_ancetre.SOCParent())
+//            if (socs.contains(soc_ancetre))
+//                return ;
+//
+//        Point2D tr_sur_axe = soc_pere.vecteurDirecteurAxe().multiply(soc_pere.vecteurDirecteurAxe().dotProduct(tr));
+//        soc.translater(tr_sur_axe);
+//
+//    }
 
     @Override
     public void annuler() {
@@ -62,10 +82,13 @@ public class CommandeTranslaterElements extends Commande {
 
         sources.forEach(source -> source.translater(vecteur_opp));
         obstacles.forEach(obstacle -> translaterSiPossible(obstacle,vecteur_opp));
-        socs.forEach(soc -> soc.translater(vecteur_opp));
+//        socs.forEach(soc -> soc.translater(vecteur_opp));
+        socs.forEach(soc -> translaterSiPossible(soc,vecteur_opp));
 
 
     }
+
+
 
     @Override
     protected void convertirDistances(double facteur_conversion) {

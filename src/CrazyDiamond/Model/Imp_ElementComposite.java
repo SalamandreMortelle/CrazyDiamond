@@ -340,13 +340,19 @@ public class Imp_ElementComposite {
 //        return Obstacle.super.orientation();
     }
 
-    public void definirAppartenanceSystemeOptiqueCentre(boolean b) {
+//    public void definirAppartenanceSystemeOptiqueCentre(boolean b) {
+//        // Tous les obstacles du Composite sont concernés aussi (permet de désactiver certains contrôles de ces obstacles
+//        // dans les vues des panneaux, comme le contrôle de l'orientation).
+//        for (Obstacle o : elements)
+//            o.definirAppartenanceSystemeOptiqueCentre(b);
+//    }
+
+    public void definirSOCParent(SystemeOptiqueCentre soc) {
         // Tous les obstacles du Composite sont concernés aussi (permet de désactiver certains contrôles de ces obstacles
         // dans les vues des panneaux, comme le contrôle de l'orientation).
         for (Obstacle o : elements)
-            o.definirAppartenanceSystemeOptiqueCentre(b);
+            o.definirSOCParent(soc);
     }
-
 
     public void definirAppartenanceComposition(boolean b) {
         // Tous les obstacles du Composite sont concernés aussi

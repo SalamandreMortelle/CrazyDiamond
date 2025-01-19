@@ -26,7 +26,8 @@ public class CommandeAjouterObstacleDansGroupe extends Commande {
         composition_contenant_obstacle = environnement.plusPetiteCompositionContenant(obstacle) ;
         // Inutile de chercher le groupe qui contient l'obstacle s'il fait partie d'une composition
         groupe_contenant_obstacle = (composition_contenant_obstacle==null?environnement.groupeContenant(obstacle):null) ;
-        soc_contenant_obstacle = environnement.systemeOptiqueCentreContenant(obstacle) ;
+        soc_contenant_obstacle = obstacle.SOCParent() ;
+//        soc_contenant_obstacle = environnement.systemeOptiqueCentrePremierNiveauContenant(obstacle) ;
 
         if (groupe_contenant_obstacle == null && composition_contenant_obstacle == null) {// Obstacle non inclus dans un groupe ; il est donc directement à la racine de l'environnement
             index_dans_environnement = environnement.indexObstacleALaRacine(obstacle) ;
@@ -50,9 +51,12 @@ public class CommandeAjouterObstacleDansGroupe extends Commande {
         groupe.retirerObstacle(obstacle);
 
         // On commence par remettre l'obstacle dans son SOC d'origine, afin que l'appel à ajouterObstacleEnPositionALaRacine qui suit
-        // se charge de le repositionner à sa bonne place dans le SOC
+        // se charge de le repositionner à sa bonne place (en termes de Z order) dans le SOC
         if (soc_contenant_obstacle!=null)
             soc_contenant_obstacle.ajouterObstacleCentre(obstacle);
+
+        // Cet appel ne devrait plus être nécessaire, car le SOC réordonne désormais la liste de ses obstacles à chaque
+        // fois qu'il doit extraire la liste des dioptresParaxiaux.
         environnement.ajouterObstacleEnPositionALaRacine(obstacle,index_dans_environnement);
 
         if (composition_contenant_obstacle!=null)

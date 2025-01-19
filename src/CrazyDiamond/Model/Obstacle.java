@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 // Cette interface convient si un rayon ne peut avoir plus de deux intersections avec l'Obstacle
 // Cela convient donc pour des obstacles d'un seul tenant, qui peuvent contenir des trous ou être concaves
 // à condition qu'ils soient infinis.
-public interface Obstacle {
+public interface Obstacle extends ElementDeSOC { // TODO : envisager de faire implémenter ElementDeSOC par les obstacles qui peuvent (sous réserve d'éligibilité) être inclus dans un SOC
 
     enum ModeRecherche { PREMIERE, DERNIERE }
 
@@ -52,6 +52,16 @@ public interface Obstacle {
     BaseObstacleComposite parent() ;
     void definirParent(BaseObstacleComposite p) ;
 
+    default SystemeOptiqueCentre SOCParentDirect() {
+        SystemeOptiqueCentre soc_c = SOCParent() ;
+
+        // Par sécurité, on s'assure que le soc courant est bien au 1er niveau de son parent, mais ça devrait être inutile
+        if (soc_c!=null && soc_c.comprend(this))
+            return soc_c ;
+
+        return null ;
+    }
+
     Point2D normale(Point2D p) throws Exception ;
 
     Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) throws Exception;
@@ -79,24 +89,10 @@ public interface Obstacle {
 
     }
 
-    static PositionEtOrientation nouvellePositionEtOrientationApresRotation(PositionEtOrientation pos_et_or_actuelle, Point2D centre_rot,double angle_rot_deg) {
-
-        Rotate r = new Rotate(angle_rot_deg,centre_rot.getX(),centre_rot.getY()) ;
-
-        Point2D nouveau_centre = r.transform(pos_et_or_actuelle.position()) ;
-
-        // Il faut ramener la nouvelle orientation entre 0 et 360° car les spinners et sliders "orientation" des
-        // panneaux contrôleurs imposent ces limites via leurs min/max
-        double nouvelle_or = (pos_et_or_actuelle.orientation_deg() + angle_rot_deg) % 360;
-        if (nouvelle_or < 0) nouvelle_or += 360;
-
-        return new PositionEtOrientation(nouveau_centre,nouvelle_or);
-    }
-
     void tournerAutourDe(Point2D centre_rot,double angle_rot_deg) ;
 
-    default void definirAppartenanceSystemeOptiqueCentre(boolean b) { }
-    default boolean appartientASystemeOptiqueCentre() { return false; }
+//    default void definirAppartenanceSystemeOptiqueCentre(boolean b) { }
+    boolean appartientASystemeOptiqueCentre() ;
 
     void definirAppartenanceComposition(boolean b) ;
     void definirAppartenanceGroupe(boolean b) ;
@@ -143,7 +139,8 @@ public interface Obstacle {
      * @return true si l'obstacle est réel, false sinon.
      */
     default boolean estReel() {return true ;}
-
+    @Override
+    default boolean estUnObstacle() { return true ; }
     default boolean peutContenirObstaclesFils() { return false ;}
     default boolean contientObstaclesFils() { return false ;}
 
@@ -198,6 +195,13 @@ public interface Obstacle {
 
     default void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) { }
     default void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) { }
+
+    @Override
+    default void ajouterRappelSurChangementTouteProprieteModifiantElementsCardinaux(RappelSurChangement rappel) {
+        // Pour simplifier, on considère que tout changement de propriété de l'obstacle aura un impact sur les éléments
+        // cardinaux d'un SOC qui le contiendrait.
+        ajouterRappelSurChangementToutePropriete(rappel);
+    }
 
     String id() ;
     StringProperty nomProperty() ;
@@ -343,7 +347,7 @@ public interface Obstacle {
         // dans le milieu de l'obstacle rencontré)
         if (normale.dotProduct(oppose_vecteur_incident)<0) { // Le rayon sort de l'obstacle rencontré
             normale = normale.multiply(-1.0);
-            Obstacle obs_emergence = env.autre_obstacle_contenant(inter,o) ;
+            Obstacle obs_emergence = env.autreObstacleContenant(inter,o) ;
 
             n2 = obs_emergence!=null?obs_emergence.indiceRefraction():env.indiceRefraction() ;
         }

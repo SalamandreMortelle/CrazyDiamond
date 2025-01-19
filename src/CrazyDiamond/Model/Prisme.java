@@ -104,7 +104,7 @@ public class Prisme extends BaseObstacleAvecContourEtMatiere implements Obstacle
 //        position_orientation.set(new PositionEtOrientation(nouveau_centre,Obstacle.nouvelleOrientationApresRotation(orientation(),angle_rot_deg)));
 //        position_orientation.set(new PositionEtOrientation(nouveau_centre,orientation()+angle_rot_deg));
 
-        position_orientation.set(Obstacle.nouvellePositionEtOrientationApresRotation(position_orientation.get(),centre_rot,angle_rot_deg)) ;
+        position_orientation.set(Environnement.nouvellePositionEtOrientationApresRotation(position_orientation.get(),centre_rot,angle_rot_deg)) ;
     }
 
     ContoursObstacle couper(BoiteLimiteGeometrique boite, boolean avec_contours_surface) {

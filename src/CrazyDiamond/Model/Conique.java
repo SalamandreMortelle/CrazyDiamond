@@ -963,7 +963,7 @@ public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacl
 //
 //        position_orientation.set(new PositionEtOrientation(nouveau_foyer,Obstacle.nouvelleOrientationApresRotation(orientation(),angle_rot_deg)));
 //        position_orientation.set(new PositionEtOrientation(nouveau_foyer,orientation()+angle_rot_deg));
-        position_orientation.set(Obstacle.nouvellePositionEtOrientationApresRotation(position_orientation.get(),centre_rot,angle_rot_deg)) ;
+        position_orientation.set(Environnement.nouvellePositionEtOrientationApresRotation(position_orientation.get(),centre_rot,angle_rot_deg)) ;
     }
 
     @Override

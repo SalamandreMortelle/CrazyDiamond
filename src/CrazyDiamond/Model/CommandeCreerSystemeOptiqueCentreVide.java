@@ -1,13 +1,13 @@
 package CrazyDiamond.Model;
 
-public class CommandeCreerSystemeOptiqueCentre extends Commande {
+public class CommandeCreerSystemeOptiqueCentreVide extends Commande {
 
     // Le récepteur de la commande
     Environnement environnement ;
     SystemeOptiqueCentre soc_cree;
 
 
-    public CommandeCreerSystemeOptiqueCentre(Environnement env, SystemeOptiqueCentre soc_deja_cree) {
+    public CommandeCreerSystemeOptiqueCentreVide(Environnement env, SystemeOptiqueCentre soc_deja_cree) {
         this.environnement = env ;
         this.soc_cree = soc_deja_cree ;
     }
@@ -20,14 +20,16 @@ public class CommandeCreerSystemeOptiqueCentre extends Commande {
 
     @Override
     public void annuler() {
-        environnement.supprimerSystemeOptiqueCentre(soc_cree);
+        environnement.retirerSystemeOptiqueCentre(soc_cree);
     }
 
     protected void convertirDistances(double facteur_conversion) {
 
         // Si le SOC fait partie de l'environnement, c'est ce dernier qui se charge d'en convertir les distances ;
-        // sinon (création de l'obstacle a été annulée), il faut le faire ici.
-        if (!environnement.systemesOptiquesCentres().contains(soc_cree))
+        // sinon (création du SOC a été annulée), il faut le faire ici.
+        // NB : il suffit de chercher parmi les SOC de 1er niveau, car un soc nouvellement créé l'est toujours au 1er niveau
+        // de l'environnement
+        if (!environnement.systemesOptiquesCentresPremierNiveau().contains(soc_cree))
             soc_cree.convertirDistances(facteur_conversion);
     }
 

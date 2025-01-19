@@ -24,6 +24,10 @@ public class CommandeSupprimerObstacle extends Commande {
 
         memoriserEtatInitial();
 
+        // TODO: pour l'instant, on ne gère que la suppression d'obstacles qui sont à la racine
+        if (obstacle.appartientAGroupe())
+            throw new IllegalStateException("La suppression d'un obstacle qui appartient à un Groupe n'est pas gérée.") ;
+
         environnement.supprimerObstacleALaRacine(obstacle);
 
         enregistrer();
@@ -32,7 +36,8 @@ public class CommandeSupprimerObstacle extends Commande {
     private void memoriserEtatInitial() {
         index_dans_environnement = environnement.indexObstacleALaRacine(obstacle) ;
         composition_contenant_obstacle = obstacle.appartientAComposition()?environnement.plusPetiteCompositionContenant(obstacle):null ;
-        soc_contenant_obstacle = obstacle.appartientASystemeOptiqueCentre()?environnement.systemeOptiqueCentreContenant(obstacle):null ;
+        soc_contenant_obstacle = obstacle.SOCParentDirect() ;
+//        soc_contenant_obstacle = obstacle.appartientASystemeOptiqueCentre()?environnement.systemeOptiqueCentrePremierNiveauContenant(obstacle):null ;
     }
 
     @Override

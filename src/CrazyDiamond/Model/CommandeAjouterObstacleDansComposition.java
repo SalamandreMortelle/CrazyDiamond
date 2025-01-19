@@ -27,7 +27,8 @@ public class CommandeAjouterObstacleDansComposition extends Commande {
         composition_contenant_obstacle = environnement.plusPetiteCompositionContenant(obstacle) ;
         // Inutile de chercher le groupe qui contient l'obstacle s'il fait partie d'une composition
         groupe_contenant_obstacle = (composition_contenant_obstacle==null?environnement.groupeContenant(obstacle):null) ;
-        soc_contenant_obstacle = environnement.systemeOptiqueCentreContenant(obstacle) ;
+        soc_contenant_obstacle = obstacle.SOCParent() ;
+//        soc_contenant_obstacle = environnement.systemeOptiqueCentrePremierNiveauContenant(obstacle) ;
 
         if (groupe_contenant_obstacle == null && composition_contenant_obstacle == null) {// Obstacle non inclus dans un groupe ; il est donc directement à la racine de l'environnement
             index_dans_environnement = environnement.indexObstacleALaRacine(obstacle) ;

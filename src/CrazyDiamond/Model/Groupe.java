@@ -212,7 +212,7 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
     }
 
     public Iterator<Obstacle> iterateurObstaclesDepuisPremierPlan() {
-        // Le parcours postfixe en profondeur correspond à un parcours de l'arrière-plan vers le premier plan de l'Environnement
+        // Le parcours postfixe en profondeur correspond à un parcours de l'avant-plan vers l'arrière-plan de l'Environnement
         return new IterateurGroupePostfixe(this, true);
     }
 
@@ -224,7 +224,7 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
         return this::iterateurObstaclesReelsDepuisArrierePlan;
     }
     Iterator<Obstacle> iterateurObstaclesReelsDepuisPremierPlan() {
-        // Le parcours postfixe en profondeur correspond à un parcours de l'arrière-plan vers l'avant-plan de l'Environnement
+        // Le parcours postfixe en profondeur correspond à un parcours de l'avant-plan vers l'arrière-plan de l'Environnement
         return new IterateurGroupePostfixeObstaclesReels(this,true) ;
     }
     public Iterable<Obstacle> iterableObstaclesReelsDepuisPremierPlan() {
@@ -331,6 +331,8 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
 
         super.ajouterObstacle(o);
 
+        o.definirSOCParent(this.SOCParent());
+
     }
 
     public void ajouterObstacleEnPosition(Obstacle o, int i_pos) {
@@ -359,6 +361,9 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
         // TODO : ajouter un listener sur la liste des obstacles ?
 
         o.definirAppartenanceGroupe(false);
+
+        if (o.SOCParent()!=null)
+            o.definirSOCParent(null);
 
 //        if (o instanceof Groupe grp) {
 //            grp.enleverListChangeListenerDesGroupes(lcl_reconstruction_listes_obstacles);

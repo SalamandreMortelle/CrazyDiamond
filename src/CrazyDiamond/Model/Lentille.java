@@ -791,7 +791,7 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
 //        if (nouvelle_or<0) nouvelle_or+=360 ;
 //
         // Déclenchera le recalcul des positions et orientations des éléments de la composition
-        position_orientation.set(Obstacle.nouvellePositionEtOrientationApresRotation(position_orientation.get(),centre_rot,angle_rot_deg)) ;
+        position_orientation.set(Environnement.nouvellePositionEtOrientationApresRotation(position_orientation.get(),centre_rot,angle_rot_deg)) ;
 //        position_orientation.set(new PositionEtOrientation(nouveau_centre,Obstacle.nouvelleOrientationApresRotation(orientation(),angle_rot_deg)));
 //        position_orientation.set(new PositionEtOrientation(nouveau_centre,orientation()+angle_rot_deg));
 

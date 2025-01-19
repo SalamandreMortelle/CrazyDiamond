@@ -294,8 +294,9 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Initialisation et mise en observation de la liste des SOCs.
 
-        // Intégration des rappels sur les éventuels SOC déjà présents dans l'environnement (peut arriver si on a chargé l'environnement)
-        Iterator<SystemeOptiqueCentre> itsoc = environnement.iterateur_systemesOptiquesCentres() ;
+        // Intégration des rappels sur les éventuels SOC déjà présents dans l'environnement (peut arriver si on a chargé
+        // l'environnement). Le rappel est propagé à tous les sous-SOC par le SOC "père"
+        Iterator<SystemeOptiqueCentre> itsoc = environnement.iterateurSystemesOptiquesCentres() ;
         while (itsoc.hasNext())
             itsoc.next().ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
 
@@ -308,7 +309,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         // Il faut un rappel pour redessiner l'axe en cas de changement d'une propriété du SOC, y compris sa matrice de transfert
         // NB : Si ce rappel se déclenche, il est dommage qu'il y en ait déjà un de déclenché par les obstacles du SOC eux-mêmes, quand on
         // change ses propriétés : il faudrait s'en passer et ne garder que le rappel ci-dessous...
-        ListChangeListener<SystemeOptiqueCentre> lcl_socs = change -> {
+        ListChangeListener<ElementDeSOC> lcl_socs = change -> {
             while (change.next()) {
                 //                if (c.wasPermutated())   { for (int i = c.getFrom(); i < c.getTo(); ++i) {  } }
                 //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
@@ -316,12 +317,12 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
                 if (change.wasRemoved()) {
                     //                  for (Source remitem : change.getRemoved()) { }
 
-                    LOGGER.log(Level.FINER, "SOC supprimé");
+                    LOGGER.log(Level.FINER, "ElementDeSOC supprimé");
                     rafraichirAffichage();
                 } else if (change.wasAdded()) {
-                    for (SystemeOptiqueCentre additem : change.getAddedSubList()) {
+                    for (ElementDeSOC additem : change.getAddedSubList()) {
 
-                        LOGGER.log(Level.FINER, "SOC ajouté : {0}", additem);
+                        LOGGER.log(Level.FINER, "Element de SOC ajouté : {0}", additem);
 
                         LOGGER.log(Level.FINER, "Création des liaisons pour le SOC {0}", additem);
 
@@ -1069,31 +1070,55 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         gc_selection.clearRect(xmin(), ymin(),xmax() - xmin(), ymax()-ymin());
     }
 
-    private void translaterSiPossible(Obstacle o, Point2D tr) {
-        if (!o.appartientASystemeOptiqueCentre())
-            o.translater(tr);
+//    private void translaterSiPossible(Obstacle o, Point2D tr) {
+//        if (!o.appartientASystemeOptiqueCentre())
+//            o.translater(tr);
+//        else {
+//            SystemeOptiqueCentre soc = environnement.systemeOptiqueCentreContenant(o);
+//
+//            // Si l'obstacle fait partie d'un SOC qui est lui-même sélectionné, ne pas le translater car c'est le SOC
+//            // qui va être translaté dans son ensemble.
+//            if (selection().comprend(soc))
+//                return ;
+//
+//            Point2D tr_sur_axe = soc.vecteurDirecteurAxe().multiply(soc.vecteurDirecteurAxe().dotProduct(tr));
+//            o.translater(tr_sur_axe);
+//        }
+//
+//    }
+
+    private void translaterSiPossible(ElementDeSOC els, Point2D tr) {
+        SystemeOptiqueCentre soc_parent = els.SOCParent() ;
+
+        if (soc_parent==null)
+            els.translater(tr);
         else {
-            SystemeOptiqueCentre soc = environnement.systemeOptiqueCentreContenant(o);
 
-            // Si l'obstacle fait partie d'un SOC qui est lui-même sélectionné, ne pas le translater car c'est le SOC
-            // qui va être translaté dans son ensemble.
-            if (selection().comprend(soc))
-                return ;
+            SystemeOptiqueCentre soc_ancetre = soc_parent ;
 
-            Point2D tr_sur_axe = soc.vecteurDirecteurAxe().multiply(soc.vecteurDirecteurAxe().dotProduct(tr));
-            o.translater(tr_sur_axe);
+            // Si le SOC ou l'obstacle fait partie d'un SOC "ancêtre" (père, grand-père...) qui est lui-même sélectionné, ne pas le t
+            // translater car c'est le SOC ancêtre qui va être translaté dans son ensemble.
+            do {
+                if (selection().comprend(soc_ancetre))
+                    return ;
+                soc_ancetre = soc_ancetre.SOCParent() ;
+            } while (soc_ancetre!=null) ;
+
+
+            Point2D tr_sur_axe = soc_parent.vecteurDirecteurAxe().multiply(soc_parent.vecteurDirecteurAxe().dotProduct(tr));
+            els.translater(tr_sur_axe);
         }
 
     }
 
-    public void translaterSelection(Point2D tr) {
 
+    public void translaterSelection(Point2D tr) {
         if (tr.getX()==0d && tr.getY()==0d)
             return;
 
         selection().stream_obstacles().forEach(obs -> translaterSiPossible(obs, tr));
         selection().stream_sources().forEach(src -> src.translater(tr));
-        selection().stream_socs().forEach(soc -> soc.translater(tr));
+        selection().stream_socs().forEach(soc -> translaterSiPossible(soc,tr));
     }
 
     public void selectionnerParZoneRectangulaire(BoiteLimiteGeometrique zone_rect) {

@@ -14,7 +14,10 @@ public class CommandeSupprimerElements extends Commande {
     ElementsSelectionnes elements_a_supprimer ;
 
     // Etat initial
-    ArrayList<ArrayList<Obstacle>> liste_obstacles_socs; // Liste des obstacles initialement présents dans chaque SOC
+    ArrayList<ArrayList<ElementDeSOC>> liste_elements_socs; // Liste des obstacles initialement présents dans chaque SOC
+    // TODO : Probable que la structure liste de liste (sur 2 niveaux donc) ne conviennent plus car les SOC peuvent
+    // maintenant contenir des sous-SOC multiples, sur plusieurs niveaux...
+//    ArrayList<ArrayList<Obstacle>> liste_obstacles_socs; // Liste des obstacles initialement présents dans chaque SOC
 
     /**
      * Supprime les éléments fournis de l'environnement
@@ -51,18 +54,18 @@ public class CommandeSupprimerElements extends Commande {
 
         elements_a_supprimer.stream_obstacles().forEach(environnement::supprimerObstacleALaRacine);
         elements_a_supprimer.stream_sources().forEach(environnement::supprimerSource);
-        elements_a_supprimer.stream_socs().forEach(environnement::supprimerSystemeOptiqueCentre);
+        elements_a_supprimer.stream_socs().forEach(environnement::retirerSystemeOptiqueCentre);
 
 
         enregistrer();
     }
 
     private void memoriserEtatInitial() {
-        liste_obstacles_socs = new ArrayList<>(elements_a_supprimer.nombreSystemesOptiquesCentres()) ;
+        liste_elements_socs = new ArrayList<>(elements_a_supprimer.nombreSystemesOptiquesCentres()) ;
         elements_a_supprimer.stream_socs().forEach(soc -> {
-            ArrayList<Obstacle> liste_obstacles = new ArrayList<>(soc.obstacles_centres().size()) ;
-            liste_obstacles.addAll(soc.obstacles_centres());
-            liste_obstacles_socs.add(liste_obstacles) ;
+            ArrayList<ElementDeSOC> liste_obstacles = new ArrayList<>(soc.elementsCentresRacine().size()) ;
+            liste_obstacles.addAll(soc.elementsCentresRacine());
+            liste_elements_socs.add(liste_obstacles) ;
         });
     }
 
@@ -73,10 +76,10 @@ public class CommandeSupprimerElements extends Commande {
         elements_a_supprimer.stream_sources().forEach(environnement::ajouterSource);
 
         Iterator<SystemeOptiqueCentre> it_soc = elements_a_supprimer.iterateur_systemesOptiquesCentres();
-        Iterator<ArrayList<Obstacle>>  it_liste_obs = liste_obstacles_socs.iterator() ;
+        Iterator<ArrayList<ElementDeSOC>>  it_liste_obs = liste_elements_socs.iterator() ;
         while (it_soc.hasNext() && it_liste_obs.hasNext()) {
             SystemeOptiqueCentre soc = it_soc.next() ;
-            soc.ajouterObstaclesCentres(it_liste_obs.next()) ;
+            soc.ajouter(it_liste_obs.next()) ;
             environnement.ajouterSystemeOptiqueCentre(soc);
         }
 

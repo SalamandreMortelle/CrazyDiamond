@@ -36,6 +36,7 @@ public class CrazyDiamond extends Application {
     }
 
     public static final DataFormat FORMAT_OBSTACLE_ID = new DataFormat("application/crazy-diamond-obstacle-id");
+    public static final DataFormat FORMAT_SOC = new DataFormat("application/crazy-diamond-soc");
 
     protected CanvasAffichageEnvironnement affichage_environnement_initial_a_charger;
 

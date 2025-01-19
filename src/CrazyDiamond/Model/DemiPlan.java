@@ -407,7 +407,7 @@ public class DemiPlan extends BaseObstacleAvecContourEtMatiere implements Obstac
 //        position_orientation.set(new PositionEtOrientation(nouvelle_origine,(orientation()+angle_rot_deg)%360));
 //        position_orientation.set(new PositionEtOrientation(nouvelle_origine,Obstacle.nouvelleOrientationApresRotation(orientation(),angle_rot_deg)));
 
-        position_orientation.set(Obstacle.nouvellePositionEtOrientationApresRotation(position_orientation.get(),centre_rot,angle_rot_deg)) ;
+        position_orientation.set(Environnement.nouvellePositionEtOrientationApresRotation(position_orientation.get(),centre_rot,angle_rot_deg)) ;
     }
 
     @Override

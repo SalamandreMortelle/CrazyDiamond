@@ -57,10 +57,10 @@ public class EnvironnementSerializer extends StdSerializer<Environnement> {
         }
 
         // Systemes Optiques Centres
-        if (environnement.nombreSystemesOptiquesCentres()>0) {
+        if (environnement.nombreSystemesOptiquesCentresPremierNiveau()>0) {
             jsonGenerator.writeArrayFieldStart("systemes_optiques_centres");
 
-            Iterator<SystemeOptiqueCentre> itsoc = environnement.iterateur_systemesOptiquesCentres();
+            Iterator<SystemeOptiqueCentre> itsoc = environnement.iterateurSystemesOptiquesCentresPremierNiveau();
             while (itsoc.hasNext()) {
                 jsonGenerator.writeObject(itsoc.next());
             }

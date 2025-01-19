@@ -34,8 +34,8 @@ public class CommandeAjouterObstaclesDansSystemeOptiqueCentre extends Commande {
         rotations = new ArrayList<>(obstacles.size()) ;
 
         obstacles.forEach(o -> {
-            translations.add(soc.translationPourAjoutObstacle(o));
-            rotations.add(soc.angleRotationPourAjoutObstacle(o));
+            translations.add(soc.translationPourAjoutElement(o));
+            rotations.add(soc.angleRotationPourAjoutElement(o));
         });
     }
 
@@ -51,7 +51,7 @@ public class CommandeAjouterObstaclesDansSystemeOptiqueCentre extends Commande {
         Obstacle o ;
         for (int i = 0 ; i < obstacles.size() ; ++i) {
             o = obstacles.get(i);
-            soc.retirerObstacleCentre(o);
+            soc.retirer(o);
             o.tournerAutourDe(o.pointSurAxeRevolution(), -rotations.get(i));
             o.translater(translations.get(i).multiply(-1d));
         }

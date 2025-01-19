@@ -80,7 +80,7 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
             }
         });
 
-        cell.setOnDragDetected((MouseEvent event) -> dragDetected(event, cell));
+        cell.setOnDragDetected((MouseEvent event) -> dragDetected(event, cell, obstacleTreeView));
         cell.setOnDragOver((DragEvent event) -> dragOver(event, cell, obstacleTreeView));
         cell.setOnDragDropped((DragEvent event) -> drop(event, cell, obstacleTreeView));
         cell.setOnDragDone((DragEvent event) -> clearDropLocation());
@@ -88,7 +88,7 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
         return cell;
     }
 
-    private void dragDetected(MouseEvent event, TreeCell<Obstacle> treeCell) {
+    private void dragDetected(MouseEvent event, TreeCell<Obstacle> treeCell, TreeView<Obstacle> treeView) {
 
         dragged_item = treeCell.getTreeItem();
 
@@ -100,7 +100,7 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
 //        if (draggedItem.getParent()!=treeView.getRoot())
 //            return ;
 
-        Dragboard db = treeCell.startDragAndDrop(TransferMode.MOVE);
+        Dragboard db = treeView.startDragAndDrop(TransferMode.MOVE);
 
         ClipboardContent content = new ClipboardContent();
         content.put(CrazyDiamond.FORMAT_OBSTACLE_ID, dragged_item.getValue().id()) ;
@@ -110,12 +110,16 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
     }
 
     private void dragOver(DragEvent event, TreeCell<Obstacle> treeCell, TreeView<Obstacle> treeView) {
-        if (!event.getDragboard().hasContent(CrazyDiamond.FORMAT_OBSTACLE_ID)) return;
+
+        if (!event.getDragboard().hasContent(CrazyDiamond.FORMAT_OBSTACLE_ID) || event.getGestureSource()!=treeView) return;
 
         TreeItem<Obstacle> item_survole = treeCell.getTreeItem();
 
         // can't drop on itself
-        if (dragged_item == null || item_survole == dragged_item) return;
+        if (dragged_item == null || item_survole == dragged_item) {
+            clearDropLocation();
+            return;
+        }
 
         Obstacle o_dragged = dragged_item.getValue() ;
 
@@ -130,8 +134,10 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
             boolean o_survole_est_groupe = o_survole instanceof Groupe;
 
             // On ne peut pas déplacer une Composition dans une de ses sous-compositions
-            if (deplacementInterdit(o_dragged, item_survole, o_survole, o_dragged_est_a_la_racine, o_survole_est_a_la_racine, o_survole_est_composition, o_survole_est_groupe))
+            if (deplacementInterdit(o_dragged, item_survole, o_survole, o_dragged_est_a_la_racine, o_survole_est_a_la_racine, o_survole_est_composition, o_survole_est_groupe)) {
+                clearDropLocation();
                 return;
+            }
 
 //            // ignore if this is the root ; inutile car le treeitem racine existe mais n'est pas affiché
 //            if (dragged_item.getParent() == null) {
@@ -169,7 +175,9 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
     private void drop(DragEvent event, TreeCell<Obstacle> treeCell, TreeView<Obstacle> treeView) {
         Dragboard db = event.getDragboard();
 
-        if (!db.hasContent(CrazyDiamond.FORMAT_OBSTACLE_ID))  {
+        clearDropLocation();
+
+        if (!db.hasContent(CrazyDiamond.FORMAT_OBSTACLE_ID) || event.getGestureSource()!=treeView)  {
             event.setDropCompleted(false);
             return;
         }
@@ -193,6 +201,7 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
 
         effectuerDeplacementItem(treeView, o_dragged, item_cible_depose, o_cible_depose, o_cible_depose_est_composition, o_cible_depose_est_groupe, o_racine);
 
+        clearDropLocation();
         event.setDropCompleted(true);
     }
 
@@ -216,8 +225,13 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
                  )
             return true;
 
+        // On ne peut pas ajouter un Obstacle dans une Composition qui appartient à un SOC (pourrait casser la symétrie
+        // de révolution qu'avait la Composition, la rendant inapte à appartenir à un SOC)
+        if (o_cible_depose_est_composition && o_cible_depose.appartientASystemeOptiqueCentre())
+            return true ;
+
         if (o_dragged.appartientASystemeOptiqueCentre() && !o_dragged.parent().appartientASystemeOptiqueCentre() && !o_dragged_est_a_la_racine)
-            throw new IllegalStateException("L'obstacle déplacé appartient au éléments racine d'un SOC mais n'est pas à la racine de l'environnement") ;
+            throw new IllegalStateException("L'obstacle déplacé appartient aux éléments racine d'un SOC mais n'est pas à la racine de l'environnement") ;
 
 
         // Un élément d'un SOC doit toujours rester un élément de 1er niveau : on ne peut le mettre dans un groupe ou dans une composition
@@ -239,7 +253,7 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
         || ( o_cible_depose_est_groupe
                 && ( item_cible_depose.isExpanded() || (((Groupe) o_cible_depose).estVide()) )) ) {
 
-            drop_zone.setStyle(DROP_HINT_STYLE_DANS);
+//            drop_zone.setStyle(DROP_HINT_STYLE_DANS);
 
             // o_cible_depose sera le nouveau parent
             BaseObstacleComposite boc_cible = (BaseObstacleComposite) o_cible_depose;
@@ -258,8 +272,9 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
         }
         else {// Dépose dans un groupe ou un sous-groupe, à une position précise càd qu'on ne dépose pas sur la racine
               // [o_cible_depose n'est ni un groupe expanded (ou vide) ni une composition expanded (ou vide)]
-            if (drop_zone !=null)
-                drop_zone.setStyle(DROP_HINT_STYLE_APRES);
+//            if (drop_zone !=null)
+//                drop_zone.setStyle(DROP_HINT_STYLE_APRES);
+
 
             int indexSourceInParent = o_dragged.parent().indexALaRacine(o_dragged) ;
 

@@ -44,6 +44,10 @@ public abstract class BaseObstacleComposite extends BaseObstacle {
     }
 
     public boolean comprend(Obstacle o) {return (imp_elementComposite.comprend(o) || this.equals(o)) ;}
+    public boolean comprend(ElementDeSOC el) { return false ; } // Si cette méthode est appelée, c'est forcément avec un
+    // ElementDeSOC qui est un SOC, car si c'est un Obstacle, c'est la méthode précédente comprend(Obstacle p) qui est appelée.
+    // Or un Composite ne peut pas contenir de soc.
+
     public Obstacle obstacle_avec_id(String obs_id) {
         Obstacle o_trouve = imp_elementComposite.obstacle_avec_id(obs_id) ;
         return (o_trouve!=null?o_trouve:super.obstacle_avec_id(obs_id)) ;
@@ -82,10 +86,15 @@ public abstract class BaseObstacleComposite extends BaseObstacle {
 
     public double orientation() {return imp_elementComposite.orientation() ;}
 
-    public void definirAppartenanceSystemeOptiqueCentre(boolean b) {
-        super.definirAppartenanceSystemeOptiqueCentre(b);
+//    public void definirAppartenanceSystemeOptiqueCentre(boolean b) {
+//        super.definirAppartenanceSystemeOptiqueCentre(b);
+//
+//        imp_elementComposite.definirAppartenanceSystemeOptiqueCentre(b);
+//    }
+    public void definirSOCParent(SystemeOptiqueCentre soc) {
+        super.definirSOCParent(soc);
 
-        imp_elementComposite.definirAppartenanceSystemeOptiqueCentre(b);
+        imp_elementComposite.definirSOCParent(soc) ;
     }
 
     public void definirAppartenanceComposition(boolean b) {

@@ -38,13 +38,13 @@ public class SystemeOptiqueCentreDeserializer extends StdDeserializer<SystemeOpt
 
         Environnement env = (Environnement) deserializationContext.getAttribute("environnement") ;
 
-        Imp_Nommable iei = mapper.treeToValue(soc_node, Imp_Nommable.class) ;
+        Imp_Nommable ien = mapper.treeToValue(soc_node, Imp_Nommable.class) ;
 
         Point2D origine = new Point2D(
                 soc_node.get("x_origine").asDouble()*facteur_conversion,
                 soc_node.get("y_origine").asDouble()*facteur_conversion ) ;
 
-        SystemeOptiqueCentre soc = new SystemeOptiqueCentre(env,iei,origine,soc_node.get("orientation").asDouble()) ;
+        SystemeOptiqueCentre soc = new SystemeOptiqueCentre(env,ien,origine,soc_node.get("orientation").asDouble()) ;
 
         if (soc_node.has("z_objet")) soc.definirZObjet(soc_node.get("z_objet").asDouble()*facteur_conversion) ;
         if (soc_node.has("h_objet")) soc.definirHObjet(soc_node.get("h_objet").asDouble()*facteur_conversion) ;
@@ -78,6 +78,15 @@ public class SystemeOptiqueCentreDeserializer extends StdDeserializer<SystemeOpt
                 soc.ajouterObstacleCentre(env.obstacle(obs_id));
             }
 
+        }
+
+        if (soc_node.has("sous_systemes")) {
+
+            int nb_sous_soc = soc_node.get("sous_systemes").size();
+
+            for (int i = 0; i < nb_sous_soc; i++) {
+                soc.ajouterSystemeOptiqueCentre(mapper.treeToValue(soc_node.get("sous_systemes").get(i), SystemeOptiqueCentre.class)) ;
+            }
         }
 
         if (soc_node.has("modalites_traversee_dioptres")) {
