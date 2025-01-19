@@ -93,6 +93,7 @@ public class PanneauSystemeOptiqueCentre {
         OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation,soc.orientation(),this::definirOrientation);
 
         slider_orientation.valueProperty().set(soc.orientation());
+        slider_orientation.disableProperty().bind(soc.appartenanceSystemeOptiqueProperty()) ;
         slider_orientation.valueProperty().addListener(new ChangeListenerAvecGarde<>(this::definirOrientation));
 
         // Couleurs

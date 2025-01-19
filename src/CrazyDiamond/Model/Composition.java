@@ -112,7 +112,7 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
         // On définit l'appartenance à la composition avant de faire l'ajout, car les listeners du composite parent vont
         // se charger d'intégrer l'obstacle dans la vue (PanneauPrincipal) et de lui créer un panneau, qui n'est pas le
         // même selon que l'obstacle appartient à une composition ou non.
-        o.definirAppartenanceComposition(true);
+//        o.definirAppartenanceComposition(true);
 
         super.ajouterObstacle(o);
 
@@ -147,7 +147,7 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
         // On définit l'appartenance à la composition avant de faire l'ajout, car les listeners du composite parent vont
         // se charger d'intégrer l'obstacle dans la vue (PanneauPrincipal) et de lui créer un panneau, qui n'est pas le
         // même selon que l'obstacle appartient à une composition ou non.
-        o.definirAppartenanceComposition(true);
+//        o.definirAppartenanceComposition(true);
 
         super.ajouterObstacleEnPosition(o,i_pos);
 
@@ -186,7 +186,7 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
             eam.indiceRefractionProperty().unbind();
         }
 
-        o.definirAppartenanceComposition(false);
+//        o.definirAppartenanceComposition(false);
     }
 
     public Composition composition_contenant(Obstacle o) {

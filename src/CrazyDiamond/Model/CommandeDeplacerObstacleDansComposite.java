@@ -38,7 +38,7 @@ public class CommandeDeplacerObstacleDansComposite extends Commande {
 
 //        this.groupe = environnement.groupeContenant(obstacle) ;
         this.composite_initial = obstacle.parent() ;
-        this.position_dans_composite_initial = composite_initial.indexALaRacine(obstacle) ;
+        this.position_dans_composite_initial = composite_initial.indexObstacleALaRacine(obstacle) ;
 
         this.soc_initial = obstacle.SOCParent() ;
 //        this.soc_initial = ( environnement.systemeOptiqueCentreReferencant(obstacle) ) ;

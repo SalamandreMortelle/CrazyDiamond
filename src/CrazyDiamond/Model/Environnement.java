@@ -599,14 +599,14 @@ public class Environnement {
      */
     public void supprimerObstacleALaRacine(Obstacle o) {
 
-        if (o.appartientAComposition()) {
-            Composition comp_contenante = plusPetiteCompositionContenant(o);
-
-            comp_contenante.retirerObstacle(o) ;
-            if (comp_contenante.appartientASystemeOptiqueCentre())
-                o.definirSOCParent(null);
-//                o.definirAppartenanceSystemeOptiqueCentre(false);
-        }
+//        if (o.appartientAComposition()) { // Bloc inutile : un obstacle à la racine ne peut pas appartenir à une Composition
+//            Composition comp_contenante = plusPetiteCompositionContenant(o);
+//
+//            comp_contenante.retirerObstacle(o) ;
+//            if (comp_contenante.appartientASystemeOptiqueCentre())
+//                o.definirSOCParent(null);
+////                o.definirAppartenanceSystemeOptiqueCentre(false);
+//        }
         // TODO: gérer le retrait d'un obstacle qui appartient à un sous-groupe
 //        else if (o.appartientAGroupe()) { // Attention : tous les obtacles de l'environnement appartiennent au groupe Racine...
 //            Groupe grp_contenant = groupeContenant(o);
@@ -846,7 +846,7 @@ public class Environnement {
 //        for (Obstacle o : groupe_racine_obstacles) {
         for (Obstacle o : groupeRacine().iterableObstaclesDepuisArrierePlan()) {
 
-            Obstacle o_trouve = o.obstacle_avec_id(obs_id) ;
+            Obstacle o_trouve = o.obstacleAvecId(obs_id) ;
 
             if (o_trouve!=null)
                 return o_trouve ;
@@ -930,7 +930,7 @@ public class Environnement {
     }
 
     public int indexDansParent(Obstacle o) {
-        return o.parent().indexALaRacine(o) ;
+        return o.parent().indexObstacleALaRacine(o) ;
     }
 
     public int indexParmiObstacles(Obstacle o) {

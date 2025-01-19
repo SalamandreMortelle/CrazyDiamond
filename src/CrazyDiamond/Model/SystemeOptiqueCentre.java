@@ -205,8 +205,8 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     /**
      * Indique si obstacle est un obstacle référencé au premier niveau du SOC c.-à-d. un obstacle dont le SOC est le père
      * direct.
-     * @param obstacle
-     * @return
+     * @param obstacle : l'obstacle à rechercher
+     * @return vrai si l'obstacle est référencé par le SOC
      */
     public boolean reference(Obstacle obstacle) {
         return elements_centres.contains(obstacle);
@@ -2300,11 +2300,13 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
 //        ajouterElementCentre_commun(o);
 
-        o.definirSOCParent(this) ;
+        o.definirSOCParent(this) ; // NB : si o est un Composite, tous ses sous-éléments auront également 'this' comme SOC Parent
 
         calculeElementsCardinaux();
 
-        // Déclencher un recalcul des éléments cardinaux dès qu'un attribut ou un élément de l'obstacle (ou de ses sous_obstacles) change
+        // Déclencher un recalcul des éléments cardinaux dès qu'un attribut ou un élément de l'obstacle (ou de ses
+        // sous_obstacles) change. Si o est un Composite on surveille aussi les ajouts/retraits dans tous ses éventuels
+        // sous-composites
         o.ajouterRappelSurChangementToutePropriete(this::calculeElementsCardinaux);
 
     }
@@ -2312,7 +2314,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
     public void ajouterSystemeOptiqueCentre(SystemeOptiqueCentre soc) {
 
-        positionnerElement(soc); 
+        positionnerElement(soc);
 
         // Les SOC sont toujours positionnés après les obstacles dans la liste des éléments centrés
         elements_centres.add(soc) ;

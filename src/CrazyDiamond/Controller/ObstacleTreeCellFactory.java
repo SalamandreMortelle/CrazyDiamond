@@ -258,7 +258,7 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
             // o_cible_depose sera le nouveau parent
             BaseObstacleComposite boc_cible = (BaseObstacleComposite) o_cible_depose;
 
-            int indexSourceInParent = o_dragged.parent().indexALaRacine(o_dragged) ;
+            int indexSourceInParent = o_dragged.parent().indexObstacleALaRacine(o_dragged) ;
 
             // Pos Cible = dernière position
             int indexCibleInParent = ((BaseObstacleComposite) o_cible_depose).nombreObstaclesPremierNiveau()-1 ;
@@ -276,7 +276,7 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
 //                drop_zone.setStyle(DROP_HINT_STYLE_APRES);
 
 
-            int indexSourceInParent = o_dragged.parent().indexALaRacine(o_dragged) ;
+            int indexSourceInParent = o_dragged.parent().indexObstacleALaRacine(o_dragged) ;
 
             int indexCibleInParent = (item_cible_depose !=null?
                     item_cible_depose.getParent().getChildren().indexOf(item_cible_depose)

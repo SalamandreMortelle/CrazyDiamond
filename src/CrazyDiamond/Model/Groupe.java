@@ -47,9 +47,9 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
 //        this.ajouterListChangeListenerDesGroupes(lcl_reconstruction_listes_obstacles);
     }
 
-    public int indexObstacleALaRacine(Obstacle o) {
-        return elements().indexOf(o) ;
-    }
+//    public int indexObstacleALaRacine(Obstacle o) {
+//        return elements().indexOf(o) ;
+//    }
 
     /**
      * Retourne la plus petite composition contenant l'obstacle o
@@ -327,7 +327,7 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
         // On définit l'appartenance à la composition avant de faire l'ajout, car les listeners du composite parent vont
         // se charger d'intégrer l'obstacle dans la vue (PanneauPrincipal) et de lui créer un panneau, qui n'est pas le
         // même selon que l'obstacle appartient à une composition ou non.
-        o.definirAppartenanceGroupe(true);
+        o.definirParent(this);
 
         super.ajouterObstacle(o);
 
@@ -342,7 +342,7 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
         // On définit l'appartenance à la composition avant de faire l'ajout, car les listeners du composite parent vont
         // se charger d'intégrer l'obstacle dans la vue (PanneauPrincipal) et de lui créer un panneau, qui n'est pas le
         // même selon que l'obstacle appartient à une composition ou non.
-        o.definirAppartenanceGroupe(true);
+        o.definirParent(this);
 
         super.ajouterObstacleEnPosition(o,i_pos);
 
@@ -360,10 +360,14 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
 
         // TODO : ajouter un listener sur la liste des obstacles ?
 
-        o.definirAppartenanceGroupe(false);
+        // On fait comme pour les SOCs : laisser la référence au Parent dans les obstacles
+        //  retirés qui ne sont plus actifs, pour faciliter l'annulation de leur retrait dans les Commandes (plus besoin
+        //  de mémoriser le Parent avant retrait dans la Commande)
+//        o.definirParent(null);  // Supprimer cette ligne ?
 
-        if (o.SOCParent()!=null)
-            o.definirSOCParent(null);
+        // Un obstacle retiré prut garder la réf de son SOC Parent
+//        if (o.SOCParent()!=null)
+//            o.definirSOCParent(null);
 
 //        if (o instanceof Groupe grp) {
 //            grp.enleverListChangeListenerDesGroupes(lcl_reconstruction_listes_obstacles);

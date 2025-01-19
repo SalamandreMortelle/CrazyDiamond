@@ -40,7 +40,7 @@ public abstract class BaseObstacleComposite extends BaseObstacle {
 
     public void retirerObstacle(Obstacle o) {
         imp_elementComposite.retirerObstacle(o);
-        o.definirParent(null);
+//        o.definirParent(null);
     }
 
     public boolean comprend(Obstacle o) {return (imp_elementComposite.comprend(o) || this.equals(o)) ;}
@@ -48,9 +48,9 @@ public abstract class BaseObstacleComposite extends BaseObstacle {
     // ElementDeSOC qui est un SOC, car si c'est un Obstacle, c'est la méthode précédente comprend(Obstacle p) qui est appelée.
     // Or un Composite ne peut pas contenir de soc.
 
-    public Obstacle obstacle_avec_id(String obs_id) {
+    public Obstacle obstacleAvecId(String obs_id) {
         Obstacle o_trouve = imp_elementComposite.obstacle_avec_id(obs_id) ;
-        return (o_trouve!=null?o_trouve:super.obstacle_avec_id(obs_id)) ;
+        return (o_trouve!=null?o_trouve:super.obstacleAvecId(obs_id)) ;
     }
 
     public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) { imp_elementComposite.ajouterRappelSurChangementToutePropriete(rap); }
@@ -68,7 +68,7 @@ public abstract class BaseObstacleComposite extends BaseObstacle {
     public Iterator<Obstacle> iterateurPremierNiveau() {return imp_elementComposite.iterateurPremierNiveau();}
 
     public Obstacle obstacle(int index_a_la_racine) {return imp_elementComposite.obstacle(index_a_la_racine); }
-    public int indexALaRacine(Obstacle o) { return imp_elementComposite.index(o); }
+    public int indexObstacleALaRacine(Obstacle o) { return imp_elementComposite.index(o); }
 
     public void translater(Point2D vecteur) { imp_elementComposite.translater(vecteur);}
 
@@ -97,11 +97,11 @@ public abstract class BaseObstacleComposite extends BaseObstacle {
         imp_elementComposite.definirSOCParent(soc) ;
     }
 
-    public void definirAppartenanceComposition(boolean b) {
-        super.definirAppartenanceComposition(b);
-
-        imp_elementComposite.definirAppartenanceComposition(b);
-    }
+//    public void definirAppartenanceComposition(boolean b) {
+//        super.definirAppartenanceComposition(b);
+//
+//        imp_elementComposite.definirAppartenanceComposition(b);
+//    }
 
     public void convertirDistances(double facteur_conversion) { imp_elementComposite.convertirDistances(facteur_conversion);}
 

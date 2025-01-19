@@ -68,7 +68,7 @@ public class CommandeAjouterObstacleDansComposition extends Commande {
         // Si l'obstacle fait partie de l'environnement, c'est ce dernier qui se charge d'en convertir les coordonnées ;
         // sinon (ajout de l'obstacle a été annulé), il faut le faire ici.
 //        if (!environnement.obstacles().contains(obstacle) && !obstacle.appartientAComposition())
-        if (!environnement.obstaclesReelsComprennent(obstacle) && !obstacle.appartientAComposition() && !obstacle.appartientAGroupe())
+        if (!environnement.obstaclesReelsComprennent(obstacle) && !obstacle.appartientAComposite())
             obstacle.convertirDistances(facteur_conversion);
     }
 

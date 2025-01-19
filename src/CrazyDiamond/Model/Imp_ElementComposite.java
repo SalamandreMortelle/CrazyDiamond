@@ -102,7 +102,7 @@ public class Imp_ElementComposite {
     public Obstacle obstacle_avec_id(String obs_id) {
 
         for (Obstacle ob : elements) {
-            Obstacle o_trouve = ob.obstacle_avec_id(obs_id) ;
+            Obstacle o_trouve = ob.obstacleAvecId(obs_id) ;
             if (o_trouve!=null)
                 return o_trouve ;
         }
@@ -354,11 +354,11 @@ public class Imp_ElementComposite {
             o.definirSOCParent(soc);
     }
 
-    public void definirAppartenanceComposition(boolean b) {
-        // Tous les obstacles du Composite sont concernés aussi
-        for (Obstacle o : elements)
-            o.definirAppartenanceComposition(b);
-    }
+//    public void definirAppartenanceComposition(boolean b) {
+//        // Tous les obstacles du Composite sont concernés aussi
+//        for (Obstacle o : elements)
+//            o.definirAppartenanceComposition(b);
+//    }
 
     public void convertirDistances(double facteur_conversion) {
         for (Obstacle o : elements)

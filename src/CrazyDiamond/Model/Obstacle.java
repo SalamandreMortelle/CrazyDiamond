@@ -42,7 +42,7 @@ public interface Obstacle extends ElementDeSOC { // TODO : envisager de faire im
 
     default boolean comprend(Obstacle o) { return this.equals(o) ; }
 
-    Obstacle obstacle_avec_id(String obs_id) ;
+    Obstacle obstacleAvecId(String obs_id) ;
 
 //    default Obstacle obstacle_avec_id(String obs_id) { return id().equals(obs_id)?this:null ; }
 
@@ -94,10 +94,11 @@ public interface Obstacle extends ElementDeSOC { // TODO : envisager de faire im
 //    default void definirAppartenanceSystemeOptiqueCentre(boolean b) { }
     boolean appartientASystemeOptiqueCentre() ;
 
-    void definirAppartenanceComposition(boolean b) ;
-    void definirAppartenanceGroupe(boolean b) ;
+//    void definirAppartenanceComposition(boolean b) ;
+//    void definirAppartenanceGroupe(boolean b) ;
     boolean appartientAComposition() ;
     boolean appartientAGroupe() ;
+    boolean appartientAComposite() ;
 
     /**
      * Pour un obstacle avec symétrie de révolution, calcule les positions et retourne les propriétés (courbures,
@@ -387,7 +388,7 @@ public interface Obstacle extends ElementDeSOC { // TODO : envisager de faire im
         // rotation.appendRotation(sens_rotation*i2);
         Rotate rotation = new Rotate(sens_rotation*i2) ;
 
-        Rayon r_refracte = null ;
+        Rayon r_refracte;
 
         if (!calcul_transmittance) // Pas de calcul de transmittance : toute la puissance du rayon incident est transmise au rayon réfracté
               r_refracte =  new Rayon(inter, rotation.transform(oppose_normale), n2, Rayon.PhenomeneOrigine.TRANSMISSION,r.ratio_puissance) ;
