@@ -12,231 +12,230 @@
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
 <VBox alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
       prefWidth="201.0" spacing="2.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="CrazyDiamond.Controller.PanneauLentille">
-   <children>
-      <Label text="Lentille">
-         <font>
-            <Font name="System Bold" size="12.0" />
-         </font>
+      fx:controller="CrazyDiamond.Controller.PanneauLentille"
+      fx:id="vbox_panneau_racine">
+   <padding>
+      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+   </padding>
+   <Label text="Lentille">
+      <font>
+         <Font name="System Bold" size="12.0"/>
+      </font>
+   </Label>
+   <fx:include fx:id="baseElementIdentifie" source="PanneauElementIdentifie.fxml"/>
+
+   <VBox fx:id="vbox_positionnement_absolu" alignment="TOP_CENTER">
+      <GridPane vgap="3.0">
+         <columnConstraints>
+            <ColumnConstraints percentWidth="40"/>
+         </columnConstraints>
+         <padding>
+            <Insets top="5.0" bottom="5"/>
+         </padding>
+         <Label text="X centre" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+         <Spinner fx:id="spinner_xcentre" amountToStepBy="0.1" initialValue="0.0" min="%spinner_distance_min"
+                  max="%spinner_distance_max" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+         <Label text="Y centre" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+         <Spinner fx:id="spinner_ycentre" amountToStepBy="0.1" initialValue="0.0"
+                  min="%spinner_distance_min" max="%spinner_distance_max" GridPane.rowIndex="1"
+                  GridPane.columnIndex="1"/>
+         <Label text="Orientation (°)" textOverrun="CLIP" GridPane.hgrow="NEVER" GridPane.rowIndex="2"
+                GridPane.columnIndex="0"/>
+         <Spinner fx:id="spinner_orientation" amountToStepBy="5.0" initialValue="0.0" max="360.0" min="0.0"
+                  GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+      </GridPane>
+      <Slider fx:id="slider_orientation" majorTickUnit="45.0" max="360.0" min="0.0" minorTickCount="5"
+              showTickLabels="true" showTickMarks="true" snapToTicks="true"/>
+   </VBox>
+
+   <fx:include fx:id="hbox_positionnement_relatif_dans_soc" source="PanneauPositionnementElementDansSOC.fxml"/>
+
+   <Separator prefWidth="200.0">
+      <padding>
+         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+      </padding>
+   </Separator>
+
+   <HBox alignment="TOP_CENTER" spacing="5.0">
+      <padding>
+         <Insets top="5.0"/>
+      </padding>
+      <Label contentDisplay="RIGHT" minWidth="-Infinity" text="Épaisseur">
+         <padding>
+            <Insets top="3.0"/>
+         </padding>
       </Label>
-      <fx:include fx:id="baseElementIdentifie" source="PanneauElementIdentifie.fxml" />
+      <Spinner fx:id="spinner_epaisseur" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0"
+               max="%spinner_distance_max"/>
+   </HBox>
 
-      <HBox alignment="TOP_CENTER" spacing="5.0">
-         <children>
-            <Label contentDisplay="RIGHT" minWidth="-Infinity" text="X centre">
+   <HBox alignment="TOP_CENTER" spacing="5.0">
+      <padding>
+         <Insets top="5.0"/>
+      </padding>
+      <Label contentDisplay="RIGHT" minWidth="-Infinity" text="Diamètre max.">
+         <padding>
+            <Insets top="3.0"/>
+         </padding>
+      </Label>
+      <Spinner fx:id="spinner_diametre" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0"
+               max="%spinner_distance_max"/>
+   </HBox>
+
+   <HBox>
+      <VBox fx:id="parent_parametres_face_1" spacing="4">
+         <HBox alignment="CENTER_LEFT" prefWidth="600.0">
+            <!--            <Separator prefWidth="20.0"/>-->
+            <Label minWidth="30" style="-fx-font-weight: bold;" text="Face 1"/>
+            <Separator prefWidth="60.0"/>
+         </HBox>
+
+         <VBox alignment="CENTER_LEFT">
+            <RadioButton fx:id="choix_convexe_1" selected="true" mnemonicParsing="false" text="Convexe">
+               <toggleGroup>
+                  <ToggleGroup fx:id="choix_convexite_face_1"/>
+               </toggleGroup>
+            </RadioButton>
+            <RadioButton fx:id="choix_plane_1" mnemonicParsing="false" text="Plane"
+                         toggleGroup="$choix_convexite_face_1"/>
+            <RadioButton fx:id="choix_concave_1" mnemonicParsing="false" text="Concave"
+                         toggleGroup="$choix_convexite_face_1"/>
+         </VBox>
+
+         <VBox alignment="CENTER_LEFT">
+            <RadioButton fx:id="choix_spherique_1" mnemonicParsing="false" text="Sphérique" selected="true">
+               <toggleGroup>
+                  <ToggleGroup fx:id="choix_forme_face_1"/>
+               </toggleGroup>
+            </RadioButton>
+            <RadioButton fx:id="choix_conique_1" mnemonicParsing="false" text="Conique"
+                         toggleGroup="$choix_forme_face_1"/>
+         </VBox>
+
+         <HBox fx:id="parametres_forme_spherique_1" alignment="TOP_CENTER" spacing="5.0">
+            <padding>
+               <Insets top="5.0"/>
+            </padding>
+            <Label minWidth="-Infinity" text="R">
                <padding>
-                  <Insets top="3.0" />
+                  <Insets top="3.0"/>
                </padding>
             </Label>
-            <Spinner fx:id="spinner_xcentre" amountToStepBy="0.1" editable="false" initialValue="0.0" min="%spinner_distance_min"  max="%spinner_distance_max" />
-         </children>
-         <padding>
-            <Insets top="5.0" />
-         </padding>
-      </HBox>
-      <HBox alignment="TOP_CENTER" spacing="5.0">
-         <children>
-            <Label minWidth="-Infinity" text="Y centre">
+            <Spinner fx:id="spinner_rayon_1" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0"
+                     max="%spinner_distance_max"/>
+         </HBox>
+         <VBox fx:id="parametres_forme_conique_1">
+            <HBox alignment="TOP_CENTER" spacing="5.0">
                <padding>
-                  <Insets top="3.0" />
+                  <Insets top="5.0"/>
                </padding>
-            </Label>
-            <Spinner fx:id="spinner_ycentre" amountToStepBy="0.1" editable="false" initialValue="0.0" min="%spinner_distance_min"  max="%spinner_distance_max" />
-         </children>
-         <padding>
-            <Insets top="5.0" />
-         </padding>
-      </HBox>
-
-      <HBox alignment="TOP_CENTER" spacing="5.0">
-         <children>
-            <Label contentDisplay="RIGHT" minWidth="-Infinity" text="Épaisseur">
-               <padding>
-                  <Insets top="3.0" />
-               </padding>
-            </Label>
-            <Spinner fx:id="spinner_epaisseur" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0"  max="%spinner_distance_max" />
-         </children>
-         <padding>
-            <Insets top="5.0" />
-         </padding>
-      </HBox>
-
-      <HBox alignment="TOP_CENTER" spacing="5.0">
-         <children>
-            <Label contentDisplay="RIGHT" minWidth="-Infinity" text="Diamètre max.">
-               <padding>
-                  <Insets top="3.0" />
-               </padding>
-            </Label>
-            <Spinner fx:id="spinner_diametre" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0"  max="%spinner_distance_max" />
-         </children>
-         <padding>
-            <Insets top="5.0" />
-         </padding>
-      </HBox>
-
-      <HBox>
-         <VBox fx:id="parent_parametres_face_1" spacing="4">
-            <HBox alignment="CENTER_LEFT" prefWidth="600.0">
-      <!--            <Separator prefWidth="20.0"/>-->
-               <Label minWidth="30" style="-fx-font-weight: bold;" text="Face 1"/>
-               <Separator prefWidth="60.0"/>
-            </HBox>
-
-            <VBox alignment="CENTER_LEFT">
-               <RadioButton fx:id="choix_convexe_1" selected="true" mnemonicParsing="false" text="Convexe">
-                  <toggleGroup>
-                     <ToggleGroup fx:id="choix_convexite_face_1"/>
-                  </toggleGroup>
-               </RadioButton>
-               <RadioButton fx:id="choix_plane_1" mnemonicParsing="false" selected="false" text="Plane" toggleGroup="$choix_convexite_face_1"/>
-               <RadioButton fx:id="choix_concave_1" mnemonicParsing="false" selected="false" text="Concave" toggleGroup="$choix_convexite_face_1"/>
-            </VBox>
-
-            <VBox alignment="CENTER_LEFT">
-               <RadioButton fx:id="choix_spherique_1" mnemonicParsing="false" text="Sphérique" selected="true">
-                  <toggleGroup>
-                     <ToggleGroup fx:id="choix_forme_face_1"/>
-                  </toggleGroup>
-               </RadioButton>
-               <RadioButton fx:id="choix_conique_1" mnemonicParsing="false" text="Conique" toggleGroup="$choix_forme_face_1"/>
-            </VBox>
-
-            <HBox fx:id="parametres_forme_spherique_1" alignment="TOP_CENTER" spacing="5.0">
-            <children>
-               <Label minWidth="-Infinity" text="R">
+               <Label minWidth="-Infinity" text="p">
                   <padding>
-                     <Insets top="3.0" />
+                     <Insets top="3.0"/>
                   </padding>
                </Label>
-               <Spinner fx:id="spinner_rayon_1" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0" max="%spinner_distance_max" />
-            </children>
-            <padding>
-               <Insets top="5.0" />
-            </padding>
-         </HBox>
-               <VBox fx:id="parametres_forme_conique_1">
-                  <HBox  alignment="TOP_CENTER" spacing="5.0">
-                     <children>
-                        <Label minWidth="-Infinity" text="p">
-                           <padding>
-                              <Insets top="3.0" />
-                           </padding>
-                        </Label>
-                        <Spinner fx:id="spinner_parametre_1" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0"  max="%spinner_distance_max"/>
-                     </children>
-                     <padding>
-                        <Insets top="5.0" />
-                     </padding>
-                  </HBox>
-                  <HBox  alignment="TOP_CENTER" spacing="5.0">
-                     <children>
-                        <Label minWidth="-Infinity" text="e">
-                           <padding>
-                              <Insets top="3.0" />
-                           </padding>
-                        </Label>
-                        <Spinner fx:id="spinner_excentricite_1" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0"  max="%spinner_excentricite_conique_max"/>
-                     </children>
-                     <padding>
-                        <Insets top="5.0" />
-                     </padding>
-                  </HBox>
-               </VBox>
-      </VBox>
-         <VBox fx:id="parent_parametres_face_2" spacing="4">
-            <HBox alignment="CENTER_LEFT" prefWidth="600.0">
-      <!--         <Separator prefWidth="20.0"/>-->
-               <Label minWidth="30" style="-fx-font-weight: bold;" text="Face 2"/>
-               <Separator prefWidth="60.0"/>
+               <Spinner fx:id="spinner_parametre_1" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0"
+                        max="%spinner_distance_max"/>
             </HBox>
-
-
-            <VBox alignment="CENTER_LEFT">
-               <RadioButton fx:id="choix_convexe_2" selected="true" mnemonicParsing="false" text="Convexe">
-                  <toggleGroup>
-                     <ToggleGroup fx:id="choix_convexite_face_2"/>
-                  </toggleGroup>
-               </RadioButton>
-               <RadioButton fx:id="choix_plane_2" mnemonicParsing="false" selected="false" text="Plane" toggleGroup="$choix_convexite_face_2"/>
-               <RadioButton fx:id="choix_concave_2" mnemonicParsing="false" selected="false" text="Concave" toggleGroup="$choix_convexite_face_2"/>
-            </VBox>
-
-
-            <VBox alignment="CENTER_LEFT">
-               <RadioButton fx:id="choix_spherique_2" mnemonicParsing="false" text="Sphérique" selected="true">
-                  <toggleGroup>
-                     <ToggleGroup fx:id="choix_forme_face_2"/>
-                  </toggleGroup>
-               </RadioButton>
-               <RadioButton fx:id="choix_conique_2" mnemonicParsing="false" text="Conique" toggleGroup="$choix_forme_face_2"/>
-            </VBox>
-
-            <!--            -->
-            <HBox fx:id="parametres_forme_spherique_2" alignment="TOP_CENTER" spacing="5.0">
-               <children>
-                  <Label minWidth="-Infinity" text="R">
-                     <padding>
-                        <Insets top="3.0" />
-                     </padding>
-                  </Label>
-                  <Spinner fx:id="spinner_rayon_2" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0" max="%spinner_distance_max" />
-               </children>
+            <HBox alignment="TOP_CENTER" spacing="5.0">
                <padding>
-                  <Insets top="5.0" />
+                  <Insets top="5.0"/>
                </padding>
+               <Label minWidth="-Infinity" text="e">
+                  <padding>
+                     <Insets top="3.0"/>
+                  </padding>
+               </Label>
+               <Spinner fx:id="spinner_excentricite_1" amountToStepBy="0.1" editable="true" initialValue="0.0"
+                        min="0.0" max="%spinner_excentricite_conique_max"/>
             </HBox>
-            <VBox fx:id="parametres_forme_conique_2">
-               <HBox  alignment="TOP_CENTER" spacing="5.0">
-                  <children>
-                     <Label minWidth="-Infinity" text="p">
-                        <padding>
-                           <Insets top="3.0" />
-                        </padding>
-                     </Label>
-                     <Spinner fx:id="spinner_parametre_2" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0"  max="%spinner_distance_max"/>
-                  </children>
+         </VBox>
+   </VBox>
+      <VBox fx:id="parent_parametres_face_2" spacing="4">
+         <HBox alignment="CENTER_LEFT" prefWidth="600.0">
+            <!--         <Separator prefWidth="20.0"/>-->
+            <Label minWidth="30" style="-fx-font-weight: bold;" text="Face 2"/>
+            <Separator prefWidth="60.0"/>
+         </HBox>
+
+
+         <VBox alignment="CENTER_LEFT">
+            <RadioButton fx:id="choix_convexe_2" selected="true" mnemonicParsing="false" text="Convexe">
+               <toggleGroup>
+                  <ToggleGroup fx:id="choix_convexite_face_2"/>
+               </toggleGroup>
+            </RadioButton>
+            <RadioButton fx:id="choix_plane_2" mnemonicParsing="false" text="Plane"
+                         toggleGroup="$choix_convexite_face_2"/>
+            <RadioButton fx:id="choix_concave_2" mnemonicParsing="false" text="Concave"
+                         toggleGroup="$choix_convexite_face_2"/>
+         </VBox>
+
+
+         <VBox alignment="CENTER_LEFT">
+            <RadioButton fx:id="choix_spherique_2" mnemonicParsing="false" text="Sphérique" selected="true">
+               <toggleGroup>
+                  <ToggleGroup fx:id="choix_forme_face_2"/>
+               </toggleGroup>
+            </RadioButton>
+            <RadioButton fx:id="choix_conique_2" mnemonicParsing="false" text="Conique"
+                         toggleGroup="$choix_forme_face_2"/>
+         </VBox>
+
+         <!--            -->
+         <HBox fx:id="parametres_forme_spherique_2" alignment="TOP_CENTER" spacing="5.0">
+            <padding>
+               <Insets top="5.0"/>
+            </padding>
+            <Label minWidth="-Infinity" text="R">
+               <padding>
+                  <Insets top="3.0"/>
+               </padding>
+            </Label>
+            <Spinner fx:id="spinner_rayon_2" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0"
+                     max="%spinner_distance_max"/>
+         </HBox>
+         <VBox fx:id="parametres_forme_conique_2">
+            <HBox alignment="TOP_CENTER" spacing="5.0">
+               <padding>
+                  <Insets top="5.0"/>
+               </padding>
+               <Label minWidth="-Infinity" text="p">
                   <padding>
-                     <Insets top="5.0" />
+                     <Insets top="3.0"/>
                   </padding>
-               </HBox>
-               <HBox  alignment="TOP_CENTER" spacing="5.0">
-                  <children>
-                     <Label minWidth="-Infinity" text="e">
-                        <padding>
-                           <Insets top="3.0" />
-                        </padding>
-                     </Label>
-                     <Spinner fx:id="spinner_excentricite_2" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0"  max="%spinner_excentricite_conique_max"/>
-                  </children>
+               </Label>
+               <Spinner fx:id="spinner_parametre_2" amountToStepBy="0.1" editable="true" initialValue="0.0" min="0.0"
+                        max="%spinner_distance_max"/>
+            </HBox>
+            <HBox alignment="TOP_CENTER" spacing="5.0">
+               <padding>
+                  <Insets top="5.0"/>
+               </padding>
+               <Label minWidth="-Infinity" text="e">
                   <padding>
-                     <Insets top="5.0" />
+                     <Insets top="3.0"/>
                   </padding>
-               </HBox>
-            </VBox>
+               </Label>
+               <Spinner fx:id="spinner_excentricite_2" amountToStepBy="0.1" editable="true" initialValue="0.0"
+                        min="0.0" max="%spinner_excentricite_conique_max"/>
+            </HBox>
+         </VBox>
 
-      </VBox>
-   </HBox>
-      <Separator prefWidth="200.0" />
-      <CheckBox fx:id="checkbox_faces_symetriques" text="Faces symétriques"></CheckBox>
+   </VBox>
+</HBox>
+   <Separator prefWidth="200.0">
+      <padding>
+         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+      </padding>
+   </Separator>
 
-      <Separator prefWidth="200.0">
-         <padding>
-            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-         </padding>
-      </Separator>
+   <CheckBox fx:id="checkbox_faces_symetriques" text="Faces symétriques"/>
 
-      <Label text="Orientation (°)" />
-      <Spinner fx:id="spinner_orientation" amountToStepBy="5.0" editable="true" initialValue="0.0" max="360.0" min="0.0" />
-      <Slider fx:id="slider_orientation" majorTickUnit="45.0" max="360.0" min="0.0" minorTickCount="5" showTickLabels="true" showTickMarks="true" snapToTicks="true" />
-
-      <fx:include fx:id="baseContour" source="PanneauElementAvecContour.fxml" />
-      <fx:include fx:id="baseMatiere" source="PanneauElementAvecMatiere.fxml" />
-   </children>
-   <padding>
-      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-   </padding>
+   <fx:include fx:id="baseContour" source="PanneauElementAvecContour.fxml"/>
+   <fx:include fx:id="baseMatiere" source="PanneauElementAvecMatiere.fxml"/>
 </VBox>

@@ -628,4 +628,5 @@ public class Prisme extends BaseObstacleAvecContourEtMatiere implements Obstacle
         }
 
     }
+
 }

@@ -12,71 +12,77 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.paint.Color?>
 <?import javafx.scene.text.Font?>
-
-<VBox alignment="TOP_CENTER" maxHeight="Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefWidth="201.0" spacing="2.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CrazyDiamond.Controller.PanneauSystemeOptiqueCentre">
-<children>
-      <Label text="Système Optique Centré">
-         <font>
-            <Font name="System Bold" size="12.0" />
-         </font>
-      </Label>
+<VBox alignment="TOP_CENTER" maxHeight="Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+      prefWidth="201.0" spacing="2.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="CrazyDiamond.Controller.PanneauSystemeOptiqueCentre"
+      fx:id="vbox_panneau_racine">
+    <padding>
+        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+    </padding>
+    <Label text="Système Optique Centré">
+        <font>
+          <Font name="System Bold" size="12.0"/>
+        </font>
+    </Label>
     <fx:include fx:id="baseElementIdentifie" source="PanneauElementIdentifie.fxml" />
+<!--    <fx:include fx:id="base_element_identifie" source="PanneauElementIdentifie.fxml"/>-->
 
-    <HBox alignment="TOP_CENTER" spacing="5.0">
-        <children>
+<!--    <VBox fx:id="vbox_positionnement_absolu" alignment="TOP_CENTER" spacing="5.0">-->
+    <VBox fx:id="vbox_positionnement_absolu" alignment="TOP_CENTER">
+        <HBox fx:id="hbox_x_origine" alignment="TOP_CENTER" spacing="5.0">
+            <padding>
+                <Insets top="5.0"/>
+            </padding>
             <Label contentDisplay="RIGHT" minWidth="-Infinity" text="X origine">
                 <padding>
-                    <Insets top="3.0" />
+                    <Insets top="3.0"/>
                 </padding>
             </Label>
-            <Spinner fx:id="spinner_xorigine" amountToStepBy="0.1" editable="true" initialValue="0.0" max="1E100d" min="-1E100d" />
-<!--            <Spinner fx:id="spinner_xorigine" amountToStepBy="0.1" editable="true" initialValue="0.0" max="2.0" min="-2.0" />-->
-        </children>
-        <padding>
-            <Insets top="5.0" />
-        </padding>
-    </HBox>
-    <HBox alignment="TOP_CENTER" spacing="5.0">
-        <children>
+            <Spinner fx:id="spinner_xorigine" amountToStepBy="0.1" editable="true" initialValue="0.0" max="1E100d"
+                     min="-1E100d"/>
+            <!--            <Spinner fx:id="spinner_xorigine" amountToStepBy="0.1" editable="true" initialValue="0.0" max="2.0" min="-2.0" />-->
+        </HBox>
+        <HBox fx:id="hbox_y_origine" alignment="TOP_CENTER" spacing="5.0">
+            <padding>
+                <Insets top="5.0"/>
+            </padding>
             <Label minWidth="-Infinity" text="Y origine">
                 <padding>
-                    <Insets top="3.0" />
+                    <Insets top="3.0"/>
                 </padding>
             </Label>
-            <Spinner fx:id="spinner_yorigine" amountToStepBy="0.1" editable="true" initialValue="0.0" max="1E100d" min="-1E100d" />
-<!--            <Spinner fx:id="spinner_yorigine" amountToStepBy="0.1" editable="true" initialValue="0.0" max="2.0" min="-2.0" />-->
-        </children>
-        <padding>
-            <Insets top="5.0" />
-        </padding>
-    </HBox>
+            <Spinner fx:id="spinner_yorigine" amountToStepBy="0.1" editable="true" initialValue="0.0" max="1E100d"
+                     min="-1E100d"/>
+            <!--            <Spinner fx:id="spinner_yorigine" amountToStepBy="0.1" editable="true" initialValue="0.0" max="2.0" min="-2.0" />-->
+        </HBox>
+        <Label fx:id="label_orientation" text="Orientation (°)"/>
+        <Spinner fx:id="spinner_orientation" amountToStepBy="5.0" editable="true" initialValue="0.0" max="360.0"
+                 min="0.0"/>
+        <Slider fx:id="slider_orientation" majorTickUnit="30.0" max="360.0" min="0.0" minorTickCount="5"
+                showTickLabels="true" showTickMarks="true" snapToTicks="true"/>
+    </VBox>
 
-    <Label text="Orientation (°)" />
-    <Spinner fx:id="spinner_orientation" amountToStepBy="5.0" editable="true" initialValue="0.0" max="360.0" min="0.0" />
-    <Slider fx:id="slider_orientation" majorTickUnit="30.0" max="360.0" min="0.0" minorTickCount="5" showTickLabels="true" showTickMarks="true" snapToTicks="true" />
+    <fx:include fx:id="hbox_positionnement_relatif_dans_soc" source="PanneauPositionnementElementDansSOC.fxml"/>
 
-    <Separator prefWidth="200.0" />
-    <Label text="Couleur axe" />
+    <Separator prefWidth="200.0"/>
+
+    <Label text="Couleur axe"/>
     <ColorPicker fx:id="colorpicker_axe" editable="true" minHeight="-Infinity">
         <value>
-            <Color red="0.501960813999176" green="0.501960813999176" blue="0.501960813999176" />
+            <Color red="0.501960813999176" green="0.501960813999176" blue="0.501960813999176"/>
         </value>
     </ColorPicker>
 
 
     <Separator layoutX="15.0" layoutY="237.0" prefWidth="200.0">
-         <padding>
-            <Insets bottom="5.0" top="10.0" />
-         </padding>
+        <padding>
+            <Insets bottom="5.0" top="10.0"/>
+        </padding>
     </Separator>
-    <Label layoutX="79.0" layoutY="242.0" text="Elements" />
+    <Label layoutX="79.0" layoutY="242.0" text="Elements"/>
 
-    <Button mnemonicParsing="false" onAction="#ajouterObstacle" prefWidth="200.0" text="Ajouter..." />
+    <Button mnemonicParsing="false" onAction="#ajouterObstacle" prefWidth="200.0" text="Ajouter..."/>
 
-    <ListView fx:id="listview_obstacles_centres" prefWidth="201.0" VBox.vgrow="ALWAYS" />
+    <ListView fx:id="listview_obstacles_centres" prefWidth="201.0" VBox.vgrow="ALWAYS"/>
 
-</children>
-<padding>
-    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-</padding>
 </VBox>

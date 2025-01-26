@@ -10,7 +10,8 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.paint.Color?>
 
-<VBox alignment="TOP_CENTER" spacing="2.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CrazyDiamond.Controller.PanneauElementAvecContour">
+<VBox alignment="TOP_CENTER" spacing="2.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="CrazyDiamond.Controller.PanneauElementAvecContour">
     <padding>
         <Insets top="10.0" />
     </padding>
@@ -27,24 +28,22 @@
     <Separator prefWidth="200.0" />
     <Label text="Traitement surface" />
     <VBox spacing="5.0">
-        <children>
-        <!--         <RadioButton fx:id="choix_reflechissant" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" selected="true" text="Réflechissant">-->
-        <!--            <toggleGroup>-->
-        <!--               <ToggleGroup fx:id="choix_nature_milieu" />-->
-        <!--            </toggleGroup>-->
-        <!--         </RadioButton>-->
-
         <RadioButton fx:id="choix_aucun" mnemonicParsing="false" selected="true" text="Aucun">
             <toggleGroup>
-                <ToggleGroup fx:id="choix_traitement_surface" />
+                <ToggleGroup fx:id="choix_traitement_surface"/>
             </toggleGroup>
         </RadioButton>
-        <RadioButton fx:id="choix_absorbant" mnemonicParsing="false" text="Absorbant" toggleGroup="$choix_traitement_surface" />
-        <RadioButton fx:id="choix_reflechissant" mnemonicParsing="false" text="Totalement réflechissant" toggleGroup="$choix_traitement_surface" />
-        <RadioButton fx:id="choix_semi_reflechissant" mnemonicParsing="false" text="Semi-réfléchissant" toggleGroup="$choix_traitement_surface" />
-        <Slider fx:id="slider_taux_reflexion_surface" majorTickUnit="0.25" max="1.0" min="0.0" minorTickCount="5" showTickLabels="true" showTickMarks="true" snapToTicks="true" />
-        <RadioButton fx:id="choix_polarisant" mnemonicParsing="false" text="Polarisant" toggleGroup="$choix_traitement_surface" />
-        <Slider fx:id="slider_orientation_axe_polariseur" majorTickUnit="30" max="180.0" min="0.0" minorTickCount="5" showTickLabels="true" showTickMarks="true" snapToTicks="true" />
-        </children>
+        <RadioButton fx:id="choix_absorbant" mnemonicParsing="false" text="Absorbant"
+                     toggleGroup="$choix_traitement_surface"/>
+        <RadioButton fx:id="choix_reflechissant" mnemonicParsing="false" text="Totalement réflechissant"
+                     toggleGroup="$choix_traitement_surface"/>
+        <RadioButton fx:id="choix_semi_reflechissant" mnemonicParsing="false" text="Semi-réfléchissant"
+                     toggleGroup="$choix_traitement_surface"/>
+        <Slider fx:id="slider_taux_reflexion_surface" majorTickUnit="0.25" max="1.0" min="0.0" minorTickCount="5"
+                showTickLabels="true" showTickMarks="true" snapToTicks="true"/>
+        <RadioButton fx:id="choix_polarisant" mnemonicParsing="false" text="Polarisant"
+                     toggleGroup="$choix_traitement_surface"/>
+        <Slider fx:id="slider_orientation_axe_polariseur" majorTickUnit="30" max="180.0" min="0.0" minorTickCount="5"
+                showTickLabels="true" showTickMarks="true" snapToTicks="true"/>
     </VBox>
 </VBox>

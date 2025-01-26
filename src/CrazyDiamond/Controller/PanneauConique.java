@@ -4,6 +4,7 @@ import CrazyDiamond.Model.*;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.util.logging.Level;
@@ -11,6 +12,8 @@ import java.util.logging.Logger;
 
 //public class PanneauConique extends PanneauBaseObstacleAvecMatiere {
 public class PanneauConique  {
+
+
 
     Conique conique ;
     private final boolean dans_composition;
@@ -37,6 +40,15 @@ public class PanneauConique  {
     @FXML
     private PanneauElementAvecMatiere baseMatiereController;
 
+    @FXML
+    public VBox vbox_panneau_racine;
+    @FXML
+    public VBox vbox_positionnement_absolu;
+    @FXML
+    private HBox hbox_positionnement_relatif_dans_soc;
+    @FXML
+    private PanneauPositionnementElementDansSOC hbox_positionnement_relatif_dans_socController;
+
     // Contrôles de la vue :
     @FXML
     private Spinner<Double> spinner_xfoyer;
@@ -56,6 +68,7 @@ public class PanneauConique  {
     @FXML
     private Slider slider_orientation;
 
+
     public PanneauConique(Conique c,boolean dans_composition,CanvasAffichageEnvironnement cnv) {
         LOGGER.log(Level.INFO,"Construction du PanneauConique") ;
 
@@ -70,16 +83,14 @@ public class PanneauConique  {
 
         baseElementIdentifieController.initialize(conique);
 
-        if (!dans_composition) {
-            baseContourController.initialize(conique);
-            baseMatiereController.initialize(conique);
-        } else {
-            baseMatiere.setVisible(false);
-            baseContour.setVisible(false);
-        }
+        hbox_positionnement_relatif_dans_socController.initialize(canvas,conique);
+
+        UtilitairesVue.gererAppartenanceSOC(conique,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
+
+        UtilitairesVue.gererAppartenanceComposition(dans_composition,conique,baseContour,baseContourController,baseMatiere,baseMatiereController) ;
 
         // Prise en compte automatique de la position et de l'orientation
-        conique.positionEtOrientationObjectProperty().addListener(new ChangeListenerAvecGarde<PositionEtOrientation>(this::prendreEnComptePositionEtOrientation));
+        conique.positionEtOrientationObjectProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnComptePositionEtOrientation));
 
         // X Foyer
         spinner_xfoyer.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_RIGHT_HORIZONTAL) ;

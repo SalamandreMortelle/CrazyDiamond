@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.geometry.Insets?>
+<HBox alignment="TOP_CENTER" spacing="5.0"
+      xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="CrazyDiamond.Controller.PanneauPositionnementElementDansSOC">
+    <padding>
+        <Insets top="5.0"/>
+    </padding>
+    <Label contentDisplay="RIGHT" minWidth="-Infinity" text="Pos. dans SOC">
+        <padding>
+            <Insets top="3.0"/>
+        </padding>
+    </Label>
+    <Spinner fx:id="spinner_position_dans_soc" amountToStepBy="0.1" editable="true" initialValue="0.0" max="1E100d"
+             min="-1E100d"/>
+    <!--            <Spinner fx:id="spinner_xorigine" amountToStepBy="0.1" editable="true" initialValue="0.0" max="2.0" min="-2.0" />-->
+</HBox>

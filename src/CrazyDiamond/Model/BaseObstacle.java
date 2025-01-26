@@ -43,6 +43,7 @@ public abstract class BaseObstacle extends BaseElementNommable {
     public void definirParent(BaseObstacleComposite parent) { this.composite_parent.set(parent); }
 
     public SystemeOptiqueCentre SOCParent() { return soc_conteneur.get() ;}
+    public ObjectProperty<SystemeOptiqueCentre> systemeOptiqueParentProperty() { return soc_conteneur ; }
 
     public void definirSOCParent(SystemeOptiqueCentre soc) { this.soc_conteneur.set(soc); }
 

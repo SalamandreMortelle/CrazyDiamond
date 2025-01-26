@@ -40,6 +40,15 @@ public class PanneauLentille {
     private PanneauElementAvecMatiere baseMatiereController;
 
     @FXML
+    public VBox vbox_panneau_racine;
+    @FXML
+    public VBox vbox_positionnement_absolu;
+    @FXML
+    private HBox hbox_positionnement_relatif_dans_soc;
+    @FXML
+    private PanneauPositionnementElementDansSOC hbox_positionnement_relatif_dans_socController;
+
+    @FXML
     private Spinner<Double> spinner_xcentre;
     @FXML
     private Spinner<Double> spinner_ycentre;
@@ -126,13 +135,11 @@ public class PanneauLentille {
 
         baseElementIdentifieController.initialize(lentille);
 
-        if (!dans_composition) {
-            baseContourController.initialize(lentille);
-            baseMatiereController.initialize(lentille);
-        } else {
-            baseMatiere.setVisible(false);
-            baseContour.setVisible(false);
-        }
+        hbox_positionnement_relatif_dans_socController.initialize(canvas,lentille);
+
+        UtilitairesVue.gererAppartenanceSOC(lentille,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
+
+        UtilitairesVue.gererAppartenanceComposition(dans_composition,lentille,baseContour,baseContourController,baseMatiere,baseMatiereController) ;
 
         // Prise en compte automatique de la position et de l'orientation
         lentille.positionEtOrientationObjectProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnComptePositionEtOrientation));

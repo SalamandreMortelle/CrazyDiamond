@@ -13,7 +13,7 @@ public class PanneauPrisme {
 
     // Modèle
     Prisme prisme ;
-    private boolean dans_composition;
+    private final boolean dans_composition;
 
     CanvasAffichageEnvironnement canvas;
 
@@ -71,13 +71,14 @@ public class PanneauPrisme {
 
         baseElementIdentifieController.initialize(prisme);
 
-        if (!dans_composition) {
-            baseContourController.initialize(prisme);
-            baseMatiereController.initialize(prisme);
-        } else {
-            baseMatiere.setVisible(false);
-            baseContour.setVisible(false);
-        }
+        UtilitairesVue.gererAppartenanceComposition(dans_composition,prisme,baseContour,baseContourController,baseMatiere,baseMatiereController) ;
+//        if (!dans_composition) {
+//            baseContourController.initialize(prisme);
+//            baseMatiereController.initialize(prisme);
+//        } else {
+//            baseMatiere.setVisible(false);
+//            baseContour.setVisible(false);
+//        }
 
         // Prise en compte automatique de la position et de l'orientation
         prisme.positionEtOrientationObjectProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnComptePositionEtOrientation));

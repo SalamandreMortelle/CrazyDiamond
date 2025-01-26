@@ -405,4 +405,14 @@ public class Segment extends BaseObstacleAvecContourSansEpaisseur implements Obs
         }
     }
 
+    @Override
+    public Point2D pointDeReferencePourPositionnementDansSOCParent() { return centre() ; }
+
+    @Override
+    public void definirPointDeReferencePourPositionnementDansSOCParent(Point2D pt_ref) { definirCentre(pt_ref) ; }
+
+    @Override
+    public ObjectProperty<PositionEtOrientation> positionEtOrientationProperty() { return position_orientation ; }
+
+
 }

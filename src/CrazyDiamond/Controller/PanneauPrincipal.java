@@ -238,6 +238,7 @@ public class PanneauPrincipal {
     private Source source_en_attente_de_panneau ;
 
     private SystemeOptiqueCentre soc_en_attente_de_panneau ;
+//    private ElementDeSOC element_de_soc_en_attente_de_panneau ;
     private Obstacle obstacle_en_attente_de_panneau ;
     private boolean obstacle_en_attente_de_panneau_dans_composition;
 
@@ -823,6 +824,9 @@ public class PanneauPrincipal {
         Callable<?> controleurPanneauSystemeOptiqueCentre = () -> new PanneauSystemeOptiqueCentre(soc_en_attente_de_panneau, canvas_environnement);
         DependencyInjection.addInjectionMethod(PanneauSystemeOptiqueCentre.class, controleurPanneauSystemeOptiqueCentre) ;
 
+//        Callable<?> controleurPanneauPositionnementElementDansSOC = () -> new PanneauPositionnementElementDansSOC(element_de_soc_en_attente_de_panneau, canvas_environnement);
+//        DependencyInjection.addInjectionMethod(PanneauPositionnementElementDansSOC.class, controleurPanneauPositionnementElementDansSOC) ;
+
         Callable<?> controleurPanneauAnalyseParaxialeSystemeOptiqueCentre = () -> new PanneauAnalyseParaxialeSystemeOptiqueCentre(soc_en_attente_de_panneau, canvas_environnement);
         DependencyInjection.addInjectionMethod(PanneauAnalyseParaxialeSystemeOptiqueCentre.class, controleurPanneauAnalyseParaxialeSystemeOptiqueCentre) ;
 
@@ -932,9 +936,31 @@ public class PanneauPrincipal {
                 System.exit(1);
             }
 
+//            LOGGER.log(Level.FINE, "Tentative de chargement du PanneauPositionnementElementDansSOC");
+//
+//            Parent panneau_pos_soc_dans_soc = null ;
+//
+//            try {
+//                panneau_pos_soc_dans_soc = DependencyInjection.load("View/PanneauPositionnementElementDansSOC.fxml");
+//                LOGGER.log(Level.FINE, "PanneauPositionnementElementDansSOC créé : {0}", panneau_pos_soc_dans_soc);
+//            } catch (IOException e) {
+//                System.err.println("Exception lors de l'accès au fichier .fxml : " + e.getMessage());
+//                System.exit(1);
+//            }
+
+//            PanneauPositionnementElementDansSOC panneau_pos_soc_dans_soc_controler =
+//                    (PanneauPositionnementElementDansSOC) panneau_pos_soc_dans_soc.getUserData() ;
+
+
             map_element_panneau_droit.put(soc,panneau_droit_soc_courant) ;
+
+
+
         } else
             panneau_droit_soc_courant = (Parent) map_element_panneau_droit.get(soc);
+
+
+
 
 
 

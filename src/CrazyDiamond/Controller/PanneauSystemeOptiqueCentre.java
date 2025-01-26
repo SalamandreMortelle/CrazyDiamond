@@ -8,6 +8,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.util.*;
@@ -26,20 +27,49 @@ public class PanneauSystemeOptiqueCentre {
     private static final ResourceBundle rb = ResourceBundle.getBundle("CrazyDiamond") ;
 
     @FXML
-    private VBox baseElementIdentifie;
-    @FXML
-    private PanneauElementIdentifie baseElementIdentifieController ;
+    public VBox vbox_panneau_racine;
 
     @FXML
+    private VBox baseElementIdentifie;
+    @FXML
+    private PanneauElementIdentifie baseElementIdentifieController;
+
+    // Panneau qui n'est pas dans la vue (pas dans le .fxml) mais qu'on ajoutera à la place d'autres éléments si ce SOC
+    // devient un élément d'un SOC parent
+//    private Parent panneau_positionnement_element_dans_soc;
+
+    @FXML
+    private HBox hbox_positionnement_relatif_dans_soc;
+    @FXML
+    // NB : ne pas changer le nom de ce contrôleur : il est construit (injecté) par le FXML loader (lorsqu'il rencontre
+    // un <fx:include>) en concaténant "Controller" au nom (fx:id) de l'élément (vue) associé.
+    private PanneauPositionnementElementDansSOC hbox_positionnement_relatif_dans_socController;
+
+    @FXML
+    private VBox vbox_positionnement_absolu;
+
+    @FXML
+    private HBox hbox_x_origine;
+    @FXML
     private Spinner<Double> spinner_xorigine ;
+    @FXML
+    private HBox hbox_y_origine;
     @FXML
     private Spinner<Double> spinner_yorigine ;
 
     @FXML
+    private Label label_orientation;
+
+    @FXML
     private Spinner<Double> spinner_orientation;
+
+//    private Spinner<Double> spinner_position_dans_soc ;
 
     @FXML
     private Slider slider_orientation;
+
+//    @FXML
+//    private Spinner<Double> spinner_position_dans_soc;
 
     @FXML
     private ColorPicker colorpicker_axe;
@@ -72,28 +102,76 @@ public class PanneauSystemeOptiqueCentre {
 
         baseElementIdentifieController.initialize(soc);
 
+
+//        try {
+//            // On garde une référence vers le Node (panneau) de positionnement dans SOC (pour l'ajouter dans le panneau SOC
+//            // à la place des autres champs de positionnement si le SOC est un élémént d'un SOC parent.
+//            // NB : Attention le constructeur du controleur suppose que le soc_en_attente_de_creation ait été renseigné
+//            // (cf. SetUpDependencyInjector dans PanneauPrincipal)
+//            panneau_positionnement_element_dans_soc = DependencyInjection.load("View/PanneauPositionnementElementDansSOC.fxml");
+//            LOGGER.log(Level.FINE, "PanneauPositionnementElementDansSOC créé : {0}", panneau_positionnement_element_dans_soc);
+//        } catch (IOException e) {
+//            System.err.println("Exception lors de l'accès au fichier .fxml : " + e.getMessage());
+//            System.exit(1);
+//        }
+
+//        PanneauPositionnementElementDansSOC controler = (PanneauPositionnementElementDansSOC) panneau_positionnement_element_dans_soc.getUserData() ;
+//        spinner_position_dans_soc = controler.spinnerPositionDansSOC() ;
+
+//        spinner_position_dans_soc = (Spinner<Double>) panneau_positionnement_element_dans_soc.getChildrenUnmodifiable().get(1);
+
+        hbox_positionnement_relatif_dans_socController.initialize(canvas,soc);
+
+        UtilitairesVue.gererAppartenanceSOC(soc,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
+//        if (soc.SOCParent()!=null) {
+//
+//            int pos = vbox_panneau_racine.getChildren().indexOf(vbox_positionnement_absolu) ;
+//            vbox_panneau_racine.getChildren().remove(vbox_positionnement_absolu);
+//            vbox_panneau_racine.getChildren().add(pos, panneau_positionnement_element_dans_soc);
+//
+//            // Force le spinner du panneau positionnement à s'initialiser
+//            // TODO : voir si c'est vraiment nécessaire
+//            soc.definirOrigine(soc.origine());
+//        }
+//
+//        soc.systemeOptiqueParentProperty().addListener( (observableValue, oldValue, newValue) ->{
+//            LOGGER.log(Level.FINE, "SOC Parent passe de {0} à {1}", new Object[]{oldValue, newValue});
+//
+//            if (oldValue==null && newValue!=null) { // Ajout de ce SOC dans un SOC parent
+//
+//                int pos = vbox_panneau_racine.getChildren().indexOf(vbox_positionnement_absolu) ;
+//                vbox_panneau_racine.getChildren().remove(vbox_positionnement_absolu);
+//                vbox_panneau_racine.getChildren().add(pos, panneau_positionnement_element_dans_soc);
+//
+//            } else if (oldValue !=null && newValue==null) { // Retrait de ce SOC d'un SOC Parent
+//
+//                int pos = vbox_panneau_racine.getChildren().indexOf(panneau_positionnement_element_dans_soc) ;
+//                vbox_panneau_racine.getChildren().remove(panneau_positionnement_element_dans_soc);
+//                vbox_panneau_racine.getChildren().add(pos,vbox_positionnement_absolu);
+//
+//            }
+//
+//        });
+
+//        // Récupération du controleur du panneau de positionnement qui se trouve dans le UserData de la vue (cf. classe
+//        // DependyInjection qui renseigne ce UserData lors du chargement du fichier .fxml
+//        panneauPositionnementElementDansSOC = (PanneauPositionnementElementDansSOC) panneau_pos_soc_dans_soc.getUserData();
+
         // Prise en compte automatique de la position et de l'orientation        
         soc.axeObjectProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnComptePositionEtOrientation));
 
         // Position : X origine
         spinner_xorigine.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_RIGHT_HORIZONTAL) ;
-        spinner_xorigine.editableProperty().bind(soc.appartenanceSystemeOptiqueProperty().not()) ;
-        spinner_xorigine.disableProperty().bind(soc.appartenanceSystemeOptiqueProperty()) ;
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_xorigine, soc.XOrigine(), this::definirXOrigineSOC);
 
         // Position : Y origine
-        spinner_yorigine.editableProperty().bind(soc.appartenanceSystemeOptiqueProperty().not()) ;
-        spinner_yorigine.disableProperty().bind(soc.appartenanceSystemeOptiqueProperty()) ;
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_yorigine, soc.YOrigine(), this::definirYOrigineSOC);
 
         // Orientation
         spinner_orientation.getValueFactory().setWrapAround(true);
-        spinner_orientation.editableProperty().bind(soc.appartenanceSystemeOptiqueProperty().not()) ;
-        spinner_orientation.disableProperty().bind(soc.appartenanceSystemeOptiqueProperty()) ;
         OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation,soc.orientation(),this::definirOrientation);
 
         slider_orientation.valueProperty().set(soc.orientation());
-        slider_orientation.disableProperty().bind(soc.appartenanceSystemeOptiqueProperty()) ;
         slider_orientation.valueProperty().addListener(new ChangeListenerAvecGarde<>(this::definirOrientation));
 
         // Couleurs
@@ -271,6 +349,7 @@ public class PanneauSystemeOptiqueCentre {
         spinner_orientation.getValueFactory().valueProperty().set(nouvelle_pos_et_or.orientation_deg());
         slider_orientation.valueProperty().set(nouvelle_pos_et_or.orientation_deg());
     }
+
 
 
 }

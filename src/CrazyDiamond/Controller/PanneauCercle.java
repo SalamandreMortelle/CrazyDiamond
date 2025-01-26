@@ -1,10 +1,10 @@
 package CrazyDiamond.Controller;
 
 import CrazyDiamond.Model.*;
-import javafx.beans.property.ObjectProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.util.logging.Level;
@@ -26,6 +26,7 @@ public class PanneauCercle  {
     @FXML
     private PanneauElementIdentifie baseElementIdentifieController ;
 
+
     // Controleurs des sous-panneaux génériques pour les attributs de contour, et de matière
     @FXML
     private VBox baseContour;
@@ -37,6 +38,16 @@ public class PanneauCercle  {
     @FXML
     private PanneauElementAvecMatiere baseMatiereController;
 
+    @FXML
+    public VBox vbox_panneau_racine;
+    @FXML
+    public VBox vbox_positionnement_absolu;
+    @FXML
+    private HBox hbox_positionnement_relatif_dans_soc;
+    @FXML
+    // NB : ne pas changer le nom de ce contrôleur : il est construit (injecté) par le FXML loader (lorsqu'il rencontre
+    // un <fx:include>) en concaténant "Controller" au nom (fx:id) de l'élément (vue) associé.
+    private PanneauPositionnementElementDansSOC hbox_positionnement_relatif_dans_socController;
 
     @FXML
     private Spinner<Double> spinner_xcentre ;
@@ -55,7 +66,9 @@ public class PanneauCercle  {
         this.cercle = c;
         this.dans_composition = dans_composition ;
 
-         canvas = cnv ;
+        canvas = cnv ;
+
+
 
     }
 
@@ -64,26 +77,33 @@ public class PanneauCercle  {
 
         baseElementIdentifieController.initialize(cercle);
 
-        if (!dans_composition) {
-            baseContourController.initialize(cercle);
-            baseMatiereController.initialize(cercle);
-        }else {
-            baseMatiere.setVisible(false);
-            baseContour.setVisible(false);
-        }
+        hbox_positionnement_relatif_dans_socController.initialize(canvas,cercle);
+
+//        if (!dans_composition) {
+//            baseContourController.initialize(cercle);
+//            baseMatiereController.initialize(cercle);
+//        }else {
+//            baseMatiere.setVisible(false);
+//            baseContour.setVisible(false);
+//        }
+
+
+        UtilitairesVue.gererAppartenanceSOC(cercle,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
+
+        UtilitairesVue.gererAppartenanceComposition(dans_composition,cercle,baseContour,baseContourController,baseMatiere,baseMatiereController) ;
 
         cercle.centreProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnComptePosition));
 
         // Position X
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_xcentre, cercle.xCentre(), this::definirXCentreCercle);
         spinner_xcentre.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_RIGHT_HORIZONTAL) ;
-        spinner_xcentre.editableProperty().bind(cercle.appartenanceSystemeOptiqueProperty().not()) ;
-        spinner_xcentre.disableProperty().bind(cercle.appartenanceSystemeOptiqueProperty()) ;
+//        spinner_xcentre.editableProperty().bind(cercle.appartenanceSystemeOptiqueProperty().not()) ;
+//        spinner_xcentre.disableProperty().bind(cercle.appartenanceSystemeOptiqueProperty()) ;
 
         // Position Y
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_ycentre, cercle.yCentre(), this::definirYCentreCercle);
-        spinner_ycentre.editableProperty().bind(cercle.appartenanceSystemeOptiqueProperty().not()) ;
-        spinner_ycentre.disableProperty().bind(cercle.appartenanceSystemeOptiqueProperty()) ;
+//        spinner_ycentre.editableProperty().bind(cercle.appartenanceSystemeOptiqueProperty().not()) ;
+//        spinner_ycentre.disableProperty().bind(cercle.appartenanceSystemeOptiqueProperty()) ;
 
         // Rayon
         cercle.rayonProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteRayon));

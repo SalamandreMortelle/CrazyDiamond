@@ -474,6 +474,25 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         }
     }
 
+    public double positionDansSOCParent() {
+        if (SOCParent()==null)
+            return 0;
+
+        return SOCParent().direction().dotProduct(origine().subtract(SOCParent().origine())) ;
+    }
+
+    public Point2D pointDeReferencePourPositionnementDansSOCParent() {
+        return origine() ;
+    }
+
+    public void definirPointDeReferencePourPositionnementDansSOCParent(Point2D pt_ref) {
+        definirOrigine(pt_ref);
+    }
+
+    @Override
+    public ObjectProperty<PositionEtOrientation> positionEtOrientationProperty() {
+        return axe;
+    }
 
     public record PositionElement(double z, double hauteur) { }
 
@@ -618,6 +637,8 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
             matrice_transfert_es.set(null);
 
+            rappels.forEach(rap -> rap.rappel()) ;
+
             return;
         }
 
@@ -637,6 +658,8 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
             matrice_transfert_es.set(nouvelle_matrice_transfert);
 
+            rappels.forEach(rap -> rap.rappel()) ;
+
             return ;
         }
 
@@ -647,6 +670,8 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
             supprimerAbscissesElementsCardinaux();
 
             matrice_transfert_es.set(nouvelle_matrice_transfert);
+
+            rappels.forEach(rap -> rap.rappel()) ;
 
             return ;
 
@@ -693,6 +718,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
         matrice_transfert_es.set(nouvelle_matrice_transfert);
 
+        rappels.forEach(rap -> rap.rappel()) ;
 
     }
 
@@ -2003,7 +2029,6 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
     }
 
-    public Point2D Origine() { return axe.get().position() ;}
     public double XOrigine() { return axe.get().position().getX() ;}
     public double YOrigine() { return axe.get().position().getY() ;}
 
@@ -2042,6 +2067,9 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         for (ElementDeSOC el : elements_centres)
             if (el.estUnSOC()) el.ajouterRappelSurChangementToutePropriete(rap); // Propagation récursive
 
+//        ListChangeListener<ElementDeSOC> lcl_elts = change -> { rap.rappel(); };
+//        elements_centres.addListener(lcl_elts);
+
         axe.addListener((observable, oldValue, newValue) -> rap.rappel());
         couleur_axe.addListener((observable, oldValue, newValue) -> rap.rappel());
 
@@ -2066,6 +2094,9 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
             for (ElementDeSOC el : elements_centres)
                 if (el instanceof SystemeOptiqueCentre el_soc) el_soc.supprimerRappels(); // Propagation récursive
+
+//            ListChangeListener<ElementDeSOC> lcl_elts = change -> { rap.rappel(); };
+//            elements_centres.removeListener(lcl_elts);
 
             axe.removeListener((observable, oldValue, newValue) -> rap.rappel());
             couleur_axe.removeListener((observable, oldValue, newValue) -> rap.rappel());
@@ -2096,6 +2127,9 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     public void definirSOCParent(SystemeOptiqueCentre soc) { this.soc_conteneur.set(soc); }
 
     public BooleanBinding appartenanceSystemeOptiqueProperty() {return this.soc_conteneur.isNotNull() ;}
+
+    @Override
+    public ObjectProperty<SystemeOptiqueCentre> systemeOptiqueParentProperty() {return this.soc_conteneur ;}
 
     @Override
     public void ajouterRappelSurChangementTouteProprieteModifiantElementsCardinaux(RappelSurChangement rappel) {
@@ -2183,6 +2217,8 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
     public void accepte(VisiteurEnvironnement v) {
         v.visiteSystemeOptiqueCentre(this) ;
+
+        sousSystemesOptiquesCentresPremierNiveau().forEach(v::visiteSystemeOptiqueCentre);
     }
 
     public Contour couper(BoiteLimiteGeometrique boite) {
@@ -2278,7 +2314,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         if (!estEligiblePourAjout(o))
             return ;
 
-        positionnerElement(o);
+//        positionnerElement(o);
 
         int i_dernier_obstacle = indexDernierObstacle() ;
 //        Obstacle dernier_obstacle = (Obstacle) elements_centres.get(i_dernier_obstacle) ;
@@ -2301,6 +2337,10 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 //        ajouterElementCentre_commun(o);
 
         o.definirSOCParent(this) ; // NB : si o est un Composite, tous ses sous-éléments auront également 'this' comme SOC Parent
+
+        // Il faut positionner l'élément après en avoir défini le SOC parent pour que le Panneau de l'élément puisse calculer
+        // le positionnement relatif par rapport au SOC parent
+        positionnerElement(o);
 
         calculeElementsCardinaux();
 

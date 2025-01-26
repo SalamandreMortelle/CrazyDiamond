@@ -5,12 +5,14 @@ import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PanneauDemiPlan {
+
 
     // Modèle
     DemiPlan demi_plan ;
@@ -36,6 +38,15 @@ public class PanneauDemiPlan {
     private VBox baseMatiere;
     @FXML
     private PanneauElementAvecMatiere baseMatiereController;
+
+    @FXML
+    public VBox vbox_panneau_racine;
+    @FXML
+    public VBox vbox_positionnement_absolu;
+    @FXML
+    private HBox hbox_positionnement_relatif_dans_soc;
+    @FXML
+    private PanneauPositionnementElementDansSOC hbox_positionnement_relatif_dans_socController;
 
     @FXML
     private Spinner<Double> spinner_xorigine ;
@@ -65,36 +76,34 @@ public class PanneauDemiPlan {
 
         baseElementIdentifieController.initialize(demi_plan);
 
-        if (!dans_composition) {
-            baseContourController.initialize(demi_plan);
-            baseMatiereController.initialize(demi_plan);
-        }else {
-            baseMatiere.setVisible(false);
-            baseContour.setVisible(false);
-        }
+        hbox_positionnement_relatif_dans_socController.initialize(canvas,demi_plan);
+
+        UtilitairesVue.gererAppartenanceSOC(demi_plan,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
+
+        UtilitairesVue.gererAppartenanceComposition(dans_composition,demi_plan,baseContour,baseContourController,baseMatiere,baseMatiereController) ;
 
         // Prise en compte automatique de la position et de l'orientation
         demi_plan.positionEtOrientationObjectProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnComptePositionEtOrientation));
 
         // Position : X origine
         spinner_xorigine.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_RIGHT_HORIZONTAL) ;
-        spinner_xorigine.editableProperty().bind(demi_plan.appartenanceSystemeOptiqueProperty().not()) ;
-        spinner_xorigine.disableProperty().bind(demi_plan.appartenanceSystemeOptiqueProperty()) ;
+//        spinner_xorigine.editableProperty().bind(demi_plan.appartenanceSystemeOptiqueProperty().not()) ;
+//        spinner_xorigine.disableProperty().bind(demi_plan.appartenanceSystemeOptiqueProperty()) ;
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_xorigine, demi_plan.xOrigine(), this::definirXOrigineDemiPlan);
 
         // Position : Y origine
-        spinner_yorigine.editableProperty().bind(demi_plan.appartenanceSystemeOptiqueProperty().not()) ;
-        spinner_yorigine.disableProperty().bind(demi_plan.appartenanceSystemeOptiqueProperty()) ;
+//        spinner_yorigine.editableProperty().bind(demi_plan.appartenanceSystemeOptiqueProperty().not()) ;
+//        spinner_yorigine.disableProperty().bind(demi_plan.appartenanceSystemeOptiqueProperty()) ;
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_yorigine, demi_plan.yOrigine(), this::definirYOrigineDemiPlan);
 
         // Orientation
         spinner_orientation.getValueFactory().setWrapAround(true);
-        spinner_orientation.editableProperty().bind(demi_plan.appartenanceSystemeOptiqueProperty().not()) ;
-        spinner_orientation.disableProperty().bind(demi_plan.appartenanceSystemeOptiqueProperty()) ;
+//        spinner_orientation.editableProperty().bind(demi_plan.appartenanceSystemeOptiqueProperty().not()) ;
+//        spinner_orientation.disableProperty().bind(demi_plan.appartenanceSystemeOptiqueProperty()) ;
         OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation,demi_plan.orientation(),this::definirOrientation);
 
         slider_orientation.valueProperty().set(demi_plan.orientation());
-        slider_orientation.disableProperty().bind(demi_plan.appartenanceSystemeOptiqueProperty()) ;
+//        slider_orientation.disableProperty().bind(demi_plan.appartenanceSystemeOptiqueProperty()) ;
         slider_orientation.valueProperty().addListener(new ChangeListenerAvecGarde<>(this::definirOrientation));
     }
 

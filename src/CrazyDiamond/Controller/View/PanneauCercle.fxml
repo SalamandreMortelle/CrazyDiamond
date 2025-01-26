@@ -3,53 +3,77 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Spinner?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
 <VBox alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
       prefWidth="201.0" spacing="2.0" xmlns="http://javafx.com/javafx/17"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="CrazyDiamond.Controller.PanneauCercle">
-    <children>
-      <Label text="Cercle">
-         <font>
-            <Font name="System Bold" size="12.0" />
-         </font>
-      </Label>
-      <fx:include fx:id="baseElementIdentifie" source="PanneauElementIdentifie.fxml" />
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="CrazyDiamond.Controller.PanneauCercle"
+      fx:id="vbox_panneau_racine">
+    <padding>
+        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+    </padding>
+    <Label text="Cercle">
+        <font>
+          <Font name="System Bold" size="12.0"/>
+        </font>
+    </Label>
+    <fx:include fx:id="baseElementIdentifie" source="PanneauElementIdentifie.fxml"/>
 
-      <HBox alignment="TOP_CENTER" spacing="5.0">
-         <children>
-            <Label contentDisplay="RIGHT" minWidth="-Infinity" text="X centre">
-               <padding>
-                  <Insets top="3.0" />
-               </padding>
-            </Label>
-            <Spinner fx:id="spinner_xcentre" amountToStepBy="0.1" editable="true" initialValue="0.0" min="%spinner_distance_min"  max="%spinner_distance_max" />
-         </children>
-         <padding>
-            <Insets top="5.0" />
-         </padding>
-      </HBox>
-      <HBox alignment="TOP_CENTER" spacing="5.0">
-         <children>
-            <Label minWidth="-Infinity" text="Y centre">
-               <padding>
-                  <Insets top="3.0" />
-               </padding>
-            </Label>
-            <Spinner fx:id="spinner_ycentre" amountToStepBy="0.1" editable="true" initialValue="0.0" min="%spinner_distance_min"  max="%spinner_distance_max" />
-         </children>
-         <padding>
-            <Insets top="5.0" />
-         </padding>
-      </HBox>
-      <Label text="Rayon" />
-      <Spinner fx:id="spinner_rayon" amountToStepBy="0.05" editable="true" initialValue="0.0" min="0.0d"  max="%spinner_distance_max" />
-      <fx:include fx:id="baseContour" source="PanneauElementAvecContour.fxml" />
-      <fx:include fx:id="baseMatiere" source="PanneauElementAvecMatiere.fxml" />
-   </children>
-   <padding>
-      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-   </padding>
+    <VBox fx:id="vbox_positionnement_absolu" alignment="TOP_CENTER">
+        <GridPane vgap="3.0">
+            <columnConstraints>
+                <ColumnConstraints percentWidth="40"/>
+            </columnConstraints>
+            <padding>
+                <Insets top="5.0" bottom="5"/>
+            </padding>
+            <Label text="X centre" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+            <Spinner fx:id="spinner_xcentre" amountToStepBy="0.1" initialValue="0.0" min="%spinner_distance_min"
+                     max="%spinner_distance_max" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+            <Label text="Y centre" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+            <Spinner fx:id="spinner_ycentre" amountToStepBy="0.1" initialValue="0.0"
+                     min="%spinner_distance_min" max="%spinner_distance_max" GridPane.rowIndex="1"
+                     GridPane.columnIndex="1"/>
+        </GridPane>
+    </VBox>
+
+    <fx:include fx:id="hbox_positionnement_relatif_dans_soc" source="PanneauPositionnementElementDansSOC.fxml"/>
+
+    <!--     <VBox fx:id="vbox_positionnement_absolu" alignment="TOP_CENTER">-->
+    <!--      <HBox alignment="TOP_CENTER" spacing="5.0">-->
+    <!--         <children>-->
+    <!--            <Label contentDisplay="RIGHT" minWidth="-Infinity" text="X centre">-->
+    <!--               <padding>-->
+    <!--                  <Insets top="3.0" />-->
+    <!--               </padding>-->
+    <!--            </Label>-->
+    <!--            <Spinner fx:id="spinner_xcentre" amountToStepBy="0.1" editable="true" initialValue="0.0" min="%spinner_distance_min"  max="%spinner_distance_max" />-->
+    <!--         </children>-->
+    <!--         <padding>-->
+    <!--            <Insets top="5.0" />-->
+    <!--         </padding>-->
+    <!--      </HBox>-->
+    <!--      <HBox alignment="TOP_CENTER" spacing="5.0">-->
+    <!--         <children>-->
+    <!--            <Label minWidth="-Infinity" text="Y centre">-->
+    <!--               <padding>-->
+    <!--                  <Insets top="3.0" />-->
+    <!--               </padding>-->
+    <!--            </Label>-->
+    <!--            <Spinner fx:id="spinner_ycentre" amountToStepBy="0.1" editable="true" initialValue="0.0" min="%spinner_distance_min"  max="%spinner_distance_max" />-->
+    <!--         </children>-->
+    <!--         <padding>-->
+    <!--            <Insets top="5.0" />-->
+    <!--         </padding>-->
+    <!--      </HBox>-->
+    <!--    </VBox>-->
+
+    <Label text="Rayon"/>
+    <Spinner fx:id="spinner_rayon" amountToStepBy="0.05" editable="true" initialValue="0.0" min="0.0d"
+             max="%spinner_distance_max"/>
+    <fx:include fx:id="baseContour" source="PanneauElementAvecContour.fxml"/>
+    <fx:include fx:id="baseMatiere" source="PanneauElementAvecMatiere.fxml"/>
 </VBox>

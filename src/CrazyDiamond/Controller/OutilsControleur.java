@@ -49,6 +49,7 @@ public class OutilsControleur {
         ConvertisseurDoubleValidant conv = new ConvertisseurDoubleValidant(spinner.getValueFactory().valueProperty()) ;
         spinner.getValueFactory().setConverter(conv);
 
+        spinner.getEditor().setText(conv.toString(val_init));
         spinner.getValueFactory().valueProperty().set(val_init);
 
         // Attention : ce callback ne se déclenche pas si la new_value est égale à la old_value, ce qui arrive

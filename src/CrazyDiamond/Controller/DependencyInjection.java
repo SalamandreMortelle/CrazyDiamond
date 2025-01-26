@@ -13,7 +13,7 @@ import java.util.concurrent.Callable;
 
 // Code from : https://edencoding.com/dependency-injection/
 
-public class DependencyInjection {
+public final class DependencyInjection {
 
     /**
      * A map of all Controllers that can be injected, and the methods responsible for doing so.
@@ -21,6 +21,8 @@ public class DependencyInjection {
     private static final Map<Class<?>, Callable<?>> injectionMethods = new HashMap<>();
 
     private static ResourceBundle bundle = null;
+
+    private DependencyInjection() { }
 
     public static void setBundle(ResourceBundle bundle) {
         DependencyInjection.bundle = bundle;
@@ -48,7 +50,7 @@ public class DependencyInjection {
                 DependencyInjection.class.getResource(location),
                 bundle,
                 new JavaFXBuilderFactory(),
-                controllerClass -> constructController(controllerClass));
+                DependencyInjection::constructController);
     }
 
     /**

@@ -504,4 +504,5 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
             ++resultat ;
         return resultat ;
     }
+
 }

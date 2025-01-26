@@ -991,6 +991,11 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
         new CommandeDefinirUnParametrePoint<>(this,centre().add(vecteur),this::centre,this::definirCentre).executer() ;
     }
 
+
+    public Composition composition() {
+        return composition;
+    }
+
     @Override
     public void convertirDistances(double facteur_conversion) {
         position_orientation.set(new PositionEtOrientation(centre().multiply(facteur_conversion),orientation()));
@@ -1007,7 +1012,14 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
             parametre_2.set(parametre2()*facteur_conversion);
     }
 
-    public Composition composition() {
-        return composition;
-    }
+
+    @Override
+    public Point2D pointDeReferencePourPositionnementDansSOCParent() { return centre() ; }
+
+    @Override
+    public void definirPointDeReferencePourPositionnementDansSOCParent(Point2D pt_ref) { definirCentre(pt_ref); }
+
+    @Override
+    public ObjectProperty<PositionEtOrientation> positionEtOrientationProperty() { return position_orientation ; }
+
 }

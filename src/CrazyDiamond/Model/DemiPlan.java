@@ -415,4 +415,13 @@ public class DemiPlan extends BaseObstacleAvecContourEtMatiere implements Obstac
         position_orientation.set(new PositionEtOrientation(origine().multiply(facteur_conversion),orientation()));
     }
 
+    @Override
+    public Point2D pointDeReferencePourPositionnementDansSOCParent() { return origine() ; }
+
+    @Override
+    public void definirPointDeReferencePourPositionnementDansSOCParent(Point2D pt_ref) { definirOrigine(pt_ref); }
+
+    @Override
+    public ObjectProperty<PositionEtOrientation> positionEtOrientationProperty() { return position_orientation ; }
+
 }

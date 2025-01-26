@@ -4,6 +4,7 @@ import CrazyDiamond.Model.*;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.util.logging.Level;
@@ -37,6 +38,15 @@ public class PanneauRectangle {
     private PanneauElementAvecMatiere baseMatiereController;
 
     @FXML
+    public VBox vbox_panneau_racine;
+    @FXML
+    public VBox vbox_positionnement_absolu;
+    @FXML
+    private HBox hbox_positionnement_relatif_dans_soc;
+    @FXML
+    private PanneauPositionnementElementDansSOC hbox_positionnement_relatif_dans_socController;
+
+    @FXML
     private Spinner<Double> spinner_xcentre;
     @FXML
     private Spinner<Double> spinner_ycentre;
@@ -68,13 +78,18 @@ public class PanneauRectangle {
 
         baseElementIdentifieController.initialize(rectangle);
 
-        if (!dans_composition) {
-            baseContourController.initialize(rectangle);
-            baseMatiereController.initialize(rectangle);
-        } else {
-            baseMatiere.setVisible(false);
-            baseContour.setVisible(false);
-        }
+        hbox_positionnement_relatif_dans_socController.initialize(canvas,rectangle);
+
+        UtilitairesVue.gererAppartenanceSOC(rectangle,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
+
+        UtilitairesVue.gererAppartenanceComposition(dans_composition,rectangle,baseContour,baseContourController,baseMatiere,baseMatiereController) ;
+//        if (!dans_composition) {
+//            baseContourController.initialize(rectangle);
+//            baseMatiereController.initialize(rectangle);
+//        } else {
+//            baseMatiere.setVisible(false);
+//            baseContour.setVisible(false);
+//        }
 
         // Prise en compte automatique de la position et de l'orientation
         rectangle.positionEtOrientationObjectProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnComptePositionEtOrientation));

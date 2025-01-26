@@ -8,6 +8,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
@@ -38,6 +39,15 @@ public class PanneauSegment {
 
     @FXML
     private VBox baseSansEpaisseur;
+
+    @FXML
+    public VBox vbox_panneau_racine;
+    @FXML
+    public VBox vbox_positionnement_absolu;
+    @FXML
+    private HBox hbox_positionnement_relatif_dans_soc;
+    @FXML
+    private PanneauPositionnementElementDansSOC hbox_positionnement_relatif_dans_socController;
 
     @FXML
     private Spinner<Double> spinner_xcentre ;
@@ -82,10 +92,16 @@ public class PanneauSegment {
 
         baseElementIdentifieController.initialize(segment);
 
-        if (!dans_composition)
-            baseContourController.initialize(segment);
-        else
-            baseContour.setVisible(false);
+        hbox_positionnement_relatif_dans_socController.initialize(canvas,segment);
+
+        UtilitairesVue.gererAppartenanceSOC(segment,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
+
+        UtilitairesVue.gererAppartenanceComposition(dans_composition,segment,baseContour,baseContourController,null,null) ;
+
+//        if (!dans_composition)
+//            baseContourController.initialize(segment);
+//        else
+//            baseContour.setVisible(false);
 
         // Prise en compte automatique de la position et de l'orientation
         segment.positionEtOrientationObjectProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnComptePositionEtOrientation));

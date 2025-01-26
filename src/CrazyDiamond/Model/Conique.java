@@ -972,4 +972,14 @@ public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacl
         parametre.set(parametre()*facteur_conversion);
     }
 
+    @Override
+    public Point2D pointDeReferencePourPositionnementDansSOCParent() { return foyer() ;}
+
+    @Override
+    public void definirPointDeReferencePourPositionnementDansSOCParent(Point2D pt_ref) { definirFoyer(pt_ref); }
+
+    @Override
+    public ObjectProperty<PositionEtOrientation> positionEtOrientationProperty() { return position_orientation ; }
+
+
 }

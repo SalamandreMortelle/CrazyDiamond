@@ -65,13 +65,16 @@ public class PanneauComposition {
         LOGGER.log(Level.INFO,"Initialisation du PanneauComposition et de ses liaisons") ;
 
         baseElementIdentifieController.initialize(composition);
-        if (!dans_composition) {
-            baseContourController.initialize(composition);
-            baseMatiereController.initialize(composition);
-        }else {
-            baseMatiere.setVisible(false);
-            baseContour.setVisible(false);
-        }
+
+        UtilitairesVue.gererAppartenanceComposition(dans_composition,composition,baseContour,baseContourController,baseMatiere,baseMatiereController) ;
+
+//        if (!dans_composition) {
+//            baseContourController.initialize(composition);
+//            baseMatiereController.initialize(composition);
+//        }else {
+//            baseMatiere.setVisible(false);
+//            baseContour.setVisible(false);
+//        }
 
         switch (composition.operateur()) {
             case UNION -> choix_union.setSelected(true);

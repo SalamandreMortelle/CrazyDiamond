@@ -146,6 +146,15 @@ public class Cercle extends BaseObstacleAvecContourEtMatiere implements Obstacle
     }
 
     @Override
+    public Point2D pointDeReferencePourPositionnementDansSOCParent() { return centre() ; }
+
+    @Override
+    public void definirPointDeReferencePourPositionnementDansSOCParent(Point2D pt_ref) { definirCentre(pt_ref); }
+
+    @Override
+    public ObjectProperty<Point2D> positionProperty() { return centre ; }
+
+    @Override
     public boolean contient(Point2D p) {
 
         if (typeSurface()==TypeSurface.CONVEXE)

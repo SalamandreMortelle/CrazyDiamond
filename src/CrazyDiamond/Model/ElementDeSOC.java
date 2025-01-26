@@ -1,5 +1,6 @@
 package CrazyDiamond.Model;
 
+import javafx.beans.property.ObjectProperty;
 import javafx.geometry.Point2D;
 
 import java.util.List;
@@ -8,6 +9,7 @@ public interface ElementDeSOC extends /*Identifiable,*/Nommable {
 
     void definirSOCParent(SystemeOptiqueCentre soc) ;
     SystemeOptiqueCentre SOCParent() ;
+    ObjectProperty<SystemeOptiqueCentre> systemeOptiqueParentProperty() ;
     SystemeOptiqueCentre SOCParentDirect() ;
 
     default void ajouter(ElementDeSOC e) { // Ne fait rien pour les Obstacles (car on ne peut pas y ajouter d'élément) / surchargé pour les SOC
@@ -37,5 +39,23 @@ public interface ElementDeSOC extends /*Identifiable,*/Nommable {
 
     default boolean estUnObstacle() { return false ; }
 
+
+
     void convertirDistances(double facteur_conversion);
+
+
+    default double positionDansSOCParent() {
+        if (SOCParent()==null)
+            return 0;
+
+        return SOCParent().direction().dotProduct(pointDeReferencePourPositionnementDansSOCParent().subtract(SOCParent().origine())) ;
+    }
+
+
+    default Point2D pointDeReferencePourPositionnementDansSOCParent() { return null ;}
+
+    default void definirPointDeReferencePourPositionnementDansSOCParent(Point2D point2D) { }
+
+    default ObjectProperty<PositionEtOrientation> positionEtOrientationProperty() { return null; }
+    default ObjectProperty<Point2D> positionProperty() { return null; }
 }
