@@ -85,9 +85,6 @@ public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*
 
     }
 
-
-    //
-
     /**
      * Constructeur à partir d'un dioptre paraxial : n'initialise pas les propriétés r_diaphragme et ignorer qui
      * relèvent des modalités de traversée du dioptre et sont définies dans un second temps.
@@ -143,16 +140,10 @@ public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*
 
     }
 
-    public void appliquerModalitesTraverseeDioptrePrecedentesSiApplicables(SystemeOptiqueCentre.ModalitesTraverseeDioptre modalites_prec) {
-        if (modalitesTraverseeDioptrePrecedentesApplicables(modalites_prec)) {
-            if (!this.obstacleSurface().aUneProprieteDiaphragme())
-                this.r_diaphragme.set(modalites_prec.r_diaphragme);
-            this.ignorer.set(modalites_prec.ignorer);
-        }
-    }
-
-    public boolean modalitesTraverseeDioptrePrecedentesApplicables(SystemeOptiqueCentre.ModalitesTraverseeDioptre modalites_prec) {
-        return modalites_prec != null && modalites_prec.obs_surface == this.obstacleSurface();
+    public void appliquerModalitesTraverseeDioptrePrecedentes(SystemeOptiqueCentre.ModalitesTraverseeDioptre modalites_prec) {
+        if (!this.obstacleSurface().aUneProprieteDiaphragme())
+            this.r_diaphragme.set(modalites_prec.r_diaphragme);
+        this.ignorer.set(modalites_prec.ignorer);
     }
 
     public void permuterIndicesAvantApres() {

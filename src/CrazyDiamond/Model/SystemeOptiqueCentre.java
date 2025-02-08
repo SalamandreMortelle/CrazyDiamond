@@ -11,6 +11,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.transform.Affine;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -896,17 +897,31 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
         // Mémorisons les modalités de traversée des dioptres (rayons des diaphragmes, dioptres à ignorer) qui étaient
         // précédemment définies par l'utilisateur (pour lui épargner de les re-saisir à chaque modification du SOC)
-        ArrayList<ModalitesTraverseeDioptre> modalites_traversee_precedentes = new ArrayList<>(dioptres_rencontres.size())  ;
-        // TODO : remplacer par Une Hashmap(DioptreParaxial,ModaliteTraverseeDioptre) avec 1 à 2 valeurs de ModaliteTraverseeDioptre
-        //  pour chaque DioptreParaxial : la première pour la traversée du dioptre dans le sens + , la seconde pour la traversée
-        //  dans le sens -
+//        ArrayList<ModalitesTraverseeDioptre> modalites_traversee_precedentes = new ArrayList<>(dioptres_rencontres.size())  ;
 
+        // Dictionnaire qui donnera pour chaque obstacle rencontré du SOC, la liste des modalités (de traversée de
+        // dioptre) des rencontres successives avec ce SOC
+        HashMap<Obstacle,ArrayList<ModalitesTraverseeDioptre>> new_modalites_traversee_precedentes = new HashMap<>(dioptres_rencontres.size()) ;
+
+        // Si on avait déjà calculé une liste de dioptres rencontrés, on en mémorise les modalités de traversée, sous
+        // forme d'une liste pour chaque obstacle.
         if (dioptres_rencontres.size()>0) {
+            for (RencontreDioptreParaxial its : dioptres_rencontres) {
 
-            for (RencontreDioptreParaxial its : dioptres_rencontres)
-                modalites_traversee_precedentes.add(new ModalitesTraverseeDioptre(its)) ;
+//                modalites_traversee_precedentes.add(new ModalitesTraverseeDioptre(its));
+
+                if (new_modalites_traversee_precedentes.containsKey(its.obstacleSurface())) {
+                    new_modalites_traversee_precedentes.get(its.obstacleSurface()).add(new ModalitesTraverseeDioptre(its));
+                } else {
+                    ArrayList<ModalitesTraverseeDioptre> liste_modalites = new ArrayList<>(2) ;
+                    liste_modalites.add(new ModalitesTraverseeDioptre(its)) ;
+                    new_modalites_traversee_precedentes.put(its.obstacleSurface(),liste_modalites);
+                }
+            }
         }
         // Fin de la mémorisation
+
+        HashMap<Obstacle,Integer> compteurs_rencontres_obstacle = new HashMap<>(dioptres_rencontres.size()) ;
 
         dioptres_rencontres.clear();
 
@@ -946,9 +961,26 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
             dioptres_rencontres.add(dioptre_rencontre) ;
 
-            // On reprend les modalités de traversée précédentes, si elles sont applicables
-            if (nb_dioptres_rencontres<modalites_traversee_precedentes.size())
-                dioptre_rencontre.appliquerModalitesTraverseeDioptrePrecedentesSiApplicables(modalites_traversee_precedentes.get(nb_dioptres_rencontres)) ;
+            Obstacle obs_rencontre = dioptre_rencontre.obstacleSurface() ;
+
+            // Incrémentons le compteur de l'obstacle rencontré
+            int index_rencontre_obs = (compteurs_rencontres_obstacle.containsKey(obs_rencontre)?compteurs_rencontres_obstacle.get(obs_rencontre):0) ;
+            compteurs_rencontres_obstacle.put(obs_rencontre, index_rencontre_obs+1) ;
+
+//            // On reprend les modalités de traversée précédentes, si elles sont applicables
+//            if (nb_dioptres_rencontres<modalites_traversee_precedentes.size())
+//                dioptre_rencontre.appliquerModalitesTraverseeDioptrePrecedentesSiApplicables(modalites_traversee_precedentes.get(nb_dioptres_rencontres)) ;
+
+
+            // Si on trouve des modalités de traversée précédentes pour le même obstacle avec le même index, et si elles
+            // sont applicables, on les reprend
+            if (new_modalites_traversee_precedentes.containsKey(obs_rencontre)) {
+                ArrayList<ModalitesTraverseeDioptre> liste_modalites = new_modalites_traversee_precedentes.get(obs_rencontre) ;
+
+                if ( index_rencontre_obs<liste_modalites.size() )
+                    dioptre_rencontre.appliquerModalitesTraverseeDioptrePrecedentes(new_modalites_traversee_precedentes.get(obs_rencontre).get(index_rencontre_obs));
+            }
+
 
             dioptre_rencontre.activerDeclenchementCalculElementsCardinauxSiChangementModalitesTraversee(this) ;
 
@@ -1357,9 +1389,9 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
             double h_image_cm = (h_image_precalcule > 0 ? 1d : -1d) * Math.abs(r_lucarne_sortie.get() * (z_pupille_sortie.get() - z_image_precalcule) / Math.abs((z_pupille_sortie.get() - z_lucarne_sortie.get())));
 
-            if (!Environnement.quasiEgal(Math.abs(h_image_cm),Math.abs(r_champ_moyen_image.get())))
+            if (!r_champ_moyen_image.get().isNaN() && !Environnement.quasiEgal(Math.abs(h_image_cm),Math.abs(r_champ_moyen_image.get())))
                     LOGGER.log(Level.SEVERE,"La hauteur absolue du champ moyen n'est pas le même selon la méthode : " +
-                            "{0} pour l'une contre {1} pour l'autre", new Double[]{h_image_cm, r_champ_moyen_image.get()});
+                            "{0} pour l''une contre {1} pour l''autre", new Double[]{h_image_cm, r_champ_moyen_image.get()});
         }
 
 
