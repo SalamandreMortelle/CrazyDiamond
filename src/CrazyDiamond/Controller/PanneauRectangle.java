@@ -96,19 +96,19 @@ public class PanneauRectangle {
 
         // Position Xcentre
         spinner_xcentre.getStyleClass().add(Spinner.STYLE_CLASS_ARROWS_ON_RIGHT_HORIZONTAL) ;
-        spinner_xcentre.editableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty().not()) ;
-        spinner_xcentre.disableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty()) ;
+//        spinner_xcentre.editableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty().not()) ;
+//        spinner_xcentre.disableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty()) ;
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_xcentre, rectangle.xCentre(), this::definirXCentreRectangle);
 
         // Position Ycentre
-        spinner_ycentre.editableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty().not()) ;
-        spinner_ycentre.disableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty()) ;
+//        spinner_ycentre.editableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty().not()) ;
+//        spinner_ycentre.disableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty()) ;
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas,spinner_ycentre, rectangle.yCentre(), this::definirYCentreRectangle);
 
         // Orientation
         spinner_orientation.getValueFactory().setWrapAround(true);
-        spinner_orientation.editableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty().not()) ;
-        spinner_orientation.disableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty()) ;
+//        spinner_orientation.editableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty().not()) ;
+//        spinner_orientation.disableProperty().bind(rectangle.appartenanceSystemeOptiqueProperty()) ;
         OutilsControleur.integrerSpinnerDoubleValidant(spinner_orientation,rectangle.orientation(),this::definirOrientation);
 
         slider_orientation.valueProperty().set(rectangle.orientation());

@@ -37,18 +37,20 @@
             <Insets top="5.0" bottom="5"/>
          </padding>
          <Label text="X centre" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-         <Spinner fx:id="spinner_xcentre" amountToStepBy="0.1" initialValue="0.0" min="%spinner_distance_min"
-                  max="%spinner_distance_max" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+         <Spinner fx:id="spinner_xcentre" amountToStepBy="0.1" initialValue="0.0" editable="true"
+                  min="%spinner_distance_min" max="%spinner_distance_max"
+                  GridPane.rowIndex="0" GridPane.columnIndex="1"/>
          <Label text="Y centre" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-         <Spinner fx:id="spinner_ycentre" amountToStepBy="0.1" initialValue="0.0"
-                  min="%spinner_distance_min" max="%spinner_distance_max" GridPane.rowIndex="1"
-                  GridPane.columnIndex="1"/>
+         <Spinner fx:id="spinner_ycentre" amountToStepBy="0.1" initialValue="0.0"  editable="true"
+                  min="%spinner_distance_min" max="%spinner_distance_max"
+                  GridPane.rowIndex="1" GridPane.columnIndex="1"/>
          <Label text="Orientation (°)" textOverrun="CLIP" GridPane.hgrow="NEVER" GridPane.rowIndex="2"
                 GridPane.columnIndex="0"/>
          <Spinner fx:id="spinner_orientation" amountToStepBy="5.0" initialValue="0.0" max="360.0" min="0.0"
+                  editable="true"
                   GridPane.rowIndex="2" GridPane.columnIndex="1"/>
       </GridPane>
-      <Slider fx:id="slider_orientation" majorTickUnit="45.0" max="360.0" min="0.0" minorTickCount="5"
+      <Slider fx:id="slider_orientation" majorTickUnit="45.0" max="360.0" minorTickCount="5"
               showTickLabels="true" showTickMarks="true" snapToTicks="true"/>
    </VBox>
 

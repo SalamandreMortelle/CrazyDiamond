@@ -31,12 +31,13 @@
                 <Insets top="5.0" bottom="5"/>
             </padding>
             <Label text="X centre" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-            <Spinner fx:id="spinner_xcentre" amountToStepBy="0.1" initialValue="0.0" min="%spinner_distance_min"
-                     max="%spinner_distance_max" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+            <Spinner fx:id="spinner_xcentre" amountToStepBy="0.1" initialValue="0.0" editable="true"
+                     min="%spinner_distance_min" max="%spinner_distance_max"
+                     GridPane.rowIndex="0" GridPane.columnIndex="1"/>
             <Label text="Y centre" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-            <Spinner fx:id="spinner_ycentre" amountToStepBy="0.1" initialValue="0.0"
-                     min="%spinner_distance_min" max="%spinner_distance_max" GridPane.rowIndex="1"
-                     GridPane.columnIndex="1"/>
+            <Spinner fx:id="spinner_ycentre" amountToStepBy="0.1" initialValue="0.0" editable="true"
+                     min="%spinner_distance_min" max="%spinner_distance_max"
+                     GridPane.rowIndex="1" GridPane.columnIndex="1"/>
         </GridPane>
     </VBox>
 

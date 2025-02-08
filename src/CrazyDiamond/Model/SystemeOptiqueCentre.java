@@ -502,7 +502,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
      */
     static class ModalitesTraverseeDioptre {
 
-        // Champs servant à l'identification du dioptre dans la liste des DioptreParaxial réelles
+        // Champs servant à l'identification du dioptre dans la liste des DioptreParaxial réels
 
         Obstacle obs_surface;
         double indice_avant;
@@ -637,7 +637,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
             matrice_transfert_es.set(null);
 
-            rappels.forEach(rap -> rap.rappel()) ;
+            rappels.forEach(RappelSurChangement::rappel) ;
 
             return;
         }
@@ -658,7 +658,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
             matrice_transfert_es.set(nouvelle_matrice_transfert);
 
-            rappels.forEach(rap -> rap.rappel()) ;
+            rappels.forEach(RappelSurChangement::rappel) ;
 
             return ;
         }
@@ -671,7 +671,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
             matrice_transfert_es.set(nouvelle_matrice_transfert);
 
-            rappels.forEach(rap -> rap.rappel()) ;
+            rappels.forEach(RappelSurChangement::rappel) ;
 
             return ;
 
@@ -718,7 +718,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
         matrice_transfert_es.set(nouvelle_matrice_transfert);
 
-        rappels.forEach(rap -> rap.rappel()) ;
+        rappels.forEach(RappelSurChangement::rappel) ;
 
     }
 
@@ -897,6 +897,9 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         // Mémorisons les modalités de traversée des dioptres (rayons des diaphragmes, dioptres à ignorer) qui étaient
         // précédemment définies par l'utilisateur (pour lui épargner de les re-saisir à chaque modification du SOC)
         ArrayList<ModalitesTraverseeDioptre> modalites_traversee_precedentes = new ArrayList<>(dioptres_rencontres.size())  ;
+        // TODO : remplacer par Une Hashmap(DioptreParaxial,ModaliteTraverseeDioptre) avec 1 à 2 valeurs de ModaliteTraverseeDioptre
+        //  pour chaque DioptreParaxial : la première pour la traversée du dioptre dans le sens + , la seconde pour la traversée
+        //  dans le sens -
 
         if (dioptres_rencontres.size()>0) {
 
@@ -2280,8 +2283,8 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     /**
      * Indique si le SOC passé en paramètre peut être ajouté dans le SOC actuel.
      * Ce n'est pas possible le soc passé en paramètre est un parent du SOC actuel.
-     * @param dragged_soc
-     * @return
+     * @param dragged_soc SOC à ajouter
+     * @return true si éligible, false sinon
      */
     public boolean estEligiblePourAjout(SystemeOptiqueCentre dragged_soc) {
 
@@ -2505,7 +2508,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
     /**
      * Indique si l'élément el (Obstacle ou SOC) est compris dans le SOC (ou dans un de ses sous-SOC)
-     * @param el
+     * @param el element de SOC
      * @return true si c'est le cas
      */
     public boolean comprend(ElementDeSOC el) {
@@ -2519,7 +2522,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
     /**
      * Indique si l'obstacle o est compris dans le SOC (ou dans un de ses sous-SOC)
-     * @param o
+     * @param o l'obstacle
      * @return true si c'est le cas
      */
     @Override
@@ -2656,8 +2659,8 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     /**
      * Convertit une coordonnée Z géométrique sur l'axe géométrique (à sens unique) du SOC, en coordonnée Z optique
      * minimale.
-     * @param z_geometrique
-     * @return
+     * @param z_geometrique coordonnée Z géométrique
+     * @return coordonnée Z optique
      */
     public double convertirEnZOptique(double z_geometrique) {
 
