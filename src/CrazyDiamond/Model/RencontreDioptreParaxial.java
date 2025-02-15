@@ -13,9 +13,9 @@ public class RencontreDioptreParaxial /* implements Comparable<DioptreParaxial>*
     // Rayon algébrique de courbure de la surface rencontrée, au niveau du point de rencontre, ou "null" si le dioptre est plan
     ObjectProperty<Double> r_courbure;
 
-    // Indice du milieu "avant" la surface (lorsque x est juste inférieur à x_intersection)
+    // Indice du milieu "avant" la surface (lorsque x s'approche de x_intersection par valeurs inférieures)
     DoubleProperty indice_avant;
-    // Indice du milieu "après" la surface (lorsque x est juste supérieur à x_intersection)
+    // Indice du milieu "après" la surface (lorsque x s'approche de x_intersection par valeurs supérieures)
     DoubleProperty indice_apres;
 
     ObjectProperty<Obstacle> obs_surface;

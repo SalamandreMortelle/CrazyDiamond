@@ -4,7 +4,6 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
@@ -18,25 +17,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-public class SystemeOptiqueCentre extends BaseElementNommable implements Nommable,/*Identifiable,*/ElementDeSOC {
+public class SystemeOptiqueCentre extends BaseElementNommable implements Nommable,ElementDeSOC {
 
-//    private final Imp_Identifiable imp_identifiable ;
     private final Environnement environnement;
     private final ObjectProperty<PositionEtOrientation> axe;
-
-    private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
 
     private final ObjectProperty<Color> couleur_axe;
     private static final Color couleur_axe_par_defaut = Color.WHITE ;
 
-    // Liste des obstacles (obligatoirement des surfaces de révolution centrées sur l'axe du SOC)
-    // TODO Remplacer par une ListProperty<ElementArbreSOC> => Done
-//    private final ListProperty<Obstacle> obstacles_centres ;
-
-    // Un SOC peut contenir des Obstacles et d'autres SOC : tous deux implémentent (ou étendent) l'interface ElementDeSOC
+    // Un SOC peut contenir des Obstacles (obligatoirement des surfaces de révolution centrées sur l'axe du SOC) et
+    // d'autres SOC : tous deux implémentent (ou étendent) l'interface ElementDeSOC
     private final ListProperty<ElementDeSOC> elements_centres;
-
-    private final ArrayList<ListChangeListener<ElementDeSOC>> observateurs_des_elements ;
 
     private final ObjectProperty<SystemeOptiqueCentre> soc_conteneur;
     /**
@@ -142,8 +133,6 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     private final SimpleObjectProperty<Double> z_optique_plan_nodal_image;
 
 
-//    /** Z optique de l'objet */
-//    private final SimpleObjectProperty<Double> z_optique_objet;
     /** Z géométrique de l'objet */
     private final SimpleObjectProperty<Double> z_geometrique_objet;
     private final SimpleObjectProperty<Double> h_objet ;
@@ -203,15 +192,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     private Double nouveau_h_image_apres_conversion = null ;
     private final ArrayList<RappelSurChangement> rappels;
 
-    /**
-     * Indique si obstacle est un obstacle référencé au premier niveau du SOC c.-à-d. un obstacle dont le SOC est le père
-     * direct.
-     * @param obstacle : l'obstacle à rechercher
-     * @return vrai si l'obstacle est référencé par le SOC
-     */
-    public boolean reference(Obstacle obstacle) {
-        return elements_centres.contains(obstacle);
-    }
+    private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
 
     private ArrayList<Obstacle> obstaclesCentresReels() {
         ArrayList<Obstacle> obstacles_centres_reels = new ArrayList<>(elements_centres.size()) ;
@@ -262,35 +243,6 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         return sous_systemes ;
     }
 
-
-//    private class IterateurObstaclesCentresReels implements Iterator<Obstacle> {
-//        private final Iterator<Obstacle> it_obstacles_reels ;
-//        public IterateurObstaclesCentresReels() {
-//
-//            ArrayList<Obstacle> obstacles_centres_reels = new ArrayList<>(elements_centres.size()) ;
-//
-//            for (ElementDeSOC el : elements_centres) {
-//                if (el instanceof  SystemeOptiqueCentre el_soc) {
-//                    for (Obstacle o : el_soc.iterableObstaclesCentresReels())
-//                        obstacles_centres_reels.add(o) ;
-//                } else if (el instanceof Groupe el_gr) {
-//                    for (Obstacle o_reel : el_gr.iterableObstaclesReelsDepuisArrierePlan())
-//                        obstacles_centres_reels.add(o_reel) ;
-//                } else if (el instanceof Obstacle el_ob)
-//                    obstacles_centres_reels.add(el_ob) ; // el n'est ni un SOC ni un Groupe : c'est donc un obstacle réel
-//                else
-//                    LOGGER.log(Level.SEVERE,"SOC contient un élément qui n'est ni un Obstacle, ni un SOC !") ;
-//            }
-//
-//            it_obstacles_reels = obstacles_centres_reels.iterator() ;
-//        }
-//
-//        @Override public boolean hasNext() {return it_obstacles_reels.hasNext() ;}
-//
-//        @Override public Obstacle next() {return it_obstacles_reels.next() ;
-//        }
-//    }
-
     /**
      *
      * @return Un itérateur qui retournera tous les obstacles réels du SOC (c.-à-d. qu'il ne retourne ni les SOC internes,
@@ -299,10 +251,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
      * Cet ordre n'est ni celui qui va de l'arrière-plan vers l'avant-plan, ni son ordre inverse.
      *
      */
-    Iterator<Obstacle> iterateurObstaclesCentresReels() {
-        return obstaclesCentresReels().iterator() ;
-//        return new IterateurObstaclesCentresReels() ;
-    }
+    Iterator<Obstacle> iterateurObstaclesCentresReels() {return obstaclesCentresReels().iterator() ;}
     public Iterable<Obstacle> iterableObstaclesCentresReels() {
         return this::iterateurObstaclesCentresReels;
     }
@@ -324,7 +273,6 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     public Iterable<SystemeOptiqueCentre> iterableSousSystemesOptiquesCentres() {
         return this::iterateurSousSystemesOptiquesCentres;
     }
-
 
     public void definirPosition(Point2D pos) { axe.set(new PositionEtOrientation(pos,orientation()));}
 
@@ -391,49 +339,10 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         return new CommandeCreerSystemeOptiqueCentreVide(env,this) ;
     }
 
-//    public void ajouterObstaclesCentres(List<Obstacle> obstacles_a_ajouter) {
-//        obstacles_a_ajouter.forEach(this::ajouterObstacleCentre);
-//    }
     public void ajouter(List<ElementDeSOC> elements_a_ajouter) {
-        for (ElementDeSOC el : elements_a_ajouter)
-            ajouter(el);
-//        elements_a_ajouter.forEach(this::ajouter);
+        elements_a_ajouter.forEach(this::ajouter);
     }
 
-    /**
-     * Ajoute un ListChangeListener sur le SOC et sur tous ses sous-SOC
-     * Tout ajout ou retrait d'un élément dans le SOC ou dans un de ses sous-SOC déclenchera
-     * le listener.
-     * De plus, lorsqu'un nouvel Element sera ajouté dans le SOC, les listeners déjà enregistrés lui seront
-     * automatiquement ajoutés (cf . {link #ajouterElement}). TODO : reprndre cette logique depuis le Groupe
-     * Si le listener a déjà été ajouté, rien n'est fait.
-     * @param lcl_el le listener à ajouter
-     */
-    public void ajouterListChangeListener(ListChangeListener<ElementDeSOC> lcl_el) {
-//        if (observateurs_des_elements.contains(lcl_o)) // Observateur déjà enregistré : ne rien faire
-//            return;
-
-        elements_centres.addListener(lcl_el);
-        observateurs_des_elements.add(lcl_el);
-
-        for (ElementDeSOC el : elements_centres) {
-            if (el instanceof SystemeOptiqueCentre soc) // Détection des changements qui interviennent dans les sous-composites de tous types
-                soc.ajouterListChangeListener(lcl_el);
-        }
-
-//        for (Obstacle o : elements) {
-//            if (o instanceof Groupe) // Détection des changements qui interviennent dans les groupes
-//                ((Groupe)o).ajouterListChangeListener(lcl_o);
-//            else if (o instanceof Composition) {// Détection des changements qui interviennent dans les compositions
-//                ((Composition) o).ajouterListChangeListener(lcl_o);
-//            }
-//        }
-
-    }
-
-
-//    @Override
-//    public String id() { return imp_identifiable.id(); }
 
 
     Iterator<SystemeOptiqueCentre> iterateurAncetres() {
@@ -943,7 +852,6 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         // Fin
 
         RencontreDioptreParaxial precedent_dioptre_rencontre_non_ignore = null ;
-        RencontreDioptreParaxial dioptre_rencontre = null ;
         RencontreDioptreParaxial dioptre_sortie = null ;
 
         // Indice du milieu à appliquer, si le dioptre précédent est marqué "à ignorer"
@@ -957,14 +865,14 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
             // Instancions une rencontre de dioptre à partir du dioptre courant, en tenant compte du sens de propagation
             // de la lumière
-            dioptre_rencontre = new RencontreDioptreParaxial(dioptres.get(i),pas>0,precedent_dioptre_rencontre_non_ignore) ;
+            RencontreDioptreParaxial dioptre_rencontre = new RencontreDioptreParaxial(dioptres.get(i),pas>0,precedent_dioptre_rencontre_non_ignore) ;
 
             dioptres_rencontres.add(dioptre_rencontre) ;
 
             Obstacle obs_rencontre = dioptre_rencontre.obstacleSurface() ;
 
             // Incrémentons le compteur de l'obstacle rencontré
-            int index_rencontre_obs = (compteurs_rencontres_obstacle.containsKey(obs_rencontre)?compteurs_rencontres_obstacle.get(obs_rencontre):0) ;
+            int index_rencontre_obs = (compteurs_rencontres_obstacle.getOrDefault(obs_rencontre, 0)) ;
             compteurs_rencontres_obstacle.put(obs_rencontre, index_rencontre_obs+1) ;
 
 //            // On reprend les modalités de traversée précédentes, si elles sont applicables
@@ -1187,18 +1095,17 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
                     // L'indice avant réflexion est aussi l'indice après réflexion (rappel : on a déjà mis les indices avant/apres dans le bon ordre)
                     dioptre_rencontre.propagerIndiceAvant();
 
-                    if (dioptre_rencontre.rayonCourbure() == null) {
-                        // Miroir plan : rien d'autre à faire (matrice transfert = matrice identité dans ce cas)
-                    } else {
+                    // Si miroir plan : rien d'autre à faire (matrice transfert = matrice identité dans ce cas)
+                    // sinon (miroir localement sphérique), matrice de transfert à compléter
+                    if (dioptre_rencontre.rayonCourbure() != null) {
+
                         // Miroir localement sphérique, cf. Perez, Chap 13
                         resultat.prepend(new Affine(1d, 0d, 0d,
                                 2d * dioptre_rencontre.indiceAvant()
                                         / (dioptre_rencontre.rayonCourbure()*environnement.unite().valeur) ,
                                 1d, 0d));
                     }
-
                 } else {
-
                         // Rencontre d'une surface majoritairement transparente
 
                         dioptre_rencontre.sens.set((pas>0)?"⟶":"⟵");
@@ -1682,45 +1589,22 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
     private static int compteur_soc = 0 ;
 
-    // TODO : cette liste globale (static) de tous les SOC semble inutile (à noter que les SOC instanciés ne sont pas
-    // forcément tous réellement dans l'environnement : par exemple, les SOCs coupés (Ctrl+X) ou supprimés n'y sont plus
-    // mais restent présents, respectivement, dans le presse papier ou dans la mémoire de l'état initial de la commande
-    // de suppression pour permettre l'annulation de la suppression par Ctrl+Z
-//    protected static ArrayList<SystemeOptiqueCentre> tous_les_soc = new ArrayList<>() ;
-
     public SystemeOptiqueCentre(Environnement env, Point2D origine, double orientation_deg) {
         this(env,"Syst. Opt. Centré  " + (++compteur_soc),origine,orientation_deg) ;
-//        this(env,new Imp_Nommable("Syst. Opt. Centré  " + (++compteur_soc)),new Imp_Identifiable(),origine,orientation_deg) ;
     }
 
-//    public SystemeOptiqueCentre(Environnement env, String nom, Point2D origine, double orientation_deg) {
-//        this(env,nom,origine,orientation_deg/*,true*/) ;
-//    }
-    public SystemeOptiqueCentre(Environnement env, String nom, Point2D origine, double orientation_deg/*,boolean enregistre_soc_dans_env*/) {
-        this(env,new Imp_Nommable(nom),/*new Imp_Identifiable(),*/origine,orientation_deg/*,enregistre_soc_dans_env*/) ;
+    public SystemeOptiqueCentre(Environnement env, String nom, Point2D origine, double orientation_deg) {
+        this(env,new Imp_Nommable(nom),origine,orientation_deg) ;
     }
 
-    public SystemeOptiqueCentre(Environnement env, Imp_Nommable ien , /*Imp_Identifiable iei,*/ Point2D origine, double orientation_deg/*,boolean enregistre_soc_dans_env*/) {
+    public SystemeOptiqueCentre(Environnement env, Imp_Nommable ien , Point2D origine, double orientation_deg) {
         super(ien);
-//        imp_identifiable = iei ;
 
-        this.observateurs_des_elements = new ArrayList<>(1) ;
         this.rappels = new ArrayList<>(1) ;
-
-//        if (enregistre_soc_dans_env)
-//            tous_les_soc.add(this) ;
 
         this.environnement = env ;
 
         this.soc_conteneur = new SimpleObjectProperty<>(null);
-
-        // Inutile : c'est l'Environnement qui se charge de déclencher les conversions de dimensions dans les SOCs lorsque
-        // l'unité change.
-//        this.environnement.uniteProperty().addListener( ( (observableValue, oldValue, newValue) -> {
-//                    LOGGER.log(Level.FINER,"unite passe de {0} à {1}",new Object[] {oldValue,newValue});
-//                    calculeElementsCardinaux();
-//                } )
-//        ) ;
 
         ObservableList<ElementDeSOC> ols = FXCollections.observableArrayList() ;
         elements_centres = new SimpleListProperty<>(ols);
@@ -2102,9 +1986,6 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         for (ElementDeSOC el : elements_centres)
             if (el.estUnSOC()) el.ajouterRappelSurChangementToutePropriete(rap); // Propagation récursive
 
-//        ListChangeListener<ElementDeSOC> lcl_elts = change -> { rap.rappel(); };
-//        elements_centres.addListener(lcl_elts);
-
         axe.addListener((observable, oldValue, newValue) -> rap.rappel());
         couleur_axe.addListener((observable, oldValue, newValue) -> rap.rappel());
 
@@ -2120,7 +2001,6 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         montrer_plans_principaux.addListener((observable, oldValue, newValue) -> rap.rappel());
         montrer_plans_nodaux.addListener((observable, oldValue, newValue) -> rap.rappel());
 
-//        matrice_transfert_es.addListener((observable, oldValue, newValue) -> rap.rappel());
     }
 
     protected void supprimerRappels() {
@@ -2129,9 +2009,6 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
             for (ElementDeSOC el : elements_centres)
                 if (el instanceof SystemeOptiqueCentre el_soc) el_soc.supprimerRappels(); // Propagation récursive
-
-//            ListChangeListener<ElementDeSOC> lcl_elts = change -> { rap.rappel(); };
-//            elements_centres.removeListener(lcl_elts);
 
             axe.removeListener((observable, oldValue, newValue) -> rap.rappel());
             couleur_axe.removeListener((observable, oldValue, newValue) -> rap.rappel());
@@ -2147,8 +2024,6 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
             montrer_plans_focaux.removeListener((observable, oldValue, newValue) -> rap.rappel());
             montrer_plans_principaux.removeListener((observable, oldValue, newValue) -> rap.rappel());
             montrer_plans_nodaux.removeListener((observable, oldValue, newValue) -> rap.rappel());
-
-//            matrice_transfert_es.removeListener((observable, oldValue, newValue) -> rap.rappel());
         }
     }
 
@@ -2352,11 +2227,9 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 //        positionnerElement(o);
 
         int i_dernier_obstacle = indexDernierObstacle() ;
-//        Obstacle dernier_obstacle = (Obstacle) elements_centres.get(i_dernier_obstacle) ;
 
-        // Insertion de l'objet à sa place compte tenu de son indexParmiObstacles dans l'environnement (après les objets de
-        // indexParmiObstacles inférieur et avant ceux de indexParmiObstacles supérieur).
-//        if (elements_centres.size()==0 || environnement.indexParmiObstacles(o)>environnement.indexParmiObstacles(elements_centres.get(elements_centres.size()-1))) {
+        // Insertion de l'objet à sa place compte tenu de son indexParmiObstacles dans l'environnement (après les objets
+        // d'indexParmiObstacles inférieurs et avant ceux d'indexParmiObstacles supérieurs).
         if (i_dernier_obstacle==(-1) || environnement.indexParmiObstacles(o)>environnement.indexParmiObstacles((Obstacle)elements_centres.get(i_dernier_obstacle))) {
             elements_centres.add(i_dernier_obstacle+1,o) ; // Ajout en dernière position des obstacles (il y a peut-être des SOC après)
         } else {
@@ -2368,8 +2241,6 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
                 }
             }
         }
-
-//        ajouterElementCentre_commun(o);
 
         o.definirSOCParent(this) ; // NB : si o est un Composite, tous ses sous-éléments auront également 'this' comme SOC Parent
 
@@ -2396,39 +2267,15 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
         soc.associerObstacles(); // Ré-affecte les SOC parents de tous les obstacles du SOC ou de ses sous-SOCs
 
-//        ajouterElementCentre_commun(soc);
-
         soc.definirSOCParent(this) ;
 
         if (!soc.estVide())
             calculeElementsCardinaux();
 
-        // Déclencher un recalcul des éléments cardinaux dès qu'un attribut ou un élément de l'obstacle change
+        // Déclencher un recalcul des éléments cardinaux dès qu'un attribut ou un élément du SOC fils ajouté change
         soc.ajouterRappelSurChangementToutePropriete(this::calculeElementsCardinaux);
 
-
-        observateurs_des_elements.forEach(soc::ajouterListChangeListener);
-        // Le LCL "racine" de calcul des Elements Cardinaux lorsque la liste des éléments du SOC change a été défini
-        // lors de l'ajout initial du SOC de premier niveau (Cf. SystemeOptiqueRacine.ajouter()). La ligne ci-dessus
-        // l'appliquera automatiquement au soc ajouté.
     }
-
-//    private void ajouterElementCentre_commun(ElementDeSOC el) {
-//        el.definirSOCParent(this) ;
-//
-//        calculeElementsCardinaux();
-//
-//        // Déclencher un recalcul des éléments cardinaux dès qu'un attribut ou un élément de l'obstacle change
-//        el.ajouterRappelSurChangementToutePropriete(this::calculeElementsCardinaux);
-//
-//    }
-
-//    public void ajouter(ElementDeSOC el_soc) {
-//        if (el_soc instanceof Obstacle o)
-//            ajouterObstacleCentre(o);
-//        else if (el_soc instanceof SystemeOptiqueCentre soc)
-//            ajouterSOC(soc);
-//    }
 
     public void ajouter(ElementDeSOC e) {
 
@@ -2438,7 +2285,6 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
             ajouterSystemeOptiqueCentre((SystemeOptiqueCentre)e);
 
     }
-
 
     protected Point2D translationPourAjoutElement(ElementDeSOC el) {
         return translationPourAmenerPointSurAxe(el.pointSurAxeRevolution()) ;
@@ -2454,10 +2300,6 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     }
 
     protected double angleRotationPourAjoutElement(ElementDeSOC el) {
-
-//        System.out.println("orientation soc : "+orientation()+" / orientation obs : "+el.orientation()) ;
-//        System.out.println("Math.IEEEremainder(orientation() - el.orientation(),180) : "+Math.IEEEremainder(orientation() - el.orientation(),180)) ;
-
         return Math.IEEEremainder(orientation() - el.orientation(),180) ;
     }
 
@@ -2500,10 +2342,6 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         if (!elements_centres.contains(el))
             return ;
 
-//        // Même principe que dans la méthode Environnement::supprimerSystemeOptiqueCentre() : détacher tous les éléments
-//        // de el car el n'est plus dans l'environnement.
-//        el.detacherElementsCentres();
-
         elements_centres.remove(el) ;
 
         // TODO : il faudrait aussi retirer le rappel qui déclenche le recalcul des elements cardinaux
@@ -2511,18 +2349,14 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         //o.retirerRappelSurChangementToutePropriete(this::calculeElementsCardinaux);
 
 //        o.definirAppartenanceSystemeOptiqueCentre(false);
-        // Si l'élément el supprimé est un SOC, il peut garder son SOC parent car, contrairement aux obstacles il n'est
+        // Si l'élément el supprimé est un SOC, il peut garder son SOC parent car, contrairement aux obstacles, il n'est
         // alors plus actif dans l'environnement. Cela facilite l'annulation de sa suppression (cf. CommandeSupprimerSystemeOptiqueCentre)
         if (el instanceof Obstacle)
             el.definirSOCParent(null);
         else if (el instanceof SystemeOptiqueCentre el_soc) {
             el_soc.libererObstacles();
-            el_soc.supprimerObservateurs() ;
             el_soc.supprimerRappels();
         }
-//        for (ElementDeSOC e : el_soc.elements_centres_premier_niveau())
-//                e.definirSOCParent(null);
-
 
         if (elements_centres.size()==0)
             dioptres_rencontres.clear();
@@ -2533,9 +2367,6 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
     public void retirer(List<ElementDeSOC> elements_a_retirer) {
         elements_a_retirer.forEach(this::retirer);
-    }
-    protected void supprimerObservateurs() {
-        observateurs_des_elements.clear();
     }
 
     /**
@@ -2549,7 +2380,6 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
               return true ;
         }
         return false ;
-//        return obstacles_centres.contains(o) ;
     }
 
     /**

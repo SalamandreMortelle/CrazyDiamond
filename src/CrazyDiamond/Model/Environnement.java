@@ -549,20 +549,9 @@ public class Environnement {
         systemes_optiques_centres.remove(s);
 
         s.libererObstacles() ;
-        s.supprimerObservateurs() ;
         s.supprimerRappels();
-//        for (ElementDeSOC e : s.elements_centres_premier_niveau())
-//            e.definirSOCParent(null);
-
-
-//        s.detacherElementsCentres() ;
 
     }
-
-
-//    protected void dereferencerSystemeOptiqueCentre(SystemeOptiqueCentre s) {
-//        soc_racine.supprimer(s) ;
-//    }
 
     public void illuminerToutesSources() {
 
@@ -830,8 +819,8 @@ public class Environnement {
         return (a + tolerance) >= b;
     }
 
-    public static boolean quasiConfondus(Point2D a, Point2D b) {
-        return ( quasiEgal(a.getX(),b.getX()) && quasiEgal(a.getY(),b.getY()) ) ;
+    public static boolean nonQuasiConfondus(Point2D a, Point2D b) {
+        return (!quasiEgal(a.getX(), b.getX()) || !quasiEgal(a.getY(), b.getY()));
     }
 
     /**
