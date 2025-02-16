@@ -710,6 +710,9 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     @Override
     public void visiteSystemeOptiqueCentre(SystemeOptiqueCentre soc)  {
 
+        // Visite récursive de tous les sous-SOCs
+        soc.sousSystemesOptiquesCentresPremierNiveau().forEach(this::visiteSystemeOptiqueCentre);
+
         GraphicsContext gc = cae.gc_affichage() ;
 
         Paint s = gc.getStroke() ;

@@ -358,7 +358,7 @@ public class Environnement {
         if (systemesOptiquesCentres().contains(s))
             return ;
 
-        // Important si s est un SOC supprimé qui appartenait à un autre SOC, dont on est en train d'annuler la suppression,
+        // Important : si s est un SOC supprimé qui appartenait à un autre SOC, dont on est en train d'annuler la suppression,
         // il aura conservé la référence à son SOC parent d'origine : il faut donc la remettre à null
         s.definirSOCParent(null);
         // La définition du SOC parent doit se faire avant l'ajout dans la liste sinon l'intégration dans la vue

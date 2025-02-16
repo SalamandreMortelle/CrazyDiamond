@@ -361,9 +361,14 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         return ancetres ;
     }
 
-    public boolean referenceDirectement(Obstacle o) {
-        return elements_centres.contains(o) ;
+//    public boolean referenceDirectement(Obstacle o) {
+//        return elements_centres.contains(o) ;
+//    }
+
+    public boolean referenceDirectement(ElementDeSOC el) {
+        return elements_centres.contains(el) ;
     }
+
 
     public void libererObstacles() {
         for (ElementDeSOC el : elements_centres) {
@@ -1648,7 +1653,8 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
             for (ElementDeSOC el : elements_centres) {
 //                System.out.println("Obstacle "+o+" tourne de "+delta_angle_rot_deg+"°");
                 if (el instanceof Obstacle o) {
-                    o.tournerAutourDe(this.origine(), delta_angle_rot_deg);
+                    o.tournerAutourDe(oldValue.position(), delta_angle_rot_deg);
+//                    o.tournerAutourDe(this.origine(), delta_angle_rot_deg);
                     o.translater(delta_pos);
                 } else if (el instanceof SystemeOptiqueCentre sous_soc) {
                     sous_soc.tournerAutourDe(this.origine(), delta_angle_rot_deg);
@@ -2128,7 +2134,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     public void accepte(VisiteurEnvironnement v) {
         v.visiteSystemeOptiqueCentre(this) ;
 
-        sousSystemesOptiquesCentresPremierNiveau().forEach(v::visiteSystemeOptiqueCentre);
+//        sousSystemesOptiquesCentresPremierNiveau().forEach(v::visiteSystemeOptiqueCentre);
     }
 
     public Contour couper(BoiteLimiteGeometrique boite) {
@@ -2262,7 +2268,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
         positionnerElement(soc);
 
-        // Les SOC sont toujours positionnés après les obstacles dans la liste des éléments centrés
+        // Les SOC sont toujours positionnés après les obstacles, donc à la fin de la liste des éléments centrés
         elements_centres.add(soc) ;
 
         soc.associerObstacles(); // Ré-affecte les SOC parents de tous les obstacles du SOC ou de ses sous-SOCs
@@ -2346,9 +2352,8 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
         // TODO : il faudrait aussi retirer le rappel qui déclenche le recalcul des elements cardinaux
         // sinon, on déclenche des recalculs inutiles de ces éléments cardinaux
-        //o.retirerRappelSurChangementToutePropriete(this::calculeElementsCardinaux);
+        // o.retirerRappelSurChangementToutePropriete(this::calculeElementsCardinaux);
 
-//        o.definirAppartenanceSystemeOptiqueCentre(false);
         // Si l'élément el supprimé est un SOC, il peut garder son SOC parent car, contrairement aux obstacles, il n'est
         // alors plus actif dans l'environnement. Cela facilite l'annulation de sa suppression (cf. CommandeSupprimerSystemeOptiqueCentre)
         if (el instanceof Obstacle)

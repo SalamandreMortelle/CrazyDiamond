@@ -24,41 +24,24 @@ public final class UtilitairesVue {
     }
     public static void gererAppartenanceSOC(ElementDeSOC el,Pane pere,Node panneau_pos_abs, Node panneau_pos_rel_soc ) {
 
-        if (el.SOCParent() != null) {
-
-            supprimerNoeudFils(pere, panneau_pos_abs);
-//            int pos = vbox_panneau_racine.getChildren().indexOf(vbox_positionnement_absolu) ;
-//            vbox_panneau_racine.getChildren().remove(vbox_positionnement_absolu);
-//            vbox_panneau_racine.getChildren().add(pos, panneau_positionnement_element_dans_soc);
-
-            // Force le spinner du panneau positionnement à s'initialiser
-            // TODO : voir si c'est vraiment nécessaire
-            el.definirPointDeReferencePourPositionnementDansSOCParent(el.pointDeReferencePourPositionnementDansSOCParent());
-        } else
+        if (el.sansSOCParentActif())
             supprimerNoeudFils(pere,panneau_pos_rel_soc);
+        else {
+            supprimerNoeudFils(pere, panneau_pos_abs);
 
+//            // Force le spinner du panneau positionnement à s'initialiser
+//            // TODO : voir si c'est vraiment nécessaire
+//            el.definirPointDeReferencePourPositionnementDansSOCParent(el.pointDeReferencePourPositionnementDansSOCParent());
+        }
 
         el.systemeOptiqueParentProperty().addListener((observableValue, oldValue, newValue) -> {
             LOGGER.log(Level.FINE, "SOC Parent passe de {0} à {1}", new Object[]{oldValue, newValue});
 
             if (oldValue == null && newValue != null) { // Ajout de ce SOC dans un SOC parent
-
                 remplacerNoeudFils(pere, panneau_pos_abs, panneau_pos_rel_soc);
-
-//                int pos = vbox_panneau_racine.getChildren().indexOf(vbox_positionnement_absolu) ;
-//                vbox_panneau_racine.getChildren().remove(vbox_positionnement_absolu);
-//                vbox_panneau_racine.getChildren().add(pos, panneau_positionnement_element_dans_soc);
-
             } else if (oldValue != null && newValue == null) { // Retrait de ce SOC d'un SOC Parent
-
                 remplacerNoeudFils(pere, panneau_pos_rel_soc, panneau_pos_abs);
-
-//                int pos = vbox_panneau_racine.getChildren().indexOf(panneau_positionnement_element_dans_soc) ;
-//                vbox_panneau_racine.getChildren().remove(panneau_positionnement_element_dans_soc);
-//                vbox_panneau_racine.getChildren().add(pos,vbox_positionnement_absolu);
-
             }
-
         });
 
     }

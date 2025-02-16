@@ -21,6 +21,11 @@ public interface ElementDeSOC extends /*Identifiable,*/Nommable {
 
     default void detacherElementsCentres() { }  // Ne fait rien pour les Obstacles / surchargé pour les SOC
 
+    default boolean sansSOCParentActif() {
+        return  (SOCParent()==null || !SOCParent().referenceDirectement(this)) ;
+
+    }
+
     Point2D pointSurAxeRevolution() ;
     double orientation() ;
 
