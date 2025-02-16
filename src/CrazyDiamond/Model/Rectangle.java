@@ -480,7 +480,7 @@ public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obsta
             return null ;
 
         if (intersections.length == 1) {
-            if (!Environnement.quasiConfondus(intersections[0],dd_ou_s.depart()))
+            if (Environnement.nonQuasiConfondus(intersections[0], dd_ou_s.depart()))
                 return intersections[0];
             else
                 return null;
@@ -488,7 +488,7 @@ public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obsta
 
         // Il y a deux intersections
 
-        if (mode==ModeRecherche.PREMIERE && !Environnement.quasiConfondus(intersections[0],dd_ou_s.depart()))
+        if (mode==ModeRecherche.PREMIERE && Environnement.nonQuasiConfondus(intersections[0], dd_ou_s.depart()))
             return intersections[0] ;
 
         return intersections[1] ;
