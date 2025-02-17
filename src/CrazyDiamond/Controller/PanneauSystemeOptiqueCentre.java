@@ -34,10 +34,6 @@ public class PanneauSystemeOptiqueCentre {
     @FXML
     private PanneauElementIdentifie baseElementIdentifieController;
 
-    // Panneau qui n'est pas dans la vue (pas dans le .fxml) mais qu'on ajoutera à la place d'autres éléments si ce SOC
-    // devient un élément d'un SOC parent
-//    private Parent panneau_positionnement_element_dans_soc;
-
     @FXML
     private HBox hbox_positionnement_relatif_dans_soc;
     @FXML
@@ -63,13 +59,8 @@ public class PanneauSystemeOptiqueCentre {
     @FXML
     private Spinner<Double> spinner_orientation;
 
-//    private Spinner<Double> spinner_position_dans_soc ;
-
     @FXML
     private Slider slider_orientation;
-
-//    @FXML
-//    private Spinner<Double> spinner_position_dans_soc;
 
     @FXML
     private ColorPicker colorpicker_axe;
@@ -92,7 +83,7 @@ public class PanneauSystemeOptiqueCentre {
         MenuItem deleteItemSoc = new MenuItem(rb.getString("supprimer.obstacle_centre"));
         deleteItemSoc.setOnAction(event
                 -> new CommandeRetirerElementsDeSystemeOptiqueCentre(soc,listview_obstacles_centres.getSelectionModel().getSelectedItem()).executer());
-//        deleteItemSoc.setOnAction(event -> soc.retirerElementPremierNiveau(listview_obstacles_centres.getSelectionModel().getSelectedItem()));
+
         menuContextuelObstacleCentre.getItems().add(deleteItemSoc);
 
     }
@@ -102,62 +93,11 @@ public class PanneauSystemeOptiqueCentre {
 
         baseElementIdentifieController.initialize(soc);
 
-
-//        try {
-//            // On garde une référence vers le Node (panneau) de positionnement dans SOC (pour l'ajouter dans le panneau SOC
-//            // à la place des autres champs de positionnement si le SOC est un élémént d'un SOC parent.
-//            // NB : Attention le constructeur du controleur suppose que le soc_en_attente_de_creation ait été renseigné
-//            // (cf. SetUpDependencyInjector dans PanneauPrincipal)
-//            panneau_positionnement_element_dans_soc = DependencyInjection.load("View/PanneauPositionnementElementDansSOC.fxml");
-//            LOGGER.log(Level.FINE, "PanneauPositionnementElementDansSOC créé : {0}", panneau_positionnement_element_dans_soc);
-//        } catch (IOException e) {
-//            System.err.println("Exception lors de l'accès au fichier .fxml : " + e.getMessage());
-//            System.exit(1);
-//        }
-
-//        PanneauPositionnementElementDansSOC controler = (PanneauPositionnementElementDansSOC) panneau_positionnement_element_dans_soc.getUserData() ;
-//        spinner_position_dans_soc = controler.spinnerPositionDansSOC() ;
-
-//        spinner_position_dans_soc = (Spinner<Double>) panneau_positionnement_element_dans_soc.getChildrenUnmodifiable().get(1);
-
         hbox_positionnement_relatif_dans_socController.initialize(canvas,soc);
 
         UtilitairesVue.gererAppartenanceSOC(soc,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
-//        if (soc.SOCParent()!=null) {
-//
-//            int pos = vbox_panneau_racine.getChildren().indexOf(vbox_positionnement_absolu) ;
-//            vbox_panneau_racine.getChildren().remove(vbox_positionnement_absolu);
-//            vbox_panneau_racine.getChildren().add(pos, panneau_positionnement_element_dans_soc);
-//
-//            // Force le spinner du panneau positionnement à s'initialiser
-//            // TODO : voir si c'est vraiment nécessaire
-//            soc.definirOrigine(soc.origine());
-//        }
-//
-//        soc.systemeOptiqueParentProperty().addListener( (observableValue, oldValue, newValue) ->{
-//            LOGGER.log(Level.FINE, "SOC Parent passe de {0} à {1}", new Object[]{oldValue, newValue});
-//
-//            if (oldValue==null && newValue!=null) { // Ajout de ce SOC dans un SOC parent
-//
-//                int pos = vbox_panneau_racine.getChildren().indexOf(vbox_positionnement_absolu) ;
-//                vbox_panneau_racine.getChildren().remove(vbox_positionnement_absolu);
-//                vbox_panneau_racine.getChildren().add(pos, panneau_positionnement_element_dans_soc);
-//
-//            } else if (oldValue !=null && newValue==null) { // Retrait de ce SOC d'un SOC Parent
-//
-//                int pos = vbox_panneau_racine.getChildren().indexOf(panneau_positionnement_element_dans_soc) ;
-//                vbox_panneau_racine.getChildren().remove(panneau_positionnement_element_dans_soc);
-//                vbox_panneau_racine.getChildren().add(pos,vbox_positionnement_absolu);
-//
-//            }
-//
-//        });
 
-//        // Récupération du controleur du panneau de positionnement qui se trouve dans le UserData de la vue (cf. classe
-//        // DependyInjection qui renseigne ce UserData lors du chargement du fichier .fxml
-//        panneauPositionnementElementDansSOC = (PanneauPositionnementElementDansSOC) panneau_pos_soc_dans_soc.getUserData();
-
-        // Prise en compte automatique de la position et de l'orientation        
+        // Prise en compte automatique de la position et de l'orientation
         soc.axeObjectProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnComptePositionEtOrientation));
 
         // Position : X origine
@@ -205,20 +145,7 @@ public class PanneauSystemeOptiqueCentre {
 
         soc.elementsCentresRacine().addListener(lcl_el);
 
-//        for (Obstacle o : soc.obstacles_centres()) {
-//            // Rafraichissement automatique de la liste des obstacles du SOC quand le nom d'un obstacle change
-//            ChangeListener<String> listenerNom = (obs, oldName, newName) -> listview_obstacles_centres.refresh();
-//            o.nomProperty().addListener(listenerNom);
-//        }
-
-
-//        if (listview_obstacles_centres.getContextMenu()==null)
         listview_obstacles_centres.setContextMenu(menuContextuelObstacleCentre);
-
-//        checkbox_dioptres.selectedProperty().bindBidirectional(soc.MontrerDioptresProperty());
-//        checkbox_plans_focaux.selectedProperty().bindBidirectional(soc.MontrerPlansFocauxProperty());
-//        checkbox_plans_principaux.selectedProperty().bindBidirectional(soc.MontrerPlansPrincipauxProperty());
-//        checkbox_plans_nodaux.selectedProperty().bindBidirectional(soc.MontrerPlansNodauxProperty());
 
     }
 
@@ -291,50 +218,6 @@ public class PanneauSystemeOptiqueCentre {
             new CommandeAjouterElementsDansSystemeOptiqueCentre(canvas.environnement(),soc, elements_choisis).executer();
         }
     }
-            //            for(Obstacle o : obstacles_choisis) {
-//                soc.ajouterObstacleALaRacine(o);
-//            }
-
-//            for(Obstacle o : obstacles_choisis) {
-////                o.integrerDansSystemeOptiqueCentre(soc);
-////                integrerObstacle(o);
-//
-//                    soc.ajouterObstacleALaRacine(o) ;
-//
-////                    // Rafraichissement automatique de la liste des obstacles du SOC quand le nom de l'obstacle ajouté change
-////                    ChangeListener<String> listenerNom = (obs, oldName, newName) -> listview_obstacles_centres.refresh();
-////                    o.nomProperty().addListener(listenerNom);
-//
-////                environnement.supprimerObstacleALaRacine(o);
-////                compo.ajouterObstacleALaRacine(o);
-//            }
-//
-////            environnement.ajouterObstacleALaRacine(compo);
-////        }
-//
-//    }
-
-//    void integrerObstacle(Obstacle o) throws Exception {
-//        if (!o.aSymetrieDeRevolution())
-//            throw new UnsupportedOperationException("Impossible d'intégrer l'Obstacle "+o+" dans le Système Optique Centré "+this+" car il n'a pas de symétrie de révolution.") ;
-//
-//        Point2D axe_soc = soc.direction() ;
-//        Point2D point_sur_axe_revolution = o.pointSurAxeRevolution().subtract(soc.origine()) ;
-//
-//        double distance_algebrique_point_sur_axe_revolution_axe_soc = (point_sur_axe_revolution.getX()*axe_soc.getY()-point_sur_axe_revolution.getY()*axe_soc.getX()) ;
-//
-//        // Peut-être faut-il prendre l'opposé :  à tester...
-//        Point2D translation = soc.perpendiculaireDirection().multiply(distance_algebrique_point_sur_axe_revolution_axe_soc) ;
-//
-//        o.translater(translation);
-//
-//        if (!o.estOrientable())
-//            return ;
-//
-//        o.definirOrientation(soc.orientation()) ;
-//
-////        throw new NoSuchMethodException("La méthode integrerDansSystemeOptiqueCentre() n'est pas implémentée par l'Obstacle "+this) ;
-//    }
 
     private void definirXOrigineSOC(Double x_o) {
         new CommandeDefinirUnParametrePoint<>(soc,new Point2D(x_o,soc.origine().getY()),soc::origine,soc::definirOrigine).executer();
@@ -349,7 +232,5 @@ public class PanneauSystemeOptiqueCentre {
         spinner_orientation.getValueFactory().valueProperty().set(nouvelle_pos_et_or.orientation_deg());
         slider_orientation.valueProperty().set(nouvelle_pos_et_or.orientation_deg());
     }
-
-
 
 }
