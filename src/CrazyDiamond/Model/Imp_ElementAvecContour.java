@@ -23,13 +23,21 @@ public class Imp_ElementAvecContour {
     public Imp_ElementAvecContour(Color couleur_contour, TraitementSurface traitement_surf, double taux_refl_surf, double angle_pol) {
 
         if (couleur_contour == null)
-            this.couleur_contour = new SimpleObjectProperty<Color>(ElementAvecContour.couleur_contour_par_defaut_property.getValue()) ;
+            this.couleur_contour = new SimpleObjectProperty<>(ElementAvecContour.couleur_contour_par_defaut_property.getValue()) ;
         else
-            this.couleur_contour =  new SimpleObjectProperty<Color>(couleur_contour) ;
+            this.couleur_contour = new SimpleObjectProperty<>(couleur_contour) ;
 
-        this.traitement_surface = new SimpleObjectProperty<TraitementSurface>(traitement_surf) ;
+        this.traitement_surface = new SimpleObjectProperty<>(traitement_surf) ;
         this.taux_reflexion_surface = new SimpleDoubleProperty(taux_refl_surf) ;
         this.orientation_axe_polariseur = new SimpleDoubleProperty(angle_pol) ;
+    }
+
+    public void ajouterListeners(BaseObstacle bo) {
+        this.couleur_contour.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementToutePropriete());
+        this.traitement_surface.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementToutePropriete());
+        this.taux_reflexion_surface.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementToutePropriete());
+        this.orientation_axe_polariseur.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementToutePropriete());
+
     }
 
     public Color couleurContour() { return couleur_contour.get() ;}
@@ -39,21 +47,22 @@ public class Imp_ElementAvecContour {
         return couleur_contour;
     }
 
+    
+//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+//        couleur_contour.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+//        traitement_surface.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+//        taux_reflexion_surface.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+//        orientation_axe_polariseur.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+//
+//    }
+
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        // Deux propriétés de cette classe ont une incidence sur le chemin de la lumiere
-        traitement_surface.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        taux_reflexion_surface.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        orientation_axe_polariseur.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-
+        // Trois propriétés de cette classe ont une incidence sur le chemin de la lumiere
+        traitement_surface.addListener((observable, oldValue, newValue) -> rap.rappel());
+        taux_reflexion_surface.addListener((observable, oldValue, newValue) -> rap.rappel());
+        orientation_axe_polariseur.addListener((observable, oldValue, newValue) -> rap.rappel());
     }
-
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        couleur_contour.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        traitement_surface.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        taux_reflexion_surface.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        orientation_axe_polariseur.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-    }
-
+    
     public TraitementSurface traitementSurface() {
         return traitement_surface.get() ;
     }

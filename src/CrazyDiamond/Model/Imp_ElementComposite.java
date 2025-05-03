@@ -21,6 +21,7 @@ public class Imp_ElementComposite {
     private final ListProperty<Obstacle> elements;
 
     private final ArrayList<ListChangeListener<Obstacle>> observateurs_des_elements ;
+//    private final Hashtable<RappelSurChangement,ListChangeListener<Obstacle> > rappels_sur_listes_element ;
 
     public Imp_ElementComposite() {
 
@@ -31,7 +32,29 @@ public class Imp_ElementComposite {
 
     }
 
-    protected ObservableList<Obstacle> elementsObservalbes() {return elements.get();}
+    public void ajouterListeners(BaseObstacle bo) {
+        ListChangeListener<Obstacle> lcl_elements = change -> {
+            while (change.next()) {
+
+                if (change.wasRemoved()) {
+                    LOGGER.log(Level.FINER, "Obstacle supprimé du Composite");
+                    bo.declencherRappelsSurChangementToutePropriete();
+
+                } else if (change.wasAdded()) {
+
+                    for (Obstacle additem : change.getAddedSubList()) {
+                        LOGGER.log(Level.FINER, "Obstacle ajouté dans le Composite : {0}", additem);
+                        bo.declencherRappelsSurChangementToutePropriete();
+                    }
+                }
+            }
+        };
+        // Ajout récursif du rappel dans tous les sous-groupes et dans toutes les sous-compositions
+        ajouterListChangeListener(lcl_elements);
+
+    }
+
+    protected ObservableList<Obstacle> elementsObservables() {return elements.get();}
     public List<Obstacle> elements() {return elements.get();}
 
     public boolean estVide() {
@@ -51,7 +74,9 @@ public class Imp_ElementComposite {
 
 //        o.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources); ;
 
-        this.elements.add(o);
+        this.elements.add(o);  // Le listener des éléments (cf. constructeur de BaseObstacleComposite) se charge
+                               // d'observer les modifications des propriétés de l'objet ajouté o, et de déclencher les
+                               // rappels.
 
         if (o instanceof BaseObstacleComposite boc) {
             observateurs_des_elements.forEach(boc::ajouterListChangeListener);
@@ -167,14 +192,28 @@ public class Imp_ElementComposite {
         observateurs_des_elements.clear();
     }
 
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+
+
+    public void ajouterRappelSurChangementToutePropriete(Object cle_observateur,RappelSurChangement rap) {
+
         for (Obstacle o : elements)
-            o.ajouterRappelSurChangementToutePropriete(rap);
+            o.ajouterRappelSurChangementToutePropriete(cle_observateur,rap);
 
         // Dans un Composite, il faut aussi mettre en observation la liste des éléments pour réagir aux ajouts et aux
         // suppressions d'éléments
-        surveillerListeElements(rap);
+//        surveillerListeElements(rap);
     }
+
+    public void retirerRappelSurChangementToutePropriete(Object cle_observateur) {
+        for (Obstacle o : elements)
+            o.retirerRappelSurChangementToutePropriete(cle_observateur);
+
+        // Dans un Composite, il faut aussi mettre en observation la liste des éléments pour réagir aux ajouts et aux
+        // suppressions d'éléments
+//        arreterSurveillanceListeElements(rap);
+
+    }
+
 
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
         for (Obstacle o : elements)
@@ -201,7 +240,6 @@ public class Imp_ElementComposite {
 
                     }
                 }
-
             }
         };
         // Ajout récursif du rappel dans tous les sous-groupes et dans toutes les sous-compositions
@@ -368,5 +406,4 @@ public class Imp_ElementComposite {
     public boolean estALaRacine(Obstacle o) {
         return elements.contains(o) ;
     }
-
 }

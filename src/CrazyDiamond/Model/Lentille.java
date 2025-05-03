@@ -125,6 +125,8 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
                 diametre, orientation_deg);
 
 
+        ajouterListeners();
+
     }
 
 
@@ -181,6 +183,27 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
                 forme_2, rayon_2, parametre_2, excentricite_2, convexite_face_2,
                 diametre, orientation_deg);
 
+        ajouterListeners();
+    }
+    
+    public void ajouterListeners() {
+        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+
+        epaisseur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+
+        forme_face_1.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        rayon_1.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        parametre_1.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        excentricite_1.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        convexite_face_1.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+
+        forme_face_2.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        rayon_2.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        parametre_2.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        excentricite_2.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        convexite_face_2.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+
+        diametre.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
 
     }
 
@@ -849,28 +872,28 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
         v.visiteLentille(this);
     }
 
-    @Override
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementToutePropriete(rap);
-
-        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
-
-        epaisseur.addListener((observable, oldValue, newValue) -> rap.rappel());
-
-        forme_face_1.addListener((observable, oldValue, newValue) -> rap.rappel());
-        rayon_1.addListener((observable, oldValue, newValue) -> rap.rappel());
-        parametre_1.addListener((observable, oldValue, newValue) -> rap.rappel());
-        excentricite_1.addListener((observable, oldValue, newValue) -> rap.rappel());
-        convexite_face_1.addListener((observable, oldValue, newValue) -> rap.rappel());
-
-        forme_face_2.addListener((observable, oldValue, newValue) -> rap.rappel());
-        rayon_2.addListener((observable, oldValue, newValue) -> rap.rappel());
-        parametre_2.addListener((observable, oldValue, newValue) -> rap.rappel());
-        excentricite_2.addListener((observable, oldValue, newValue) -> rap.rappel());
-        convexite_face_2.addListener((observable, oldValue, newValue) -> rap.rappel());
-
-        diametre.addListener((observable, oldValue, newValue) -> rap.rappel());
-    }
+//    @Override
+//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+//        super.ajouterRappelSurChangementToutePropriete(rap);
+//
+////        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
+////
+////        epaisseur.addListener((observable, oldValue, newValue) -> rap.rappel());
+////
+////        forme_face_1.addListener((observable, oldValue, newValue) -> rap.rappel());
+////        rayon_1.addListener((observable, oldValue, newValue) -> rap.rappel());
+////        parametre_1.addListener((observable, oldValue, newValue) -> rap.rappel());
+////        excentricite_1.addListener((observable, oldValue, newValue) -> rap.rappel());
+////        convexite_face_1.addListener((observable, oldValue, newValue) -> rap.rappel());
+////
+////        forme_face_2.addListener((observable, oldValue, newValue) -> rap.rappel());
+////        rayon_2.addListener((observable, oldValue, newValue) -> rap.rappel());
+////        parametre_2.addListener((observable, oldValue, newValue) -> rap.rappel());
+////        excentricite_2.addListener((observable, oldValue, newValue) -> rap.rappel());
+////        convexite_face_2.addListener((observable, oldValue, newValue) -> rap.rappel());
+////
+////        diametre.addListener((observable, oldValue, newValue) -> rap.rappel());
+//    }
 
     @Override
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {

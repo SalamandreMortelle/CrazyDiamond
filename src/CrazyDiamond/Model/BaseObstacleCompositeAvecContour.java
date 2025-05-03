@@ -13,11 +13,13 @@ public class BaseObstacleCompositeAvecContour extends BaseObstacleComposite {
     BaseObstacleCompositeAvecContour(String nom,Color couleur_contour) {
         super(nom);
         this.imp_elementAvecContour = new Imp_ElementAvecContour(couleur_contour) ;
+        this.imp_elementAvecContour.ajouterListeners(this);
     }
 
     BaseObstacleCompositeAvecContour(Imp_Identifiable ii, Imp_Nommable in, Imp_ElementComposite ic, Imp_ElementAvecContour iac) {
         super(ii, in, ic);
         this.imp_elementAvecContour = iac ;
+        this.imp_elementAvecContour.ajouterListeners(this);
     }
 
 
@@ -41,10 +43,10 @@ public class BaseObstacleCompositeAvecContour extends BaseObstacleComposite {
         consumer.accept(imp_elementAvecContour);
     }
 
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementToutePropriete(rap);
-        imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
-    }
+//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+//        super.ajouterRappelSurChangementToutePropriete(rap);
+////        imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
+//    }
 
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
         super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);

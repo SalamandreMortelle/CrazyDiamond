@@ -17,7 +17,8 @@ import java.util.logging.Logger;
 // Cette interface convient si un rayon ne peut avoir plus de deux intersections avec l'Obstacle
 // Cela convient donc pour des obstacles d'un seul tenant, qui peuvent contenir des trous ou être concaves
 // à condition qu'ils soient infinis.
-public interface Obstacle extends ElementDeSOC { // TODO : envisager de faire implémenter ElementDeSOC par les obstacles qui peuvent (sous réserve d'éligibilité) être inclus dans un SOC
+public interface Obstacle extends ElementDeSOC {
+    // TODO : envisager de faire implémenter ElementDeSOC par les obstacles qui peuvent (sous réserve d'éligibilité) être inclus dans un SOC
 
     enum ModeRecherche { PREMIERE, DERNIERE }
 
@@ -194,15 +195,16 @@ public interface Obstacle extends ElementDeSOC { // TODO : envisager de faire im
     // TODO : Implémenter cette méthode pour implémenter les Compositions de Compositions les plus générales
    // ArrayList<Point2D> cherche_toutes_intersections(Rayon r) ;
 
-    default void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) { }
+    default void ajouterRappelSurChangementToutePropriete(Object cle,RappelSurChangement rap) { }
+    default void retirerRappelSurChangementToutePropriete(Object cle) { }
     default void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) { }
 
-    @Override
-    default void ajouterRappelSurChangementTouteProprieteModifiantElementsCardinaux(RappelSurChangement rappel) {
-        // Pour simplifier, on considère que tout changement de propriété de l'obstacle aura un impact sur les éléments
-        // cardinaux d'un SOC qui le contiendrait.
-        ajouterRappelSurChangementToutePropriete(rappel);
-    }
+//    @Override
+//    default void ajouterRappelSurChangementTouteProprieteModifiantElementsCardinaux(RappelSurChangement rappel) {
+//        // Pour simplifier, on considère que tout changement de propriété de l'obstacle aura un impact sur les éléments
+//        // cardinaux d'un SOC qui le contiendrait.
+//        ajouterRappelSurChangementToutePropriete(, rappel);
+//    }
 
     String id() ;
     StringProperty nomProperty() ;

@@ -10,32 +10,32 @@ public interface ElementAvecMatiere {
     // Propriété statique
     ObjectProperty<Color> couleur_matiere_par_defaut_property = new SimpleObjectProperty<>(Color.DARKGREY) ;
 
-    public Color couleurMatiere() ;
+    Color couleurMatiere() ;
     void definirCouleurMatiere(Color couleur);
 
-    public ObjectProperty<Color> couleurMatiereProperty() ;
+    ObjectProperty<Color> couleurMatiereProperty() ;
 
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) ;
+    void ajouterRappelSurChangementToutePropriete(Object cle,RappelSurChangement rap) ;
 
-    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) ;
+    void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) ;
 
-    public void definirTypeSurface(TypeSurface type_surf) ;
+    void definirTypeSurface(TypeSurface type_surf) ;
 
-    public TypeSurface typeSurface() ;
+    TypeSurface typeSurface() ;
 
-    public ObjectProperty<TypeSurface> typeSurfaceProperty() ;
+    ObjectProperty<TypeSurface> typeSurfaceProperty() ;
 
-    public void definirNatureMilieu(NatureMilieu nature_mil) ;
+    void definirNatureMilieu(NatureMilieu nature_mil) ;
 
-    public NatureMilieu natureMilieu() ;
+    NatureMilieu natureMilieu() ;
 
-    public ObjectProperty<NatureMilieu> natureMilieuProperty() ;
+    ObjectProperty<NatureMilieu> natureMilieuProperty() ;
 
-    public void definirIndiceRefraction(double indice_refraction) ;
+    void definirIndiceRefraction(double indice_refraction) ;
 
-    public double indiceRefraction() ;
+    double indiceRefraction() ;
 
-    public DoubleProperty indiceRefractionProperty() ;
+    DoubleProperty indiceRefractionProperty() ;
 
 
 }

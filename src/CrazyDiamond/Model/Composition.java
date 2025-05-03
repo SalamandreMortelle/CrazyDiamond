@@ -53,8 +53,10 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
                 type_surface,nature_milieu,indice_refraction,couleur_matiere,couleur_contour);
 
         operateur = new SimpleObjectProperty<>(op);
-    }
 
+        ajouterListeners();
+
+    }
 
     public Composition(Imp_Identifiable ii,Imp_Nommable ien,Imp_ElementComposite ic,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem, Operateur op) throws IllegalArgumentException {
         super(ii,ien,ic,iec,iem) ;
@@ -64,6 +66,12 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
             o.definirParent(this);
 
         operateur = new SimpleObjectProperty<>(op);
+
+        ajouterListeners();
+    }
+
+    private void ajouterListeners() {
+        operateur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
     }
 
     @Override
@@ -544,12 +552,12 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
     }
 
 
-    @Override
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementToutePropriete(rap);
-
-        operateur.addListener((observable, oldValue, newValue) -> rap.rappel());
-    }
+//    @Override
+//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+//        super.ajouterRappelSurChangementToutePropriete(rap);
+//
+////        operateur.addListener((observable, oldValue, newValue) -> rap.rappel());
+//    }
 
     @Override
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {

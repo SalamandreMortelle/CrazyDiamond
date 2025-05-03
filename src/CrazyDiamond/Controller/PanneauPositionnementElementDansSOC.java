@@ -31,7 +31,7 @@ public class PanneauPositionnementElementDansSOC {
             element_dans_soc.positionProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnComptePosition));
 
 
-        // Si un SOC Parent est affecté à l'element, il faut assurer l'initialisation de la valeur du spinner : c'est
+        // Si un SOC Parent est affecté à l'élément, il faut assurer l'initialisation de la valeur du spinner : c'est
         // nécessaire car, quand un élément est ajouté à un SOC, il est positionné sur l'axe de ce SOC *avant* qu'on lui
         // affecte son SOC Parent. On ne peut donc pas se contenter des Listeners sur la position et l'orientation
         // (ci-dessus) pour assurer cette initialisation (le calcul de la position relative dans le SOC parent nécessite

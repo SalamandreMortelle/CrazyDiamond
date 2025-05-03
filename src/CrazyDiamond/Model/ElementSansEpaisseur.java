@@ -5,7 +5,7 @@ import javafx.geometry.Point2D;
 
 public interface ElementSansEpaisseur {
 
-    void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) ;
+    void ajouterRappelSurChangementToutePropriete(Object cle,RappelSurChangement rap) ;
 
     void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) ;
 
@@ -15,7 +15,7 @@ public interface ElementSansEpaisseur {
 
     ObjectProperty<NatureMilieu> natureMilieuProperty() ;
 
-    default public boolean contient(Point2D p) {
+    default boolean contient(Point2D p) {
         return false;
     }
 

@@ -59,6 +59,7 @@ public class Segment extends BaseObstacleAvecContourSansEpaisseur implements Obs
             );
         }) ;
 
+        ajouterListeners();
     }
 
     public Segment(Imp_Identifiable ii,Imp_Nommable in,Imp_ElementAvecContour iec, Imp_ElementSansEpaisseur iese,
@@ -93,6 +94,15 @@ public class Segment extends BaseObstacleAvecContourSansEpaisseur implements Obs
                     segment_support.milieu().add(segment_support.direction().multiply(+demi_l))
             );
         }) ;
+
+        ajouterListeners();
+
+    }
+
+    private void ajouterListeners() {
+        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        longueur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        rayon_diaphragme.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
 
     }
 
@@ -163,14 +173,14 @@ public class Segment extends BaseObstacleAvecContourSansEpaisseur implements Obs
         v.visiteSegment(this);
     }
 
-    @Override
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementToutePropriete(rap);
-
-        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
-        longueur.addListener((observable, oldValue, newValue) -> rap.rappel());
-        rayon_diaphragme.addListener((observable, oldValue, newValue) -> rap.rappel());
-    }
+//    @Override
+//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+//        super.ajouterRappelSurChangementToutePropriete(rap);
+//
+////        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
+////        longueur.addListener((observable, oldValue, newValue) -> rap.rappel());
+////        rayon_diaphragme.addListener((observable, oldValue, newValue) -> rap.rappel());
+//    }
 
     @Override
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {

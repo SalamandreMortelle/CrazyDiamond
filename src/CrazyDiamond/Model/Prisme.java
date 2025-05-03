@@ -28,6 +28,8 @@ public class Prisme extends BaseObstacleAvecContourEtMatiere implements Obstacle
 
         this.angle_sommet = new SimpleDoubleProperty(angle_sommet);
         this.largeur_base = new SimpleDoubleProperty(largeur_base);
+
+        ajouterListeners();
     }
 
     public Prisme(Imp_Identifiable ii,Imp_Nommable in,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem, double x_centre, double y_centre, double angle_sommet, double largeur_base, double orientation_deg) throws IllegalArgumentException {
@@ -40,6 +42,15 @@ public class Prisme extends BaseObstacleAvecContourEtMatiere implements Obstacle
 
         this.angle_sommet = new SimpleDoubleProperty(angle_sommet);
         this.largeur_base = new SimpleDoubleProperty(largeur_base);
+
+        ajouterListeners();
+    }
+
+    private void ajouterListeners() {
+        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+
+        angle_sommet.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        largeur_base.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
 
     }
 
@@ -230,18 +241,18 @@ public class Prisme extends BaseObstacleAvecContourEtMatiere implements Obstacle
 
     }
 
+//    @Override
+//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+//        super.ajouterRappelSurChangementToutePropriete(rap);
+//
+////        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
+////
+////        angle_sommet.addListener((observable, oldValue, newValue) -> rap.rappel());
+////        largeur_base.addListener((observable, oldValue, newValue) -> rap.rappel());
+//    }
+
     @Override
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementToutePropriete(rap);
-
-        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
-
-        angle_sommet.addListener((observable, oldValue, newValue) -> rap.rappel());
-        largeur_base.addListener((observable, oldValue, newValue) -> rap.rappel());
-    }
-
-    @Override
-    public void     ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
+    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
         super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
 
         position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());

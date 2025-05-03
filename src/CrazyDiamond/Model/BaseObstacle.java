@@ -5,12 +5,13 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 public abstract class BaseObstacle extends BaseElementNommable {
 
-    private final Imp_Identifiable imp_identifiable ;
+    private final Imp_Identifiable imp_identifiable;
 
-//    private final BooleanProperty appartenance_composition ;
+    //    private final BooleanProperty appartenance_composition ;
 //    private final BooleanProperty appartenance_groupe;
     private final ObjectProperty<BaseObstacleComposite> composite_parent;
 //    private final BooleanProperty appartenance_systeme_optique_centre ;
@@ -23,51 +24,90 @@ public abstract class BaseObstacle extends BaseElementNommable {
      */
     private final ObjectProperty<SystemeOptiqueCentre> soc_conteneur;
 
+    protected final HashMap<Object,RappelSurChangement> rappels_sur_changement_toute_propriete;
+
     BaseObstacle(String nom) {
-        this(new Imp_Identifiable(),new Imp_Nommable(nom)) ;
+        this(new Imp_Identifiable(), new Imp_Nommable(nom));
     }
 
     BaseObstacle(Imp_Identifiable ii, Imp_Nommable in) {
-        super(in) ;
-        this.imp_identifiable = ii ;
+        super(in);
+        this.imp_identifiable = ii;
 //        this.appartenance_composition = new SimpleBooleanProperty(false) ;
 //        this.appartenance_systeme_optique_centre = new SimpleBooleanProperty(false) ;
 //        this.appartenance_groupe = new SimpleBooleanProperty(false) ;
         this.composite_parent = new SimpleObjectProperty<>(null);
         this.soc_conteneur = new SimpleObjectProperty<>(null);
+        this.rappels_sur_changement_toute_propriete = new HashMap<>(2);
     }
 
-    public String id() { return imp_identifiable.id(); }
+    public String id() {
+        return imp_identifiable.id();
+    }
 
-    public BaseObstacleComposite parent() { return composite_parent.get();}
-    public void definirParent(BaseObstacleComposite parent) { this.composite_parent.set(parent); }
+    public BaseObstacleComposite parent() {
+        return composite_parent.get();
+    }
 
-    public SystemeOptiqueCentre SOCParent() { return soc_conteneur.get() ;}
-    public ObjectProperty<SystemeOptiqueCentre> systemeOptiqueParentProperty() { return soc_conteneur ; }
+    public void definirParent(BaseObstacleComposite parent) {
+        this.composite_parent.set(parent);
+    }
 
-    public void definirSOCParent(SystemeOptiqueCentre soc) { this.soc_conteneur.set(soc); }
+    public SystemeOptiqueCentre SOCParent() {
+        return soc_conteneur.get();
+    }
+
+    public ObjectProperty<SystemeOptiqueCentre> systemeOptiqueParentProperty() {
+        return soc_conteneur;
+    }
+
+    public void definirSOCParent(SystemeOptiqueCentre soc) {
+        this.soc_conteneur.set(soc);
+    }
 
     public Obstacle obstacleAvecId(String obs_id) {
-        return id().equals(obs_id)?(Obstacle)this:null ;
+        return id().equals(obs_id) ? (Obstacle) this : null;
     }
 
     public void appliquerSurIdentifiable(ConsumerAvecException<Object, IOException> consumer) throws IOException {
         consumer.accept(imp_identifiable);
     }
 
-//    public void definirAppartenanceComposition(boolean b) {this.appartenance_composition.set(b);}
-    public boolean appartientAComposition() {return this.composite_parent.get()!=null && this.composite_parent.get() instanceof Composition;}
+    //    public void definirAppartenanceComposition(boolean b) {this.appartenance_composition.set(b);}
+    public boolean appartientAComposition() {
+        return this.composite_parent.get() != null && this.composite_parent.get() instanceof Composition;
+    }
 
 //    public void definirAppartenanceSystemeOptiqueCentre(boolean b) {this.appartenance_systeme_optique_centre.set(b);}
 
 //    public boolean appartientASystemeOptiqueCentre() {return this.appartenance_systeme_optique_centre.get() ;}
 
     // Indique si l'obstacle fait directement partie d'un SOC ou fait partie d'un Composite qui appartient à un SOC
-    public boolean appartientASystemeOptiqueCentre() { return this.SOCParent()!=null ; }
-    public BooleanBinding appartenanceSystemeOptiqueProperty() {return this.soc_conteneur.isNotNull() ;}
+    public boolean appartientASystemeOptiqueCentre() {
+        return this.SOCParent() != null;
+    }
 
-//    public void definirAppartenanceGroupe(boolean b) { this.appartenance_groupe.set(b); }
-    public boolean appartientAGroupe() {return this.composite_parent.get()!=null && this.composite_parent.get() instanceof Groupe;}
-    public boolean appartientAComposite() {return this.composite_parent.get()!=null ;}
+    public BooleanBinding appartenanceSystemeOptiqueProperty() {
+        return this.soc_conteneur.isNotNull();
+    }
 
+    //    public void definirAppartenanceGroupe(boolean b) { this.appartenance_groupe.set(b); }
+    public boolean appartientAGroupe() {
+        return this.composite_parent.get() != null && this.composite_parent.get() instanceof Groupe;
+    }
+
+    public boolean appartientAComposite() {
+        return this.composite_parent.get() != null;
+    }
+
+    public void ajouterRappelSurChangementToutePropriete(Object cle,RappelSurChangement rap) {
+        rappels_sur_changement_toute_propriete.put(cle,rap);
+    }
+
+    public void retirerRappelSurChangementToutePropriete(Object cle) {
+        rappels_sur_changement_toute_propriete.remove(cle);
+    }
+    public void declencherRappelsSurChangementToutePropriete() {
+        rappels_sur_changement_toute_propriete.forEach( (cle,rap) -> rap.rappel());
+    }
 }

@@ -13,11 +13,13 @@ public abstract class BaseObstacleAvecContourSansEpaisseur extends BaseObstacleA
     BaseObstacleAvecContourSansEpaisseur(String nom, NatureMilieu nature_milieu, Color couleur_contour) {
         super(nom,couleur_contour);
         this.imp_elementSansEpaisseur = new Imp_ElementSansEpaisseur(nature_milieu) ;
+        this.imp_elementSansEpaisseur.ajouterListeners(this);
     }
 
     BaseObstacleAvecContourSansEpaisseur(Imp_Identifiable ii, Imp_Nommable in, Imp_ElementAvecContour iac,Imp_ElementSansEpaisseur ise) {
         super(ii,in,iac);
         this.imp_elementSansEpaisseur = ise ;
+        this.imp_elementSansEpaisseur.ajouterListeners(this);
     }
 
     public void definirNatureMilieu(NatureMilieu nature_mil) { imp_elementSansEpaisseur.definirNatureMilieu(nature_mil); }
@@ -29,10 +31,10 @@ public abstract class BaseObstacleAvecContourSansEpaisseur extends BaseObstacleA
         consumer.accept(imp_elementSansEpaisseur);
     }
 
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementToutePropriete(rap);
-        imp_elementSansEpaisseur.ajouterRappelSurChangementToutePropriete(rap);
-    }
+//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+//        super.ajouterRappelSurChangementToutePropriete(rap);
+//        imp_elementSansEpaisseur.ajouterRappelSurChangementToutePropriete(rap);
+//    }
 
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
         super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);

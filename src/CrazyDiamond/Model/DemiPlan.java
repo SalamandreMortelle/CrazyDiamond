@@ -27,12 +27,20 @@ public class DemiPlan extends BaseObstacleAvecContourEtMatiere implements Obstac
                 type_surface, nature_milieu, indice_refraction, couleur_matiere, couleur_contour);
 
         this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(new Point2D(x_origine,y_origine),orientation_deg)) ;
+
+        ajouterListeners();
     }
 
     public DemiPlan(Imp_Identifiable ii,Imp_Nommable in,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem , double x_origine, double y_origine, double orientation_deg) throws IllegalArgumentException {
         super(ii,in,iec,iem) ;
 
         this.position_orientation = new SimpleObjectProperty<>(new PositionEtOrientation(new Point2D(x_origine,y_origine),orientation_deg)) ;
+
+        ajouterListeners();
+    }
+
+    private void ajouterListeners() {
+        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
     }
 
     @Override
@@ -354,12 +362,12 @@ public class DemiPlan extends BaseObstacleAvecContourEtMatiere implements Obstac
         return c_poignees;
     }
 
-    @Override
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementToutePropriete(rap);
-
-        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
-    }
+//    @Override
+//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+//        super.ajouterRappelSurChangementToutePropriete(rap);
+//
+////        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
+//    }
 
     @Override
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {

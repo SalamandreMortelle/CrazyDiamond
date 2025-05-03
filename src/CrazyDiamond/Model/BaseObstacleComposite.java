@@ -15,14 +15,16 @@ public abstract class BaseObstacleComposite extends BaseObstacle {
     BaseObstacleComposite(String nom) {
         super(nom);
         this.imp_elementComposite = new Imp_ElementComposite();
+        this.imp_elementComposite.ajouterListeners(this) ;
     }
 
     BaseObstacleComposite(Imp_Identifiable ii, Imp_Nommable in,Imp_ElementComposite ic) {
         super(ii, in);
         this.imp_elementComposite = ic ;
+        this.imp_elementComposite.ajouterListeners(this) ;
     }
 
-    protected ObservableList<Obstacle> elementsObservables() { return imp_elementComposite.elementsObservalbes(); }
+    protected ObservableList<Obstacle> elementsObservables() { return imp_elementComposite.elementsObservables(); }
     public List<Obstacle> elements() { return imp_elementComposite.elements(); }
     public boolean estVide() {return imp_elementComposite.estVide();}
 
@@ -53,7 +55,14 @@ public abstract class BaseObstacleComposite extends BaseObstacle {
         return (o_trouve!=null?o_trouve:super.obstacleAvecId(obs_id)) ;
     }
 
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) { imp_elementComposite.ajouterRappelSurChangementToutePropriete(rap); }
+    public void ajouterRappelSurChangementToutePropriete(Object cle_observateur,RappelSurChangement rap) {
+        super.ajouterRappelSurChangementToutePropriete(cle_observateur,rap);
+        imp_elementComposite.ajouterRappelSurChangementToutePropriete(cle_observateur,rap);
+    }
+    public void retirerRappelSurChangementToutePropriete(Object cle_observateur) {
+        super.retirerRappelSurChangementToutePropriete(cle_observateur);
+        imp_elementComposite.retirerRappelSurChangementToutePropriete(cle_observateur);
+    }
 
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) { imp_elementComposite.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap); }
 

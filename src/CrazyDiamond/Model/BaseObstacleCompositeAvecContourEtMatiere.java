@@ -40,10 +40,10 @@ public class BaseObstacleCompositeAvecContourEtMatiere extends BaseObstacleCompo
         consumer.accept(imp_elementAvecMatiere);
     }
 
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementToutePropriete(rap) ;
-        imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
-    }
+//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+//        super.ajouterRappelSurChangementToutePropriete(rap) ;
+//        imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
+//    }
 
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
         super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap) ;

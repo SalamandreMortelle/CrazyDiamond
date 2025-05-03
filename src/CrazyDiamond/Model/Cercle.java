@@ -36,8 +36,8 @@ public class Cercle extends BaseObstacleAvecContourEtMatiere implements Obstacle
         this.centre = new SimpleObjectProperty<>(new Point2D(xcentre,ycentre)) ;
         this.rayon = new SimpleDoubleProperty(rayon) ;
 
+        ajouterListeners();
     }
-
 
     // Constructeur utilisé par le Deserializer
     public Cercle(Imp_Identifiable ii, Imp_Nommable iei, Imp_ElementAvecContour iac, Imp_ElementAvecMatiere iam, double xcentre, double ycentre, double rayon) throws IllegalArgumentException {
@@ -48,6 +48,13 @@ public class Cercle extends BaseObstacleAvecContourEtMatiere implements Obstacle
 
         this.centre = new SimpleObjectProperty<>(new Point2D(xcentre,ycentre)) ;
         this.rayon = new SimpleDoubleProperty(rayon) ;
+
+        ajouterListeners();
+    }
+
+    private void ajouterListeners() {
+        this.centre.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete()) ;
+        this.rayon.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete()) ;
     }
 
     @Override
@@ -113,14 +120,15 @@ public class Cercle extends BaseObstacleAvecContourEtMatiere implements Obstacle
         return centre.get() ;
     }
 
-    @Override
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementToutePropriete(rap);
-
-        centre.addListener((observable, oldValue, newValue) -> rap.rappel());
-        rayon.addListener((observable, oldValue, newValue) -> rap.rappel());
-
-    }
+//    @Override
+//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+//
+//        super.ajouterRappelSurChangementToutePropriete(rap);
+//
+////        centre.addListener((observable, oldValue, newValue) -> rap.rappel());
+////        rayon.addListener((observable, oldValue, newValue) -> rap.rappel());
+//
+//    }
 
     @Override
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {

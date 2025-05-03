@@ -77,6 +77,8 @@ public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacl
 
         this.parametre = new SimpleDoubleProperty(parametre) ;
         this.excentricite = new SimpleDoubleProperty(excentricite) ;
+
+        ajouterListeners();
     }
 
     public Conique(Imp_Identifiable ii,Imp_Nommable ien,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem , double x_foyer, double y_foyer, double orientation_deg, double parametre, double excentricite) throws IllegalArgumentException {
@@ -89,8 +91,15 @@ public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacl
 
         this.parametre = new SimpleDoubleProperty(parametre) ;
         this.excentricite = new SimpleDoubleProperty(excentricite) ;
+
+        ajouterListeners();
     }
 
+    private void ajouterListeners() {
+        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        parametre.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        excentricite.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+    }
 
     @Override
     public Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) throws Exception {
@@ -123,14 +132,10 @@ public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacl
         new CommandeDefinirUnParametrePoint<>(this,foyer().add(vecteur),this::foyer,this::definirFoyer).executer() ;
     }
 
-    @Override
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementToutePropriete(rap);
-
-        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
-        parametre.addListener((observable, oldValue, newValue) -> rap.rappel());
-        excentricite.addListener((observable, oldValue, newValue) -> rap.rappel());
-    }
+//    @Override
+//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+//        super.ajouterRappelSurChangementToutePropriete(rap);
+//    }
 
     @Override
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {

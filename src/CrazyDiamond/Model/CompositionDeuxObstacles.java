@@ -31,6 +31,8 @@ public class CompositionDeuxObstacles extends BaseObstacleAvecContourEtMatiere i
         obstacle2 = new SimpleObjectProperty<>(ob2) ;
 
         operateur = new SimpleObjectProperty<>(op)  ;
+
+        ajouterListeners();
     }
 
     public CompositionDeuxObstacles(Imp_Identifiable ii,Imp_Nommable in,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem ,Obstacle ob1, Operateur op, Obstacle ob2) throws IllegalArgumentException {
@@ -40,6 +42,12 @@ public class CompositionDeuxObstacles extends BaseObstacleAvecContourEtMatiere i
         obstacle2 = new SimpleObjectProperty<>(ob2) ;
 
         operateur = new SimpleObjectProperty<>(op)  ;
+
+        ajouterListeners();
+    }
+
+    private void ajouterListeners() {
+        operateur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
     }
 
     @Override
@@ -268,13 +276,13 @@ public class CompositionDeuxObstacles extends BaseObstacleAvecContourEtMatiere i
     }
 
     @Override
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementToutePropriete(rap);
+    public void ajouterRappelSurChangementToutePropriete(Object cle,RappelSurChangement rap) {
+        super.ajouterRappelSurChangementToutePropriete(cle,rap);
 
-        operateur.addListener((observable, oldValue, newValue) -> rap.rappel());
+//        operateur.addListener((observable, oldValue, newValue) -> rap.rappel());
 
-        obstacle1.get().ajouterRappelSurChangementToutePropriete(rap);
-        obstacle2.get().ajouterRappelSurChangementToutePropriete(rap);
+        obstacle1.get().ajouterRappelSurChangementToutePropriete(cle,rap);
+        obstacle2.get().ajouterRappelSurChangementToutePropriete(cle,rap);
 
 //        obstacle1.addListener((observable, oldValue, newValue) -> {rap.rappel(); });
 //        obstacle2.addListener((observable, oldValue, newValue) -> {rap.rappel(); });

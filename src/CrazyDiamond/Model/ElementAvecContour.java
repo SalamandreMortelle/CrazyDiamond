@@ -28,8 +28,7 @@ public interface ElementAvecContour {
     double orientationAxePolariseur() ;
     DoubleProperty orientationAxePolariseurProperty();
 
+    void ajouterRappelSurChangementToutePropriete(Object cle,RappelSurChangement rap) ;
     void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) ;
-    void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) ;
-
 
 }

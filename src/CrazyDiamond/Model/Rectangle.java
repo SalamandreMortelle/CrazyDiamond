@@ -37,6 +37,8 @@ public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obsta
 
         this.largeur = new SimpleDoubleProperty(largeur);
         this.hauteur = new SimpleDoubleProperty(hauteur);
+
+        ajouterListeners();
     }
 
     public Rectangle(Imp_Identifiable ii,Imp_Nommable in,Imp_ElementAvecContour iec, Imp_ElementAvecMatiere iem, double  x_centre, double y_centre, double largeur, double hauteur, double orientation_deg) throws IllegalArgumentException {
@@ -49,6 +51,16 @@ public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obsta
 
         this.largeur = new SimpleDoubleProperty(largeur);
         this.hauteur = new SimpleDoubleProperty(hauteur);
+
+        ajouterListeners();
+    }
+
+    private void ajouterListeners() {
+        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+
+        largeur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        hauteur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+
     }
 
     @Override
@@ -229,15 +241,15 @@ public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obsta
 
     }
 
-    @Override
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementToutePropriete(rap);
-
-        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
-
-        largeur.addListener((observable, oldValue, newValue) -> rap.rappel());
-        hauteur.addListener((observable, oldValue, newValue) -> rap.rappel());
-    }
+//    @Override
+//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+//        super.ajouterRappelSurChangementToutePropriete(rap);
+//
+////        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
+////
+////        largeur.addListener((observable, oldValue, newValue) -> rap.rappel());
+////        hauteur.addListener((observable, oldValue, newValue) -> rap.rappel());
+//    }
 
     @Override
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {

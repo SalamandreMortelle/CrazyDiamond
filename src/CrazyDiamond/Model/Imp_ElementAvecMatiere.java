@@ -6,6 +6,8 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.paint.Color;
 
+import java.util.Objects;
+
 public class Imp_ElementAvecMatiere {
 
     protected final ObjectProperty<Color> couleur_matiere;
@@ -24,37 +26,38 @@ public class Imp_ElementAvecMatiere {
 
     public Imp_ElementAvecMatiere(TypeSurface type_surface, NatureMilieu nature_milieu, double indice_refraction, Color couleur_matiere) {
 
-        if (type_surface == null)
-            this.type_surface = new SimpleObjectProperty<TypeSurface>(TypeSurface.CONVEXE) ;
-        else
-            this.type_surface = new SimpleObjectProperty<TypeSurface>(type_surface) ;
+        this.type_surface = new SimpleObjectProperty<>(Objects.requireNonNullElse(type_surface, TypeSurface.CONVEXE));
 
-        if (nature_milieu== null)
-            this.nature_milieu = new SimpleObjectProperty<NatureMilieu>(NatureMilieu.TRANSPARENT) ;
-        else
-            this.nature_milieu = new SimpleObjectProperty<NatureMilieu>(nature_milieu) ;
+        this.nature_milieu = new SimpleObjectProperty<>(Objects.requireNonNullElse(nature_milieu, NatureMilieu.TRANSPARENT));
 
         this.indice_refraction = new SimpleDoubleProperty(indice_refraction) ;
 
         if (couleur_matiere == null)
-            this.couleur_matiere = new SimpleObjectProperty<Color>(ElementAvecMatiere.couleur_matiere_par_defaut_property.getValue()) ;
+            this.couleur_matiere = new SimpleObjectProperty<>(ElementAvecMatiere.couleur_matiere_par_defaut_property.getValue()) ;
         else
-            this.couleur_matiere =  new SimpleObjectProperty<Color>(couleur_matiere) ;
+            this.couleur_matiere = new SimpleObjectProperty<>(couleur_matiere) ;
 
     }
 
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        type_surface.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        couleur_matiere.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        nature_milieu.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        indice_refraction.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-
+    public void ajouterListeners(BaseObstacleAvecContourEtMatiere boacm) {
+        this.type_surface.addListener((observable, oldValue, newValue) -> boacm.declencherRappelsSurChangementToutePropriete()) ;
+        this.couleur_matiere.addListener((observable, oldValue, newValue) -> boacm.declencherRappelsSurChangementToutePropriete()) ;
+        this.nature_milieu.addListener((observable, oldValue, newValue) -> boacm.declencherRappelsSurChangementToutePropriete()) ;
+        this.indice_refraction.addListener((observable, oldValue, newValue) -> boacm.declencherRappelsSurChangementToutePropriete()) ;
     }
+
+//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+//        type_surface.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+//        couleur_matiere.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+//        nature_milieu.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+//        indice_refraction.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+//
+//    }
 
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        type_surface.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        nature_milieu.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-        indice_refraction.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
+        type_surface.addListener((observable, oldValue, newValue) -> rap.rappel());
+        nature_milieu.addListener((observable, oldValue, newValue) -> rap.rappel());
+        indice_refraction.addListener((observable, oldValue, newValue) -> rap.rappel());
 
     }
 

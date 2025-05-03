@@ -22,8 +22,12 @@ public class Imp_ElementSansEpaisseur {
         if (nature_milieu==NatureMilieu.TRANSPARENT)
            throw new IllegalArgumentException("Un élément sans épaisseur ne peut pas être transparent.") ;
 
-        this.nature_milieu = new SimpleObjectProperty<NatureMilieu>(Objects.requireNonNullElse(nature_milieu, NatureMilieu.PAS_DE_MILIEU));
+        this.nature_milieu = new SimpleObjectProperty<>(Objects.requireNonNullElse(nature_milieu, NatureMilieu.PAS_DE_MILIEU));
 
+    }
+
+    public void ajouterListeners(BaseObstacle bo) {
+        this.nature_milieu.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementToutePropriete());
     }
 
 

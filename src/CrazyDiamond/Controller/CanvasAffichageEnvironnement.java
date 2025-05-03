@@ -265,7 +265,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         // Intégration des rappels sur les éventuels obstacles déjà présents dans l'environnement (peut arriver si on a chargé l'environnement)
         Iterator<Obstacle> ito = environnement.iterateur_obstacles() ;
         while (ito.hasNext())
-            ito.next().ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
+            ito.next().ajouterRappelSurChangementToutePropriete(this,this::rafraichirAffichage);
 
         ListChangeListener<Obstacle> lcl_obstacles = change -> {
             while (change.next()) {
@@ -278,7 +278,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
                     for (Obstacle additem : change.getAddedSubList()) {
                         LOGGER.log(Level.FINER, "Obstacle ajouté : {0}", additem);
 
-                        additem.ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
+                        additem.ajouterRappelSurChangementToutePropriete(this,this::rafraichirAffichage);
 
                     }
 
@@ -298,7 +298,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         // l'environnement). Le rappel est propagé à tous les sous-SOC par le SOC "père"
         Iterator<SystemeOptiqueCentre> itsoc = environnement.iterateurSystemesOptiquesCentres() ;
         while (itsoc.hasNext())
-            itsoc.next().ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
+            itsoc.next().ajouterRappelSurChangementToutePropriete(this,this::rafraichirAffichage);
 
 
         // Détection des socs ajoutés ou supprimés
@@ -329,7 +329,7 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
                         // Il faut un rappel pour redessiner l'axe en cas de changement d'une propriété du SOC, y compris sa matrice de transfert
                         // NB : Si ce rappel se déclenche, il est dommage qu'il y en ait déjà un de déclenché par les obstacles du SOC eux-mêmes, quand on
                         // change ses propriétés : il faudrait s'en passer et ne garder que le rappel ci-dessous...
-                        additem.ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
+                        additem.ajouterRappelSurChangementToutePropriete(this,this::rafraichirAffichage);
 
                         rafraichirAffichage();
 

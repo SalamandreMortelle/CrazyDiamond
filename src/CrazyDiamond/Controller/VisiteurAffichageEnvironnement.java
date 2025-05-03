@@ -129,7 +129,7 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
     @Override
     public void avantVisiteEnvironnement(Environnement e) {
 
-        // Réinitialiser les contours déjà calculés, pour ne pas garer les contours d'objets qui ont été supprimés
+        // Réinitialiser les contours déjà calculés, pour ne pas garder les contours d'objets qui ont été supprimés
         // de l'Environnement
         contours_visibles_obstacles.clear();
 

@@ -32,7 +32,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     private final ObjectProperty<SystemeOptiqueCentre> soc_conteneur;
     /**
      * Matrice de transfert optique en optique paraxiale, entre les plans de référence d'abscisses z_plan_entree et
-     * z_plan_sortie Seules les 4 composantes xx, xy,yx et yy de la matrice sont significatives.
+     * z_plan_sortie Seules les 4 composantes xx, xy, yx et yy de la matrice sont significatives.
      */
     private final ObjectProperty<Affine> matrice_transfert_es;
 
@@ -54,7 +54,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     private final ListProperty<DioptreParaxial> dioptres;
 
     /**
-     * Liste de tous les dioptres réellement rencontrés par un rayon arrivant sur l'axe, dans le sens des Z croissants mais
+     * Liste de tous les dioptres réellement rencontrés par un rayon arrivant sur l'axe, dans le sens des Z croissants, mais
      * qui peut ensuite subir des réflexions et progresser dans le sens opposé, auquel cas les signes des rayons de courbure
      * et les indices avant/après la rencontre du dioptre sont adaptés en conséquence (indices avant/après permutés, et
      * rayons de courbure multipliés par -1).
@@ -190,8 +190,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     // d'unité du SOC ; cf. Environnement::changerUnite()
     private boolean nouveau_h_image_apres_conversion_a_prendre_compte = false;
     private Double nouveau_h_image_apres_conversion = null ;
-    private final ArrayList<RappelSurChangement> rappels;
-
+    protected final HashMap<Object,RappelSurChangement> rappels;
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
 
     private ArrayList<Obstacle> obstaclesCentresReels() {
@@ -552,7 +551,8 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
             matrice_transfert_es.set(null);
 
-            rappels.forEach(RappelSurChangement::rappel) ;
+            // Déclencher les rappels
+            declencherRappels();
 
             return;
         }
@@ -573,7 +573,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
             matrice_transfert_es.set(nouvelle_matrice_transfert);
 
-            rappels.forEach(RappelSurChangement::rappel) ;
+            declencherRappels();
 
             return ;
         }
@@ -586,7 +586,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
             matrice_transfert_es.set(nouvelle_matrice_transfert);
 
-            rappels.forEach(RappelSurChangement::rappel) ;
+            declencherRappels(); ;
 
             return ;
 
@@ -633,7 +633,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
         matrice_transfert_es.set(nouvelle_matrice_transfert);
 
-        rappels.forEach(RappelSurChangement::rappel) ;
+        declencherRappels(); ;
 
     }
 
@@ -1605,7 +1605,8 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     public SystemeOptiqueCentre(Environnement env, Imp_Nommable ien , Point2D origine, double orientation_deg) {
         super(ien);
 
-        this.rappels = new ArrayList<>(1) ;
+        this.rappels = new HashMap<>(2) ;
+
 
         this.environnement = env ;
 
@@ -1952,6 +1953,24 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         ObservableList<RencontreDioptreParaxial> oli_int_r = FXCollections.observableArrayList() ;
         this.dioptres_rencontres = new SimpleListProperty<>(oli_int_r);
 
+        // Listeners pour les rappels demandés par d'autres objets lorsqu'une propriété intrinsèque du SOC change (et
+        // pas lorsqu'une propriété d'un sous objet du SOC change
+        axe.addListener((observable, oldValue, newValue) -> declencherRappels());
+        couleur_axe.addListener((observable, oldValue, newValue) -> declencherRappels());
+
+        montrer_dioptres.addListener((observable, oldValue, newValue) -> declencherRappels());
+
+        z_geometrique_objet.addListener((observable, oldValue, newValue) -> declencherRappels());
+        h_objet.addListener((observable, oldValue, newValue) -> declencherRappels());
+
+        montrer_objet.addListener((observable, oldValue, newValue) -> declencherRappels());
+        montrer_image.addListener((observable, oldValue, newValue) -> declencherRappels());
+
+        montrer_plans_focaux.addListener((observable, oldValue, newValue) -> declencherRappels());
+        montrer_plans_principaux.addListener((observable, oldValue, newValue) -> declencherRappels());
+        montrer_plans_nodaux.addListener((observable, oldValue, newValue) -> declencherRappels());
+
+
     }
 
     public double XOrigine() { return axe.get().position().getX() ;}
@@ -1980,58 +1999,73 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     public boolean estVide() { return elements_centres.isEmpty() ; }
     public Stream<ElementDeSOC> stream_obstacles_centres_premier_niveau() {return elements_centres.stream() ;}
 
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
+    public void ajouterRappelSurChangementToutePropriete(Object cle,RappelSurChangement rap) {
 
-        rappels.add(rap) ;
+        // TODO utiliser le paramètre clé (pour gérer les suppressions d'éléments du SOC)
+
+        rappels.put(cle,rap) ;
 
         // TODO : supprimer si possible le rappel quand le SOC n'est plus actif dans l'environnement (mieux mais pas
         // forcément requis : quand il n'est plus actif, il n'est plus modifié par personne : sur les Groupes, je ne
         // crois pas que les rappels soient jamais supprimés)
-        // Propagation du rappel aux sous-SOC ; il ne faut pas le faire pour les obstacles du SOC : c'est
+        // Propagation du rappel aux sous-SOC ; il ne faut pas le faire pour les obstacles du SOC car c'est
         // l'environnement qui s'en charge
         for (ElementDeSOC el : elements_centres)
-            if (el.estUnSOC()) el.ajouterRappelSurChangementToutePropriete(rap); // Propagation récursive
+            if (el.estUnSOC()) el.ajouterRappelSurChangementToutePropriete(cle,rap); // Propagation récursive
 
-        axe.addListener((observable, oldValue, newValue) -> rap.rappel());
-        couleur_axe.addListener((observable, oldValue, newValue) -> rap.rappel());
-
-        montrer_dioptres.addListener((observable, oldValue, newValue) -> rap.rappel());
-
-        z_geometrique_objet.addListener((observable, oldValue, newValue) -> rap.rappel());
-        h_objet.addListener((observable, oldValue, newValue) -> rap.rappel());
-
-        montrer_objet.addListener((observable, oldValue, newValue) -> rap.rappel());
-        montrer_image.addListener((observable, oldValue, newValue) -> rap.rappel());
-
-        montrer_plans_focaux.addListener((observable, oldValue, newValue) -> rap.rappel());
-        montrer_plans_principaux.addListener((observable, oldValue, newValue) -> rap.rappel());
-        montrer_plans_nodaux.addListener((observable, oldValue, newValue) -> rap.rappel());
+//        axe.addListener((observable, oldValue, newValue) -> rap.rappel());
+//        couleur_axe.addListener((observable, oldValue, newValue) -> rap.rappel());
+//
+//        montrer_dioptres.addListener((observable, oldValue, newValue) -> rap.rappel());
+//
+//        z_geometrique_objet.addListener((observable, oldValue, newValue) -> rap.rappel());
+//        h_objet.addListener((observable, oldValue, newValue) -> rap.rappel());
+//
+//        montrer_objet.addListener((observable, oldValue, newValue) -> rap.rappel());
+//        montrer_image.addListener((observable, oldValue, newValue) -> rap.rappel());
+//
+//        montrer_plans_focaux.addListener((observable, oldValue, newValue) -> rap.rappel());
+//        montrer_plans_principaux.addListener((observable, oldValue, newValue) -> rap.rappel());
+//        montrer_plans_nodaux.addListener((observable, oldValue, newValue) -> rap.rappel());
 
     }
 
-    protected void supprimerRappels() {
+    public void retirerRappel(Object cle_observateur) {
+        rappels.remove(cle_observateur);
 
-        for (RappelSurChangement rap : rappels) {
+        for (ElementDeSOC el : elements_centres) // Propagation récursive aux sous_SOCs
+            if (el instanceof SystemeOptiqueCentre el_soc) el_soc.retirerRappel(cle_observateur);
 
-            for (ElementDeSOC el : elements_centres)
-                if (el instanceof SystemeOptiqueCentre el_soc) el_soc.supprimerRappels(); // Propagation récursive
-
-            axe.removeListener((observable, oldValue, newValue) -> rap.rappel());
-            couleur_axe.removeListener((observable, oldValue, newValue) -> rap.rappel());
-
-            montrer_dioptres.removeListener((observable, oldValue, newValue) -> rap.rappel());
-
-            z_geometrique_objet.removeListener((observable, oldValue, newValue) -> rap.rappel());
-            h_objet.removeListener((observable, oldValue, newValue) -> rap.rappel());
-
-            montrer_objet.removeListener((observable, oldValue, newValue) -> rap.rappel());
-            montrer_image.removeListener((observable, oldValue, newValue) -> rap.rappel());
-
-            montrer_plans_focaux.removeListener((observable, oldValue, newValue) -> rap.rappel());
-            montrer_plans_principaux.removeListener((observable, oldValue, newValue) -> rap.rappel());
-            montrer_plans_nodaux.removeListener((observable, oldValue, newValue) -> rap.rappel());
-        }
     }
+
+    public void declencherRappels() {
+        rappels.forEach( (cle, rap) -> rap.rappel() );
+    }
+
+
+//    protected void supprimerRappels() {
+//
+//        for (RappelSurChangement rap : rappels.values()) {
+//
+//            for (ElementDeSOC el : elements_centres)
+//                if (el instanceof SystemeOptiqueCentre el_soc) el_soc.supprimerRappels(); // Propagation récursive
+//
+//            axe.removeListener((observable, oldValue, newValue) -> rap.rappel());
+//            couleur_axe.removeListener((observable, oldValue, newValue) -> rap.rappel());
+//
+//            montrer_dioptres.removeListener((observable, oldValue, newValue) -> rap.rappel());
+//
+//            z_geometrique_objet.removeListener((observable, oldValue, newValue) -> rap.rappel());
+//            h_objet.removeListener((observable, oldValue, newValue) -> rap.rappel());
+//
+//            montrer_objet.removeListener((observable, oldValue, newValue) -> rap.rappel());
+//            montrer_image.removeListener((observable, oldValue, newValue) -> rap.rappel());
+//
+//            montrer_plans_focaux.removeListener((observable, oldValue, newValue) -> rap.rappel());
+//            montrer_plans_principaux.removeListener((observable, oldValue, newValue) -> rap.rappel());
+//            montrer_plans_nodaux.removeListener((observable, oldValue, newValue) -> rap.rappel());
+//        }
+//    }
 
 
     @Override
@@ -2047,11 +2081,11 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     @Override
     public ObjectProperty<SystemeOptiqueCentre> systemeOptiqueParentProperty() {return this.soc_conteneur ;}
 
-    @Override
-    public void ajouterRappelSurChangementTouteProprieteModifiantElementsCardinaux(RappelSurChangement rappel) {
-        for (ElementDeSOC el : elements_centres)
-            el.ajouterRappelSurChangementTouteProprieteModifiantElementsCardinaux(rappel);
-    }
+//    @Override
+//    public void ajouterRappelSurChangementTouteProprieteModifiantElementsCardinaux(RappelSurChangement rappel) {
+//        for (ElementDeSOC el : elements_centres)
+//            el.ajouterRappelSurChangementTouteProprieteModifiantElementsCardinaux(rappel);
+//    }
 
     @Override
     public void translater(Point2D tr) {
@@ -2250,16 +2284,16 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
         o.definirSOCParent(this) ; // NB : si o est un Composite, tous ses sous-éléments auront également 'this' comme SOC Parent
 
-        // Il faut positionner l'élément après en avoir défini le SOC parent pour que le Panneau de l'élément puisse calculer
-        // le positionnement relatif par rapport au SOC parent
+        // Il faut positionner l'élément après en avoir défini le SOC parent pour que le Panneau de l'élément puisse
+        // calculer le positionnement relatif par rapport au SOC parent
         positionnerElement(o);
 
         calculeElementsCardinaux();
 
-        // Déclencher un recalcul des éléments cardinaux dès qu'un attribut ou un élément de l'obstacle (ou de ses
+        // Déclencher un re-calcul des éléments cardinaux dès qu'un attribut ou un élément de l'obstacle (ou de ses
         // sous_obstacles) change. Si o est un Composite on surveille aussi les ajouts/retraits dans tous ses éventuels
         // sous-composites
-        o.ajouterRappelSurChangementToutePropriete(this::calculeElementsCardinaux);
+        o.ajouterRappelSurChangementToutePropriete(this,this::calculeElementsCardinaux);
 
     }
 
@@ -2279,7 +2313,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
             calculeElementsCardinaux();
 
         // Déclencher un recalcul des éléments cardinaux dès qu'un attribut ou un élément du SOC fils ajouté change
-        soc.ajouterRappelSurChangementToutePropriete(this::calculeElementsCardinaux);
+        soc.ajouterRappelSurChangementToutePropriete(this,this::calculeElementsCardinaux);
 
     }
 
@@ -2356,11 +2390,14 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
         // Si l'élément el supprimé est un SOC, il peut garder son SOC parent car, contrairement aux obstacles, il n'est
         // alors plus actif dans l'environnement. Cela facilite l'annulation de sa suppression (cf. CommandeSupprimerSystemeOptiqueCentre)
-        if (el instanceof Obstacle)
+        if (el instanceof Obstacle obs) {
             el.definirSOCParent(null);
+            obs.retirerRappelSurChangementToutePropriete(this);
+        }
         else if (el instanceof SystemeOptiqueCentre el_soc) {
             el_soc.libererObstacles();
-            el_soc.supprimerRappels();
+//            el_soc.supprimerRappels();
+            el_soc.retirerRappel(this);
         }
 
         if (elements_centres.size()==0)

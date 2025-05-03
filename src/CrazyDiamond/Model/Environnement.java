@@ -145,6 +145,8 @@ public class Environnement {
         // Ajoute le listener dans les obstacles de 1er niveau et, récursivement, dans tous les sous-groupes, et dans toutes les compositions
         groupeRacine().ajouterListChangeListener(lcl_obstacles_pour_illumination);
 
+//        groupeRacine().ajouterRappelSurChangementTouteProprieteModifiantChemin(this,this::illuminerToutesSources);
+
 //        ListChangeListener<ElementDeSOC>  lcl_elements_pour_calcul_elements_cardinaux = change -> {
 //            for (SystemeOptiqueCentre soc :)
 //                // Il n'y a pas d'éléments généraux à calculer
@@ -549,7 +551,8 @@ public class Environnement {
         systemes_optiques_centres.remove(s);
 
         s.libererObstacles() ;
-        s.supprimerRappels();
+//        s.supprimerRappels();
+        s.retirerRappel(this);
 
     }
 
