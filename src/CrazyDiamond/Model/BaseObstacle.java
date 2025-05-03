@@ -11,10 +11,7 @@ public abstract class BaseObstacle extends BaseElementNommable {
 
     private final Imp_Identifiable imp_identifiable;
 
-    //    private final BooleanProperty appartenance_composition ;
-//    private final BooleanProperty appartenance_groupe;
     private final ObjectProperty<BaseObstacleComposite> composite_parent;
-//    private final BooleanProperty appartenance_systeme_optique_centre ;
 
     /**
      * Plus petit SOC contenant l'obstacle. Si l'obstacle fait partie d'un composite qui appartient directement, ou
@@ -25,6 +22,7 @@ public abstract class BaseObstacle extends BaseElementNommable {
     private final ObjectProperty<SystemeOptiqueCentre> soc_conteneur;
 
     protected final HashMap<Object,RappelSurChangement> rappels_sur_changement_toute_propriete;
+    protected final HashMap<Object,RappelSurChangement> rappels_sur_changement_toute_propriete_modifiant_chemin;
 
     BaseObstacle(String nom) {
         this(new Imp_Identifiable(), new Imp_Nommable(nom));
@@ -33,12 +31,10 @@ public abstract class BaseObstacle extends BaseElementNommable {
     BaseObstacle(Imp_Identifiable ii, Imp_Nommable in) {
         super(in);
         this.imp_identifiable = ii;
-//        this.appartenance_composition = new SimpleBooleanProperty(false) ;
-//        this.appartenance_systeme_optique_centre = new SimpleBooleanProperty(false) ;
-//        this.appartenance_groupe = new SimpleBooleanProperty(false) ;
         this.composite_parent = new SimpleObjectProperty<>(null);
         this.soc_conteneur = new SimpleObjectProperty<>(null);
         this.rappels_sur_changement_toute_propriete = new HashMap<>(2);
+        this.rappels_sur_changement_toute_propriete_modifiant_chemin = new HashMap<>(2);
     }
 
     public String id() {
@@ -73,14 +69,10 @@ public abstract class BaseObstacle extends BaseElementNommable {
         consumer.accept(imp_identifiable);
     }
 
-    //    public void definirAppartenanceComposition(boolean b) {this.appartenance_composition.set(b);}
     public boolean appartientAComposition() {
         return this.composite_parent.get() != null && this.composite_parent.get() instanceof Composition;
     }
 
-//    public void definirAppartenanceSystemeOptiqueCentre(boolean b) {this.appartenance_systeme_optique_centre.set(b);}
-
-//    public boolean appartientASystemeOptiqueCentre() {return this.appartenance_systeme_optique_centre.get() ;}
 
     // Indique si l'obstacle fait directement partie d'un SOC ou fait partie d'un Composite qui appartient à un SOC
     public boolean appartientASystemeOptiqueCentre() {
@@ -91,7 +83,6 @@ public abstract class BaseObstacle extends BaseElementNommable {
         return this.soc_conteneur.isNotNull();
     }
 
-    //    public void definirAppartenanceGroupe(boolean b) { this.appartenance_groupe.set(b); }
     public boolean appartientAGroupe() {
         return this.composite_parent.get() != null && this.composite_parent.get() instanceof Groupe;
     }
@@ -100,14 +91,24 @@ public abstract class BaseObstacle extends BaseElementNommable {
         return this.composite_parent.get() != null;
     }
 
-    public void ajouterRappelSurChangementToutePropriete(Object cle,RappelSurChangement rap) {
-        rappels_sur_changement_toute_propriete.put(cle,rap);
+    public void ajouterRappelSurChangementToutePropriete(Object cle_observateur,RappelSurChangement rap) {
+        rappels_sur_changement_toute_propriete.put(cle_observateur,rap);
     }
-
-    public void retirerRappelSurChangementToutePropriete(Object cle) {
-        rappels_sur_changement_toute_propriete.remove(cle);
+    public void retirerRappelSurChangementToutePropriete(Object cle_observateur) {
+        rappels_sur_changement_toute_propriete.remove(cle_observateur);
     }
     public void declencherRappelsSurChangementToutePropriete() {
-        rappels_sur_changement_toute_propriete.forEach( (cle,rap) -> rap.rappel());
+        rappels_sur_changement_toute_propriete.forEach( (cle_observateur,rap) -> rap.rappel());
     }
+
+    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(Object cle_observateur, RappelSurChangement rap) {
+        rappels_sur_changement_toute_propriete_modifiant_chemin.put(cle_observateur,rap);
+    }
+    public void retirerRappelSurChangementTouteProprieteModifiantChemin(Object cle_observateur) {
+        rappels_sur_changement_toute_propriete_modifiant_chemin.remove(cle_observateur);
+    }
+    public void declencherRappelsSurChangementTouteProprieteModifiantChemin() {
+        rappels_sur_changement_toute_propriete_modifiant_chemin.forEach( (cle_observateur,rap) -> rap.rappel());
+    }
+
 }

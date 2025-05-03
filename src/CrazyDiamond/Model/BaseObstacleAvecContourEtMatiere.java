@@ -14,7 +14,6 @@ public abstract class BaseObstacleAvecContourEtMatiere extends BaseObstacleAvecC
         super(nom,couleur_contour);
         this.imp_elementAvecMatiere = new Imp_ElementAvecMatiere(type_surface,nature_milieu ,indice_refraction,couleur_matiere) ;
         this.imp_elementAvecMatiere.ajouterListeners(this) ;
-//        this.imp_elementAvecMatiere = new Imp_ElementAvecMatiere(type_surface,null ,1.0,null) ;
     }
 
     BaseObstacleAvecContourEtMatiere(Imp_Identifiable ii, Imp_Nommable in, Imp_ElementAvecContour iac, Imp_ElementAvecMatiere iam) {
@@ -43,13 +42,4 @@ public abstract class BaseObstacleAvecContourEtMatiere extends BaseObstacleAvecC
         consumer.accept(imp_elementAvecMatiere);
     }
 
-//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-//        super.ajouterRappelSurChangementToutePropriete(rap) ;
-////        imp_elementAvecMatiere.ajouterRappelSurChangementToutePropriete(rap);
-//    }
-
-    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap) ;
-        imp_elementAvecMatiere.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-    }
 }

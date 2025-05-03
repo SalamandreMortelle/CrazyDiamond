@@ -18,7 +18,8 @@ import java.util.logging.Logger;
 // Cela convient donc pour des obstacles d'un seul tenant, qui peuvent contenir des trous ou être concaves
 // à condition qu'ils soient infinis.
 public interface Obstacle extends ElementDeSOC {
-    // TODO : envisager de faire implémenter ElementDeSOC par les obstacles qui peuvent (sous réserve d'éligibilité) être inclus dans un SOC
+    // TODO : envisager de faire implémenter ElementDeSOC par les obstacles qui peuvent (sous réserve d'éligibilité)
+    //  être inclus dans un SOC
 
     enum ModeRecherche { PREMIERE, DERNIERE }
 
@@ -195,21 +196,15 @@ public interface Obstacle extends ElementDeSOC {
     // TODO : Implémenter cette méthode pour implémenter les Compositions de Compositions les plus générales
    // ArrayList<Point2D> cherche_toutes_intersections(Rayon r) ;
 
-    default void ajouterRappelSurChangementToutePropriete(Object cle,RappelSurChangement rap) { }
-    default void retirerRappelSurChangementToutePropriete(Object cle) { }
-    default void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) { }
+    default void ajouterRappelSurChangementToutePropriete(Object cle_observateur,RappelSurChangement rap) { }
+    default void retirerRappelSurChangementToutePropriete(Object cle_observateur) { }
 
-//    @Override
-//    default void ajouterRappelSurChangementTouteProprieteModifiantElementsCardinaux(RappelSurChangement rappel) {
-//        // Pour simplifier, on considère que tout changement de propriété de l'obstacle aura un impact sur les éléments
-//        // cardinaux d'un SOC qui le contiendrait.
-//        ajouterRappelSurChangementToutePropriete(, rappel);
-//    }
+    default void ajouterRappelSurChangementTouteProprieteModifiantChemin(Object cle_observateur,RappelSurChangement rap) { }
+    default void retirerRappelSurChangementTouteProprieteModifiantChemin(Object cle_observateur) { }
 
     String id() ;
     StringProperty nomProperty() ;
     String nom() ;
-
 
     default Color couleurContour() {return null ;}
     default Color couleurMatiere() {return null ;}

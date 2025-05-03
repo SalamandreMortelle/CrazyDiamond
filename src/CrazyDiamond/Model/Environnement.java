@@ -436,8 +436,8 @@ public class Environnement {
 //        if (this.groupe_racine_obstacles.contains(o))
 //            return;
 
-        // TODO A VERIFIER :  a priori inutile les éléments du groupe racine sont déjà surveillés par lcl_illumination ; cf. ligne 143
-        o.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources);
+        // TODO A VERIFIER :  a priori inutile les éléments du groupe racine sont déjà surveillés par lcl_illumination ; cf. ligne 146
+        o.ajouterRappelSurChangementTouteProprieteModifiantChemin(this, this::illuminerToutesSources);
 
         groupeRacine().ajouterObstacle(o);
         // Tous les ListChangeListeners déjà définis sur le groupe racine sont automatiquement appliqués à l'Obstacle
@@ -460,7 +460,8 @@ public class Environnement {
 //        if (this.groupe_racine_obstacles.contains(o_a_ajouter))
 //            return;
 //
-        o_a_ajouter.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources);
+        // TODO A VERIFIER :  a priori inutile les éléments du groupe racine sont déjà surveillés par lcl_illumination ; cf. ligne 146
+        o_a_ajouter.ajouterRappelSurChangementTouteProprieteModifiantChemin(this, this::illuminerToutesSources);
 //
 //        groupe_racine_obstacles.add(i_pos_dans_env,o_a_ajouter);
         groupeRacine().ajouterObstacleEnPosition(o_a_ajouter,i_pos_dans_env);

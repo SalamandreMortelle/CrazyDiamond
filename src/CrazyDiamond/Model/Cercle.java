@@ -55,6 +55,9 @@ public class Cercle extends BaseObstacleAvecContourEtMatiere implements Obstacle
     private void ajouterListeners() {
         this.centre.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete()) ;
         this.rayon.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete()) ;
+
+        this.centre.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin()) ;
+        this.rayon.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin()) ;
     }
 
     @Override
@@ -118,24 +121,6 @@ public class Cercle extends BaseObstacleAvecContourEtMatiere implements Obstacle
     }
     public Point2D centre() {
         return centre.get() ;
-    }
-
-//    @Override
-//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-//
-//        super.ajouterRappelSurChangementToutePropriete(rap);
-//
-////        centre.addListener((observable, oldValue, newValue) -> rap.rappel());
-////        rayon.addListener((observable, oldValue, newValue) -> rap.rappel());
-//
-//    }
-
-    @Override
-    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-
-        centre.addListener((observable, oldValue, newValue) -> rap.rappel());
-        rayon.addListener((observable, oldValue, newValue) -> rap.rappel());
     }
 
     @Override

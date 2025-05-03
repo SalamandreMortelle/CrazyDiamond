@@ -38,31 +38,17 @@ public class Imp_ElementAvecContour {
         this.taux_reflexion_surface.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementToutePropriete());
         this.orientation_axe_polariseur.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementToutePropriete());
 
+        this.traitement_surface.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        this.taux_reflexion_surface.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        this.orientation_axe_polariseur.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementTouteProprieteModifiantChemin());
     }
 
     public Color couleurContour() { return couleur_contour.get() ;}
     public void definirCouleurContour(Color c) { couleur_contour.set(c); }
-
     public ObjectProperty<Color> couleurContourProperty() {
         return couleur_contour;
     }
 
-    
-//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-//        couleur_contour.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        traitement_surface.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        taux_reflexion_surface.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        orientation_axe_polariseur.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//
-//    }
-
-    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        // Trois propriétés de cette classe ont une incidence sur le chemin de la lumiere
-        traitement_surface.addListener((observable, oldValue, newValue) -> rap.rappel());
-        taux_reflexion_surface.addListener((observable, oldValue, newValue) -> rap.rappel());
-        orientation_axe_polariseur.addListener((observable, oldValue, newValue) -> rap.rappel());
-    }
-    
     public TraitementSurface traitementSurface() {
         return traitement_surface.get() ;
     }

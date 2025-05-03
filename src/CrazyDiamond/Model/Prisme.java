@@ -52,6 +52,11 @@ public class Prisme extends BaseObstacleAvecContourEtMatiere implements Obstacle
         angle_sommet.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
         largeur_base.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
 
+
+        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+
+        angle_sommet.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        largeur_base.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
     }
 
     @Override
@@ -239,26 +244,6 @@ public class Prisme extends BaseObstacleAvecContourEtMatiere implements Obstacle
 
         return contours ;
 
-    }
-
-//    @Override
-//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-//        super.ajouterRappelSurChangementToutePropriete(rap);
-//
-////        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
-////
-////        angle_sommet.addListener((observable, oldValue, newValue) -> rap.rappel());
-////        largeur_base.addListener((observable, oldValue, newValue) -> rap.rappel());
-//    }
-
-    @Override
-    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-
-        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
-
-        angle_sommet.addListener((observable, oldValue, newValue) -> rap.rappel());
-        largeur_base.addListener((observable, oldValue, newValue) -> rap.rappel());
     }
 
     public void retaillerPourSourisEn(Point2D pos_souris) {

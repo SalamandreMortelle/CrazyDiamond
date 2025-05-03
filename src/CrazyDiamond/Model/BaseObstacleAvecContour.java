@@ -43,12 +43,4 @@ public abstract class BaseObstacleAvecContour extends BaseObstacle {
         consumer.accept(imp_elementAvecContour);
     }
 
-//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-//        super.ajouterRappelSurChangementToutePropriete(rap);
-////        imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
-//    }
-
-    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-    }
 }

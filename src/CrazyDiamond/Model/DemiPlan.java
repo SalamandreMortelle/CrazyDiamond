@@ -41,6 +41,8 @@ public class DemiPlan extends BaseObstacleAvecContourEtMatiere implements Obstac
 
     private void ajouterListeners() {
         position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+
+        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
     }
 
     @Override
@@ -360,20 +362,6 @@ public class DemiPlan extends BaseObstacleAvecContourEtMatiere implements Obstac
         c_poignees.ajoutePoint(origine().add(Math.cos(Math.toRadians(orientation())), Math.sin(Math.toRadians(orientation())))) ;
 
         return c_poignees;
-    }
-
-//    @Override
-//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-//        super.ajouterRappelSurChangementToutePropriete(rap);
-//
-////        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
-//    }
-
-    @Override
-    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-
-        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
     }
 
     @Override

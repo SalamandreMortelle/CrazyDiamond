@@ -48,6 +48,7 @@ public class CompositionDeuxObstacles extends BaseObstacleAvecContourEtMatiere i
 
     private void ajouterListeners() {
         operateur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        operateur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
     }
 
     @Override
@@ -276,35 +277,23 @@ public class CompositionDeuxObstacles extends BaseObstacleAvecContourEtMatiere i
     }
 
     @Override
-    public void ajouterRappelSurChangementToutePropriete(Object cle,RappelSurChangement rap) {
-        super.ajouterRappelSurChangementToutePropriete(cle,rap);
+    public void ajouterRappelSurChangementToutePropriete(Object cle_observateur, RappelSurChangement rap) {
+        super.ajouterRappelSurChangementToutePropriete(cle_observateur,rap);
 
-//        operateur.addListener((observable, oldValue, newValue) -> rap.rappel());
-
-        obstacle1.get().ajouterRappelSurChangementToutePropriete(cle,rap);
-        obstacle2.get().ajouterRappelSurChangementToutePropriete(cle,rap);
-
-//        obstacle1.addListener((observable, oldValue, newValue) -> {rap.rappel(); });
-//        obstacle2.addListener((observable, oldValue, newValue) -> {rap.rappel(); });
+        obstacle1.get().ajouterRappelSurChangementToutePropriete(cle_observateur,rap);
+        obstacle2.get().ajouterRappelSurChangementToutePropriete(cle_observateur,rap);
     }
 
     @Override
-    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
+    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(Object cle_observateur, RappelSurChangement rap) {
+        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(cle_observateur,rap);
 
-        operateur.addListener((observable, oldValue, newValue) -> rap.rappel());
-
-        obstacle1.get().ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-        obstacle2.get().ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-
-//        obstacle1.addListener((observable, oldValue, newValue) -> {rap.rappel(); });
-//        obstacle2.addListener((observable, oldValue, newValue) -> {rap.rappel(); });
-
+        obstacle1.get().ajouterRappelSurChangementTouteProprieteModifiantChemin(cle_observateur,rap);
+        obstacle2.get().ajouterRappelSurChangementTouteProprieteModifiantChemin(cle_observateur,rap);
     }
 
     @Override
     public void tournerAutourDe(Point2D centre_rot, double angle_rot_deg) {
-
     }
 
     @Override

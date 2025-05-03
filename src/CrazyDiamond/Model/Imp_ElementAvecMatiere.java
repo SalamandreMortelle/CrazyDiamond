@@ -44,21 +44,10 @@ public class Imp_ElementAvecMatiere {
         this.couleur_matiere.addListener((observable, oldValue, newValue) -> boacm.declencherRappelsSurChangementToutePropriete()) ;
         this.nature_milieu.addListener((observable, oldValue, newValue) -> boacm.declencherRappelsSurChangementToutePropriete()) ;
         this.indice_refraction.addListener((observable, oldValue, newValue) -> boacm.declencherRappelsSurChangementToutePropriete()) ;
-    }
 
-//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-//        type_surface.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        couleur_matiere.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        nature_milieu.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//        indice_refraction.addListener((observable, oldValue, newValue) -> { rap.rappel(); });
-//
-//    }
-
-    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        type_surface.addListener((observable, oldValue, newValue) -> rap.rappel());
-        nature_milieu.addListener((observable, oldValue, newValue) -> rap.rappel());
-        indice_refraction.addListener((observable, oldValue, newValue) -> rap.rappel());
-
+        this.type_surface.addListener((observable, oldValue, newValue) -> boacm.declencherRappelsSurChangementTouteProprieteModifiantChemin()) ;
+        this.nature_milieu.addListener((observable, oldValue, newValue) -> boacm.declencherRappelsSurChangementTouteProprieteModifiantChemin()) ;
+        this.indice_refraction.addListener((observable, oldValue, newValue) -> boacm.declencherRappelsSurChangementTouteProprieteModifiantChemin()) ;
     }
 
     public void definirTypeSurface(TypeSurface type_surf) {

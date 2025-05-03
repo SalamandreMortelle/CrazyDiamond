@@ -61,6 +61,11 @@ public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obsta
         largeur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
         hauteur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
 
+        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+
+        largeur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        hauteur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+
     }
 
     @Override
@@ -239,26 +244,6 @@ public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obsta
 
         return contours ;
 
-    }
-
-//    @Override
-//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-//        super.ajouterRappelSurChangementToutePropriete(rap);
-//
-////        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
-////
-////        largeur.addListener((observable, oldValue, newValue) -> rap.rappel());
-////        hauteur.addListener((observable, oldValue, newValue) -> rap.rappel());
-//    }
-
-    @Override
-    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-
-        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
-
-        largeur.addListener((observable, oldValue, newValue) -> rap.rappel());
-        hauteur.addListener((observable, oldValue, newValue) -> rap.rappel());
     }
 
     public void retaillerPourSourisEn(Point2D pos_souris) {

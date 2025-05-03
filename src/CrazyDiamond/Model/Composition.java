@@ -72,6 +72,7 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
 
     private void ajouterListeners() {
         operateur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        operateur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
     }
 
     @Override
@@ -550,24 +551,6 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
         return intersections.get(intersections.size() - 1);
 
     }
-
-
-//    @Override
-//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-//        super.ajouterRappelSurChangementToutePropriete(rap);
-//
-////        operateur.addListener((observable, oldValue, newValue) -> rap.rappel());
-//    }
-
-    @Override
-    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-
-        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-
-        operateur.addListener((observable, oldValue, newValue) -> rap.rappel());
-    }
-
-
 
     @Override
     public Double courbureRencontreeAuSommet(Point2D pt_sur_surface, Point2D direction) throws Exception {

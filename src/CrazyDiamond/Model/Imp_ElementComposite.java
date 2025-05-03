@@ -20,8 +20,9 @@ public class Imp_ElementComposite {
 
     private final ListProperty<Obstacle> elements;
 
+    // TODO : supprimer cette liste de ListChangeListener devenue inutile grâce aux rappels avec propagation automatique
+    //  dans les composites
     private final ArrayList<ListChangeListener<Obstacle>> observateurs_des_elements ;
-//    private final Hashtable<RappelSurChangement,ListChangeListener<Obstacle> > rappels_sur_listes_element ;
 
     public Imp_ElementComposite() {
 
@@ -39,12 +40,14 @@ public class Imp_ElementComposite {
                 if (change.wasRemoved()) {
                     LOGGER.log(Level.FINER, "Obstacle supprimé du Composite");
                     bo.declencherRappelsSurChangementToutePropriete();
+                    bo.declencherRappelsSurChangementTouteProprieteModifiantChemin();
 
                 } else if (change.wasAdded()) {
 
                     for (Obstacle additem : change.getAddedSubList()) {
                         LOGGER.log(Level.FINER, "Obstacle ajouté dans le Composite : {0}", additem);
                         bo.declencherRappelsSurChangementToutePropriete();
+                        bo.declencherRappelsSurChangementTouteProprieteModifiantChemin();
                     }
                 }
             }
@@ -71,8 +74,6 @@ public class Imp_ElementComposite {
 
         // TODO : il faudrait peut-être vérifier si l'obstacle o appartient à l'environnement car sinon, il n'y aura pas de notification
         // des rappels en cas de modification de ses propriétés (car ces rappels sont ajoutés lors de l'ajout de l'obstacle à l'environnement)
-
-//        o.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources); ;
 
         this.elements.add(o);  // Le listener des éléments (cf. constructeur de BaseObstacleComposite) se charge
                                // d'observer les modifications des propriétés de l'objet ajouté o, et de déclencher les
@@ -215,35 +216,18 @@ public class Imp_ElementComposite {
     }
 
 
-    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
+    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(Object cle_observateur,RappelSurChangement rap) {
         for (Obstacle o : elements)
-            o.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
+            o.ajouterRappelSurChangementTouteProprieteModifiantChemin(cle_observateur,rap);
 
         // Dans un Composite, il faut aussi mettre en observation la liste des éléments pour réagir aux ajouts et aux
         // suppressions d'éléments
-        surveillerListeElements(rap);
+//        surveillerListeElements(rap);
     }
 
-    private void surveillerListeElements(RappelSurChangement rap) {
-        ListChangeListener<Obstacle> lcl_elements = change -> {
-            while (change.next()) {
-
-                if (change.wasRemoved()) {
-                    LOGGER.log(Level.FINER, "Obstacle supprimé du Composite");
-                    rap.rappel();
-
-                } else if (change.wasAdded()) {
-
-                    for (Obstacle additem : change.getAddedSubList()) {
-                        LOGGER.log(Level.FINER, "Obstacle ajouté dans le Composite : {0}", additem);
-                        rap.rappel();
-
-                    }
-                }
-            }
-        };
-        // Ajout récursif du rappel dans tous les sous-groupes et dans toutes les sous-compositions
-        ajouterListChangeListener(lcl_elements);
+    public void retirerRappelSurChangementTouteProprieteModifiantChemin(Object cle_observateur) {
+        for (Obstacle o : elements)
+            o.retirerRappelSurChangementTouteProprieteModifiantChemin(cle_observateur);
     }
 
     public int nombreObstaclesPremierNiveau() {

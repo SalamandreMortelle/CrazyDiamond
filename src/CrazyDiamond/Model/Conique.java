@@ -99,6 +99,10 @@ public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacl
         position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
         parametre.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
         excentricite.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+
+        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        parametre.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        excentricite.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
     }
 
     @Override
@@ -130,20 +134,6 @@ public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacl
     @Override
     public void translaterParCommande(Point2D vecteur) {
         new CommandeDefinirUnParametrePoint<>(this,foyer().add(vecteur),this::foyer,this::definirFoyer).executer() ;
-    }
-
-//    @Override
-//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-//        super.ajouterRappelSurChangementToutePropriete(rap);
-//    }
-
-    @Override
-    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-
-        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
-        parametre.addListener((observable, oldValue, newValue) -> rap.rappel());
-        excentricite.addListener((observable, oldValue, newValue) -> rap.rappel());
     }
 
     @Override

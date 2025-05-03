@@ -32,7 +32,7 @@ public interface ElementDeSOC extends /*Identifiable,*/Nommable {
     void translater(Point2D tr) ;
     void tournerAutourDe(Point2D centre_rot, double angle_rot_deg) ;
 
-    void ajouterRappelSurChangementToutePropriete(Object cle,RappelSurChangement rappel);
+    void ajouterRappelSurChangementToutePropriete(Object cle_observateur,RappelSurChangement rappel);
 //    void ajouterRappelSurChangementTouteProprieteModifiantElementsCardinaux(Object cle,RappelSurChangement rappel) ;
 
     default boolean comprend(ElementDeSOC el) { return comprend((Obstacle)el) ; }

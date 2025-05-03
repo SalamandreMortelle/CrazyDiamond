@@ -64,7 +64,14 @@ public abstract class BaseObstacleComposite extends BaseObstacle {
         imp_elementComposite.retirerRappelSurChangementToutePropriete(cle_observateur);
     }
 
-    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) { imp_elementComposite.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap); }
+    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(Object cle_observateur,RappelSurChangement rap) {
+        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(cle_observateur,rap);
+        imp_elementComposite.ajouterRappelSurChangementTouteProprieteModifiantChemin(cle_observateur,rap);
+    }
+    public void retirerRappelSurChangementTouteProprieteModifiantChemin(Object cle_observateur) {
+        super.retirerRappelSurChangementTouteProprieteModifiantChemin(cle_observateur);
+        imp_elementComposite.retirerRappelSurChangementTouteProprieteModifiantChemin(cle_observateur);
+    }
 
     public void ajouterListChangeListener(ListChangeListener<Obstacle> lcl_o) {imp_elementComposite.ajouterListChangeListener(lcl_o);}
 

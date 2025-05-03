@@ -104,6 +104,9 @@ public class Segment extends BaseObstacleAvecContourSansEpaisseur implements Obs
         longueur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
         rayon_diaphragme.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
 
+        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        longueur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        rayon_diaphragme.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
     }
 
     @Override
@@ -171,25 +174,6 @@ public class Segment extends BaseObstacleAvecContourSansEpaisseur implements Obs
     }
     public void accepte(VisiteurEnvironnement v) {
         v.visiteSegment(this);
-    }
-
-//    @Override
-//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-//        super.ajouterRappelSurChangementToutePropriete(rap);
-//
-////        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
-////        longueur.addListener((observable, oldValue, newValue) -> rap.rappel());
-////        rayon_diaphragme.addListener((observable, oldValue, newValue) -> rap.rappel());
-//    }
-
-    @Override
-    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-
-        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
-
-        longueur.addListener((observable, oldValue, newValue) -> rap.rappel());
-        rayon_diaphragme.addListener((observable, oldValue, newValue) -> rap.rappel());
     }
 
     @Override

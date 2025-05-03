@@ -43,14 +43,5 @@ public class BaseObstacleCompositeAvecContour extends BaseObstacleComposite {
         consumer.accept(imp_elementAvecContour);
     }
 
-//    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-//        super.ajouterRappelSurChangementToutePropriete(rap);
-////        imp_elementAvecContour.ajouterRappelSurChangementToutePropriete(rap);
-//    }
-
-    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        super.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-        imp_elementAvecContour.ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
-    }
 }
 
