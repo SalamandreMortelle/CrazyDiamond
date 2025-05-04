@@ -53,11 +53,11 @@ public class Cercle extends BaseObstacleAvecContourEtMatiere implements Obstacle
     }
 
     private void ajouterListeners() {
-        this.centre.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete()) ;
-        this.rayon.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete()) ;
-
         this.centre.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin()) ;
         this.rayon.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin()) ;
+
+        this.centre.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete()) ;
+        this.rayon.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete()) ;
     }
 
     @Override

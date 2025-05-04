@@ -96,13 +96,13 @@ public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacl
     }
 
     private void ajouterListeners() {
-        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
-        parametre.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
-        excentricite.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
-
         position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
         parametre.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
         excentricite.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+
+        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        parametre.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        excentricite.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
     }
 
     @Override

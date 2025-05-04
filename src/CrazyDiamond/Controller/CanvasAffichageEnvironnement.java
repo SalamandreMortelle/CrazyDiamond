@@ -233,25 +233,26 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
         // chargé l'environnement)
         Iterator<Source> its = environnement.iterateur_sources() ;
         while (its.hasNext())
-            its.next().ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
+            its.next().ajouterRappelSurChangementToutePropriete(this,this::rafraichirAffichage);
 
         // Détection des sources ajoutées ou supprimées
         ListChangeListener<Source> lcl_sources = change -> {
             while (change.next()) {
                 if (change.wasRemoved()) {
-                    LOGGER.log(Level.FINER, "Source supprimée");
+                    LOGGER.log(Level.FINER, "Sources supprimées");
+                    for (Source remitem : change.getRemoved()) {
+                        LOGGER.log(Level.FINER, "Source supprimée  : {0}", remitem);
+                        LOGGER.log(Level.FINER, "Suppression des rappels pour la Source {0}", remitem);
+                        remitem.ajouterRappelSurChangementToutePropriete(this,this::rafraichirAffichage);
+                    }
                     rafraichirAffichage();
                 } else if (change.wasAdded()) {
                     for (Source additem : change.getAddedSubList()) {
-
                         LOGGER.log(Level.FINER, "Source ajoutée : {0}", additem);
-                        LOGGER.log(Level.FINER, "Création des liaisons pour la Source {0}", additem);
-
-                        additem.ajouterRappelSurChangementToutePropriete(this::rafraichirAffichage);
-
-                        rafraichirAffichage();
-
+                        LOGGER.log(Level.FINER, "Création des rappels pour la Source {0}", additem);
+                        additem.ajouterRappelSurChangementToutePropriete(this,this::rafraichirAffichage);
                     }
+                    rafraichirAffichage();
                 }
             }
         };
@@ -269,22 +270,22 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
 
         ListChangeListener<Obstacle> lcl_obstacles = change -> {
             while (change.next()) {
-
                 if (change.wasRemoved()) {
-                    LOGGER.log(Level.FINER, "Obstacle supprimé");
+                    LOGGER.log(Level.FINER, "Obstacles supprimés");
+                    for (Obstacle remitem : change.getRemoved()) {
+                        LOGGER.log(Level.FINER, "Obstacle supprimé : {0}", remitem);
+                        LOGGER.log(Level.FINER, "Suppression des rappels pour l'obstacle {0}", remitem);
+                        remitem.retirerRappelSurChangementToutePropriete(this);;
+                    }
                     rafraichirAffichage();
                 } else if (change.wasAdded()) {
-
                     for (Obstacle additem : change.getAddedSubList()) {
                         LOGGER.log(Level.FINER, "Obstacle ajouté : {0}", additem);
-
+                        LOGGER.log(Level.FINER, "Création des rappels pour l'obstacle {0}", additem);
                         additem.ajouterRappelSurChangementToutePropriete(this,this::rafraichirAffichage);
-
                     }
-
                     rafraichirAffichage();
                 }
-
             }
         };
 
@@ -315,25 +316,26 @@ public class CanvasAffichageEnvironnement extends ResizeableCanvas {
                 //                else if (c.wasUpdated()) { for (int i = c.getFrom(); i < c.getTo(); ++i) { /* environnement.sources.get(i) */ } }
                 //                else
                 if (change.wasRemoved()) {
-                    //                  for (Source remitem : change.getRemoved()) { }
-
-                    LOGGER.log(Level.FINER, "ElementDeSOC supprimé");
+                    LOGGER.log(Level.FINER, "Elements de SOC supprimés");
+                    for (ElementDeSOC remitem : change.getRemoved()) {
+                        LOGGER.log(Level.FINER, "Element de SOC supprimé : {0}", remitem);
+                        LOGGER.log(Level.FINER, "Suppression des rappels pour le SOC {0}", remitem);
+                        // Il faut un rappel pour redessiner l'axe en cas de changement d'une propriété du SOC, y compris sa matrice de transfert
+                        // NB : Si ce rappel se déclenche, il est dommage qu'il y en ait déjà un de déclenché par les obstacles du SOC eux-mêmes, quand on
+                        // change ses propriétés : il faudrait s'en passer et ne garder que le rappel ci-dessous...
+                        remitem.retirerRappelSurChangementToutePropriete(this);
+                    }
                     rafraichirAffichage();
                 } else if (change.wasAdded()) {
                     for (ElementDeSOC additem : change.getAddedSubList()) {
-
                         LOGGER.log(Level.FINER, "Element de SOC ajouté : {0}", additem);
-
-                        LOGGER.log(Level.FINER, "Création des liaisons pour le SOC {0}", additem);
-
+                        LOGGER.log(Level.FINER, "Création des rappels pour le SOC {0}", additem);
                         // Il faut un rappel pour redessiner l'axe en cas de changement d'une propriété du SOC, y compris sa matrice de transfert
                         // NB : Si ce rappel se déclenche, il est dommage qu'il y en ait déjà un de déclenché par les obstacles du SOC eux-mêmes, quand on
                         // change ses propriétés : il faudrait s'en passer et ne garder que le rappel ci-dessous...
                         additem.ajouterRappelSurChangementToutePropriete(this,this::rafraichirAffichage);
-
-                        rafraichirAffichage();
-
                     }
+                    rafraichirAffichage();
                 }
             }
         };

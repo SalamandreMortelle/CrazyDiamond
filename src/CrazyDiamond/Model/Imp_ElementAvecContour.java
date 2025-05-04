@@ -33,14 +33,14 @@ public class Imp_ElementAvecContour {
     }
 
     public void ajouterListeners(BaseObstacle bo) {
+        this.traitement_surface.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        this.taux_reflexion_surface.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        this.orientation_axe_polariseur.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementTouteProprieteModifiantChemin());
+
         this.couleur_contour.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementToutePropriete());
         this.traitement_surface.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementToutePropriete());
         this.taux_reflexion_surface.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementToutePropriete());
         this.orientation_axe_polariseur.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementToutePropriete());
-
-        this.traitement_surface.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementTouteProprieteModifiantChemin());
-        this.taux_reflexion_surface.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementTouteProprieteModifiantChemin());
-        this.orientation_axe_polariseur.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementTouteProprieteModifiantChemin());
     }
 
     public Color couleurContour() { return couleur_contour.get() ;}

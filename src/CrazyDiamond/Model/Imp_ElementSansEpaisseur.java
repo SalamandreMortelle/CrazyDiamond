@@ -27,6 +27,7 @@ public class Imp_ElementSansEpaisseur {
     }
 
     public void ajouterListeners(BaseObstacle bo) {
+        this.nature_milieu.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementTouteProprieteModifiantChemin());
         this.nature_milieu.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementToutePropriete());
     }
 

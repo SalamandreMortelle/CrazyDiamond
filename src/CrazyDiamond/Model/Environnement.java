@@ -345,7 +345,7 @@ public class Environnement {
         // qui doivent être notifiées de l'ajout après que les chemins des rayons ont été recalculés (via appel
         // à Source::illuminer)
 
-        s.ajouterRappelSurChangementTouteProprieteModifiantChemin(s::illuminer);
+        s.ajouterRappelSurChangementTouteProprieteModifiantChemin(this,s::illuminer);
 
         s.illuminer();
 
@@ -528,7 +528,7 @@ public class Environnement {
 
     public void supprimerSource(Source s) {
 
-        // TODO : voir si interet à faire les unbind
+        s.retirerRappelSurChangementTouteProprieteModifiantChemin(this);
 
         sources.remove(s) ;
 
@@ -553,7 +553,7 @@ public class Environnement {
 
         s.libererObstacles() ;
 //        s.supprimerRappels();
-        s.retirerRappel(this);
+        s.retirerRappelSurChangementToutePropriete(this);
 
     }
 

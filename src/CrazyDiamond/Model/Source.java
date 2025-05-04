@@ -5,9 +5,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Affine;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,6 +21,9 @@ public class Source extends BaseElementNommable implements Nommable {
     protected static ObjectProperty<Color> couleur_par_defaut_property = new SimpleObjectProperty<>(Color.YELLOW) ;
 
     protected Environnement environnement ;
+
+    protected final LinkedHashMap<Object,RappelSurChangement> rappels_sur_changement_toute_propriete;
+    protected final LinkedHashMap<Object,RappelSurChangement> rappels_sur_changement_toute_propriete_modifiant_chemin;
 
     private final ObjectProperty<PositionEtOrientation> position_orientation ;
 
@@ -220,6 +221,36 @@ public class Source extends BaseElementNommable implements Nommable {
 
         this.lumiere_polarisee = new SimpleBooleanProperty(lumiere_polarisee) ;
         this.angle_champ_electrique = new SimpleDoubleProperty(angle_champ_electrique) ;
+
+        this.rappels_sur_changement_toute_propriete = new LinkedHashMap<>(2);
+        this.rappels_sur_changement_toute_propriete_modifiant_chemin = new LinkedHashMap<>(2);
+
+        ajouterListeners();
+    }
+
+    private void ajouterListeners() {
+
+        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        nombre_maximum_rencontres_obstacle.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        nombre_rayons.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        ouverture_pinceau.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        largeur_projecteur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        type.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        lumiere_polarisee.addListener((observable, oldvalue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        angle_champ_electrique.addListener((observable, oldvalue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        couleur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        // La couleur est une propriété du CheminLumiere càd de l'Environnement (contrairement aux couleurs des obstacles
+        // qui ne sont qu'une propriété d'affichage gérée par le Canvas)
+
+        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        nombre_maximum_rencontres_obstacle.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        nombre_rayons.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        ouverture_pinceau.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        largeur_projecteur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        type.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        lumiere_polarisee.addListener((observable, oldvalue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        angle_champ_electrique.addListener((observable, oldvalue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        couleur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
     }
 
     public Source(Environnement environnement, Point2D position, double orientation, TypeSource type) {
@@ -234,20 +265,23 @@ public class Source extends BaseElementNommable implements Nommable {
         v.visiteSource(this);
     }
 
-    public void ajouterRappelSurChangementToutePropriete(RappelSurChangement rap) {
-        ajouterRappelSurChangementTouteProprieteModifiantChemin(rap);
+    public void ajouterRappelSurChangementToutePropriete(Object cle_observateur,RappelSurChangement rap) {
+        rappels_sur_changement_toute_propriete.put(cle_observateur,rap);
     }
-
-    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(RappelSurChangement rap) {
-        position_orientation.addListener((observable, oldValue, newValue) -> rap.rappel());
-        nombre_maximum_rencontres_obstacle.addListener((observable, oldValue, newValue) -> rap.rappel());
-        nombre_rayons.addListener((observable, oldValue, newValue) -> rap.rappel());
-        ouverture_pinceau.addListener((observable, oldValue, newValue) -> rap.rappel());
-        largeur_projecteur.addListener((observable, oldValue, newValue) -> rap.rappel());
-        type.addListener((observable, oldValue, newValue) -> rap.rappel());
-        couleur.addListener((observable, oldValue, newValue) -> rap.rappel());
-        lumiere_polarisee.addListener((observable, oldvalue, newValue) -> rap.rappel());
-        angle_champ_electrique.addListener((observable, oldvalue, newValue) -> rap.rappel());
+    public void retirerRappelSurChangementToutePropriete(Object cle_observateur) {
+        rappels_sur_changement_toute_propriete.remove(cle_observateur);
+    }
+    public void declencherRappelsSurChangementToutePropriete() {
+        rappels_sur_changement_toute_propriete.forEach( (cle_observateur,rap) -> rap.rappel());
+    }
+    public void ajouterRappelSurChangementTouteProprieteModifiantChemin(Object cle_observateur, RappelSurChangement rap) {
+        rappels_sur_changement_toute_propriete_modifiant_chemin.put(cle_observateur,rap);
+    }
+    public void retirerRappelSurChangementTouteProprieteModifiantChemin(Object cle_observateur) {
+        rappels_sur_changement_toute_propriete_modifiant_chemin.remove(cle_observateur);
+    }
+    public void declencherRappelsSurChangementTouteProprieteModifiantChemin() {
+        rappels_sur_changement_toute_propriete_modifiant_chemin.forEach( (cle_observateur,rap) -> rap.rappel());
     }
 
     public void definirDirection(Point2D direction) {

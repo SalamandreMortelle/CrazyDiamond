@@ -9,10 +9,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Affine;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -190,7 +187,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     // d'unité du SOC ; cf. Environnement::changerUnite()
     private boolean nouveau_h_image_apres_conversion_a_prendre_compte = false;
     private Double nouveau_h_image_apres_conversion = null ;
-    protected final HashMap<Object,RappelSurChangement> rappels;
+    protected final LinkedHashMap<Object,RappelSurChangement> rappels;
     private static final Logger LOGGER = Logger.getLogger( "CrazyDiamond" );
 
     private ArrayList<Obstacle> obstaclesCentresReels() {
@@ -1605,8 +1602,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     public SystemeOptiqueCentre(Environnement env, Imp_Nommable ien , Point2D origine, double orientation_deg) {
         super(ien);
 
-        this.rappels = new HashMap<>(2) ;
-
+        this.rappels = new LinkedHashMap<>(2) ;
 
         this.environnement = env ;
 
@@ -2030,11 +2026,11 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
     }
 
-    public void retirerRappel(Object cle_observateur) {
+    public void retirerRappelSurChangementToutePropriete(Object cle_observateur) {
         rappels.remove(cle_observateur);
 
         for (ElementDeSOC el : elements_centres) // Propagation récursive aux sous_SOCs
-            if (el instanceof SystemeOptiqueCentre el_soc) el_soc.retirerRappel(cle_observateur);
+            if (el instanceof SystemeOptiqueCentre el_soc) el_soc.retirerRappelSurChangementToutePropriete(cle_observateur);
 
     }
 
@@ -2397,7 +2393,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         else if (el instanceof SystemeOptiqueCentre el_soc) {
             el_soc.libererObstacles();
 //            el_soc.supprimerRappels();
-            el_soc.retirerRappel(this);
+            el_soc.retirerRappelSurChangementToutePropriete(this);
         }
 
         if (elements_centres.size()==0)

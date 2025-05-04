@@ -56,16 +56,15 @@ public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obsta
     }
 
     private void ajouterListeners() {
-        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
-
-        largeur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
-        hauteur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
-
         position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
 
         largeur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
         hauteur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
 
+        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+
+        largeur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        hauteur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
     }
 
     @Override

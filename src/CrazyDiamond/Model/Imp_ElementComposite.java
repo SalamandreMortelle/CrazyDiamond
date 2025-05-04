@@ -39,15 +39,15 @@ public class Imp_ElementComposite {
 
                 if (change.wasRemoved()) {
                     LOGGER.log(Level.FINER, "Obstacle supprimé du Composite");
-                    bo.declencherRappelsSurChangementToutePropriete();
                     bo.declencherRappelsSurChangementTouteProprieteModifiantChemin();
+                    bo.declencherRappelsSurChangementToutePropriete();
 
                 } else if (change.wasAdded()) {
 
                     for (Obstacle additem : change.getAddedSubList()) {
                         LOGGER.log(Level.FINER, "Obstacle ajouté dans le Composite : {0}", additem);
-                        bo.declencherRappelsSurChangementToutePropriete();
                         bo.declencherRappelsSurChangementTouteProprieteModifiantChemin();
+                        bo.declencherRappelsSurChangementToutePropriete();
                     }
                 }
             }
@@ -88,9 +88,6 @@ public class Imp_ElementComposite {
     public void ajouterObstacleEnPosition(Obstacle o_a_ajouter, int i_pos_a_la_racine) {
         if (estALaRacine(o_a_ajouter))
             return;
-
-        // Inutile, ce listener se rajoute tout seul quand on ajoute un obstacle à la liste des éléments
-//        o_a_ajouter.ajouterRappelSurChangementTouteProprieteModifiantChemin( this::illuminerToutesSources);
 
         elements().add(i_pos_a_la_racine,o_a_ajouter);
 
@@ -153,6 +150,7 @@ public class Imp_ElementComposite {
         elements.addListener(lcl_o);
         observateurs_des_elements.add(lcl_o);
 
+        // Mise sur écoute récursive des sous-composites
         for (Obstacle o : elements) {
             if (o instanceof BaseObstacleComposite boc) // Détection des changements qui interviennent dans les sous-composites de tous types
                 boc.ajouterListChangeListener(lcl_o);

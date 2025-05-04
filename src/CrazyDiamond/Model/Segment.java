@@ -100,13 +100,13 @@ public class Segment extends BaseObstacleAvecContourSansEpaisseur implements Obs
     }
 
     private void ajouterListeners() {
-        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
-        longueur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
-        rayon_diaphragme.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
-
         position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
         longueur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
         rayon_diaphragme.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+
+        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        longueur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        rayon_diaphragme.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
     }
 
     @Override

@@ -40,9 +40,8 @@ public class DemiPlan extends BaseObstacleAvecContourEtMatiere implements Obstac
     }
 
     private void ajouterListeners() {
-        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
-
         position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
     }
 
     @Override

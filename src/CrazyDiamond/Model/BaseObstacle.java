@@ -6,6 +6,7 @@ import javafx.beans.property.SimpleObjectProperty;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public abstract class BaseObstacle extends BaseElementNommable {
 
@@ -21,8 +22,8 @@ public abstract class BaseObstacle extends BaseElementNommable {
      */
     private final ObjectProperty<SystemeOptiqueCentre> soc_conteneur;
 
-    protected final HashMap<Object,RappelSurChangement> rappels_sur_changement_toute_propriete;
-    protected final HashMap<Object,RappelSurChangement> rappels_sur_changement_toute_propriete_modifiant_chemin;
+    protected final LinkedHashMap<Object,RappelSurChangement> rappels_sur_changement_toute_propriete;
+    protected final LinkedHashMap<Object,RappelSurChangement> rappels_sur_changement_toute_propriete_modifiant_chemin;
 
     BaseObstacle(String nom) {
         this(new Imp_Identifiable(), new Imp_Nommable(nom));
@@ -33,8 +34,8 @@ public abstract class BaseObstacle extends BaseElementNommable {
         this.imp_identifiable = ii;
         this.composite_parent = new SimpleObjectProperty<>(null);
         this.soc_conteneur = new SimpleObjectProperty<>(null);
-        this.rappels_sur_changement_toute_propriete = new HashMap<>(2);
-        this.rappels_sur_changement_toute_propriete_modifiant_chemin = new HashMap<>(2);
+        this.rappels_sur_changement_toute_propriete = new LinkedHashMap<>(2);
+        this.rappels_sur_changement_toute_propriete_modifiant_chemin = new LinkedHashMap<>(2);
     }
 
     public String id() {

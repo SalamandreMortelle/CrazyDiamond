@@ -249,13 +249,13 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
         elements_solidaires.set(solidaires);
     }
 
-    public void ajouterListChangeListener(ListChangeListener<Obstacle> lcl_o) {
-
-        super.ajouterListChangeListener(lcl_o);
-//        elementsObservables().addListener(lcl_o);
-
-//        ajouterListChangeListenerDesGroupes(lcl_o);
-    }
+//    public void ajouterListChangeListener(ListChangeListener<Obstacle> lcl_o) {
+//
+//        super.ajouterListChangeListener(lcl_o);
+////        elementsObservables().addListener(lcl_o);
+//
+////        ajouterListChangeListenerDesGroupes(lcl_o);
+//    }
 
 //    private void ajouterListChangeListenerDesGroupes(ListChangeListener<Obstacle> lcl_o) {
 //

@@ -47,16 +47,15 @@ public class Prisme extends BaseObstacleAvecContourEtMatiere implements Obstacle
     }
 
     private void ajouterListeners() {
-        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
-
-        angle_sommet.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
-        largeur_base.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
-
-
         position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
 
         angle_sommet.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
         largeur_base.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+
+        position_orientation.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+
+        angle_sommet.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
+        largeur_base.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
     }
 
     @Override
