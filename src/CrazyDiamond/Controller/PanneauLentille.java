@@ -211,12 +211,10 @@ public class PanneauLentille {
 
 //        ((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_rayon_1.getValueFactory()).minProperty().bind(lentille.epaisseurProperty().multiply(0.5d));
 
-        // Ce binding cause une boucle infinie : epaisseur modifiée => ce binding est appelé => il peut apparemment modifier
-        // r1 s'il se retrouve inférieur au min =>
 //        DoubleBinding calcul_rayon1_min = new DoubleBinding() {
+//                { super.bind(lentille.epaisseurProperty(),lentille.convexiteFace1Property()); }
 //            @Override
 //            protected double computeValue() {
-//                { super.bind(lentille.epaisseurProperty(),lentille.convexiteFace1Property()); }
 //
 //                return 0d ;
 ////                return (lentille.convexiteFace1()==CONVEXE?0.5d*lentille.epaisseur()+1E-7d:1E-7d) ;
@@ -231,9 +229,9 @@ public class PanneauLentille {
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas, spinner_parametre_1, lentille.parametre1(),this::definirParametre1);
 
 //        DoubleBinding calcul_parametre1_min = new DoubleBinding() {
+//                { super.bind(lentille.epaisseurProperty(),lentille.excentricite1Property(),lentille.convexiteFace1Property()); ; }
 //            @Override
 //            protected double computeValue() {
-//                { super.bind(lentille.epaisseurProperty(),lentille.excentricite1Property(),lentille.convexiteFace1Property()); ; }
 //                return (lentille.convexiteFace1()==ConvexiteFaceLentille.CONVEXE? 0.5d*lentille.epaisseur()*(1+ lentille.excentricite1()):0d) ;
 //            }
 //        } ;

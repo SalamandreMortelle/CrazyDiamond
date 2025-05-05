@@ -71,8 +71,8 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
     }
 
     private void ajouterListeners() {
-        operateur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
         operateur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementTouteProprieteModifiantChemin());
+        operateur.addListener((observable, oldValue, newValue) -> declencherRappelsSurChangementToutePropriete());
     }
 
     @Override

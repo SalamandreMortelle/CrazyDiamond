@@ -433,8 +433,6 @@ public class Environnement {
 
         if (groupeRacine().comprend(o))
             return;
-//        if (this.groupe_racine_obstacles.contains(o))
-//            return;
 
         // TODO A VERIFIER :  a priori inutile les éléments du groupe racine sont déjà surveillés par lcl_illumination ; cf. ligne 146
         o.ajouterRappelSurChangementTouteProprieteModifiantChemin(this, this::illuminerToutesSources);

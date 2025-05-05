@@ -39,15 +39,15 @@ public class Imp_ElementAvecMatiere {
 
     }
 
-    public void ajouterListeners(BaseObstacleAvecContourEtMatiere boacm) {
-        this.type_surface.addListener((observable, oldValue, newValue) -> boacm.declencherRappelsSurChangementTouteProprieteModifiantChemin()) ;
-        this.nature_milieu.addListener((observable, oldValue, newValue) -> boacm.declencherRappelsSurChangementTouteProprieteModifiantChemin()) ;
-        this.indice_refraction.addListener((observable, oldValue, newValue) -> boacm.declencherRappelsSurChangementTouteProprieteModifiantChemin()) ;
+    public void ajouterListeners(BaseObstacle bo) {
+        this.type_surface.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementTouteProprieteModifiantChemin()) ;
+        this.nature_milieu.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementTouteProprieteModifiantChemin()) ;
+        this.indice_refraction.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementTouteProprieteModifiantChemin()) ;
 
-        this.type_surface.addListener((observable, oldValue, newValue) -> boacm.declencherRappelsSurChangementToutePropriete()) ;
-        this.couleur_matiere.addListener((observable, oldValue, newValue) -> boacm.declencherRappelsSurChangementToutePropriete()) ;
-        this.nature_milieu.addListener((observable, oldValue, newValue) -> boacm.declencherRappelsSurChangementToutePropriete()) ;
-        this.indice_refraction.addListener((observable, oldValue, newValue) -> boacm.declencherRappelsSurChangementToutePropriete()) ;
+        this.type_surface.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementToutePropriete()) ;
+        this.couleur_matiere.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementToutePropriete()) ;
+        this.nature_milieu.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementToutePropriete()) ;
+        this.indice_refraction.addListener((observable, oldValue, newValue) -> bo.declencherRappelsSurChangementToutePropriete()) ;
     }
 
     public void definirTypeSurface(TypeSurface type_surf) {
