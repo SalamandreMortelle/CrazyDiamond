@@ -107,6 +107,8 @@ public class Imp_ElementComposite {
     public void retirerObstacle(Obstacle o) {
         elements.remove(o);
 
+        o.definirSOCParent(null);
+
         if (o instanceof BaseObstacleComposite boc) {
             observateurs_des_elements.forEach(boc::enleverListChangeListener);
         }
@@ -248,6 +250,10 @@ public class Imp_ElementComposite {
     public boolean aSymetrieDeRevolution() {
         Obstacle o_prec = null;
         Double direction_commune = null;
+
+        // Un composite sans éléments est considéré comme n'ayant pas de symétrie de révolution
+        if (elements.isEmpty())
+            return false ;
 
 //        for (Obstacle o : iterableObstaclesReelsDepuisArrierePlan()) {
         for (Obstacle o : elements) {

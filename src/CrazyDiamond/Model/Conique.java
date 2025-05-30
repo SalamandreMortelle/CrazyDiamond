@@ -111,11 +111,47 @@ public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacl
     }
 
     public void definirParametre(double p) {
+//        this.parametre.set(p);
+
+        double p_init = parametre() ;
+
         this.parametre.set(p);
+
+        if (SOCParent()!=null) {// A revoir. Attention au cas où une conique à n seul sommet devient une conique à deux sommets, ou l'inverse...
+            if (excentricite() >= 1 || SOCParent().direction().dotProduct(axe_focal()) <= 0)
+                definirFoyer(foyer().add(axe_focal().multiply((p_init - p) / (1 + excentricite()))));
+            else
+                definirFoyer(foyer().add(axe_focal().multiply(-(p_init - p) / (1 - excentricite()))));
+//            definirFoyer(foyer().add(SOCParent().direction().multiply((p_init-p)/(1+excentricite()))));
+        }
+
     }
 
     public void definirExcentricite(double e) {
+//        this.excentricite.set(e);
+
+        double e_init = excentricite() ;
+
         this.excentricite.set(e);
+
+        if (SOCParent()!=null) {
+            if (excentricite() >= 1 || SOCParent().direction().dotProduct(axe_focal()) <= 0) {
+                if (e_init >= 1 || SOCParent().direction().dotProduct(axe_focal()) <= 0)
+                    // Pas de changement du sommet point de référence pour le positionnement dans le SOC Parent, c'était et ça reste le périhélie
+                    definirFoyer(foyer().add(axe_focal().multiply(parametre() * (1 / (1 + e_init) - 1 / (1 + e)))));
+                else // e_init < 1 et Conique et SOC orientés "dans le même sens"
+                    // La nouvelle excentricité est > 1. L'ancienne était < 1 : le point de référence est donc passé
+                    // de l'aphélie de l'ellipse (quand e était <1) à p/(1-e) du foyer, au périhélie (quand e > 1) à p/(1+e) du foyer
+                   definirFoyer(foyer().add(axe_focal().multiply(parametre() * ( (1/(1 + e_init)) - 1 / (1 + e)))));
+            } else { // Nouvelle excentricité < 1 (ellipse) ; conique et SOC orientés dans le même sens
+                if (e_init<1) // On était et on reste ellipse avec point de ref à l'aphelie
+                    definirFoyer(foyer().add(axe_focal().multiply(-parametre() * (1 / (1 - e_init) - 1 / (1 - e)))));
+                else // On était parabole ou hyperbole et on passe ellipse avec point de réf à l'aphélie
+                    definirFoyer(foyer().add(axe_focal().multiply(parametre() * (1 / (1 + e_init) - 1 / (1 + e)))));
+            }
+        }
+//            definirFoyer(foyer().add(SOCParent().direction().multiply(parametre()*(1/(1+e_init)-1/(1+e)))));
+
     }
 
     public void definirAxeFocal(Point2D axe_f) {
@@ -138,18 +174,33 @@ public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacl
 
     @Override
     public void retaillerPourSourisEn(Point2D pos_souris) {
-        // Si on est sur le centre, ne rien faire
-//        if (pos_souris.getX()==x_foyer.get() && pos_souris.getY()==y_foyer.get())
-        if (pos_souris.equals(foyer()))
-            return ;
 
         // p = e . d (où d est la distance à la directrice de la conique)
-        double d = pos_souris.subtract(foyer()).magnitude() ;
-        parametre.set(excentricite.get()*d);
 
         // On ne peut changer l'orientation (l'axe focal) que si la conique n'appartient pas à un SOC
-        if (!appartientASystemeOptiqueCentre())
-            definirAxeFocal(pos_souris.subtract(foyer())) ;
+        if (!appartientASystemeOptiqueCentre()) {
+            // Si on est sur le foyer, ne rien faire
+            if (pos_souris.equals(foyer()))
+                return ;
+            double d = pos_souris.subtract(foyer()).magnitude() ;
+            parametre.set(excentricite.get()*d);
+            definirAxeFocal(pos_souris.subtract(foyer()));
+        }
+        else {
+            // Si on est sur le foyer, ne rien faire
+            if (pos_souris.equals(pointDeReferencePourPositionnementDansSOCParent()))
+                return ;
+            Point2D vec_pt_ref_pos_souris = pos_souris.subtract(pointDeReferencePourPositionnementDansSOCParent()) ;
+
+            double un_plus_e = 1 + excentricite() ;
+
+            double nouveau_parametre = un_plus_e
+                    + Math.sqrt(2*un_plus_e*Math.pow(vec_pt_ref_pos_souris.getX(), 2)+Math.pow(vec_pt_ref_pos_souris.getY(),2))
+                    - vec_pt_ref_pos_souris.getX()*Math.pow(un_plus_e,2) ;
+
+            definirParametre(nouveau_parametre);
+
+        }
     }
 
     @Override
@@ -968,10 +1019,31 @@ public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacl
     }
 
     @Override
-    public Point2D pointDeReferencePourPositionnementDansSOCParent() { return foyer() ;}
+    public Point2D pointDeReferencePourPositionnementDansSOCParent() {
+        if (SOCParent().direction().dotProduct(axe_focal())>=0) {
+            if (excentricite() >= 1)
+                return foyer().subtract(SOCParent().direction().multiply(-parametre() / (1 + excentricite())));
+            else
+                return foyer().subtract(SOCParent().direction().multiply(+parametre() / (1 - excentricite())));
+        }
+        else
+            return foyer().subtract(SOCParent().direction().multiply(parametre()/(1+excentricite()) )) ;
+    }
 
     @Override
-    public void definirPointDeReferencePourPositionnementDansSOCParent(Point2D pt_ref) { definirFoyer(pt_ref); }
+    public void definirPointDeReferencePourPositionnementDansSOCParent(Point2D pt_ref) {
+
+        if (SOCParent().direction().dotProduct(axe_focal())>=0) {
+            if (excentricite()>=1)
+                definirFoyer(pt_ref.add(SOCParent().direction().multiply(-parametre() /(1+excentricite()))));
+            else
+                definirFoyer(pt_ref.add(SOCParent().direction().multiply(+parametre() /(1-excentricite()))));
+        }
+        else
+            definirFoyer(pt_ref.add(SOCParent().direction().multiply(+parametre() / (1 + excentricite()))));
+//        definirFoyer(pt_ref.add(axe_focal().multiply(parametre()/(1+excentricite()))));
+//        definirFoyer(pt_ref);
+    }
 
     @Override
     public ObjectProperty<PositionEtOrientation> positionEtOrientationProperty() { return position_orientation ; }

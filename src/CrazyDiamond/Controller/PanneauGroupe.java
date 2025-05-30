@@ -4,12 +4,14 @@ import CrazyDiamond.Model.CommandeDefinirUnParametre;
 import CrazyDiamond.Model.Groupe;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PanneauGroupe {
+
 
     // Modèle
     Groupe groupe;
@@ -24,6 +26,16 @@ public class PanneauGroupe {
     private VBox baseElementIdentifie;
     @FXML
     private PanneauElementIdentifie baseElementIdentifieController ;
+
+    @FXML
+    public VBox vbox_panneau_racine;
+    @FXML
+    public HBox hbox_positionnement_relatif_dans_soc;
+    // NB : ne pas changer le nom de ce contrôleur : il est construit (injecté) par le FXML loader (lorsqu'il rencontre
+    // un <fx:include>) en concaténant "Controller" au nom (fx:id) de l'élément (vue) associé.
+    @FXML
+    private PanneauPositionnementElementDansSOC hbox_positionnement_relatif_dans_socController;
+
 
     @FXML
     private CheckBox choix_solidarisation;
@@ -45,6 +57,11 @@ public class PanneauGroupe {
         LOGGER.log(Level.INFO,"Initialisation du PanneauGroupe et de ses liaisons") ;
 
         baseElementIdentifieController.initialize(groupe);
+
+        hbox_positionnement_relatif_dans_socController.initialize(canvas,groupe);
+
+        UtilitairesVue.gererAppartenanceSOC(groupe,vbox_panneau_racine,null, hbox_positionnement_relatif_dans_soc);
+
 
         choix_solidarisation.setSelected(groupe.elementsSolidaires());
 

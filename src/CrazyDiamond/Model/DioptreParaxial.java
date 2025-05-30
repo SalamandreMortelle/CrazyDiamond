@@ -2,6 +2,7 @@ package CrazyDiamond.Model;
 
 import javafx.beans.property.*;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -59,6 +60,38 @@ public class DioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
 
     } ;
 
+    public static List<DioptreParaxial> fusionneDioptres(List<DioptreParaxial> liste_dioptres) {
+
+        ArrayList<DioptreParaxial> resultat_fusionne = new ArrayList<>(liste_dioptres.size()) ;
+
+        DioptreParaxial d_prec = null;
+
+        for (DioptreParaxial d_courant : liste_dioptres) {
+
+            if (d_prec != null) {
+                if (d_prec.estConfonduAvec(d_courant)) {
+                    d_prec.fusionneAvecDioptreConfondu(d_courant);
+                    continue; // On saute le dioptre courant d_res, puisqu'il a été fusionné dans le précédent
+                } else {
+                    if (d_prec.estInutile())
+                        resultat_fusionne.remove(resultat_fusionne.size()-1) ;
+                }
+            }
+
+            resultat_fusionne.add(d_courant) ;
+
+            d_prec = d_courant;
+        }
+
+        int dernier_index = resultat_fusionne.size()-1 ;
+        if (dernier_index>=0 && resultat_fusionne.get(dernier_index).estInutile())
+            resultat_fusionne.remove(dernier_index) ;
+
+        return resultat_fusionne ;
+
+    }
+
+
     public boolean estConfonduAvec(DioptreParaxial d_autre) {
 
         if (!Environnement.quasiEgal(z(),d_autre.z()))
@@ -102,6 +135,8 @@ public class DioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
                 indice_apres.set(d_autre_confondu.indiceApres());
 
     }
+
+
 
     public DioptreParaxial(double z_geometrique, Double r_courbure) { // Création d'un dioptre virtuel : seul sa position géométrique (Z et Rc) compte
         this(z_geometrique, r_courbure, 0.0, 0.0, null);

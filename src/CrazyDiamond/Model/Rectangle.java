@@ -74,7 +74,34 @@ public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obsta
 
     public void definirCentre(Point2D centre) {position_orientation.set(new PositionEtOrientation(centre,orientation()));}
 
-    public void definirLargeur(double larg) { this.largeur.set(larg); }
+    public void definirLargeur(double larg) {
+//        this.largeur.set(larg);
+        double larg_init ;
+        Point2D pt_ref_init = null;
+
+        if (SOCParent()!=null) {
+            larg_init = largeur();
+
+            pt_ref_init = pointDeReferencePourPositionnementDansSOCParent();
+        }
+
+        this.largeur.set(Math.abs(larg));
+
+        if (SOCParent()!=null)
+            definirCentre(pt_ref_init.add(SOCParent().direction().multiply(0.5*larg)));
+//            definirCentre(centre().add(SOCParent().direction().multiply(0.5*(larg-larg_init))));
+
+//        if (SOCParent()!=null) {// A revoir. Attention au cas où une conique à n seul sommet devient une conique à deux sommets, ou l'inverse...
+//            Point2D or = position_orientation.get().direction() ;
+//            if (SOCParent().direction().dotProduct(or) <= 0)
+//                definirCentre(centre().add(or.multiply((larg_init - larg) )));
+//            else
+//                definirCentre(centre().add(or.multiply(-(larg_init - larg) )));
+//        }
+
+
+
+    }
     public void definirHauteur(double haut) { this.hauteur.set(haut); }
 
     public DoubleProperty largeurProperty() { return largeur; }
@@ -250,17 +277,21 @@ public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obsta
         if (pos_souris.equals(centre()))
             return ;
 
-        largeur.set(2d * Math.abs(pos_souris.getX() - xCentre()));
-        hauteur.set(2d * Math.abs(pos_souris.getY() - yCentre()));
+//        largeur.set(2d * Math.abs(pos_souris.getX() - xCentre()));
+//        hauteur.set(2d * Math.abs(pos_souris.getY() - yCentre()));
+        definirLargeur(2d * Math.abs(pos_souris.getX() - xCentre()));
+        definirHauteur(2d * Math.abs(pos_souris.getY() - yCentre()));
+
     }
 
     @Override
     public void retaillerSelectionPourSourisEn(Point2D pos_souris) {
-        // Si on est sur le point de départ, ne rien faire
-        if (pos_souris.equals(centre()))
-            return ;
 
         if (!appartientASystemeOptiqueCentre()) {
+            // Si on est sur le point de départ, ne rien faire
+            if (pos_souris.equals(centre()))
+                return ;
+
             // Calculer l'écart angulaire entre le Coin HD où se trouve la poignée et la position de la souris, par rapport
             // au centre du Rectangle
             Point2D vec_centre_hd = coin(Coin.HD).subtract(centre()) ;
@@ -277,29 +308,65 @@ public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obsta
 
             definirOrientation(nouvelle_orientation);
         } else {
+
             // Le rectangle appartient à un SOC : on ne peut donc pas en changer l'orientation (qui doit rester celle du SOC)
             // mais on peut en changer la largeur et la hauteur
-            Point2D vec_centre_pos = pos_souris.subtract(centre()) ;
+//            Point2D vec_centre_pos = pos_souris.subtract(centre()) ;
+            Point2D vec_ptref_pos = pos_souris.subtract(pointDeReferencePourPositionnementDansSOCParent()) ;
 
-            double longueur_demi_diagonale = vec_centre_pos.magnitude() ;
+            double longueur_diag_demi_rect = vec_ptref_pos.magnitude() ;
 
-            double angle = Math.atan2(vec_centre_pos.getY(),vec_centre_pos.getX()) ;
+            if (longueur_diag_demi_rect==0)
+                return;
+
+            double angle = Math.atan2(vec_ptref_pos.getY(),vec_ptref_pos.getX()) ;
 
             if (angle<0)
                 angle+= 2*Math.PI ;
 
             double alpha = angle - Math.toRadians(orientation()) ;
 
-            largeur.set(Math.abs(2d*longueur_demi_diagonale*Math.cos(alpha)));
-            hauteur.set(Math.abs(2d*longueur_demi_diagonale*Math.sin(alpha)));
+//            definirLargeur(Math.abs(longueur_diag_demi_rect*Math.cos(alpha))); // Va déclencher un repositionnement du centre du rectangle
+            double cos_alpha = Math.cos(alpha);
+            boolean meme_sens = SOCParent().direction().dotProduct(direction())>0 ;
+
+            if ( (cos_alpha>0 && meme_sens) || (cos_alpha<0 && !meme_sens) )
+//            if ( cos_alpha>0 )
+                definirLargeur(longueur_diag_demi_rect*Math.abs(cos_alpha)); // Va déclencher un repositionnement du centre du rectangle
+            else
+                definirLargeur(0);
+            definirHauteur(Math.abs(2d*longueur_diag_demi_rect*Math.sin(alpha)));
         }
+
+//
+//            Point2D pt_ref = pointDeReferencePourPositionnementDansSOCParent() ;
+//
+//            // Si on est sur le pt de ref du positionnement dans le SOC parent, ne rien faire
+//            if (pos_souris.equals(pt_ref))
+//                return ;
+//
+//            definirLargeur(Math.abs(pos_souris.subtract(pt_ref).dotProduct(SOCParent().direction())));
+//
+////            Point2D vec_pt_ref_pos_souris = pos_souris.subtract(pt_ref) ;
+////
+////            double prod_scal = SOCParent().direction().dotProduct(vec_pt_ref_pos_souris) ;
+////
+////            if (prod_scal>0)
+////                definirLargeur(Math.pow(vec_pt_ref_pos_souris.magnitude(),2)/ (2*prod_scal) );
+////            else
+////                definirLargeur(0);
+
+
     }
 
     @Override
     public Contour positions_poignees() {
         Contour c_poignees = new Contour(1);
 
-        c_poignees.ajoutePoint(coin(Coin.HD));
+        if (SOCParent()==null || SOCParent().direction().dotProduct(direction())>0)
+            c_poignees.ajoutePoint(coin(Coin.HD));
+        else
+            c_poignees.ajoutePoint(coin(Coin.BG));
 
 //        c_poignees.ajoutePoint(x_centre.get()+demi_largeur , y_centre.get()+demi_hauteur);
 //        c_poignees.ajoutePoint(x_centre.get()-demi_largeur , y_centre.get()+demi_hauteur);
@@ -661,11 +728,28 @@ public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obsta
         hauteur.set(hauteur()*facteur_conversion);
     }
 
-    @Override
-    public Point2D pointDeReferencePourPositionnementDansSOCParent() { return centre() ; }
+    Point2D direction() {
+        return position_orientation.get().direction() ;
+    }
 
     @Override
-    public void definirPointDeReferencePourPositionnementDansSOCParent(Point2D pt_ref) { definirCentre(pt_ref); }
+    public Point2D pointDeReferencePourPositionnementDansSOCParent() {
+//        return centre() ;
+
+//        if (SOCParent().direction().dotProduct(direction())>=0)
+            return centre().subtract(SOCParent().direction().multiply(0.5*largeur())) ;
+//        else
+//            return centre().add(SOCParent().direction().multiply(0.5*largeur())) ;
+    }
+
+    @Override
+    public void definirPointDeReferencePourPositionnementDansSOCParent(Point2D pt_ref) {
+//        definirCentre(pt_ref);
+//        if (SOCParent().direction().dotProduct(position_orientation.get().direction())>=0)
+            definirCentre(pt_ref.add(SOCParent().direction().multiply(0.5*largeur())));
+//        else
+//            definirCentre(pt_ref.subtract(SOCParent().direction().multiply(0.5*largeur())));
+    }
 
     @Override
     public ObjectProperty<PositionEtOrientation> positionEtOrientationProperty() { return position_orientation ; }

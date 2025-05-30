@@ -1209,8 +1209,11 @@ public class VisiteurAffichageEnvironnement implements VisiteurEnvironnement {
         GraphicsContext gc = cae.gc_affichage() ;
         double res = cae.resolution() ;
 
+        if(it_avec_diaph.antecedentDiaphragme()==null)
+            return;
 
         double z_d =it_avec_diaph.ZGeometrique(), h_d = it_avec_diaph.rayonDiaphragme();
+
         double z_ant_d = it_avec_diaph.antecedentDiaphragme().z() , h_ant_d = Math.abs(it_avec_diaph.antecedentDiaphragme().hauteur()) ;
 
         double pos_lien = Math.max(h_ant_d,h_d)+15*res+10*res+20*res ;

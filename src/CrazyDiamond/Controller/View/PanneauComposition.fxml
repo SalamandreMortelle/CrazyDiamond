@@ -7,36 +7,41 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefWidth="201.0" spacing="2.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CrazyDiamond.Controller.PanneauComposition">
-    <children>
-      <Label text="Composition">
-         <font>
-            <Font name="System Bold" size="12.0" />
-         </font>
-      </Label>
-      <fx:include fx:id="baseElementIdentifie" source="PanneauElementIdentifie.fxml" />
-
-      <VBox prefHeight="78.0" prefWidth="201.0" spacing="5.0">
-         <children>
-            <RadioButton fx:id="choix_union" mnemonicParsing="false" selected="true" text="Union" textOverrun="CENTER_ELLIPSIS">
-               <toggleGroup>
-                  <ToggleGroup fx:id="choix_operation" />
-               </toggleGroup>
-            </RadioButton>
-            <RadioButton fx:id="choix_intersection" mnemonicParsing="false" text="Intersection" textOverrun="CENTER_ELLIPSIS" toggleGroup="$choix_operation" />
-            <RadioButton fx:id="choix_difference" mnemonicParsing="false" text="Différence" textOverrun="CENTER_ELLIPSIS" toggleGroup="$choix_operation" />
-            <RadioButton fx:id="choix_difference_symetrique" mnemonicParsing="false" text="Différence symétrique" textOverrun="CENTER_ELLIPSIS" toggleGroup="$choix_operation" />
-         </children>
-         <VBox.margin>
-            <Insets left="5.0" right="5.0" />
-         </VBox.margin>
-      </VBox>
-
-    <fx:include fx:id="baseContour" source="PanneauElementAvecContour.fxml" />
-    <fx:include fx:id="baseMatiere" source="PanneauElementAvecMatiere.fxml" />
-    </children>
+<VBox alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+      prefWidth="201.0" spacing="2.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="CrazyDiamond.Controller.PanneauComposition"
+      fx:id="vbox_panneau_racine">
 
     <padding>
-        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
     </padding>
+    <Label text="Composition">
+        <font>
+          <Font name="System Bold" size="12.0"/>
+        </font>
+    </Label>
+    <fx:include fx:id="baseElementIdentifie" source="PanneauElementIdentifie.fxml"/>
+
+    <fx:include fx:id="hbox_positionnement_relatif_dans_soc" source="PanneauPositionnementElementDansSOC.fxml"/>
+
+    <VBox prefHeight="78.0" prefWidth="201.0" spacing="5.0">
+        <VBox.margin>
+            <Insets left="5.0" right="5.0"/>
+        </VBox.margin>
+        <RadioButton fx:id="choix_union" mnemonicParsing="false" selected="true" text="Union"
+                     textOverrun="CENTER_ELLIPSIS">
+            <toggleGroup>
+                <ToggleGroup fx:id="choix_operation"/>
+            </toggleGroup>
+        </RadioButton>
+        <RadioButton fx:id="choix_intersection" mnemonicParsing="false" text="Intersection"
+                     textOverrun="CENTER_ELLIPSIS" toggleGroup="$choix_operation"/>
+        <RadioButton fx:id="choix_difference" mnemonicParsing="false" text="Différence"
+                     textOverrun="CENTER_ELLIPSIS" toggleGroup="$choix_operation"/>
+        <RadioButton fx:id="choix_difference_symetrique" mnemonicParsing="false" text="Différence symétrique"
+                     textOverrun="CENTER_ELLIPSIS" toggleGroup="$choix_operation"/>
+    </VBox>
+
+    <fx:include fx:id="baseContour" source="PanneauElementAvecContour.fxml"/>
+    <fx:include fx:id="baseMatiere" source="PanneauElementAvecMatiere.fxml"/>
 </VBox>

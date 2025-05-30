@@ -5,7 +5,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 public abstract class BaseObstacle extends BaseElementNommable {
@@ -102,6 +101,17 @@ public abstract class BaseObstacle extends BaseElementNommable {
         rappels_sur_changement_toute_propriete.forEach( (cle_observateur,rap) -> rap.rappel());
     }
 
+    protected void propagerRappelsSurChangementToutePropriete(Obstacle ob_cible) {
+        rappels_sur_changement_toute_propriete.forEach(
+                ob_cible::ajouterRappelSurChangementToutePropriete);
+    }
+
+    protected void retirerRappelsPropagesSurChangementToutePropriete(Obstacle ob_cible) {
+        rappels_sur_changement_toute_propriete.forEach(
+                (cle_observateur,rap) -> ob_cible.retirerRappelSurChangementToutePropriete(cle_observateur));
+    }
+
+
     public void ajouterRappelSurChangementTouteProprieteModifiantChemin(Object cle_observateur, RappelSurChangement rap) {
         rappels_sur_changement_toute_propriete_modifiant_chemin.put(cle_observateur,rap);
     }
@@ -111,5 +121,16 @@ public abstract class BaseObstacle extends BaseElementNommable {
     public void declencherRappelsSurChangementTouteProprieteModifiantChemin() {
         rappels_sur_changement_toute_propriete_modifiant_chemin.forEach( (cle_observateur,rap) -> rap.rappel());
     }
+
+    protected void propagerRappelsSurChangementTouteProprieteModifiantChemin(Obstacle bo_cible) {
+        rappels_sur_changement_toute_propriete_modifiant_chemin.forEach(
+                bo_cible::ajouterRappelSurChangementTouteProprieteModifiantChemin);
+    }
+
+    protected void retirerRappelsPropagesSurChangementTouteProprieteModifiantChemin(Obstacle ob_cible) {
+        rappels_sur_changement_toute_propriete_modifiant_chemin.forEach(
+                (cle_observateur,rap) -> ob_cible.retirerRappelSurChangementTouteProprieteModifiantChemin(cle_observateur));
+    }
+
 
 }

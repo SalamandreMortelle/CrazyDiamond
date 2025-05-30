@@ -1,10 +1,14 @@
 package CrazyDiamond.Model;
 
-import javafx.beans.property.*;
-import javafx.collections.ListChangeListener;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Point2D;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 
 public class Groupe extends BaseObstacleComposite implements Obstacle, Identifiable, Nommable {
 
@@ -317,21 +321,21 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
      * Il est également de leur responsabilité de le replacer en bonne place dans le SOC auquel il appartenait si cet
      * ajout fait suite à un retrait dans le cadre d'un déplacement.
      *
-     * @param o : obstacle à ajouter
+     * @param o_a_ajouter : obstacle à ajouter
      */
-    public void ajouterObstacle(Obstacle o) {
+    public void ajouterObstacle(Obstacle o_a_ajouter) {
 
-        if (this.elements().contains(o))
+        if (this.elements().contains(o_a_ajouter))
             return;
 
         // On définit l'appartenance à la composition avant de faire l'ajout, car les listeners du composite parent vont
         // se charger d'intégrer l'obstacle dans la vue (PanneauPrincipal) et de lui créer un panneau, qui n'est pas le
         // même selon que l'obstacle appartient à une composition ou non.
-        o.definirParent(this);
+        o_a_ajouter.definirParent(this);
 
-        super.ajouterObstacle(o);
+        super.ajouterObstacle(o_a_ajouter);
 
-        o.definirSOCParent(this.SOCParent());
+        o_a_ajouter.definirSOCParent(this.SOCParent());
 
     }
 
@@ -444,8 +448,28 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
 
     @Override
     public List<DioptreParaxial> dioptresParaxiaux(PositionEtOrientation axe) {
-        // TODO : pour un Groupe, je pense qu'il ne faut pas que cette méthode soit utilisée (contrairement aux Compositions)
-        throw new IllegalCallerException("Cette méthode ne devrait pas être appelée") ;
+//        // TODO : pour un Groupe, je pense qu'il ne faut pas que cette méthode soit utilisée (contrairement aux Compositions)
+//        throw new IllegalCallerException("Cette méthode ne devrait pas être appelée") ;
+
+        int nb_obs = nombreObstaclesPremierNiveau() ;
+        ArrayList<DioptreParaxial> dioptres_groupe = new ArrayList<>(2*nb_obs) ;
+
+        for (int i = 0 ; i<nb_obs ; i++) {
+            Obstacle o = obstacle(i) ;
+
+            List<DioptreParaxial> dioptres_o = o.dioptresParaxiaux(axe);
+
+            if (dioptres_o.isEmpty()) // Pour écarter les Cercles (ou les ellipses...) de rayon (ou de paramètre) nul
+                continue;
+
+            dioptres_groupe.addAll(dioptres_o) ;
+        }
+
+        // Tri par Z croissant et Rc "croissant"
+        dioptres_groupe.sort(DioptreParaxial.comparateur) ;
+
+        // A priori cette fusion n'est pas nécessaire tant qu'on ne cherche que la position du premier des dioptres paraxiaux
+        return DioptreParaxial.fusionneDioptres(dioptres_groupe) ;
     }
 
      private List<DioptreParaxial> fusionneDioptres(List<DioptreParaxial> liste_dioptres) {
@@ -504,5 +528,20 @@ public class Groupe extends BaseObstacleComposite implements Obstacle, Identifia
             ++resultat ;
         return resultat ;
     }
+
+    @Override
+    public Point2D pointDeReferencePourPositionnementDansSOCParent() {
+        List<DioptreParaxial> dioptres = dioptresParaxiaux(SOCParent().axe()) ;
+        if (dioptres.size()>0)
+            return SOCParent().origine().add(SOCParent().direction().multiply(dioptres.get(0).ZGeometrique()))  ;
+
+        return Point2D.ZERO ;
+    }
+
+    @Override
+    public void definirPointDeReferencePourPositionnementDansSOCParent(Point2D pt_ref) {
+        translater(pt_ref.subtract(pointDeReferencePourPositionnementDansSOCParent()));
+    }
+
 
 }

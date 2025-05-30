@@ -1,6 +1,7 @@
 package CrazyDiamond.Controller;
 
 import CrazyDiamond.Model.*;
+import javafx.beans.binding.DoubleBinding;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.scene.control.*;
@@ -211,37 +212,48 @@ public class PanneauLentille {
 
 //        ((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_rayon_1.getValueFactory()).minProperty().bind(lentille.epaisseurProperty().multiply(0.5d));
 
-//        DoubleBinding calcul_rayon1_min = new DoubleBinding() {
-//                { super.bind(lentille.epaisseurProperty(),lentille.convexiteFace1Property()); }
-//            @Override
-//            protected double computeValue() {
-//
+        DoubleBinding calcul_rayon1_min = new DoubleBinding() {
+                { super.bind(lentille.epaisseurProperty(),lentille.convexiteFace1Property()); }
+            @Override
+            protected double computeValue() {
 //                return 0d ;
-////                return (lentille.convexiteFace1()==CONVEXE?0.5d*lentille.epaisseur()+1E-7d:1E-7d) ;
-//
-//            }
-//        } ;
-//        ((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_rayon_1.getValueFactory()).minProperty().bind(calcul_rayon1_min);
+//                return (lentille.convexiteFace1()==CONVEXE?0.5d*lentille.epaisseur()+1E-7d:1E-7d) ;
+                return (lentille.convexiteFace1()==CONVEXE?0.5d*lentille.epaisseur():0) ;
+
+            }
+        } ;
+        ((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_rayon_1.getValueFactory()).minProperty().bind(calcul_rayon1_min);
 
         // Parametre 1
         prendreEnCompteParametre1(lentille.parametre1());
         lentille.parametre1Property().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteParametre1));
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas, spinner_parametre_1, lentille.parametre1(),this::definirParametre1);
 
-//        DoubleBinding calcul_parametre1_min = new DoubleBinding() {
-//                { super.bind(lentille.epaisseurProperty(),lentille.excentricite1Property(),lentille.convexiteFace1Property()); ; }
-//            @Override
-//            protected double computeValue() {
-//                return (lentille.convexiteFace1()==ConvexiteFaceLentille.CONVEXE? 0.5d*lentille.epaisseur()*(1+ lentille.excentricite1()):0d) ;
-//            }
-//        } ;
-//        ((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_parametre_1.getValueFactory()).minProperty().bind(calcul_parametre1_min);
+        DoubleBinding calcul_parametre1_min = new DoubleBinding() {
+                { super.bind(lentille.epaisseurProperty(),lentille.excentricite1Property(),lentille.convexiteFace1Property()); }
+            @Override
+            protected double computeValue() {
+                if (lentille.excentricite1()>=1)
+                    return 0d ;  // Pas de minimum si conique a un seul sommet (parabole ou hyperbole)
+                return (lentille.convexiteFace1()==ConvexiteFaceLentille.CONVEXE? 0.5d*lentille.epaisseur()*(1 - Math.pow(lentille.excentricite1(),2)):0d) ;
+            }
+        } ;
+        ((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_parametre_1.getValueFactory()).minProperty().bind(calcul_parametre1_min);
 
 
         // Excentricite 1
         prendreEnCompteExcentricite1(lentille.excentricite1());
         lentille.excentricite1Property().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteExcentricite1));
         OutilsControleur.integrerSpinnerDoubleValidant(spinner_excentricite_1, lentille.excentricite1(),this::definirExcentricite1);
+//        DoubleBinding calcul_excentricite1_max = new DoubleBinding() {
+//            { super.bind(lentille.epaisseurProperty(),lentille.parametre1Property(),lentille.convexiteFace1Property()); ; }
+//            @Override
+//            protected double computeValue() {
+//                return (lentille.convexiteFace1()==ConvexiteFaceLentille.CONVEXE? 2d*lentille.parametre1()/lentille.epaisseur() - 1 :0d) ;
+//            }
+//        } ;
+//        ((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_excentricite_1.getValueFactory()).maxProperty().bind(calcul_excentricite1_max);
+
 
         // Convexite Face 1
         prendreEnCompteConvexiteFace1(lentille.convexiteFace1());
@@ -296,14 +308,49 @@ public class PanneauLentille {
         prendreEnCompteRayon2(lentille.rayon2());
         lentille.rayon2Property().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteRayon2));
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas, spinner_rayon_2, lentille.rayon2(),this::definirRayon2);
+
+        DoubleBinding calcul_rayon2_min = new DoubleBinding() {
+            { super.bind(lentille.epaisseurProperty(),lentille.convexiteFace2Property()); }
+            @Override
+            protected double computeValue() {
+//                return 0d ;
+//                return (lentille.convexiteFace2()==CONVEXE?0.5d*lentille.epaisseur()+1E-7d:1E-7d) ;
+                return (lentille.convexiteFace2()==CONVEXE?0.5d*lentille.epaisseur():0) ;
+
+            }
+        } ;
+        ((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_rayon_2.getValueFactory()).minProperty().bind(calcul_rayon2_min);
+
+
         // Parametre 2
         prendreEnCompteParametre2(lentille.parametre2());
         lentille.parametre2Property().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteParametre2));
         OutilsControleur.integrerSpinnerDoubleValidantAdaptatifPourCanvas(canvas, spinner_parametre_2, lentille.parametre2(),this::definirParametre2);
+        DoubleBinding calcul_parametre2_min = new DoubleBinding() {
+            { super.bind(lentille.epaisseurProperty(),lentille.excentricite2Property(),lentille.convexiteFace2Property()); }
+            @Override
+            protected double computeValue() {
+                if (lentille.excentricite2()>=1)
+                    return 0d ;  // Pas de minimum si conique a un seul sommet (parabole ou hyperbole)
+                return (lentille.convexiteFace2()==ConvexiteFaceLentille.CONVEXE? 0.5d*lentille.epaisseur()*(1 - Math.pow(lentille.excentricite2(),2)):0d) ;
+            }
+        } ;
+        ((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_parametre_2.getValueFactory()).minProperty().bind(calcul_parametre2_min);
+
+
         // Excentricite 2
         prendreEnCompteExcentricite2(lentille.excentricite2());
         lentille.excentricite2Property().addListener(new ChangeListenerAvecGarde<>(this::prendreEnCompteExcentricite2));
         OutilsControleur.integrerSpinnerDoubleValidant(spinner_excentricite_2, lentille.excentricite2(),this::definirExcentricite2);
+//        DoubleBinding calcul_excentricite2_max = new DoubleBinding() {
+//            { super.bind(lentille.epaisseurProperty(),lentille.parametre2Property(),lentille.convexiteFace2Property()); ; }
+//            @Override
+//            protected double computeValue() {
+//                return (lentille.convexiteFace2()==ConvexiteFaceLentille.CONVEXE? 2d*lentille.parametre2()/lentille.epaisseur() - 1 :0d) ;
+//            }
+//        } ;
+//        ((SpinnerValueFactory.DoubleSpinnerValueFactory) spinner_excentricite_2.getValueFactory()).maxProperty().bind(calcul_excentricite2_max);
+
 
         // Convexite Face 2
         prendreEnCompteConvexiteFace2(lentille.convexiteFace2());

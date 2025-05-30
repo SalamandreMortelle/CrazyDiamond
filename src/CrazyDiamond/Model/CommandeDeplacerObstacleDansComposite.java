@@ -54,26 +54,22 @@ public class CommandeDeplacerObstacleDansComposite extends Commande {
         composite_initial.retirerObstacle(obstacle);
 
         if (soc_initial!=null) {
-//            obstacle.definirAppartenanceSystemeOptiqueCentre(false);
             soc_initial.retirer(obstacle);
         } else
             obstacle.definirSOCParent(null); // Même si l'obstacle n'est pas directement référencé par un SOC (soc_initial==null),
                                              // son composite d'appartenance en faisait peut-être partie auquel cas, il faut
                                              // malgré tout indiquer qu'il n'appartient plus à un SOC.
-//            obstacle.definirAppartenanceSystemeOptiqueCentre(false);
-
 
         if (composite_cible.appartientASystemeOptiqueCentre())
             obstacle.definirSOCParent(composite_cible.SOCParent());
-//            obstacle.definirAppartenanceSystemeOptiqueCentre(true);
 
         // On le positionne dans l'environnement, à la position souhaitée
         composite_cible.ajouterObstacleEnPosition(obstacle, position_cible_dans_composite_cible);
 
-        if (soc_initial!=null) {
-//            obstacle.definirAppartenanceSystemeOptiqueCentre(false);
-            soc_initial.ajouterObstacleCentre(obstacle); // Repositionne l'obstacle dans le SOC en tenant compte de sa nouvelle position (Z order) dans l'Environnement
-        }
+
+//        if (soc_initial!=null) {
+//            soc_initial.ajouterObstacleCentre(obstacle); // Repositionne l'obstacle dans le SOC en tenant compte de sa nouvelle position (Z order) dans l'Environnement
+//        }
 
         enregistrer();
     }

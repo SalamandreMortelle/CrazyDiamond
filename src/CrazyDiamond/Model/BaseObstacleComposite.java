@@ -28,20 +28,32 @@ public abstract class BaseObstacleComposite extends BaseObstacle {
     public List<Obstacle> elements() { return imp_elementComposite.elements(); }
     public boolean estVide() {return imp_elementComposite.estVide();}
 
-    public void ajouterObstacle(Obstacle o) {
-        o.definirParent(this); // On commence par définir le parent (sinon problème)
-
-        imp_elementComposite.ajouterObstacle(o);
+    public void ajouterObstacle(Obstacle o_a_ajouter) {
+        ajouterObstacleEnPosition(o_a_ajouter,-1);
     }
 
     public void ajouterObstacleEnPosition(Obstacle o_a_ajouter, int i_pos) {
         o_a_ajouter.definirParent(this); // On commence par définir le parent (sinon problème)
 
-        imp_elementComposite.ajouterObstacleEnPosition(o_a_ajouter,i_pos);
+        o_a_ajouter.definirSOCParent(SOCParent());
+
+        if (i_pos==-1)
+            imp_elementComposite.ajouterObstacle(o_a_ajouter);
+        else
+            imp_elementComposite.ajouterObstacleEnPosition(o_a_ajouter,i_pos);
+
+        propagerRappelsSurChangementToutePropriete(o_a_ajouter);
+        propagerRappelsSurChangementTouteProprieteModifiantChemin(o_a_ajouter);
     }
 
     public void retirerObstacle(Obstacle o) {
         imp_elementComposite.retirerObstacle(o);
+
+        if (o.SOCParent()!=null)
+            o.definirSOCParent(null);
+
+        retirerRappelsPropagesSurChangementToutePropriete(o);
+        retirerRappelsPropagesSurChangementTouteProprieteModifiantChemin(o);
 //        o.definirParent(null);
     }
 

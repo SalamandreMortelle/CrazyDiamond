@@ -628,6 +628,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 //        z_geometrique_plan_nodal_image.set(convertirEnZGeometrique(z_optique_plan_nodal_image.get())) ;
         LOGGER.log(Level.FINE,"Z Plan Nodal 1 : {0} , Z Plan Nodal 2 : {1}",new Object[] {z_geometrique_plan_nodal_objet, z_geometrique_plan_nodal_image});
 
+        System.out.println("FIN calcul Elements Cardinaux");
         matrice_transfert_es.set(nouvelle_matrice_transfert);
 
         declencherRappels(); ;
@@ -800,8 +801,10 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
      */
     private Affine calculeMatriceTransfertOptique() throws Exception {
 
-        if (dioptres.size()==0)
-            return null ;
+        if (dioptres.size()==0) {
+            dioptres_rencontres.clear();
+            return null;
+        }
 
         Affine resultat = new Affine(1d,0d,0d,
                 0d,1d,0) ;
@@ -817,16 +820,16 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         // Si on avait déjà calculé une liste de dioptres rencontrés, on en mémorise les modalités de traversée, sous
         // forme d'une liste pour chaque obstacle.
         if (dioptres_rencontres.size()>0) {
-            for (RencontreDioptreParaxial its : dioptres_rencontres) {
+            for (RencontreDioptreParaxial ancienne_renc : dioptres_rencontres) {
 
 //                modalites_traversee_precedentes.add(new ModalitesTraverseeDioptre(its));
 
-                if (new_modalites_traversee_precedentes.containsKey(its.obstacleSurface())) {
-                    new_modalites_traversee_precedentes.get(its.obstacleSurface()).add(new ModalitesTraverseeDioptre(its));
+                if (new_modalites_traversee_precedentes.containsKey(ancienne_renc.obstacleSurface())) {
+                    new_modalites_traversee_precedentes.get(ancienne_renc.obstacleSurface()).add(new ModalitesTraverseeDioptre(ancienne_renc));
                 } else {
                     ArrayList<ModalitesTraverseeDioptre> liste_modalites = new ArrayList<>(2) ;
-                    liste_modalites.add(new ModalitesTraverseeDioptre(its)) ;
-                    new_modalites_traversee_precedentes.put(its.obstacleSurface(),liste_modalites);
+                    liste_modalites.add(new ModalitesTraverseeDioptre(ancienne_renc)) ;
+                    new_modalites_traversee_precedentes.put(ancienne_renc.obstacleSurface(),liste_modalites);
                 }
             }
         }
@@ -2256,7 +2259,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
     public void ajouterObstacleCentre(Obstacle o) {
 
         // o doit être un obstacle avec symétrie de révolution, à la racine de l'environnement et ne doit pas déjà
-        // appartenir à ce SOC ou à un autre
+        // appartenir à ce SOC ou à un autre, et ne doit pas être un composite vide (sans éléments)
         if (!estEligiblePourAjout(o))
             return ;
 
@@ -2281,7 +2284,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         o.definirSOCParent(this) ; // NB : si o est un Composite, tous ses sous-éléments auront également 'this' comme SOC Parent
 
         // Il faut positionner l'élément après en avoir défini le SOC parent pour que le Panneau de l'élément puisse
-        // calculer le positionnement relatif par rapport au SOC parent
+        // calculer le positionnement relatif par rapport au SOC parent (cf. PanneauPositionnementElementDansSOC).
         positionnerElement(o);
 
         calculeElementsCardinaux();

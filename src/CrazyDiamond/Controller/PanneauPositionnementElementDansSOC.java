@@ -25,10 +25,22 @@ public class PanneauPositionnementElementDansSOC {
         this.element_dans_soc = element_dans_soc ;
 
         // Prise en compte automatique de la position et de l'orientation de l'ElementDeSoc
+        //  Si l'élément de SOC est un élément simple (ni une Composition, ni un Groupe) alors un changement de ses propriétés (rayon, largeur,
+        // paramètre, excentricité, etc.) entraine toujours un recalage de la position de son centre/foyer donc de sa position : il suffit
+        // donc "d'écouter" les changements de cette position pour pouvoir l'afficher dans le spinner "Pos dans SOC"
+        // Pour les Compositions et les Groupes qui n'ont pas de centre etd onc , pas non plus de position, il faut écouter tous les changements
+        // de propriété puis calculer la position du point de réf qui a pu être modifié du fait de ces changements de propriétés.
         if (element_dans_soc.positionEtOrientationProperty()!=null)
-            element_dans_soc.positionEtOrientationProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnComptePositionEtOrientation));
+            element_dans_soc.positionEtOrientationProperty().addListener(new ChangeListenerAvecGarde<>( (po) -> {prendreEnComptePositionEtOrientation() ; }));
         else if (element_dans_soc.positionProperty()!=null)
-            element_dans_soc.positionProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnComptePosition));
+            element_dans_soc.positionProperty().addListener(new ChangeListenerAvecGarde<>( (pos) -> { prendreEnComptePositionEtOrientation() ; } ));
+        else { // Pas de proppriété Position ou PositionEtOrientation : cas des Composites (Groupe ou Composition)
+            // Déclencher un re-calcul de la position dans le SOC Parent dès qu'un attribut ou un élément de l'obstacle (ou de ses
+            // sous_obstacles) change. Si o est un Composite on surveille aussi les ajouts/retraits dans tous ses éventuels
+            // sous-composites
+            element_dans_soc.ajouterRappelSurChangementToutePropriete(this,this::prendreEnComptePositionEtOrientation);
+
+        }
 
 
         // Si un SOC Parent est affecté à l'élément, il faut assurer l'initialisation de la valeur du spinner : c'est
@@ -38,10 +50,7 @@ public class PanneauPositionnementElementDansSOC {
         // de connaître ce SOC Parent).
         element_dans_soc.systemeOptiqueParentProperty().addListener((observableValue, oldValue, newValue) -> {
             if (oldValue == null && newValue != null) { // Ajout de ce SOC dans un SOC parent
-                if (element_dans_soc.positionEtOrientationProperty()!=null)
-                    prendreEnComptePositionEtOrientation(element_dans_soc.positionEtOrientationProperty().get());
-                else if (element_dans_soc.positionProperty()!=null)
-                    prendreEnComptePosition(element_dans_soc.positionProperty().get());
+                prendreEnComptePositionEtOrientation() ;
             } // Pas de 'else' car rien à faire si retrait de ce SOC d'un SOC Parent
         });
 
@@ -66,19 +75,19 @@ public class PanneauPositionnementElementDansSOC {
                 element_dans_soc::definirPointDeReferencePourPositionnementDansSOCParent).executer();
     }
 
-    private void prendreEnComptePositionEtOrientation(PositionEtOrientation nouvelle_pos_et_or) {
+    private void prendreEnComptePositionEtOrientation() {
         if (element_dans_soc.sansSOCParentActif())
             return;
         actualisation_position_relative_en_cours = true ;
-        spinner_position_dans_soc.getValueFactory().valueProperty().set(nouvelle_pos_et_or.position().subtract(element_dans_soc.SOCParent().origine()).dotProduct(element_dans_soc.SOCParent().direction()));
+        spinner_position_dans_soc.getValueFactory().valueProperty().set(element_dans_soc.pointDeReferencePourPositionnementDansSOCParent().subtract(element_dans_soc.SOCParent().origine()).dotProduct(element_dans_soc.SOCParent().direction()));
         actualisation_position_relative_en_cours = false ;
     }
 
+    private void prendreEnComptePositionEtOrientation(PositionEtOrientation nouvelle_pos_et_or) {
+        prendreEnComptePositionEtOrientation();
+    }
+
     private void prendreEnComptePosition(Point2D nouvelle_pos) {
-        if (element_dans_soc.sansSOCParentActif())
-            return;
-        actualisation_position_relative_en_cours = true ;
-        spinner_position_dans_soc.getValueFactory().valueProperty().set(nouvelle_pos.subtract(element_dans_soc.SOCParent().origine()).dotProduct(element_dans_soc.SOCParent().direction()));
-        actualisation_position_relative_en_cours = false ;
+        prendreEnComptePositionEtOrientation();
     }
 }

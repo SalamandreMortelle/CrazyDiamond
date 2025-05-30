@@ -225,10 +225,16 @@ public class ObstacleTreeCellFactory implements Callback<TreeView<Obstacle>, Tre
                  )
             return true;
 
-        // On ne peut pas ajouter un Obstacle dans une Composition qui appartient à un SOC (pourrait casser la symétrie
+        // On ne peut pas ajouter un Obstacle dans une Composition ou un Groupe qui appartient à un SOC (pourrait casser la symétrie
         // de révolution qu'avait la Composition, la rendant inapte à appartenir à un SOC)
-        if (o_cible_depose_est_composition && o_cible_depose.appartientASystemeOptiqueCentre())
+        if ( (o_cible_depose_est_composition || o_cible_depose_est_groupe ) && o_cible_depose.appartientASystemeOptiqueCentre())
             return true ;
+
+
+        // On ne peut pas non plus ajouter un Obstacle parmi les éléments d'un composite qui appartient à un SOC
+        if (o_cible_depose !=null && o_cible_depose.parent().appartientASystemeOptiqueCentre())
+            return true ;
+
 
         if (o_dragged.appartientASystemeOptiqueCentre() && !o_dragged.parent().appartientASystemeOptiqueCentre() && !o_dragged_est_a_la_racine)
             throw new IllegalStateException("L'obstacle déplacé appartient aux éléments racine d'un SOC mais n'est pas à la racine de l'environnement") ;

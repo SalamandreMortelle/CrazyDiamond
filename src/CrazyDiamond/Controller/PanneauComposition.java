@@ -5,6 +5,7 @@ import CrazyDiamond.Model.Composition;
 import javafx.fxml.FXML;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.util.logging.Level;
@@ -25,6 +26,19 @@ public class PanneauComposition {
     private VBox baseElementIdentifie;
     @FXML
     private PanneauElementIdentifie baseElementIdentifieController ;
+
+    @FXML
+    public VBox vbox_panneau_racine;
+
+//    @FXML
+//    public VBox vbox_positionnement_absolu;
+
+    @FXML
+    private HBox hbox_positionnement_relatif_dans_soc;
+    // NB : ne pas changer le nom de ce contrôleur : il est construit (injecté) par le FXML loader (lorsqu'il rencontre
+    // un <fx:include>) en concaténant "Controller" au nom (fx:id) de l'élément (vue) associé.
+    @FXML
+    private PanneauPositionnementElementDansSOC hbox_positionnement_relatif_dans_socController;
 
     // Contrôleurs des sous-panneaux génériques pour les attributs de contour, et de matière
     @FXML
@@ -65,6 +79,10 @@ public class PanneauComposition {
         LOGGER.log(Level.INFO,"Initialisation du PanneauComposition et de ses liaisons") ;
 
         baseElementIdentifieController.initialize(composition);
+
+        hbox_positionnement_relatif_dans_socController.initialize(canvas,composition);
+
+        UtilitairesVue.gererAppartenanceSOC(composition,vbox_panneau_racine,null, hbox_positionnement_relatif_dans_soc);
 
         UtilitairesVue.gererAppartenanceComposition(dans_composition,composition,baseContour,baseContourController,baseMatiere,baseMatiereController) ;
 

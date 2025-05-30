@@ -743,7 +743,17 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
     public DoubleProperty diametreProperty() {return diametre;}
 
     public void definirCentre(Point2D centre) {position_orientation.set(new PositionEtOrientation(centre,orientation()));}
-    public void definirEpaisseur(double epaisseur) {this.epaisseur.set(epaisseur);}
+    public void definirEpaisseur(double ep) {
+//        this.epaisseur.set(epaisseur);
+
+        double ep_init = epaisseur() ;
+
+        this.epaisseur.set(ep); // Déclenche un recalcul des positions des centres et foyers des faces 1 et 2 de la lentille
+
+        if (SOCParent()!=null)
+            definirCentre(centre().add(SOCParent().direction().multiply(0.5*(ep-ep_init))));
+
+    }
     
     public void definirFormeFace1(FormeFaceLentille forme_1) { this.forme_face_1.set(forme_1); }
     public void definirRayon1(double r_1) {this.rayon_1.set(r_1);}
@@ -997,10 +1007,16 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
     }
 
     @Override
-    public Point2D pointDeReferencePourPositionnementDansSOCParent() { return centre() ; }
+    public Point2D pointDeReferencePourPositionnementDansSOCParent() {
+//        return centre() ;
+        return centre().subtract(SOCParent().direction().multiply(0.5*epaisseur())) ;
+    }
 
     @Override
-    public void definirPointDeReferencePourPositionnementDansSOCParent(Point2D pt_ref) { definirCentre(pt_ref); }
+    public void definirPointDeReferencePourPositionnementDansSOCParent(Point2D pt_ref) {
+//        definirCentre(pt_ref);
+        definirCentre(pt_ref.add(SOCParent().direction().multiply(0.5*epaisseur())));
+    }
 
     @Override
     public ObjectProperty<PositionEtOrientation> positionEtOrientationProperty() { return position_orientation ; }

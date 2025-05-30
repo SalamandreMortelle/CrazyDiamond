@@ -108,14 +108,14 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
      * Ajoute un obstacle dans la Composition.
      * NB : Les utilisateurs de cette méthode doivent veiller à retirer l'obstacle de l'environnement avant d'appeler
      * cette méthode.
-     * @param o : obstacle à ajouter, qui ne peut pas être un Groupe
+     * @param o_a_ajouter : obstacle à ajouter, qui ne peut pas être un Groupe
      */
-    public void ajouterObstacle(Obstacle o) {
+    public void ajouterObstacle(Obstacle o_a_ajouter) {
 
-        if (o instanceof Groupe)
+        if (o_a_ajouter instanceof Groupe)
             throw new IllegalCallerException("Un Groupe ne peut pas être ajouté dans une Composition.");
 
-        if (this.elements().contains(o))
+        if (this.elements().contains(o_a_ajouter))
             return;
 
         // On définit l'appartenance à la composition avant de faire l'ajout, car les listeners du composite parent vont
@@ -123,14 +123,14 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
         // même selon que l'obstacle appartient à une composition ou non.
 //        o.definirAppartenanceComposition(true);
 
-        super.ajouterObstacle(o);
+        super.ajouterObstacle(o_a_ajouter);
 
-        if (o instanceof ElementAvecContour eac) {
+        if (o_a_ajouter instanceof ElementAvecContour eac) {
             eac.traitementSurfaceProperty().bind(traitementSurfaceProperty());
             eac.tauxReflexionSurfaceProperty().bind(tauxReflexionSurfaceProperty()) ;
             eac.orientationAxePolariseurProperty().bind(orientationAxePolariseurProperty());
         }
-        if (o instanceof ElementAvecMatiere eam) {
+        if (o_a_ajouter instanceof ElementAvecMatiere eam) {
             eam.natureMilieuProperty().bind(natureMilieuProperty());
             eam.indiceRefractionProperty().bind(indiceRefractionProperty());
             // NB : On ne fait pas de binding sur typeSurface (Convexe/Concave car c'est ue propriété "topologique"
@@ -763,39 +763,23 @@ public class Composition extends BaseObstacleCompositeAvecContourEtMatiere imple
         //  éventuelle de diaphragmes, qu'il faut alors conserver)
         // NB : ce traitement de fusion n'est probablement pas strictement nécessaire, mais avoir des dioptres inutiles
         // complique inutilement les calculs de la matrice de transfert optique, et de toutes les propriétés optiques du SOC
-
-        return fusionneDioptres(resultat) ;
-    }
-
-     private List<DioptreParaxial> fusionneDioptres(List<DioptreParaxial> liste_dioptres) {
-
-        ArrayList<DioptreParaxial> resultat_fusionne = new ArrayList<>(liste_dioptres.size()) ;
-
-        DioptreParaxial d_prec = null;
-
-        for (DioptreParaxial d_courant : liste_dioptres) {
-
-            if (d_prec != null) {
-                if (d_prec.estConfonduAvec(d_courant)) {
-                    d_prec.fusionneAvecDioptreConfondu(d_courant);
-                    continue; // On saute le dioptre courant d_res, puisqu'il a été fusionné dans le précédent
-                } else {
-                    if (d_prec.estInutile())
-                        resultat_fusionne.remove(resultat_fusionne.size()-1) ;
-                }
-            }
-
-            resultat_fusionne.add(d_courant) ;
-
-            d_prec = d_courant;
-        }
-
-        int dernier_index = resultat_fusionne.size()-1 ;
-        if (dernier_index>=0 && resultat_fusionne.get(dernier_index).estInutile())
-            resultat_fusionne.remove(dernier_index) ;
-
-        return resultat_fusionne ;
+        return DioptreParaxial.fusionneDioptres(resultat) ;
 
     }
+
+    @Override
+    public Point2D pointDeReferencePourPositionnementDansSOCParent() {
+        List<DioptreParaxial> dioptres = dioptresParaxiaux(SOCParent().axe()) ;
+        if (dioptres.size()>0)
+            return SOCParent().origine().add(SOCParent().direction().multiply(dioptres.get(0).ZGeometrique()))  ;
+
+        return Point2D.ZERO ;
+    }
+
+    @Override
+    public void definirPointDeReferencePourPositionnementDansSOCParent(Point2D pt_ref) {
+        translater(pt_ref.subtract(pointDeReferencePourPositionnementDansSOCParent()));
+    }
+
 
 }

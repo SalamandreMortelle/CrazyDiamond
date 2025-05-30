@@ -73,7 +73,14 @@ public class Cercle extends BaseObstacleAvecContourEtMatiere implements Obstacle
     }
 
     public void definirRayon(double r) {
+
+        double r_init = rayon() ;
+
         this.rayon.set(r);
+
+        if (SOCParent()!=null)
+            definirCentre(centre().add(SOCParent().direction().multiply(r-r_init)));
+
     }
 
     public double xCentre() { return centre().getX(); }
@@ -125,11 +132,29 @@ public class Cercle extends BaseObstacleAvecContourEtMatiere implements Obstacle
 
     @Override
     public void retaillerPourSourisEn(Point2D pos_souris) {
-        // Si on est sur le centre, ne rien faire
-        if (pos_souris.equals(centre()))
-            return ;
 
-        definirRayon(pos_souris.subtract(centre()).magnitude());
+        if(SOCParent()==null) {
+            // Si on est sur le centre, ne rien faire
+            if (pos_souris.equals(centre()))
+                return ;
+
+            definirRayon(pos_souris.subtract(centre()).magnitude());
+        } else {
+            Point2D pt_ref = pointDeReferencePourPositionnementDansSOCParent() ;
+
+            // Si on est sur le pt de ref du positionnement dans le SOC parent, ne rien faire
+            if (pos_souris.equals(pt_ref))
+                return ;
+
+            Point2D vec_pt_ref_pos_souris = pos_souris.subtract(pointDeReferencePourPositionnementDansSOCParent()) ;
+
+            double prod_scal = SOCParent().direction().dotProduct(vec_pt_ref_pos_souris) ;
+
+            if (prod_scal>0)
+                definirRayon(Math.pow(vec_pt_ref_pos_souris.magnitude(),2)/ (2*prod_scal) );
+            else
+                definirRayon(0);
+        }
     }
 
     @Override
@@ -139,10 +164,14 @@ public class Cercle extends BaseObstacleAvecContourEtMatiere implements Obstacle
     }
 
     @Override
-    public Point2D pointDeReferencePourPositionnementDansSOCParent() { return centre() ; }
+    public Point2D pointDeReferencePourPositionnementDansSOCParent() {
+        return centre().subtract(SOCParent().direction().multiply(rayon())) ;
+    }
 
     @Override
-    public void definirPointDeReferencePourPositionnementDansSOCParent(Point2D pt_ref) { definirCentre(pt_ref); }
+    public void definirPointDeReferencePourPositionnementDansSOCParent(Point2D pt_ref) {
+        definirCentre(pt_ref.add(SOCParent().direction().multiply(rayon())));
+    }
 
     @Override
     public ObjectProperty<Point2D> positionProperty() { return centre ; }
