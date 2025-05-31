@@ -18,8 +18,6 @@ public final class UtilitairesVue {
 
         if (pos!= (-1)) {
             supprimerNoeudFils(pere, fils_a_remplacer);
-//            if (pos == -1)
-//                System.out.println("Oh la la");
             if (nouveau_fils!=null)
                 pere.getChildren().add(pos, nouveau_fils);
         }
@@ -40,11 +38,8 @@ public final class UtilitairesVue {
 
         if (el.sansSOCParentActif())
             supprimerNoeudFils(pere,panneau_pos_rel_soc);
-        else {
-                supprimerNoeudFils(pere, panneau_pos_abs);
-            if (el.SOCParent().referenceDirectement(el))
-                supprimerNoeudFils(pere, panneau_pos_rel_soc);
-        }
+        else
+            supprimerNoeudFils(pere, panneau_pos_abs);
 
         el.systemeOptiqueParentProperty().addListener((observableValue, oldValue, newValue) -> {
             LOGGER.log(Level.FINE, "SOC Parent passe de {0} à {1}", new Object[]{oldValue, newValue});
