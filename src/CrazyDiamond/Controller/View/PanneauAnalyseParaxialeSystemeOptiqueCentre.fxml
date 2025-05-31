@@ -17,258 +17,239 @@
 <HBox alignment="BOTTOM_LEFT" maxWidth="Infinity" minHeight="-Infinity" minWidth="500" spacing="8.0"
       xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="CrazyDiamond.Controller.PanneauAnalyseParaxialeSystemeOptiqueCentre">
-<padding>
-    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-</padding>
-   <children>
-      <VBox maxWidth="300.0" minWidth="300.0" HBox.hgrow="ALWAYS">
-         <children>
-            <Label fx:id="label_nature_soc" text="Système dioptrique/catadioprique convergent/divergent/afocal">
-               <font>
-                  <Font name="System Bold" size="12.0" />
-               </font>
-               <VBox.margin>
-                  <Insets bottom="5.0" />
-               </VBox.margin>
-            </Label>
-            <GridPane prefHeight="150.0" prefWidth="83.0">
-              <columnConstraints>
-                <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="100.0" />
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="125.0" />
-                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="125.0" />
-                  <ColumnConstraints halignment="CENTER" hgrow="NEVER" maxWidth="38.0" minWidth="38.0" prefWidth="38.0" />
-              </columnConstraints>
-              <rowConstraints>
-                  <RowConstraints maxHeight="20.0" minHeight="20.0" prefHeight="20.0" vgrow="SOMETIMES" />
-                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="25.0" prefHeight="25.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="25.0" prefHeight="25.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="25.0" prefHeight="25.0" vgrow="SOMETIMES" />
-              </rowConstraints>
-               <children>
-                  <!-- En-tetes des colonnes objet / image -->
-                  <Label layoutX="10.0" layoutY="31.0" text="Objet" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS">
-                     <font>
-                        <Font name="System Bold" size="12.0" />
-                     </font>
-                  </Label>
-                  <Label layoutX="98.0" layoutY="8.0" text="Image" GridPane.columnIndex="2">
-                     <font>
-                        <Font name="System Bold" size="12.0" />
-                     </font>
-                  </Label>
+   <padding>
+      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+   </padding>
+   <VBox maxWidth="300.0" minWidth="300.0" HBox.hgrow="ALWAYS">
+      <Label fx:id="label_nature_soc" text="Système dioptrique/catadioprique convergent/divergent/afocal">
+         <font>
+            <Font name="System Bold" size="12.0"/>
+         </font>
+         <VBox.margin>
+            <Insets bottom="5.0"/>
+         </VBox.margin>
+      </Label>
+      <GridPane prefHeight="150.0" prefWidth="83.0">
+         <columnConstraints>
+            <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="100.0"/>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="125.0"/>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="125.0"/>
+            <ColumnConstraints halignment="CENTER" hgrow="NEVER" maxWidth="38.0" minWidth="38.0" prefWidth="38.0"/>
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints maxHeight="20.0" minHeight="20.0" prefHeight="20.0" vgrow="SOMETIMES"/>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+            <RowConstraints minHeight="25.0" prefHeight="25.0" vgrow="SOMETIMES"/>
+            <RowConstraints minHeight="25.0" prefHeight="25.0" vgrow="SOMETIMES"/>
+            <RowConstraints minHeight="25.0" prefHeight="25.0" vgrow="SOMETIMES"/>
+         </rowConstraints>
+         <!-- En-tetes des colonnes objet / image -->
+         <Label layoutX="10.0" layoutY="31.0" text="Objet" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS">
+            <font>
+               <Font name="System Bold" size="12.0"/>
+            </font>
+         </Label>
+         <Label layoutX="98.0" layoutY="8.0" text="Image" GridPane.columnIndex="2">
+            <font>
+               <Font name="System Bold" size="12.0"/>
+            </font>
+         </Label>
 
-                  <Label layoutX="10.0" layoutY="71.0" text="Focale :" GridPane.rowIndex="1" />
-                  <Label fx:id="focale_objet" layoutX="10.0" layoutY="11.0" text="NNN.N" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                  <Label fx:id="focale_image" layoutX="98.0" layoutY="71.0" text="NNN.N" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+         <Label layoutX="10.0" layoutY="71.0" text="Focale :" GridPane.rowIndex="1"/>
+         <Label fx:id="focale_objet" layoutX="10.0" layoutY="11.0" text="NNN.N" GridPane.columnIndex="1"
+                GridPane.rowIndex="1"/>
+         <Label fx:id="focale_image" layoutX="98.0" layoutY="71.0" text="NNN.N" GridPane.columnIndex="2"
+                GridPane.rowIndex="1"/>
 
-                  <Label text="Z pl. focal : " GridPane.rowIndex="2" />
-                  <Label fx:id="z_pl_focal_objet" text="NNN.N" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                  <Label fx:id="z_pl_focal_image" text="NNN.N" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-                  <ToggleButton fx:id="toggle_pl_focaux" contentDisplay="TEXT_ONLY" mnemonicParsing="false" text="👁" textOverrun="CLIP" GridPane.columnIndex="3" GridPane.rowIndex="2">
-                     <font>
-                        <Font size="14.0" />
-                     </font>
-                  </ToggleButton>
+         <Label text="Z pl. focal : " GridPane.rowIndex="2"/>
+         <Label fx:id="z_pl_focal_objet" text="NNN.N" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+         <Label fx:id="z_pl_focal_image" text="NNN.N" GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+         <ToggleButton fx:id="toggle_pl_focaux" contentDisplay="TEXT_ONLY" mnemonicParsing="false" text="👁"
+                       textOverrun="CLIP" GridPane.columnIndex="3" GridPane.rowIndex="2">
+            <font>
+               <Font size="14.0"/>
+            </font>
+         </ToggleButton>
 
-                  <Label text="Z pl. principal : " GridPane.rowIndex="3" />
-                  <Label fx:id="z_pl_principal_objet" layoutX="81.0" layoutY="7.0" text="NNN.N" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                  <Label fx:id="z_pl_principal_image" layoutX="81.0" layoutY="27.0" text="NNN.N" GridPane.columnIndex="2" GridPane.rowIndex="3" />
-                  <ToggleButton fx:id="toggle_pl_principaux" layoutX="285.0" layoutY="4.0" mnemonicParsing="false" text="👁" GridPane.columnIndex="3" GridPane.rowIndex="3">
-                     <font>
-                        <Font size="14.0" />
-                     </font>
-                  </ToggleButton>
+         <Label text="Z pl. principal : " GridPane.rowIndex="3"/>
+         <Label fx:id="z_pl_principal_objet" layoutX="81.0" layoutY="7.0" text="NNN.N" GridPane.columnIndex="1"
+                GridPane.rowIndex="3"/>
+         <Label fx:id="z_pl_principal_image" layoutX="81.0" layoutY="27.0" text="NNN.N" GridPane.columnIndex="2"
+                GridPane.rowIndex="3"/>
+         <ToggleButton fx:id="toggle_pl_principaux" layoutX="285.0" layoutY="4.0" mnemonicParsing="false" text="👁"
+                       GridPane.columnIndex="3" GridPane.rowIndex="3">
+            <font>
+               <Font size="14.0"/>
+            </font>
+         </ToggleButton>
 
-<!--                  <Label text="Z pl. nodal : " layoutX="81.0" layoutY="27.0" maxWidth="1.7976931348623157E308"  GridPane.rowIndex="4" />-->
-                  <Label layoutX="81.0" layoutY="27.0" text="Z pl. nodal : " GridPane.rowIndex="4" />
-                  <Label fx:id="z_pl_nodal_objet" layoutX="10.0" layoutY="7.0" text="NNN.N" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                  <Label fx:id="z_pl_nodal_image" layoutX="10.0" layoutY="7.0" text="NNN.N" GridPane.columnIndex="2" GridPane.rowIndex="4" />
-                  <ToggleButton fx:id="toggle_pl_nodaux" layoutX="285.0" layoutY="4.0" mnemonicParsing="false" text="👁" GridPane.columnIndex="3" GridPane.rowIndex="4">
-                     <font>
-                        <Font size="14.0" />
-                     </font>
-                  </ToggleButton>
-               </children>
-            </GridPane>
-            <HBox alignment="CENTER_LEFT">
-               <children>
-                  <Label layoutX="10.0" layoutY="27.0" text="Vergence : " />
-                  <Label fx:id="label_vergence" layoutX="68.0" layoutY="26.0" maxWidth="1.7976931348623157E308" text="NNN.N δ" HBox.hgrow="ALWAYS" />
-                  <Label text="Interstice : " />
-                  <Label fx:id="label_interstice" maxWidth="1.7976931348623157E308" text="NNN.N" HBox.hgrow="ALWAYS" />
-               </children>
-               <padding>
-                  <Insets top="10.0" />
-               </padding>
-            </HBox>
-         </children>
-      </VBox>
-      <Separator orientation="VERTICAL" />
-      <VBox maxWidth="170.0" minWidth="170.0" spacing="4.0" HBox.hgrow="ALWAYS">
-         <children>
-            <HBox>
-               <children>
-                  <Label alignment="TOP_CENTER" maxWidth="1.7976931348623157E308" text="Objet" HBox.hgrow="ALWAYS">
-                     <font>
-                        <Font name="System Bold" size="12.0" />
-                     </font>
-                  </Label>
-                  <ToggleButton fx:id="toggle_montrer_objet" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="👁">
-                     <font>
-                        <Font size="14.0" />
-                     </font>
-                  </ToggleButton>
-               </children>
-            </HBox>
-            <HBox>
-               <children>
-                  <Label fx:id="label_z_objet" maxWidth="1.7976931348623157E308" text="Z : " textOverrun="CLIP" />
-<!--                  <Spinner fx:id="spinner_z_objet" editable="true" amountToStepBy="0.1" initialValue="0.0" min="%spinner_distance_min"  max="%spinner_distance_max" />-->
-                  <Spinner fx:id="spinner_z_objet" amountToStepBy="0.1" editable="true" initialValue="0.0" max="1E100d" min="-1E100d" />
-               </children>
-            </HBox>
-            <HBox layoutX="10.0" layoutY="42.0">
-               <children>
-                  <Label fx:id="label_h_objet" maxWidth="1.7976931348623157E308" text="h : " textOverrun="CLIP" />
-<!--                  <Spinner fx:id="spinner_h_objet" editable="true" amountToStepBy="0.1" initialValue="0.0" min="%spinner_distance_min"  max="%spinner_distance_max"  />-->
-                  <Spinner fx:id="spinner_h_objet" amountToStepBy="0.1" editable="true" initialValue="0.0" max="1E100d" min="-1E100d" />
-               </children>
-            </HBox>
-            <Separator />
-            <HBox prefWidth="100.0">
-               <children>
-                  <Label alignment="TOP_CENTER" maxWidth="1.7976931348623157E308" text="Image (conjugué)" textAlignment="CENTER" HBox.hgrow="ALWAYS">
-                     <font>
-                        <Font name="System Bold" size="12.0" />
-                     </font>
-                  </Label>
-                  <ToggleButton fx:id="toggle_montrer_image" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="👁">
-                     <font>
-                        <Font size="14.0" />
-                     </font>
-                  </ToggleButton>
-               </children>
-            </HBox>
-            <HBox layoutX="10.0" layoutY="127.0">
-               <children>
-                  <Label text="Z : " />
-                  <Label fx:id="z_image" layoutX="10.0" layoutY="10.0" maxWidth="1.7976931348623157E308" text="+nnn.nnn" />
-               </children>
-            </HBox>
-            <HBox layoutX="10.0" layoutY="90.0">
-               <children>
-                  <Label layoutX="10.0" layoutY="10.0" text="h : " />
-                  <Label fx:id="h_image" layoutX="27.0" layoutY="10.0" maxWidth="1.7976931348623157E308" text="+nnn.nnn" />
-               </children>
-            </HBox>
-            <Separator />
-            <HBox layoutX="10.0" layoutY="132.0">
-               <children>
-                  <Label layoutX="10.0" layoutY="10.0" text="Gₜ : " />
-                  <Label fx:id="grandissement_transversal" layoutX="27.0" layoutY="10.0" maxWidth="1.7976931348623157E308" text="+nnn.nnn" />
-               </children>
-            </HBox>
-            <HBox layoutX="10.0" layoutY="193.0">
-               <children>
-                  <Label layoutX="10.0" layoutY="10.0" text="Gₐ : " />
-                  <Label fx:id="grandissement_angulaire" layoutX="27.0" layoutY="10.0" maxWidth="1.7976931348623157E308" text="+nnn.nnn" />
-               </children>
-            </HBox>
-            <HBox>
-               <children>
-                  <Label layoutX="10.0" layoutY="10.0" text="Gₗ : " />
-                  <Label fx:id="grandissement_longitudinal" layoutX="27.0" layoutY="10.0" maxWidth="1.7976931348623157E308" text="+nnn.nnn" />
-               </children>
-            </HBox>
-<!-- TODO : ajouter label "Objet réel/virtuel"  + ajouter label "Image réelle/virtuelle            -->
-<!-- TODO : ajouter toggle "Montrer dioptres"            -->
-         </children>
-      </VBox>
-      <Separator orientation="VERTICAL" />
-      <VBox maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
-         <children>
-            <HBox prefWidth="200.0" VBox.vgrow="NEVER">
-               <children>
-                  <Label alignment="TOP_CENTER" maxWidth="1.7976931348623157E308" text="Dioptres" HBox.hgrow="ALWAYS">
-                     <font>
-                        <Font name="System Bold" size="12.0" />
-                     </font>
-                  </Label>
-                  <ToggleButton fx:id="toggle_montrer_dioptres" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="👁">
-                     <font>
-                        <Font size="14.0" />
-                     </font>
-                  </ToggleButton>
-               </children>
-            </HBox>
-         <TableView fx:id="table_intersections" maxHeight="-Infinity" prefHeight="165.0">
-           <columns>
-               <TableColumn fx:id="col_numero" editable="false" prefWidth="40.0" sortable="false" text="N°" />
-               <TableColumn fx:id="col_z" editable="false" prefWidth="100.0" sortable="false" text="Z" />
-               <TableColumn fx:id="col_r_courbure" prefWidth="110.0" sortable="false" text="R. Courbure" />
-               <TableColumn fx:id="col_r_diaphragme" prefWidth="110.0" sortable="false" text="R. Diaphragme" />
-               <TableColumn fx:id="col_n_avant" editable="false" prefWidth="75.0" sortable="false" text="n avant" />
-               <TableColumn fx:id="col_n_apres" editable="false" prefWidth="75.0" sortable="false" text="n après" />
-               <TableColumn fx:id="col_element" editable="false" prefWidth="180.0" sortable="false" text="Élément" />
-               <TableColumn fx:id="col_ignorer" editable="false" prefWidth="48.0" sortable="false" text="Ignorer ?" />
-               <TableColumn fx:id="col_sens" editable="false" prefWidth="40.0" sortable="false" text="Sens" />
-               <TableColumn fx:id="col_do" editable="false" prefWidth="40.0" sortable="false" text="DO" />
-               <TableColumn fx:id="col_dc" editable="false" prefWidth="40.0" sortable="false" text="DC" />
-               <TableColumn fx:id="col_dcpl" editable="false" prefWidth="40.0" sortable="false" text="DCpl" />
-               <TableColumn fx:id="col_dct" editable="false" prefWidth="40.0" sortable="false" text="DCt" />
-           </columns>
-         </TableView>
-            <HBox prefHeight="35.0" prefWidth="200.0" spacing="5.0" VBox.vgrow="NEVER">
-               <children>
-                  <GridPane HBox.hgrow="ALWAYS">
-                    <columnConstraints>
-                      <ColumnConstraints hgrow="SOMETIMES" minWidth="30.0" prefWidth="50.0" />
-                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                      <ColumnConstraints hgrow="SOMETIMES" minWidth="30.0" prefWidth="50.0" />
-                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                    </columnConstraints>
-                    <rowConstraints>
-                      <RowConstraints minHeight="10.0" prefHeight="20.0" vgrow="SOMETIMES" />
-                      <RowConstraints minHeight="10.0" prefHeight="20.0" vgrow="SOMETIMES" />
-                    </rowConstraints>
-                     <children>
-                        <Label text="Z entrée :" />
-                        <Label text="Z sortie :" GridPane.rowIndex="1" />
-                        <Label fx:id="label_z_entree" text="Label" GridPane.columnIndex="1" />
-                        <Label fx:id="label_z_sortie" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                        <Label text="n entrée :" GridPane.columnIndex="2"  />
-                        <Label text="n sortie :" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                        <Label fx:id="label_n_entree" text="Label" GridPane.columnIndex="3" />
-                        <Label fx:id="label_n_sortie" text="Label" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-                     </children>
-                  </GridPane>
-                  <Separator orientation="VERTICAL" prefHeight="200.0" />
-                  <GridPane layoutX="10.0" layoutY="10.0" HBox.hgrow="ALWAYS">
-                     <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="20.0" prefWidth="20.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="20.0" prefWidth="20.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                     </columnConstraints>
-                     <rowConstraints>
-                        <RowConstraints minHeight="10.0" prefHeight="20.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="10.0" prefHeight="20.0" vgrow="SOMETIMES" />
-                     </rowConstraints>
-                     <children>
-                        <Label text="a :" textOverrun="CLIP" />
-                        <Label text="c :" textOverrun="CLIP" GridPane.rowIndex="1" />
-                        <Label fx:id="label_a" text="Label" GridPane.columnIndex="1" />
-                        <Label fx:id="label_c" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                        <Label fx:id="label_b" text="Label" GridPane.columnIndex="3" />
-                        <Label fx:id="label_d" text="Label" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-                        <Label text="b :" textOverrun="CLIP" GridPane.columnIndex="2" />
-                        <Label text="d :" textOverrun="CLIP" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                     </children>
-                  </GridPane>
-               </children>
-            </HBox>
-         </children>
-      </VBox>
-   </children>
+         <!--                  <Label text="Z pl. nodal : " layoutX="81.0" layoutY="27.0" maxWidth="1.7976931348623157E308"  GridPane.rowIndex="4" />-->
+         <Label layoutX="81.0" layoutY="27.0" text="Z pl. nodal : " GridPane.rowIndex="4"/>
+         <Label fx:id="z_pl_nodal_objet" layoutX="10.0" layoutY="7.0" text="NNN.N" GridPane.columnIndex="1"
+                GridPane.rowIndex="4"/>
+         <Label fx:id="z_pl_nodal_image" layoutX="10.0" layoutY="7.0" text="NNN.N" GridPane.columnIndex="2"
+                GridPane.rowIndex="4"/>
+         <ToggleButton fx:id="toggle_pl_nodaux" layoutX="285.0" layoutY="4.0" mnemonicParsing="false" text="👁"
+                       GridPane.columnIndex="3" GridPane.rowIndex="4">
+            <font>
+               <Font size="14.0"/>
+            </font>
+         </ToggleButton>
+      </GridPane>
+      <HBox alignment="CENTER_LEFT">
+         <padding>
+            <Insets top="10.0"/>
+         </padding>
+         <Label layoutX="10.0" layoutY="27.0" text="Vergence : "/>
+         <Label fx:id="label_vergence" layoutX="68.0" layoutY="26.0" maxWidth="1.7976931348623157E308"
+                text="NNN.N δ" HBox.hgrow="ALWAYS"/>
+         <Label text="Interstice : "/>
+         <Label fx:id="label_interstice" maxWidth="1.7976931348623157E308" text="NNN.N" HBox.hgrow="ALWAYS"/>
+      </HBox>
+   </VBox>
+   <Separator orientation="VERTICAL"/>
+   <VBox maxWidth="170.0" minWidth="170.0" spacing="4.0" HBox.hgrow="ALWAYS">
+      <HBox>
+         <Label alignment="TOP_CENTER" maxWidth="1.7976931348623157E308" text="Objet" HBox.hgrow="ALWAYS">
+            <font>
+               <Font name="System Bold" size="12.0"/>
+            </font>
+         </Label>
+         <ToggleButton fx:id="toggle_montrer_objet" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
+                       text="👁">
+            <font>
+               <Font size="14.0"/>
+            </font>
+         </ToggleButton>
+      </HBox>
+      <HBox>
+         <Label fx:id="label_z_objet" maxWidth="1.7976931348623157E308" text="Z : " textOverrun="CLIP"/>
+         <!--                  <Spinner fx:id="spinner_z_objet" editable="true" amountToStepBy="0.1" initialValue="0.0" min="%spinner_distance_min"  max="%spinner_distance_max" />-->
+         <Spinner fx:id="spinner_z_objet" amountToStepBy="0.1" editable="true" initialValue="0.0" max="1E100d"
+                  min="-1E100d"/>
+      </HBox>
+      <HBox layoutX="10.0" layoutY="42.0">
+         <Label fx:id="label_h_objet" maxWidth="1.7976931348623157E308" text="h : " textOverrun="CLIP"/>
+         <!--                  <Spinner fx:id="spinner_h_objet" editable="true" amountToStepBy="0.1" initialValue="0.0" min="%spinner_distance_min"  max="%spinner_distance_max"  />-->
+         <Spinner fx:id="spinner_h_objet" amountToStepBy="0.1" editable="true" initialValue="0.0" max="1E100d"
+                  min="-1E100d"/>
+      </HBox>
+      <Separator/>
+      <HBox prefWidth="100.0">
+         <Label alignment="TOP_CENTER" maxWidth="1.7976931348623157E308" text="Image (conjugué)"
+                textAlignment="CENTER" HBox.hgrow="ALWAYS">
+            <font>
+               <Font name="System Bold" size="12.0"/>
+            </font>
+         </Label>
+         <ToggleButton fx:id="toggle_montrer_image" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
+                       text="👁">
+            <font>
+               <Font size="14.0"/>
+            </font>
+         </ToggleButton>
+      </HBox>
+      <HBox layoutX="10.0" layoutY="127.0">
+         <Label text="Z : "/>
+         <Label fx:id="z_image" layoutX="10.0" layoutY="10.0" maxWidth="1.7976931348623157E308" text="+nnn.nnn"/>
+      </HBox>
+      <HBox layoutX="10.0" layoutY="90.0">
+         <Label layoutX="10.0" layoutY="10.0" text="h : "/>
+         <Label fx:id="h_image" layoutX="27.0" layoutY="10.0" maxWidth="1.7976931348623157E308" text="+nnn.nnn"/>
+      </HBox>
+      <Separator/>
+      <HBox layoutX="10.0" layoutY="132.0">
+         <Label layoutX="10.0" layoutY="10.0" text="Gₜ : "/>
+         <Label fx:id="grandissement_transversal" layoutX="27.0" layoutY="10.0" maxWidth="1.7976931348623157E308"
+                text="+nnn.nnn"/>
+      </HBox>
+      <HBox layoutX="10.0" layoutY="193.0">
+         <Label layoutX="10.0" layoutY="10.0" text="Gₐ : "/>
+         <Label fx:id="grandissement_angulaire" layoutX="27.0" layoutY="10.0" maxWidth="1.7976931348623157E308"
+                text="+nnn.nnn"/>
+      </HBox>
+      <HBox>
+         <Label layoutX="10.0" layoutY="10.0" text="Gₗ : "/>
+         <Label fx:id="grandissement_longitudinal" layoutX="27.0" layoutY="10.0" maxWidth="1.7976931348623157E308"
+                text="+nnn.nnn"/>
+      </HBox>
+      <!-- TODO : ajouter label "Objet réel/virtuel"  + ajouter label "Image réelle/virtuelle            -->
+      <!-- TODO : ajouter toggle "Montrer dioptres"            -->
+   </VBox>
+   <Separator orientation="VERTICAL"/>
+   <VBox maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
+      <HBox prefWidth="200.0" VBox.vgrow="NEVER">
+         <Label alignment="TOP_CENTER" maxWidth="1.7976931348623157E308" text="Dioptres" HBox.hgrow="ALWAYS">
+            <font>
+               <Font name="System Bold" size="12.0"/>
+            </font>
+         </Label>
+         <ToggleButton fx:id="toggle_montrer_dioptres" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
+                       text="👁">
+            <font>
+               <Font size="14.0"/>
+            </font>
+         </ToggleButton>
+      </HBox>
+      <TableView fx:id="table_intersections" maxHeight="-Infinity" prefHeight="165.0">
+         <columns>
+            <TableColumn fx:id="col_numero" editable="false" prefWidth="40.0" sortable="false" text="N°"/>
+            <TableColumn fx:id="col_z" editable="false" prefWidth="70.0" sortable="false" text="Z"/>
+            <TableColumn fx:id="col_r_courbure" prefWidth="110.0" sortable="false" text="R. Courbure"/>
+            <TableColumn fx:id="col_r_diaphragme" prefWidth="110.0" sortable="false" text="R. Diaphragme"/>
+            <TableColumn fx:id="col_n_avant" editable="false" prefWidth="75.0" sortable="false" text="n avant"/>
+            <TableColumn fx:id="col_n_apres" editable="false" prefWidth="75.0" sortable="false" text="n après"/>
+            <TableColumn fx:id="col_element" editable="false" prefWidth="180.0" sortable="false" text="Élément"/>
+            <TableColumn fx:id="col_ignorer" editable="false" prefWidth="48.0" sortable="false" text="Ignorer ?"/>
+            <TableColumn fx:id="col_sens" editable="false" prefWidth="40.0" sortable="false" text="Sens"/>
+            <TableColumn fx:id="col_do" editable="false" prefWidth="40.0" sortable="false" text="DO"/>
+            <TableColumn fx:id="col_dc" editable="false" prefWidth="40.0" sortable="false" text="DC"/>
+            <TableColumn fx:id="col_dcpl" editable="false" prefWidth="40.0" sortable="false" text="DCpl"/>
+            <TableColumn fx:id="col_dct" editable="false" prefWidth="40.0" sortable="false" text="DCt"/>
+         </columns>
+      </TableView>
+      <HBox prefHeight="35.0" prefWidth="200.0" spacing="5.0" VBox.vgrow="NEVER">
+         <GridPane HBox.hgrow="ALWAYS">
+            <columnConstraints>
+               <ColumnConstraints hgrow="SOMETIMES" minWidth="30.0" prefWidth="50.0"/>
+               <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+               <ColumnConstraints hgrow="SOMETIMES" minWidth="30.0" prefWidth="50.0"/>
+               <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+            </columnConstraints>
+            <rowConstraints>
+               <RowConstraints minHeight="10.0" prefHeight="20.0" vgrow="SOMETIMES"/>
+               <RowConstraints minHeight="10.0" prefHeight="20.0" vgrow="SOMETIMES"/>
+            </rowConstraints>
+            <Label text="Z entrée :"/>
+            <Label text="Z sortie :" GridPane.rowIndex="1"/>
+            <Label fx:id="label_z_entree" text="Label" GridPane.columnIndex="1"/>
+            <Label fx:id="label_z_sortie" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            <Label text="n entrée :" GridPane.columnIndex="2"/>
+            <Label text="n sortie :" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+            <Label fx:id="label_n_entree" text="Label" GridPane.columnIndex="3"/>
+            <Label fx:id="label_n_sortie" text="Label" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+         </GridPane>
+         <Separator orientation="VERTICAL" prefHeight="200.0"/>
+         <GridPane layoutX="10.0" layoutY="10.0" HBox.hgrow="ALWAYS">
+            <columnConstraints>
+               <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="20.0" prefWidth="20.0"/>
+               <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+               <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="20.0" prefWidth="20.0"/>
+               <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+            </columnConstraints>
+            <rowConstraints>
+               <RowConstraints minHeight="10.0" prefHeight="20.0" vgrow="SOMETIMES"/>
+               <RowConstraints minHeight="10.0" prefHeight="20.0" vgrow="SOMETIMES"/>
+            </rowConstraints>
+            <Label text="a :" textOverrun="CLIP"/>
+            <Label text="c :" textOverrun="CLIP" GridPane.rowIndex="1"/>
+            <Label fx:id="label_a" text="Label" GridPane.columnIndex="1"/>
+            <Label fx:id="label_c" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            <Label fx:id="label_b" text="Label" GridPane.columnIndex="3"/>
+            <Label fx:id="label_d" text="Label" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+            <Label text="b :" textOverrun="CLIP" GridPane.columnIndex="2"/>
+            <Label text="d :" textOverrun="CLIP" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+         </GridPane>
+      </HBox>
+   </VBox>
 </HBox>

@@ -14,6 +14,9 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.converter.DoubleStringConverter;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -46,11 +49,32 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         @Override
         public Double fromString(String s) {
 
-            if (s==null || !isDouble(s))
+            if (s==null)
                 return null ;
 
-            return super.fromString(s);
+            String s_propre = s.replaceAll("\\s", "").replace(',','.') ;
+
+            if (!isDouble(s_propre))
+                return null ;
+
+            return super.fromString(s_propre);
+//            return super.fromString(s);
         }
+
+        @Override
+        public String toString(Double val) {
+
+            DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.ROOT);
+            // Forçage du séparateur décimal "." (pour être cohérent avec les autres affichages de nombre)
+            symbols.setDecimalSeparator('.');
+
+            DecimalFormat df = new DecimalFormat("0.000",symbols);
+
+            if (val==null)
+                return "-";
+            return df.format(val) ;
+        }
+
     }
 
 
@@ -477,6 +501,7 @@ public class PanneauAnalyseParaxialeSystemeOptiqueCentre {
         col_r_courbure.textProperty().bind(affiche_label_r_courbure);
 
         col_r_courbure.setCellValueFactory(p -> p.getValue().rayonCourbureProperty());
+        col_r_courbure.setCellFactory(TextFieldTableCell.forTableColumn(new DoubleStringConverterSansException()));
 
         StringBinding affiche_label_r_diaphragme = new StringBinding() {
             { super.bind(canvas.environnement().uniteProperty()) ;}
