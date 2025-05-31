@@ -19,6 +19,7 @@ public class BaseObstacleCompositeAvecContourEtMatiere extends BaseObstacleCompo
     BaseObstacleCompositeAvecContourEtMatiere(Imp_Identifiable ii, Imp_Nommable in, Imp_ElementComposite ic, Imp_ElementAvecContour iac,Imp_ElementAvecMatiere iam) {
         super(ii, in, ic, iac);
         this.imp_elementAvecMatiere = iam ;
+        this.imp_elementAvecMatiere.ajouterListeners(this) ;
     }
 
     public Color couleurMatiere() { return imp_elementAvecMatiere.couleurMatiere(); }

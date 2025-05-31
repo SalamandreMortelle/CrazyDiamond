@@ -14,7 +14,6 @@ public abstract class BaseObstacleAvecContour extends BaseObstacle {
         super(nom);
         this.imp_elementAvecContour = new Imp_ElementAvecContour(couleur_contour) ;
         this.imp_elementAvecContour.ajouterListeners(this) ;
-//        this.imp_elementAvecContour = new Imp_ElementAvecContour(null) ;
     }
 
     BaseObstacleAvecContour(Imp_Identifiable ii, Imp_Nommable in, Imp_ElementAvecContour iac) {
