@@ -394,4 +394,13 @@ public class Imp_ElementComposite {
     public boolean estALaRacine(Obstacle o) {
         return elements.contains(o) ;
     }
+
+    public boolean estReflechissant() {
+        for (Obstacle o : elements) {
+            if (o.estReflechissant())
+                return true;
+        }
+
+        return false ;
+    }
 }

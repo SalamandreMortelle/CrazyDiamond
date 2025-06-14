@@ -94,7 +94,7 @@ public class PanneauSegment {
 
         hbox_positionnement_relatif_dans_socController.initialize(canvas,segment);
 
-        UtilitairesVue.gererAppartenanceSOC(segment,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
+        UtilitairesVue.gererAppartenanceSOC(segment,baseContourController,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
 
         UtilitairesVue.gererAppartenanceComposition(dans_composition,segment,baseContour,baseContourController,null,null) ;
 

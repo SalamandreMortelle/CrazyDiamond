@@ -78,7 +78,7 @@ public class PanneauDemiPlan {
 
         hbox_positionnement_relatif_dans_socController.initialize(canvas,demi_plan);
 
-        UtilitairesVue.gererAppartenanceSOC(demi_plan,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
+        UtilitairesVue.gererAppartenanceSOC(demi_plan,baseContourController,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
 
         UtilitairesVue.gererAppartenanceComposition(dans_composition,demi_plan,baseContour,baseContourController,baseMatiere,baseMatiereController) ;
 

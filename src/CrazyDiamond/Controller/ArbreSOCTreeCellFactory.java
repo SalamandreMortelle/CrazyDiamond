@@ -153,7 +153,10 @@ public class ArbreSOCTreeCellFactory implements Callback<TreeView<ElementDeSOC>,
             else if (environnement.systemesOptiquesCentre((Integer) db.getContent(CrazyDiamond.FORMAT_SOC)).SOCParent()==null)
                 return; // On ne peut pas déplacer à la racine un SOC qui s'y trouve déjà
         }
+
+        // Le transfert ici est possible
         event.acceptTransferModes(TransferMode.MOVE);
+
         if (!Objects.equals(dropZone, treeCell)) { // Si on change de zone de dépose
             clearDropLocation(); // On ne marque plus la précédente zone
 
@@ -238,10 +241,22 @@ public class ArbreSOCTreeCellFactory implements Callback<TreeView<ElementDeSOC>,
             treeCell.getTreeItem().setExpanded(true);
     }
 
-    private static boolean deposerElementPossible(Dragboard db, TreeCell<ElementDeSOC> cell_cible) {
+    private boolean deposerElementPossible(Dragboard db, TreeCell<ElementDeSOC> cell_cible) {
+
+        Obstacle dragged_obs = null ;
+        SystemeOptiqueCentre dragged_soc = null ;
+
+        if (db.hasContent(CrazyDiamond.FORMAT_OBSTACLE_ID))
+            dragged_obs = environnement.obstacle((String) db.getContent(CrazyDiamond.FORMAT_OBSTACLE_ID));
+        if (db.hasContent(CrazyDiamond.FORMAT_SOC))
+            dragged_soc = environnement.systemesOptiquesCentre((Integer) db.getContent(CrazyDiamond.FORMAT_SOC));
+
         return (db.hasContent(CrazyDiamond.FORMAT_OBSTACLE_ID) || db.hasContent(CrazyDiamond.FORMAT_SOC))
-                // On ne peut déposer que sur un SOC, si on dépose sur un élement
-                && (cell_cible.getItem() == null || cell_cible.getItem().estUnSOC())
+                // On ne peut déposer que sur un SOC, si on dépose sur un élement et il faut alors s'assurer de l'éligibilité
+                && (cell_cible.getItem() == null
+                    || (cell_cible.getItem().estUnSOC() && (cell_cible.getItem() instanceof SystemeOptiqueCentre soc)
+                                                             && ( (dragged_soc!=null && soc.estEligiblePourAjout(dragged_soc))
+                                                                  || (dragged_obs!=null&&soc.estEligiblePourAjout(dragged_obs))) ) )
                 // Dans une zone vide, on ne peut déplacer qu'un SOC (pour en faire un SOC de 1er niveau)
                 && (cell_cible.getItem() != null || db.hasContent(CrazyDiamond.FORMAT_SOC));
     }

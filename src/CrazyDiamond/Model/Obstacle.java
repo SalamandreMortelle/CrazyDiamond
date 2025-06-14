@@ -149,10 +149,10 @@ public interface Obstacle extends ElementDeSOC {
 
     default List<Obstacle> obstaclesFils() { return null ; }
 
-    default boolean estReflechissant() {
-        return (traitementSurface() == TraitementSurface.REFLECHISSANT
-                || ((traitementSurface() == TraitementSurface.PARTIELLEMENT_REFLECHISSANT) && (tauxReflexionSurface() > 0.5d))) ;
-    }
+    boolean estReflechissant() ;
+//    default boolean estReflechissant() {
+//        throw new UnsupportedOperationException("Cette méthode aurait dû être surchargée par la classe qui implémente l'interface Obstacle.");
+//    };
 
     /**
      * Recherche la première ou la dernière intersection du rayon r avec l'obstacle.

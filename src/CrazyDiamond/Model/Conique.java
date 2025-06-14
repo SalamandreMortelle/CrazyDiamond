@@ -1014,8 +1014,8 @@ public class Conique extends BaseObstacleAvecContourEtMatiere implements Obstacl
 
     @Override
     public void convertirDistances(double facteur_conversion) {
-        position_orientation.set(new PositionEtOrientation(foyer().multiply(facteur_conversion),orientation()));
         parametre.set(parametre()*facteur_conversion);
+        position_orientation.set(new PositionEtOrientation(foyer().multiply(facteur_conversion),orientation()));
     }
 
     @Override

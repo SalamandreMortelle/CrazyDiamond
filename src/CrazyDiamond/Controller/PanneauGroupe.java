@@ -60,7 +60,7 @@ public class PanneauGroupe {
 
         hbox_positionnement_relatif_dans_socController.initialize(canvas,groupe);
 
-        UtilitairesVue.gererAppartenanceSOC(groupe,vbox_panneau_racine,null, hbox_positionnement_relatif_dans_soc);
+        UtilitairesVue.gererAppartenanceSOC(groupe,null,vbox_panneau_racine,null, hbox_positionnement_relatif_dans_soc);
 
 
         choix_solidarisation.setSelected(groupe.elementsSolidaires());

@@ -562,8 +562,8 @@ public class Prisme extends BaseObstacleAvecContourEtMatiere implements Obstacle
 
     @Override
     public void convertirDistances(double facteur_conversion) {
-        position_orientation.set(new PositionEtOrientation(centre().multiply(facteur_conversion),orientation()));
         largeur_base.set(largeurBase()*facteur_conversion);
+        position_orientation.set(new PositionEtOrientation(centre().multiply(facteur_conversion),orientation()));
     }
 
     public enum BordPrisme {

@@ -1,11 +1,7 @@
 package CrazyDiamond.Controller;
 
-import CrazyDiamond.Model.ChangeListenerAvecGarde;
-import CrazyDiamond.Model.CommandeDefinirUnParametre;
-import CrazyDiamond.Model.ElementAvecContour;
-import CrazyDiamond.Model.TraitementSurface;
+import CrazyDiamond.Model.*;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.RadioButton;
@@ -29,11 +25,18 @@ public class PanneauElementAvecContour {
     public RadioButton choix_polarisant;
     public Slider slider_orientation_axe_polariseur;
 
+    ChangeListener<SystemeOptiqueCentre> change_listener_grand_parent ;
+
     @FXML
     private ColorPicker colorpicker_contour;
 
     public PanneauElementAvecContour() {
-
+        change_listener_grand_parent = (observableGrandParentSOC, oldGrandParentSOC, newGrandParentSOC) -> {
+            if (newGrandParentSOC!=null)
+                interdireChoixSurfaceReflechissante();
+            else
+                autoriserChoixSurfaceReflechissante();
+        } ;
     }
 
     public void initialize(ElementAvecContour element_avec_contour) {
@@ -75,10 +78,10 @@ public class PanneauElementAvecContour {
 
         slider_orientation_axe_polariseur.disableProperty().bind(choix_polarisant.selectedProperty().not());
 
-        slider_taux_reflexion_surface.setLabelFormatter(new StringConverter<Double>() {
+        slider_taux_reflexion_surface.setLabelFormatter(new StringConverter<>() {
             @Override
             public String toString(Double aDouble) {
-                return Math.round(100d*aDouble.doubleValue())+"%" ;
+                return Math.round(100d * aDouble) + "%";
             }
 
             @Override
@@ -107,6 +110,9 @@ public class PanneauElementAvecContour {
             if (newValue==choix_polarisant && element_avec_contour.traitementSurface()!= TraitementSurface.POLARISANT)
                 new CommandeDefinirUnParametre<>(element_avec_contour,TraitementSurface.POLARISANT,element_avec_contour::traitementSurface,element_avec_contour::definirTraitementSurface).executer();
         });
+
+
+
     }
 
     private void prendreEnCompteTraitementSurface(TraitementSurface ts) {
@@ -126,4 +132,23 @@ public class PanneauElementAvecContour {
     private void prendreEnCompteTauxReflexionSurface(Number tr) {
         slider_taux_reflexion_surface.valueProperty().set(tr.doubleValue());
     }
+
+    public void interdireChoixSurfaceReflechissante() {
+        choix_reflechissant.setDisable(true);
+        slider_taux_reflexion_surface.setMax(0.5);
+    }
+
+    public void autoriserChoixSurfaceReflechissante() {
+        choix_reflechissant.setDisable(false);
+        slider_taux_reflexion_surface.setMax(1.0);
+    }
+
+//    public void definirChangeListenerGrandParent(ChangeListener<SystemeOptiqueCentre> cl_grand_parent) {
+//        change_listener_grand_parent = cl_grand_parent ;
+//    }
+
+    public ChangeListener<SystemeOptiqueCentre> changeListenerGrandParent() {
+        return change_listener_grand_parent ;
+    }
+
 }

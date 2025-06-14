@@ -95,7 +95,7 @@ public class PanneauSystemeOptiqueCentre {
 
         hbox_positionnement_relatif_dans_socController.initialize(canvas,soc);
 
-        UtilitairesVue.gererAppartenanceSOC(soc,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
+        UtilitairesVue.gererAppartenanceSOC(soc,null,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
 
         // Prise en compte automatique de la position et de l'orientation
         soc.axeObjectProperty().addListener(new ChangeListenerAvecGarde<>(this::prendreEnComptePositionEtOrientation));

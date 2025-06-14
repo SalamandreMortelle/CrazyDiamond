@@ -723,9 +723,9 @@ public class Rectangle extends BaseObstacleAvecContourEtMatiere implements Obsta
 
     @Override
     public void convertirDistances(double facteur_conversion) {
-        position_orientation.set(new PositionEtOrientation(centre().multiply(facteur_conversion),orientation()));
         largeur.set(largeur()*facteur_conversion);
         hauteur.set(hauteur()*facteur_conversion);
+        position_orientation.set(new PositionEtOrientation(centre().multiply(facteur_conversion),orientation()));
     }
 
     Point2D direction() {

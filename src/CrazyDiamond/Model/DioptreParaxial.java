@@ -91,7 +91,6 @@ public class DioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
 
     }
 
-
     public boolean estConfonduAvec(DioptreParaxial d_autre) {
 
         if (!Environnement.quasiEgal(z(),d_autre.z()))
@@ -117,9 +116,9 @@ public class DioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
     }
     protected void fusionneAvecDioptreConfondu(DioptreParaxial d_autre_confondu) {
 
-        // NB : Cette métode n'est appelée que pour fusionner les dioptres d'une composition, qui ne peut ni contenir
+        // NB : Cette méthode n'est appelée que pour fusionner les dioptres d'une composition, qui ne peut ni contenir
         // d'obstacles sans épaisseur, ni donc d'obstacles avec une propriété (Property) diaphragme (puisque seul le
-        // segment, sans épaisseur, dispose d'une telle propréité)
+        // segment, sans épaisseur, dispose d'une telle propriété)
 
             if (rayonDiaphragme()==null && d_autre_confondu.rayonDiaphragme()!=null)
                 r_diaphragme.set(d_autre_confondu.rayonDiaphragme()); // On conserve le diaphragme qui n'est pas 'null'
@@ -135,8 +134,6 @@ public class DioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
                 indice_apres.set(d_autre_confondu.indiceApres());
 
     }
-
-
 
     public DioptreParaxial(double z_geometrique, Double r_courbure) { // Création d'un dioptre virtuel : seul sa position géométrique (Z et Rc) compte
         this(z_geometrique, r_courbure, 0.0, 0.0, null);
@@ -165,8 +162,6 @@ public class DioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
             // this.r_diaphragme = new SimpleObjectProperty<Double>(null);
             // this.obs_surface = new SimpleObjectProperty<Obstacle>(null);
         }
-
-
     }
 
     public void permuterIndicesAvantApres() {
@@ -265,7 +260,7 @@ public class DioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
 
 
     // Pré-condition (?) : dans liste_d les dioptres sont classés par ordre de profondeur : de l'arrière-plan vers l'avant plan
-    // comme la liste des obstacles_centres du SOC => Cette précondition n'est pas nécessaire s'il n'y a pas de dioptes confondus
+    // comme la liste des obstacles_centres du SOC => Cette précondition n'est pas nécessaire s'il n'y a pas de dioptres confondus
     // dans liste_d, ce qui est le cas (cf. appelant : les dioptres confondus ont tous été supprimés au fur et à mesure)
     static double captureIndiceAvant(List<DioptreParaxial> liste_d, DioptreParaxial d_limite) {
 
@@ -315,7 +310,7 @@ public class DioptreParaxial /* implements Comparable<DioptreParaxial>*/ {
      * le troisième est strictement après la limite
      * @param liste_d
      * @param d_cible
-     * @return
+     * @return les deux dioptres encadrant
      */
     private static DioptreParaxial[] dioptresEncadrant(List<DioptreParaxial> liste_d, DioptreParaxial d_cible) {
 

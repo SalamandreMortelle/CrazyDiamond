@@ -583,7 +583,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
             matrice_transfert_es.set(nouvelle_matrice_transfert);
 
-            declencherRappels(); ;
+            declencherRappels();
 
             return ;
 
@@ -631,7 +631,7 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
         System.out.println("FIN calcul Elements Cardinaux");
         matrice_transfert_es.set(nouvelle_matrice_transfert);
 
-        declencherRappels(); ;
+        declencherRappels();
 
     }
 
@@ -1302,8 +1302,8 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
             double h_image_cm = (h_image_precalcule > 0 ? 1d : -1d) * Math.abs(r_lucarne_sortie.get() * (z_pupille_sortie.get() - z_image_precalcule) / Math.abs((z_pupille_sortie.get() - z_lucarne_sortie.get())));
 
             if (!r_champ_moyen_image.get().isNaN() && !Environnement.quasiEgal(Math.abs(h_image_cm),Math.abs(r_champ_moyen_image.get())))
-                    LOGGER.log(Level.SEVERE,"La hauteur absolue du champ moyen n'est pas le même selon la méthode : " +
-                            "{0} pour l''une contre {1} pour l''autre", new Double[]{h_image_cm, r_champ_moyen_image.get()});
+                    LOGGER.log(Level.SEVERE,"La hauteur absolue du champ moyen n''est pas la même selon la méthode : " +
+                            "{0} pour l''une contre {1} pour l''autre", new Object[]{h_image_cm, r_champ_moyen_image.get()});
         }
 
 
@@ -2218,11 +2218,14 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
 
     public boolean estEligiblePourAjout(Obstacle o) {
+
         return (o.aSymetrieDeRevolution() //&& !this.comprend(o)
                 //&& environnement.systemeOptiqueCentreContenant(o) == null
                 && !o.appartientASystemeOptiqueCentre()
                 && (o.parent() instanceof Groupe grp && grp.parent()==null) // Obstacle doit être à la racine (pas un sous-groupe ni une sous-composition, ni un élément de ceux-ci)
 // redondant avec !this.comprend(o) :      && (!elements_centres.contains(o)) // L'élément o ne doit pas faire déjà partie des elements_centres
+                && !(SOCParent()!=null && o.estReflechissant()) // Un obstacle réfléchissant ne peut pas appartenir à un sous-SOC
+                                                                                                     // (sinon impossible de construire l'axe avec ses renvois s'il est ignoré à "l'aller" de la lumièrer et non ignoré à son retoure
                 ) ;
     }
 
@@ -2250,7 +2253,21 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
             if (ancetre==dragged_soc)
                 return false ;
 
+        // Un sous-SOC ne peut pas être réfléchissant (sinon, on ne pourra pas définir les renvois d'axe du SOC racine)
+        if (dragged_soc.estReflechissant())
+            return false ;
+
         return true;
+    }
+
+    public boolean estReflechissant() {
+
+        // Recherche recursive dans tous les sous-éléments du SOC
+        for (ElementDeSOC e : elements_centres) {
+            if (e.estReflechissant())
+                return true ;
+        }
+        return false;
     }
 
     @Override

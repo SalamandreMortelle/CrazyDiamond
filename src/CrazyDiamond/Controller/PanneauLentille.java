@@ -138,7 +138,7 @@ public class PanneauLentille {
 
         hbox_positionnement_relatif_dans_socController.initialize(canvas,lentille);
 
-        UtilitairesVue.gererAppartenanceSOC(lentille,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
+        UtilitairesVue.gererAppartenanceSOC(lentille,baseContourController,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
 
         UtilitairesVue.gererAppartenanceComposition(dans_composition,lentille,baseContour,baseContourController,baseMatiere,baseMatiereController) ;
 

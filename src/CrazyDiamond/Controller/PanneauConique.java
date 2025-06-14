@@ -85,7 +85,7 @@ public class PanneauConique  {
 
         hbox_positionnement_relatif_dans_socController.initialize(canvas,conique);
 
-        UtilitairesVue.gererAppartenanceSOC(conique,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
+        UtilitairesVue.gererAppartenanceSOC(conique,baseContourController,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
 
         UtilitairesVue.gererAppartenanceComposition(dans_composition,conique,baseContour,baseContourController,baseMatiere,baseMatiereController) ;
 

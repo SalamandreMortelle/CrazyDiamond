@@ -31,4 +31,9 @@ public interface ElementAvecContour {
 //    void ajouterRappelSurChangementToutePropriete(Object cle_observateur,RappelSurChangement rap) ;
 //    void ajouterRappelSurChangementTouteProprieteModifiantChemin(Object cle_observateur,RappelSurChangement rap) ;
 
+//    default boolean estReflechissant() {
+//        return traitementSurface() == TraitementSurface.REFLECHISSANT
+//               || (traitementSurface() == TraitementSurface.PARTIELLEMENT_REFLECHISSANT && tauxReflexionSurface() > 0.5d)  ;
+//    }
+
 }

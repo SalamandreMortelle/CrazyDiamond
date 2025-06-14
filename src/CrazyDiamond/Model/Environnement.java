@@ -891,6 +891,16 @@ public class Environnement {
     }
     private void convertirDistances(double facteur_conversion) {
 
+        // On commence par convertir les distances das SOC car on veut que les Panneaux qui affichent le positionnement
+        // en Z relatif dans le SOC recalculent tout seuls le nouveau Z quand les tailles et les positions des obstacles
+        // seront redéfinis juste après. Or le nouveau Z relatif se calcul à partir de la position du SOC parent : il
+        // faut donc qu'il soit bien positionné avant la conversion des distances des obstacles.
+        for (SystemeOptiqueCentre soc : systemesOptiquesCentresPremierNiveau())
+            // Chaque SOC propage la conversion de distances à ses sous-SOC, on peut donc se contenter de parcourir les
+            // SOC de 1er niveau
+            soc.convertirDistances(facteur_conversion);
+
+
         // TODO : vu que chaque obstacle Composite propage la conversion à ses sous-obstacles, on doit pouvoir se
         //  contenter d'appeler :
         //  groupeRacine().convertirDistances(facteur_conversion) ;
@@ -900,10 +910,7 @@ public class Environnement {
         for (Source s : sources)
             s.convertirDistances(facteur_conversion);
 
-        for (SystemeOptiqueCentre soc : systemesOptiquesCentresPremierNiveau())
-            // Chaque SOC propage la conversion de distances à ses sous-SOC, on peut donc se contenter de parcourir les
-            // SOC de 1er niveau
-            soc.convertirDistances(facteur_conversion);
+
 
         Commande.convertirDistancesHistoriques(facteur_conversion) ;
     }

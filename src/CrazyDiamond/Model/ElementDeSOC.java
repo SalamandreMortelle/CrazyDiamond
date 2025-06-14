@@ -41,6 +41,8 @@ public interface ElementDeSOC extends /*Identifiable,*/Nommable {
     default boolean comprend(ElementDeSOC el) { return comprend((Obstacle)el) ; }
     boolean comprend(Obstacle o) ;
 
+    boolean estReflechissant() ;
+
     default void accepte(VisiteurEnvironnement v) { } // Ne fait rien pour les Obstacles / surchargé pour les SOC
 
     default boolean estUnSOC() { return false ; }

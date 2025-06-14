@@ -42,4 +42,10 @@ public abstract class BaseObstacleAvecContour extends BaseObstacle {
         consumer.accept(imp_elementAvecContour);
     }
 
+    public boolean estReflechissant() {
+        return traitementSurface() == TraitementSurface.REFLECHISSANT
+                || (traitementSurface() == TraitementSurface.PARTIELLEMENT_REFLECHISSANT && tauxReflexionSurface() > 0.5d)  ;
+
+    }
+
 }

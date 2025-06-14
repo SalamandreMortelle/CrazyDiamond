@@ -80,7 +80,7 @@ public class PanneauRectangle {
 
         hbox_positionnement_relatif_dans_socController.initialize(canvas,rectangle);
 
-        UtilitairesVue.gererAppartenanceSOC(rectangle,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
+        UtilitairesVue.gererAppartenanceSOC(rectangle,baseContourController,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
 
         UtilitairesVue.gererAppartenanceComposition(dans_composition,rectangle,baseContour,baseContourController,baseMatiere,baseMatiereController) ;
 //        if (!dans_composition) {

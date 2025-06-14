@@ -159,8 +159,11 @@ public class Cercle extends BaseObstacleAvecContourEtMatiere implements Obstacle
 
     @Override
     public void convertirDistances(double facteur_conversion) {
-        definirCentre( centre().multiply(facteur_conversion) ) ;
-        definirRayon( rayon()*facteur_conversion);
+//        definirCentre( centre().multiply(facteur_conversion) ) ;
+//        definirRayon( rayon()*facteur_conversion);
+
+        this.rayon.set(rayon()*facteur_conversion);
+        this.centre.set(centre().multiply(facteur_conversion));
     }
 
     @Override
@@ -170,7 +173,8 @@ public class Cercle extends BaseObstacleAvecContourEtMatiere implements Obstacle
 
     @Override
     public void definirPointDeReferencePourPositionnementDansSOCParent(Point2D pt_ref) {
-        definirCentre(pt_ref.add(SOCParent().direction().multiply(rayon())));
+        if (SOCParent()!=null)
+            definirCentre(pt_ref.add(SOCParent().direction().multiply(rayon())));
     }
 
     @Override

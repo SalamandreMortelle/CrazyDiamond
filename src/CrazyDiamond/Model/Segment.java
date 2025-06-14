@@ -388,8 +388,6 @@ public class Segment extends BaseObstacleAvecContourSansEpaisseur implements Obs
     @Override
     public void convertirDistances(double facteur_conversion) {
 
-        position_orientation.set(new PositionEtOrientation(centre().multiply(facteur_conversion),orientation()));
-
         if (facteur_conversion>=1) {
             longueur.set(longueur()*facteur_conversion);
             rayon_diaphragme.set(rayonDiaphragme()*facteur_conversion);
@@ -397,6 +395,8 @@ public class Segment extends BaseObstacleAvecContourSansEpaisseur implements Obs
             rayon_diaphragme.set(rayonDiaphragme()*facteur_conversion);
             longueur.set(longueur()*facteur_conversion);
         }
+
+        position_orientation.set(new PositionEtOrientation(centre().multiply(facteur_conversion),orientation()));
     }
 
     @Override

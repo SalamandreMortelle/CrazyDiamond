@@ -82,7 +82,7 @@ public class PanneauComposition {
 
         hbox_positionnement_relatif_dans_socController.initialize(canvas,composition);
 
-        UtilitairesVue.gererAppartenanceSOC(composition,vbox_panneau_racine,null, hbox_positionnement_relatif_dans_soc);
+        UtilitairesVue.gererAppartenanceSOC(composition,baseContourController,vbox_panneau_racine,null, hbox_positionnement_relatif_dans_soc);
 
         UtilitairesVue.gererAppartenanceComposition(dans_composition,composition,baseContour,baseContourController,baseMatiere,baseMatiereController) ;
 

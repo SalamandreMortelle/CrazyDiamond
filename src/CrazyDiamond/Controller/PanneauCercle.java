@@ -88,7 +88,7 @@ public class PanneauCercle  {
 //        }
 
 
-        UtilitairesVue.gererAppartenanceSOC(cercle,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
+        UtilitairesVue.gererAppartenanceSOC(cercle,baseContourController ,vbox_panneau_racine,vbox_positionnement_absolu, hbox_positionnement_relatif_dans_soc);
 
         UtilitairesVue.gererAppartenanceComposition(dans_composition,cercle,baseContour,baseContourController,baseMatiere,baseMatiereController) ;
 

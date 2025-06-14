@@ -867,10 +867,12 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
         return Math.min(0.5d*diametre.get(),Math.min(formeFace1()==SPHERIQUE?rayon1():parametre1(),formeFace2()==SPHERIQUE?rayon2():parametre2()));
     }
 
-    @Override
-    public boolean estReflechissant() {
-        return composition.estReflechissant();
-    }
+//   INUTILE : l'implémentation par défaut de  cette méthode dans ElementAvecContour n'utilise que les propriétés traitementSurface
+//   et tauxReflexionSurface qui sont liées (par un binding) à ces mêmes propriétés dans la composition.
+//    @Override
+//    public boolean estReflechissant() {
+//        return composition.estReflechissant();
+//    }
 
     @Override
     public Point2D cherche_intersection(Rayon r, ModeRecherche mode) {
@@ -992,7 +994,6 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
 
     @Override
     public void convertirDistances(double facteur_conversion) {
-        position_orientation.set(new PositionEtOrientation(centre().multiply(facteur_conversion),orientation()));
         epaisseur.set(epaisseur()*facteur_conversion);
         diametre.set(diametre()*facteur_conversion);
 
@@ -1004,6 +1005,8 @@ public class Lentille extends BaseObstacleAvecContourEtMatiere  implements Obsta
         parametre_1.set(parametre1()*facteur_conversion);
         if (parametre2()==parametre_2_init) // Si le binding des faces symétriques n'a pas déjà mis à jour paramètre 2, faisons-le
             parametre_2.set(parametre2()*facteur_conversion);
+
+        position_orientation.set(new PositionEtOrientation(centre().multiply(facteur_conversion),orientation()));
     }
 
     @Override

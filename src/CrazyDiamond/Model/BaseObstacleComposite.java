@@ -103,6 +103,7 @@ public abstract class BaseObstacleComposite extends BaseObstacle {
     public void translaterParCommande(Point2D vecteur) {imp_elementComposite.translaterParCommande(vecteur);}
 
     public boolean aSymetrieDeRevolution() { return imp_elementComposite.aSymetrieDeRevolution(); }
+    public boolean estReflechissant() { return imp_elementComposite.estReflechissant(); }
 
     public Point2D pointSurAxeRevolution() {return imp_elementComposite.pointSurAxeRevolution();}
 
