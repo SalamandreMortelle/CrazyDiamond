@@ -2316,6 +2316,9 @@ public class SystemeOptiqueCentre extends BaseElementNommable implements Nommabl
 
     public void ajouterSystemeOptiqueCentre(SystemeOptiqueCentre soc) {
 
+        if (soc.estReflechissant())
+            throw new IllegalStateException("Un obstacle réfléchissant ne peut pas faire partie d'un sous SOC.");
+
         positionnerElement(soc);
 
         // Les SOC sont toujours positionnés après les obstacles, donc à la fin de la liste des éléments centrés
